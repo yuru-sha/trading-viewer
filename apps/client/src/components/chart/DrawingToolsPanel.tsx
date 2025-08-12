@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { api } from '../../lib/apiClient'
+// Test regular icons from lucide-react
+import { Target, Plus } from 'lucide-react'
 
 export interface DrawingTool {
   id: string
@@ -68,12 +70,7 @@ export const drawingTools: DrawingTool[] = [
     id: 'fibonacci',
     name: 'Fibonacci Retracement',
     type: 'fibonacci',
-    icon: (
-      <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 12h18m-9-9v18' />
-        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1} d='M6 6l12 12M6 18L18 6' />
-      </svg>
-    ),
+    icon: <Target className='w-4 h-4' />,
   },
   {
     id: 'arrow',
