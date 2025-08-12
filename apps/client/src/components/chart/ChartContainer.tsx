@@ -2,11 +2,12 @@ import React, { useState, useCallback, forwardRef, useImperativeHandle } from 'r
 import { Loading } from '@trading-viewer/ui'
 import EChartsTradingChart from './EChartsTradingChart'
 import LeftDrawingToolbar from './LeftDrawingToolbar'
+import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
 import useDrawingTools from '../../hooks/useDrawingTools'
-import { DrawingTool, drawingTools } from './DrawingToolsPanel'
+import { DrawingTool } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
-import { ChartObject } from './ObjectsList'
+import { DrawingObject } from './DrawingObjectsPanel'
 
 interface TechnicalIndicators {
   sma?: { enabled: boolean; periods: number[] }
@@ -78,13 +79,14 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
   }), [])
 
   // Chart objects state (Price Chart is excluded from objects list as it's always the main chart)
-  const [chartObjects, setChartObjects] = useState<ChartObject[]>([
+  const [chartObjects, setChartObjects] = useState<DrawingObject[]>([
     {
       id: 'volume',
       name: 'Volume',
-      type: 'volume',
+      type: 'vertical', // Temporary type for volume, should be adjusted based on actual needs
       visible: settings.showVolume,
       color: '#6366f1',
+      createdAt: Date.now(),
     },
   ])
 
@@ -99,6 +101,40 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
   const handleRemoveObject = useCallback((id: string) => {
     setChartObjects(prev => prev.filter(obj => obj.id !== id))
   }, [])
+
+  // Handle drawing tool context menu actions
+  const handleChangeDrawingToolColor = useCallback((toolId: string, color: string) => {
+    console.log('🎯 Changing drawing tool color:', toolId, color)
+    const tool = drawingTools.getTool(toolId)
+    if (tool) {
+      drawingTools.updateTool(toolId, { 
+        style: { 
+          ...tool.style, 
+          color 
+        } 
+      })
+    }
+  }, [drawingTools])
+
+  const handleToggleDrawingToolVisibility = useCallback((toolId: string) => {
+    console.log('🎯 Toggling drawing tool visibility:', toolId)
+    const tool = drawingTools.getTool(toolId)
+    if (tool) {
+      drawingTools.updateTool(toolId, { visible: !(tool.visible ?? true) })
+    }
+  }, [drawingTools])
+
+  const handleDeleteDrawingTool = useCallback((toolId: string) => {
+    console.log('🎯 Deleting drawing tool:', toolId)
+    drawingTools.deleteTool(toolId)
+    drawingTools.hideContextMenu()
+  }, [drawingTools])
+
+  const handleDuplicateDrawingTool = useCallback((toolId: string) => {
+    console.log('🎯 Duplicating drawing tool:', toolId)
+    drawingTools.duplicateTool(toolId)
+    drawingTools.hideContextMenu()
+  }, [drawingTools])
 
   if (isLoading && !data.length) {
     return (
@@ -199,6 +235,19 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
         <div className='absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center'>
           <Loading size='lg' text='Updating chart data...' />
         </div>
+      )}
+
+      {/* Drawing Context Menu */}
+      {drawingTools.contextMenu.isVisible && drawingTools.contextMenu.targetToolId && (
+        <DrawingContextMenu
+          x={drawingTools.contextMenu.x}
+          y={drawingTools.contextMenu.y}
+          tool={drawingTools.getTool(drawingTools.contextMenu.targetToolId)!}
+          onClose={drawingTools.hideContextMenu}
+          onChangeColor={(color) => handleChangeDrawingToolColor(drawingTools.contextMenu.targetToolId!, color)}
+          onDelete={() => handleDeleteDrawingTool(drawingTools.contextMenu.targetToolId!)}
+          onDuplicate={() => handleDuplicateDrawingTool(drawingTools.contextMenu.targetToolId!)}
+        />
       )}
     </div>
   )

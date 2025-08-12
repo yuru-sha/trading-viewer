@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
-import ObjectsList, { ChartObject } from './ObjectsList'
+import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
 import { Icon } from 'lucide-react'
 import { crosshairPlus } from '@lucide/lab'
 
 interface LeftDrawingToolbarProps {
   activeTool: DrawingToolType | null
   onToolSelect: (toolType: DrawingToolType | null) => void
-  objects?: ChartObject[]
+  objects?: DrawingObject[]
   onToggleObjectVisibility?: (id: string) => void
   onRemoveObject?: (id: string) => void
+  onChangeObjectColor?: (id: string, color: string) => void
   className?: string
 }
 
@@ -20,6 +21,7 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
   objects = [],
   onToggleObjectVisibility,
   onRemoveObject,
+  onChangeObjectColor,
   className = '',
 }) => {
   const [showObjectsList, setShowObjectsList] = useState(false)
@@ -98,14 +100,15 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
           </svg>
         </button>
 
-        {/* Objects List Dropdown */}
+        {/* Drawing Objects List Dropdown */}
         {showObjectsList && (
           <div className='absolute left-full bottom-0 ml-2 z-50'>
-            <ObjectsList
+            <DrawingObjectsPanel
               objects={objects}
               onToggleVisibility={onToggleObjectVisibility || (() => {})}
               onRemove={onRemoveObject || (() => {})}
-              className='w-64'
+              onChangeColor={onChangeObjectColor || (() => {})}
+              className='w-72'
             />
           </div>
         )}

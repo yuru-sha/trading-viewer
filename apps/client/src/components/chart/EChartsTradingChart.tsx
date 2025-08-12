@@ -216,6 +216,9 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
         const chart = chartInstance.chartRef.current.getEchartsInstance()
         if (!chart) return
 
+        // 選択中のツールかどうか判定
+        const isSelected = drawingTools?.selectedToolId === tool.id
+
         try {
           // Trendline の処理
           if (tool.type === 'trendline' && tool.points && tool.points.length >= 2) {
@@ -226,6 +229,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
 
             if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              // メインのライン
               elements.push({
                 type: 'line',
                 id: tool.id,
@@ -237,11 +241,52 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                 },
                 style: {
                   stroke: tool.style?.color || '#3b82f6',
-                  lineWidth: tool.style?.thickness || 2,
+                  lineWidth: isSelected ? (tool.style?.thickness || 2) + 2 : (tool.style?.thickness || 2),
                   opacity: tool.style?.opacity || 1,
+                  shadowBlur: isSelected ? 8 : 0,
+                  shadowColor: tool.style?.color || '#3b82f6',
                 },
-                z: 100,
+                z: isSelected ? 150 : 100,
               })
+
+              // 選択中の場合、端点にハンドルを表示
+              if (isSelected) {
+                // 始点ハンドル
+                elements.push({
+                  type: 'circle',
+                  id: `${tool.id}_handle_start`,
+                  shape: {
+                    cx: startPixel[0],
+                    cy: startPixel[1],
+                    r: 6,
+                  },
+                  style: {
+                    fill: '#ffffff',
+                    stroke: tool.style?.color || '#3b82f6',
+                    lineWidth: 2,
+                  },
+                  z: 151,
+                  cursor: 'move',
+                })
+
+                // 終点ハンドル
+                elements.push({
+                  type: 'circle',
+                  id: `${tool.id}_handle_end`,
+                  shape: {
+                    cx: endPixel[0],
+                    cy: endPixel[1],
+                    r: 6,
+                  },
+                  style: {
+                    fill: '#ffffff',
+                    stroke: tool.style?.color || '#3b82f6',
+                    lineWidth: 2,
+                  },
+                  z: 151,
+                  cursor: 'move',
+                })
+              }
             }
           }
           

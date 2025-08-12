@@ -2,12 +2,14 @@
 export { useDrawingState, type DrawingState, type DrawingAction, initialState, drawingReducer } from './useDrawingState'
 export { useDrawingActions } from './useDrawingActions'
 export { useDrawingToolManagement } from './useDrawingToolManagement'
+export { useDrawingContextMenu, type ContextMenuState } from './useDrawingContextMenu'
 
 // Main drawing tools hook - composed from separated concerns
 import { useEffect } from 'react'
 import { useDrawingState } from './useDrawingState'
 import { useDrawingActions } from './useDrawingActions'
 import { useDrawingToolManagement } from './useDrawingToolManagement'
+import { useDrawingContextMenu } from './useDrawingContextMenu'
 
 /**
  * Refactored useDrawingTools - now composed from separated concerns
@@ -56,6 +58,12 @@ export const useDrawingTools = () => {
     batchDeleteTools,
     getToolStatistics,
   } = useDrawingToolManagement(state, dispatch)
+
+  const {
+    contextMenu,
+    showContextMenu,
+    hideContextMenu,
+  } = useDrawingContextMenu()
 
   // Debug logging for state changes
   useEffect(() => {
@@ -123,6 +131,11 @@ export const useDrawingTools = () => {
     isInEditingMode,
     canDraw,
     toolCount,
+
+    // Context menu
+    contextMenu,
+    showContextMenu,
+    hideContextMenu,
   }
 }
 

@@ -38,16 +38,65 @@ export const useChartEvents = (
         return
       }
 
-      if (!currentTools.canDraw) {
-        console.log('🎯 Cannot draw - no active tool selected')
-        return
-      }
-
+      // まず、クリックがライン上かどうかをチェック（選択処理）
       const dataPoint = chartInstance.convertPixelToData(
         params.offsetX,
         params.offsetY,
         config.data
       )
+      if (dataPoint) {
+        // 描画済みツールから、クリック位置に近いものを探す
+        const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
+          if (!tool.points || tool.points.length < 2) {
+            return false
+          }
+
+          const tolerance = 10 // pixels
+          const chart = chartInstance.chartRef.current?.getEchartsInstance()
+          if (!chart) return false
+
+          try {
+            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+
+            const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
+            const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
+
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              const distance = distanceFromPointToLine(
+                params.offsetX,
+                params.offsetY,
+                startPixel[0],
+                startPixel[1],
+                endPixel[0],
+                endPixel[1]
+              )
+              return distance <= tolerance
+            }
+          } catch (error) {
+            console.error('🎯 Error checking tool click:', error)
+          }
+          return false
+        })
+
+        if (clickedTool) {
+          console.log('🎯 Tool selected:', clickedTool.id)
+          currentTools.selectTool(clickedTool.id)
+          return // ツールが選択された場合は、新規描画を開始しない
+        } else {
+          // ツール以外の場所をクリックしたら選択解除
+          if (currentTools.selectedToolId) {
+            currentTools.selectTool(null)
+          }
+        }
+      }
+
+      if (!currentTools.canDraw) {
+        console.log('🎯 Cannot draw - no active tool selected')
+        return
+      }
+
+      // dataPointは既に上で取得済みなので、再度チェックするだけ
       if (!dataPoint) {
         return
       }
@@ -172,9 +221,9 @@ export const useChartEvents = (
         return
       }
 
-      // Find if clicking on a trendline
-      const clickedTool = currentTools.visibleTools?.find((tool: any) => {
-        if (tool.type !== 'trendline' || !tool.points || tool.points.length < 2) {
+      // Find if clicking on a drawing tool
+      const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
+        if (!tool.points || tool.points.length < 2) {
           return false
         }
 
@@ -209,8 +258,8 @@ export const useChartEvents = (
       })
 
       if (clickedTool) {
-        console.log('🎯 Right-clicked on trendline:', clickedTool.id)
-        // Show context menu for the trendline
+        console.log('🎯 Right-clicked on drawing tool:', clickedTool.id)
+        // Show context menu for the drawing tool
         currentTools.showContextMenu?.(clickedTool.id, params.offsetX, params.offsetY)
       }
     },
