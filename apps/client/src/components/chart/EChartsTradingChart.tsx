@@ -93,7 +93,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
       const currentTool = drawingTools.currentDrawing
 
       if (
-        currentTool.type === 'trendline' &&
+        (currentTool.type === 'trendline' || currentTool.type === 'fibonacci') &&
         currentTool.points &&
         currentTool.points.length >= 1
       ) {
@@ -133,22 +133,75 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
             const endPixel = chart.convertToPixel('grid', [endDataIndex, endPoint.price])
 
             if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
-              elements.push({
-                type: 'line',
-                id: `${currentTool.id}_preview`,
-                shape: {
-                  x1: startPixel[0],
-                  y1: startPixel[1],
-                  x2: endPixel[0],
-                  y2: endPixel[1],
-                },
-                style: {
-                  stroke: '#ff6b35',
-                  lineWidth: 5,
-                  opacity: 1,
-                  lineDash: null,
-                },
-              })
+              
+              // Trendline プレビュー
+              if (currentTool.type === 'trendline') {
+                elements.push({
+                  type: 'line',
+                  id: `${currentTool.id}_preview`,
+                  shape: {
+                    x1: startPixel[0],
+                    y1: startPixel[1],
+                    x2: endPixel[0],
+                    y2: endPixel[1],
+                  },
+                  style: {
+                    stroke: '#ff6b35',
+                    lineWidth: 5,
+                    opacity: 1,
+                    lineDash: null,
+                  },
+                })
+              }
+              
+              // Fibonacci プレビュー（フィボナッチレベルを表示）
+              else if (currentTool.type === 'fibonacci') {
+                const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+                const startPrice = startPoint.price
+                const endPrice = endPoint.price
+                const priceRange = endPrice - startPrice
+                
+                // 始点から終点+20% の範囲でプレビューライン制限
+                const previewStartX = Math.min(startPixel[0], endPixel[0])
+                const previewEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
+                
+                fibLevels.forEach((level, index) => {
+                  const levelPrice = startPrice + (priceRange * level)
+                  const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+                  
+                  if (levelPixel && Array.isArray(levelPixel)) {
+                    // プレビューのフィボナッチレベル線
+                    elements.push({
+                      type: 'line',
+                      id: `${currentTool.id}_preview_fib_${level}`,
+                      shape: {
+                        x1: previewStartX,
+                        y1: levelPixel[1],
+                        x2: previewEndX,
+                        y2: levelPixel[1],
+                      },
+                      style: {
+                        stroke: '#ff6b35',
+                        lineWidth: index === 0 || index === fibLevels.length - 1 ? 3 : 1,
+                        opacity: 0.7,
+                        lineDash: index === 3 ? [] : [2, 2],
+                      },
+                    })
+                    
+                    // プレビューのラベル
+                    elements.push({
+                      type: 'text',
+                      id: `${currentTool.id}_preview_label_${level}`,
+                      position: [previewEndX - 5, levelPixel[1] - 8],
+                      style: {
+                        text: `${(level * 100).toFixed(1)}%`,
+                        fontSize: 9,
+                        fill: '#ff6b35',
+                      },
+                    })
+                  }
+                })
+              }
             }
           }
         } catch (error) {
@@ -272,35 +325,34 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                 const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
                 
                 if (levelPixel && Array.isArray(levelPixel)) {
-                  // グリッドの左右端を取得
-                  const gridRect = chart.getModel().getComponent('grid', 0).coordinateSystem.getRect()
-                  const leftPixel = gridRect.x
-                  const rightPixel = gridRect.x + gridRect.width
+                  // 始点から終点+20% の範囲でラインを制限（ごちゃごちゃしないように）
+                  const lineStartX = Math.min(startPixel[0], endPixel[0])
+                  const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
                   
-                  // レベル線を描画
+                  // レベル線を描画（制限された範囲で）
                   elements.push({
                     type: 'line',
                     id: `${tool.id}_fib_${level}`,
                     shape: {
-                      x1: leftPixel,
+                      x1: lineStartX,
                       y1: levelPixel[1],
-                      x2: rightPixel,
+                      x2: lineEndX,
                       y2: levelPixel[1],
                     },
                     style: {
                       stroke: tool.style?.color || '#f59e0b',
-                      lineWidth: index === 0 || index === fibLevels.length - 1 ? 2 : 1, // 0%と100%は太く
+                      lineWidth: index === 0 || index === fibLevels.length - 1 ? 2 : 1, // 0% と 100% は太く
                       opacity: tool.style?.opacity || 0.8,
-                      lineDash: index === 3 ? [] : [4, 4], // 50%レベルは実線、他は破線
+                      lineDash: index === 3 ? [] : [4, 4], // 50% レベルは実線、他は破線
                     },
                     z: 100,
                   })
 
-                  // レベルラベルを表示
+                  // レベルラベルを表示（ライン終端近くに配置）
                   elements.push({
                     type: 'text',
                     id: `${tool.id}_fib_label_${level}`,
-                    position: [rightPixel - 60, levelPixel[1] - 8],
+                    position: [lineEndX - 5, levelPixel[1] - 8],
                     style: {
                       text: `${(level * 100).toFixed(1)}% (${levelPrice.toFixed(2)})`,
                       fontSize: 10,
