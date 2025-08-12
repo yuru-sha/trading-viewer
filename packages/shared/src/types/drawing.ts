@@ -7,8 +7,7 @@ export type DrawingToolType =
   | 'trendline'
   | 'horizontal'
   | 'vertical'
-  | 'rectangle'
-  | 'circle'
+  | 'fibonacci'
   | 'arrow'
   | 'text'
 
@@ -105,6 +104,13 @@ export const DRAWING_PRESETS = {
     thickness: 2,
     opacity: 0.8,
     dashPattern: undefined,
+  } as DrawingStyle,
+
+  fibonacci: {
+    color: '#f59e0b',
+    thickness: 1,
+    opacity: 0.8,
+    dashPattern: [4, 4],
   } as DrawingStyle,
 
   support: {

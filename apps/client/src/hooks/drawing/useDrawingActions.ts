@@ -144,10 +144,13 @@ export const useDrawingActions = (
             }
             break
 
-          case 'rectangle':
-          case 'circle':
-            // For shapes, we need diagonal corners
-            currentDrawingRef.current.points = [currentDrawingRef.current.points![0], currentPoint]
+          case 'fibonacci':
+            // Update or add second point for fibonacci retracement
+            if (currentDrawingRef.current.points!.length === 1) {
+              currentDrawingRef.current.points!.push(currentPoint)
+            } else {
+              currentDrawingRef.current.points![1] = currentPoint
+            }
             break
 
           default:

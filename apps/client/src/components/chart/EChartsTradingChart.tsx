@@ -252,6 +252,67 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
             }
           }
           
+          // Fibonacci Retracement の処理（複数のリトレースメントレベルを描画）
+          else if (tool.type === 'fibonacci' && tool.points && tool.points.length >= 2) {
+            const startDataIndex = data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const endDataIndex = data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+
+            const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
+            const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
+
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              // フィボナッチリトレースメントレベル
+              const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+              const startPrice = tool.points[0].price
+              const endPrice = tool.points[1].price
+              const priceRange = endPrice - startPrice
+              
+              fibLevels.forEach((level, index) => {
+                const levelPrice = startPrice + (priceRange * level)
+                const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+                
+                if (levelPixel && Array.isArray(levelPixel)) {
+                  // グリッドの左右端を取得
+                  const gridRect = chart.getModel().getComponent('grid', 0).coordinateSystem.getRect()
+                  const leftPixel = gridRect.x
+                  const rightPixel = gridRect.x + gridRect.width
+                  
+                  // レベル線を描画
+                  elements.push({
+                    type: 'line',
+                    id: `${tool.id}_fib_${level}`,
+                    shape: {
+                      x1: leftPixel,
+                      y1: levelPixel[1],
+                      x2: rightPixel,
+                      y2: levelPixel[1],
+                    },
+                    style: {
+                      stroke: tool.style?.color || '#f59e0b',
+                      lineWidth: index === 0 || index === fibLevels.length - 1 ? 2 : 1, // 0%と100%は太く
+                      opacity: tool.style?.opacity || 0.8,
+                      lineDash: index === 3 ? [] : [4, 4], // 50%レベルは実線、他は破線
+                    },
+                    z: 100,
+                  })
+
+                  // レベルラベルを表示
+                  elements.push({
+                    type: 'text',
+                    id: `${tool.id}_fib_label_${level}`,
+                    position: [rightPixel - 60, levelPixel[1] - 8],
+                    style: {
+                      text: `${(level * 100).toFixed(1)}% (${levelPrice.toFixed(2)})`,
+                      fontSize: 10,
+                      fill: tool.style?.color || '#f59e0b',
+                    },
+                    z: 101,
+                  })
+                }
+              })
+            }
+          }
+          
         } catch (error) {
           console.error(`🎨 Failed to convert coordinates for ${tool.type}:`, error)
         }
