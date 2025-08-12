@@ -1,0 +1,454 @@
+import React from 'react'
+import {
+  AlignHorizontalDistributeCenter,
+  TrendingUpDown,
+  ChartNoAxesCombined,
+  Save,
+  Settings,
+  Maximize,
+  Minimize,
+  Camera,
+  Sun,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelBottomClose,
+  PanelBottomOpen,
+} from 'lucide-react'
+import { ChartType, POPULAR_SYMBOLS, CHART_TIMEFRAMES } from '@trading-viewer/shared'
+import { useApp, useAppActions } from '../../contexts/AppContext'
+import SymbolSearch from '../SymbolSearch'
+import ChartSettings, { ChartSettings as ChartSettingsType } from './ChartSettings'
+
+interface ChartHeaderProps {
+  currentSymbol: string
+  selectedTimeframe: string
+  chartType: ChartType
+  showSymbolSearch: boolean
+  showTimeframeDropdown: boolean
+  showChartTypeDropdown: boolean
+  showIndicatorsDropdown: boolean
+  isFullscreen: boolean
+  onSymbolSearchToggle: () => void
+  onTimeframeChange: (timeframe: string) => void
+  onChartTypeChange: (type: ChartType) => void
+  onSymbolChange: (symbol: string) => void
+  onTimeframeDropdownToggle: () => void
+  onChartTypeDropdownToggle: () => void
+  onIndicatorsDropdownToggle: () => void
+  onSaveTemplate: () => void
+  onToggleFullscreen: () => void
+  onTakeScreenshot: () => void
+  onCloseDropdowns: () => void
+  chartSettings?: ChartSettingsType
+  onSettingsChange?: (settings: ChartSettingsType) => void
+  showDrawingTools?: boolean
+  onToggleDrawingTools?: () => void
+  showFooter?: boolean
+  onToggleFooter?: () => void
+}
+
+const ChartHeader: React.FC<ChartHeaderProps> = ({
+  currentSymbol,
+  selectedTimeframe,
+  chartType,
+  showSymbolSearch,
+  showTimeframeDropdown,
+  showChartTypeDropdown,
+  showIndicatorsDropdown,
+  isFullscreen,
+  onSymbolSearchToggle,
+  onTimeframeChange,
+  onChartTypeChange,
+  onSymbolChange,
+  onTimeframeDropdownToggle,
+  onChartTypeDropdownToggle,
+  onIndicatorsDropdownToggle,
+  onSaveTemplate,
+  onToggleFullscreen,
+  onTakeScreenshot,
+  onCloseDropdowns,
+  chartSettings,
+  onSettingsChange,
+  showDrawingTools,
+  onToggleDrawingTools,
+  showFooter,
+  onToggleFooter,
+}) => {
+  const { state } = useApp()
+  const { setTheme } = useAppActions()
+
+  const toggleTheme = () => {
+    setTheme(state.theme === 'dark' ? 'light' : 'dark')
+  }
+
+  const handleSymbolSelect = (symbol: string) => {
+    onSymbolChange(symbol)
+    onSymbolSearchToggle()
+  }
+
+  return (
+    <>
+      {/* Header */}
+      <div className='flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2'>
+        <div className='flex items-center justify-between'>
+          {/* Left - Symbol and Tools */}
+          <div className='flex items-center'>
+            {/* Symbol Selector Button */}
+            <button
+              onClick={onSymbolSearchToggle}
+              className='flex items-center space-x-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
+              title='Search and select trading symbol'
+            >
+              <div className='flex items-center space-x-2'>
+                <span className='font-semibold text-gray-900 dark:text-white'>{currentSymbol}</span>
+                <svg
+                  className='w-4 h-4 text-gray-500 dark:text-gray-400'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </div>
+            </button>
+
+            {/* Separator */}
+            <div className='mx-3 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+
+            {/* Timeframe Dropdown */}
+            <div className='relative'>
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  onTimeframeDropdownToggle()
+                }}
+                className='flex items-center space-x-1 px-2 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
+                title='Select chart timeframe'
+              >
+                <span>{CHART_TIMEFRAMES.find(tf => tf.value === selectedTimeframe)?.label || '1D'}</span>
+                <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </button>
+              {showTimeframeDropdown && (
+                <div className='absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50'>
+                  {CHART_TIMEFRAMES.map(tf => (
+                    <button
+                      key={tf.value}
+                      onClick={e => {
+                        e.stopPropagation()
+                        onTimeframeChange(tf.value)
+                      }}
+                      className={`block w-full text-left px-3 py-1.5 text-sm ${
+                        selectedTimeframe === tf.value
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {tf.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className='mx-3 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+
+            {/* Chart Type Dropdown */}
+            <div className='relative'>
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  onChartTypeDropdownToggle()
+                }}
+                className='flex items-center space-x-1 px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
+                title='Select chart type'
+              >
+                {chartType === 'candle' ? (
+                  <AlignHorizontalDistributeCenter className='w-4 h-4' />
+                ) : chartType === 'line' ? (
+                  <TrendingUpDown className='w-4 h-4' />
+                ) : (
+                  <ChartNoAxesCombined className='w-4 h-4' />
+                )}
+                <svg className='w-3 h-3 ml-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </button>
+              {showChartTypeDropdown && (
+                <div className='absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50'>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      onChartTypeChange('candle')
+                    }}
+                    className={`flex items-center space-x-2 w-full px-3 py-1.5 text-sm ${
+                      chartType === 'candle'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <AlignHorizontalDistributeCenter className='w-4 h-4' />
+                    <span>Candlestick</span>
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      onChartTypeChange('line')
+                    }}
+                    className={`flex items-center space-x-2 w-full px-3 py-1.5 text-sm ${
+                      chartType === 'line'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <TrendingUpDown className='w-4 h-4' />
+                    <span>Line</span>
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      onChartTypeChange('area')
+                    }}
+                    className={`flex items-center space-x-2 w-full px-3 py-1.5 text-sm ${
+                      chartType === 'area'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <ChartNoAxesCombined className='w-4 h-4' />
+                    <span>Area</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className='mx-3 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+
+            {/* Indicators Dropdown */}
+            <div className='relative'>
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  onIndicatorsDropdownToggle()
+                }}
+                className='flex items-center space-x-1 px-2 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
+                title='Select technical indicators'
+              >
+                <ChartNoAxesCombined className='w-4 h-4' />
+                <span>Indicators</span>
+                <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 9l-7 7-7-7'
+                  />
+                </svg>
+              </button>
+              {showIndicatorsDropdown && (
+                <div className='absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-[150px]'>
+                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                    SMA
+                  </button>
+                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                    EMA
+                  </button>
+                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                    RSI
+                  </button>
+                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                    MACD
+                  </button>
+                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                    Bollinger Bands
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Center - Empty space */}
+          <div></div>
+
+          {/* Right - Action Buttons */}
+          <div className='flex items-center space-x-1'>
+            {/* Save Button */}
+            <button
+              onClick={onSaveTemplate}
+              className='flex items-center px-2 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title='Save Template'
+            >
+              <Save className='w-4 h-4' />
+            </button>
+
+            {/* Separator */}
+            <div className='mx-2 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+
+            {/* Drawing Tools Toggle */}
+            <button
+              onClick={onToggleDrawingTools}
+              className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title={showDrawingTools ? 'Hide drawing tools sidebar' : 'Show drawing tools sidebar'}
+            >
+              {showDrawingTools ? (
+                <PanelLeftClose className='w-4 h-4' />
+              ) : (
+                <PanelLeftOpen className='w-4 h-4' />
+              )}
+            </button>
+
+            {/* Footer Toggle */}
+            <button
+              onClick={onToggleFooter}
+              className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title={showFooter ? 'Hide footer' : 'Show footer'}
+            >
+              {showFooter ? (
+                <PanelBottomClose className='w-4 h-4' />
+              ) : (
+                <PanelBottomOpen className='w-4 h-4' />
+              )}
+            </button>
+
+            {/* Settings Component */}
+            <ChartSettings
+              settings={chartSettings || {
+                chartType: chartType === 'candle' ? 'candlestick' : chartType,
+                timeframe: selectedTimeframe as any,
+                showVolume: true,
+                showGridlines: true,
+                showPeriodHigh: true,
+                showPeriodLow: true,
+                periodWeeks: 52,
+                indicators: {
+                  sma: { enabled: false, periods: [20, 50] },
+                  ema: { enabled: false, periods: [12, 26] },
+                  rsi: { enabled: false, period: 14 },
+                },
+                colors: {
+                  bullish: '#10b981',
+                  bearish: '#ef4444',
+                  volume: '#8b5cf6',
+                  grid: '#e5e7eb',
+                  background: '#ffffff',
+                },
+              }}
+              onSettingsChange={onSettingsChange || (() => {})}
+              className=''
+            />
+
+            {/* Fullscreen */}
+            <button
+              onClick={onToggleFullscreen}
+              className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? (
+                <Minimize className='w-4 h-4' />
+              ) : (
+                <Maximize className='w-4 h-4' />
+              )}
+            </button>
+
+            {/* Screenshot */}
+            <button
+              onClick={onTakeScreenshot}
+              className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title='Take Screenshot'
+            >
+              <Camera className='w-4 h-4' />
+            </button>
+
+            {/* Separator */}
+            <div className='mx-2 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+              title={state.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {state.theme === 'dark' ? <Sun className='w-4 h-4' /> : <Moon className='w-4 h-4' />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Symbol Search Modal */}
+      {showSymbolSearch && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4'>
+            {/* Modal Header */}
+            <div className='flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700'>
+              <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>Select Symbol</h3>
+              <button
+                onClick={onSymbolSearchToggle}
+                className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              >
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M6 18L18 6M6 6l12 12'
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className='p-4'>
+              <SymbolSearch
+                onSymbolSelect={handleSymbolSelect}
+                currentSymbol={currentSymbol}
+                className='w-full'
+              />
+            </div>
+
+            {/* Popular Symbols */}
+            <div className='px-4 pb-4'>
+              <p className='text-sm text-gray-500 dark:text-gray-400 mb-3'>Popular Symbols</p>
+              <div className='grid grid-cols-2 gap-2'>
+                {POPULAR_SYMBOLS.map(({ symbol, name }) => (
+                  <button
+                    key={symbol}
+                    onClick={() => handleSymbolSelect(symbol)}
+                    className={`text-left px-3 py-2 rounded-lg transition-colors ${
+                      currentSymbol === symbol
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <div className='font-medium text-gray-900 dark:text-white'>{symbol}</div>
+                    <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>{name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+export default ChartHeader

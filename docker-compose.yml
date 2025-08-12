@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: tradingviewer-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-tradingviewer}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-tradingviewer}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - tradingviewer-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tradingviewer}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: tradingviewer-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tradingviewer-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express Backend Server
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: tradingviewer-server
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 8000
+      DATABASE_URL: postgresql://${DB_USER:-tradingviewer}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-tradingviewer}
+      REDIS_URL: redis://redis:6379
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${SERVER_PORT:-8000}:8000"
+    networks:
+      - tradingviewer-network
+    restart: unless-stopped
+    volumes:
+      - ./logs/server:/app/logs
+
+  # React Frontend Client
+  client:
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
+    container_name: tradingviewer-client
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      - server
+    ports:
+      - "${CLIENT_PORT:-80}:80"
+    networks:
+      - tradingviewer-network
+    restart: unless-stopped
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+
+  # Database migrations (run once)
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: tradingviewer-migrate
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-tradingviewer}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-tradingviewer}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tradingviewer-network
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+
+networks:
+  tradingviewer-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

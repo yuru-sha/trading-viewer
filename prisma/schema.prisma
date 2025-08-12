@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Symbol {
+  id          String   @id @default(cuid())
+  symbol      String   @unique
+  description String
+  displaySymbol String @map("display_symbol")
+  type        String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  candles     Candle[]
+  
+  @@map("symbols")
+}
+
+model Candle {
+  id        String   @id @default(cuid())
+  symbol    String
+  timestamp Int
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  symbolRef Symbol @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+  
+  @@unique([symbol, timestamp])
+  @@index([symbol, timestamp])
+  @@map("candles")
+}
+
+model UserPreferences {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  theme       String   @default("dark")
+  chartType   String   @default("candlestick") @map("chart_type")
+  timeframe   String   @default("1D")
+  indicators  String   @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("user_preferences")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  drawingTools DrawingTool[]
+  
+  @@map("users")
+}
+
+model DrawingTool {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  symbol    String
+  type      String   // trendline, horizontal, vertical, rectangle, circle, arrow, text
+  points    String   // JSON array of DrawingPoint[] 
+  style     String   // JSON of DrawingStyle
+  text      String?  // For text tools
+  locked    Boolean  @default(false)
+  visible   Boolean  @default(true)
+  expiresAt DateTime? @map("expires_at") // Automatic deletion date (default: 30 days)
+  lastAccessedAt DateTime @default(now()) @map("last_accessed_at") // Track usage for cleanup
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, symbol])
+  @@index([expiresAt]) // Index for cleanup queries
+  @@index([lastAccessedAt]) // Index for usage-based cleanup
+  @@map("drawing_tools")
+}

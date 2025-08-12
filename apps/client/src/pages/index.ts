@@ -1,0 +1,5 @@
+export { default as HomePage } from './HomePage'
+export { default as DashboardPage } from './DashboardPage'
+export { default as ChartsPage } from './ChartsPage'
+export { default as SearchPage } from './SearchPage'
+export { default as WatchlistPage } from './WatchlistPage'

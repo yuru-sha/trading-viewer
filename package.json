@@ -1,0 +1,58 @@
+{
+  "name": "@trading-viewer/root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TradingViewer - Modern financial charting application",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @trading-viewer/server dev\" \"pnpm --filter @trading-viewer/client dev\"",
+    "dev:client": "pnpm --filter @trading-viewer/client dev",
+    "dev:server": "pnpm --filter @trading-viewer/server dev",
+    "build": "pnpm --recursive --filter=!@trading-viewer/root run build",
+    "test": "pnpm --recursive --filter=!@trading-viewer/root run test",
+    "test:unit": "pnpm --recursive --filter=!@trading-viewer/root run test:unit",
+    "test:integration": "pnpm --recursive --filter=!@trading-viewer/root run test:integration",
+    "test:e2e": "pnpm --filter @trading-viewer/client test:e2e",
+    "lint": "pnpm --recursive --filter=!@trading-viewer/root run lint",
+    "lint:fix": "pnpm --recursive --filter=!@trading-viewer/root run lint:fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "type-check": "pnpm --recursive --filter=!@trading-viewer/root run type-check",
+    "quality-check": "pnpm lint && pnpm type-check && pnpm test:unit",
+    "clean": "pnpm --recursive --filter=!@trading-viewer/root run clean && rm -rf node_modules",
+    "reset": "pnpm clean && pnpm install",
+    "build:prod": "pnpm build && pnpm --filter @trading-viewer/client build && pnpm --filter @trading-viewer/server build",
+    "build:docker": "docker-compose build",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:production": "./scripts/deploy.sh production",
+    "db:generate": "pnpm --filter @trading-viewer/server db:generate",
+    "db:migrate": "pnpm --filter @trading-viewer/server db:migrate",
+    "db:seed": "pnpm --filter @trading-viewer/server db:seed",
+    "db:reset": "pnpm --filter @trading-viewer/server db:reset",
+    "db:studio": "pnpm --filter @trading-viewer/server db:studio"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.1.0",
+    "prisma": "^5.6.0",
+    "tsx": "^4.1.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "author": "yuru-sha",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuru-sha/trading-viewer"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  }
+}
