@@ -8,8 +8,6 @@ export type DrawingToolType =
   | 'horizontal'
   | 'vertical'
   | 'fibonacci'
-  | 'arrow'
-  | 'text'
 
 export interface DrawingTool {
   id: string
