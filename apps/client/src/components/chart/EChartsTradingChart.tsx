@@ -409,11 +409,15 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                     },
                     style: {
                       stroke: tool.style?.color || '#f59e0b',
-                      lineWidth: index === 0 || index === fibLevels.length - 1 ? 2 : 1, // 0% と 100% は太く
+                      lineWidth: isSelected ? 
+                        (index === 0 || index === fibLevels.length - 1 ? 4 : 3) : // Selected: 0%/100% are thicker
+                        (index === 0 || index === fibLevels.length - 1 ? 2 : 1), // Normal: 0%/100% are thicker
                       opacity: tool.style?.opacity || 0.8,
                       lineDash: index === 3 ? [] : [4, 4], // 50% レベルは実線、他は破線
+                      shadowBlur: isSelected ? 4 : 0,
+                      shadowColor: tool.style?.color || '#f59e0b',
                     },
-                    z: 100,
+                    z: isSelected ? 150 : 100,
                   })
 
                   // レベルラベルを表示（ライン終端近くに配置）
@@ -430,6 +434,57 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                   })
                 }
               })
+
+              // 選択中の場合、開始点と終了点にハンドルを表示
+              if (isSelected) {
+                // 始点ハンドル
+                elements.push({
+                  type: 'circle',
+                  id: `${tool.id}_handle_start`,
+                  shape: {
+                    cx: startPixel[0],
+                    cy: startPixel[1],
+                    r: 6,
+                  },
+                  style: {
+                    fill: '#ffffff',
+                    stroke: tool.style?.color || '#f59e0b',
+                    lineWidth: 2,
+                  },
+                  z: 151,
+                  cursor: 'move',
+                  $action: 'replace',
+                  info: {
+                    isHandle: true,
+                    toolId: tool.id,
+                    handleType: 'start'
+                  }
+                })
+
+                // 終点ハンドル
+                elements.push({
+                  type: 'circle',
+                  id: `${tool.id}_handle_end`,
+                  shape: {
+                    cx: endPixel[0],
+                    cy: endPixel[1],
+                    r: 6,
+                  },
+                  style: {
+                    fill: '#ffffff',
+                    stroke: tool.style?.color || '#f59e0b',
+                    lineWidth: 2,
+                  },
+                  z: 151,
+                  cursor: 'move',
+                  $action: 'replace',
+                  info: {
+                    isHandle: true,
+                    toolId: tool.id,
+                    handleType: 'end'
+                  }
+                })
+              }
             }
           }
           

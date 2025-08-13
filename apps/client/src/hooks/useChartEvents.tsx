@@ -99,6 +99,46 @@ export const useChartEvents = (
               return false
             }
 
+            // Handle Fibonacci Retracement (multiple lines)
+            if (tool.type === 'fibonacci') {
+              if (tool.points.length < 2) return false
+              
+              const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+              const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
+              
+              if (startPixel && Array.isArray(startPixel)) {
+                const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+                const startPrice = tool.points[0].price
+                const endPrice = tool.points[1].price
+                const priceRange = endPrice - startPrice
+                
+                // Check if click is within any fibonacci level line
+                for (const level of fibLevels) {
+                  const levelPrice = startPrice + (priceRange * level)
+                  const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+                  
+                  if (levelPixel && Array.isArray(levelPixel)) {
+                    // Check if click is within tolerance of this fibonacci level
+                    if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
+                      // Also check if click is within the horizontal range of fibonacci lines
+                      const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+                      const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
+                      
+                      if (endPixel && Array.isArray(endPixel)) {
+                        const lineStartX = Math.min(startPixel[0], endPixel[0])
+                        const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
+                        
+                        if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
+                          return true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              return false
+            }
+
             // Handle two-point lines (trendlines, etc.)
             if (tool.points.length < 2) {
               return false
@@ -462,6 +502,85 @@ export const useChartEvents = (
           return
         }
 
+        // Handle Fibonacci Retracement (same as two-point tools but with multiple lines)
+        if (selectedTool.type === 'fibonacci') {
+          if (selectedTool.points.length < 2) return
+          
+          const startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
+          const endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
+          
+          const startPixel = chart.convertToPixel('grid', [startDataIndex, selectedTool.points[0].price])
+          const endPixel = chart.convertToPixel('grid', [endDataIndex, selectedTool.points[1].price])
+          
+          if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+            const handleTolerance = 12 // pixels for handle detection
+            
+            // Check start handle
+            const startDistance = Math.sqrt(
+              Math.pow(params.offsetX - startPixel[0], 2) + 
+              Math.pow(params.offsetY - startPixel[1], 2)
+            )
+            if (startDistance <= handleTolerance) {
+              console.log('🎯 MouseDown on fibonacci start handle')
+              currentTools.mouseDown(
+                selectedTool.id,
+                'start',
+                { x: params.offsetX, y: params.offsetY },
+                selectedTool.points
+              )
+              return
+            }
+            
+            // Check end handle  
+            const endDistance = Math.sqrt(
+              Math.pow(params.offsetX - endPixel[0], 2) + 
+              Math.pow(params.offsetY - endPixel[1], 2)
+            )
+            if (endDistance <= handleTolerance) {
+              console.log('🎯 MouseDown on fibonacci end handle')
+              currentTools.mouseDown(
+                selectedTool.id,
+                'end',
+                { x: params.offsetX, y: params.offsetY },
+                selectedTool.points
+              )
+              return
+            }
+            
+            // Check if clicking on any fibonacci level line for line body drag
+            const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+            const startPrice = selectedTool.points[0].price
+            const endPrice = selectedTool.points[1].price
+            const priceRange = endPrice - startPrice
+            
+            for (const level of fibLevels) {
+              const levelPrice = startPrice + (priceRange * level)
+              const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+              
+              if (levelPixel && Array.isArray(levelPixel)) {
+                const tolerance = 10 // pixels
+                if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
+                  // Check if click is within horizontal range
+                  const lineStartX = Math.min(startPixel[0], endPixel[0])
+                  const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
+                  
+                  if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
+                    console.log('🎯 MouseDown on fibonacci line body')
+                    currentTools.mouseDown(
+                      selectedTool.id,
+                      'line',
+                      { x: params.offsetX, y: params.offsetY },
+                      selectedTool.points
+                    )
+                    return
+                  }
+                }
+              }
+            }
+          }
+          return
+        }
+
         // Handle two-point lines (trendlines, etc.)
         if (selectedTool.points.length < 2) {
           return
@@ -618,7 +737,7 @@ export const useChartEvents = (
 
       // Find if clicking on a drawing tool
       const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
-        if (!tool.points || tool.points.length < 2) {
+        if (!tool.points || tool.points.length < 1) {
           return false
         }
 
@@ -628,32 +747,111 @@ export const useChartEvents = (
         if (!chart) return false
 
         try {
-          const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-          const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+          // Handle horizontal and vertical lines (single point)
+          if (tool.type === 'horizontal' || tool.type === 'vertical') {
+            if (tool.points.length < 1) return false
+            const dataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const pixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
+            if (pixel && Array.isArray(pixel)) {
+              if (tool.type === 'horizontal') {
+                return Math.abs(params.offsetY - pixel[1]) <= tolerance
+              } else if (tool.type === 'vertical') {
+                return Math.abs(params.offsetX - pixel[0]) <= tolerance
+              }
+            }
+          }
+          // Handle fibonacci retracement (check all level lines)
+          else if (tool.type === 'fibonacci' && tool.points.length >= 2) {
+            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
+            const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
+            
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              // Fibonacci levels
+              const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+              const startPrice = tool.points[0].price
+              const endPrice = tool.points[1].price
+              const priceRange = endPrice - startPrice
+              
+              // Check if click is within any fibonacci level line
+              for (const level of fibLevels) {
+                const levelPrice = startPrice + (priceRange * level)
+                const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+                
+                if (levelPixel && Array.isArray(levelPixel)) {
+                  // Check if click is within tolerance of this fibonacci level
+                  if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
+                    // Also check if click is within the horizontal range of fibonacci lines
+                    const lineStartX = Math.min(startPixel[0], endPixel[0])
+                    const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
+                    
+                    if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
+                      return true
+                    }
+                  }
+                }
+              }
+            }
+          }
+          // Handle other two-point lines (trendlines)
+          else if (tool.points.length >= 2) {
+            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
 
-          const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
-          const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
+            const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
+            const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
 
-          if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
-            // Calculate distance from point to line
-            const distance = distanceFromPointToLine(
-              params.offsetX,
-              params.offsetY,
-              startPixel[0],
-              startPixel[1],
-              endPixel[0],
-              endPixel[1]
-            )
-            return distance <= tolerance
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              // Calculate distance from point to line
+              const distance = distanceFromPointToLine(
+                params.offsetX,
+                params.offsetY,
+                startPixel[0],
+                startPixel[1],
+                endPixel[0],
+                endPixel[1]
+              )
+              return distance <= tolerance
+            }
           }
         } catch (error) {
-          console.error('🎯 Error checking trendline click:', error)
+          console.error('🎯 Error checking drawing tool click:', error)
         }
         return false
       })
 
       if (clickedTool) {
         console.log('🎯 Right-clicked on drawing tool:', clickedTool.id)
+        
+        // Reset drag state and selection highlighting before showing context menu
+        if (currentTools.isDragging || currentTools.isMouseDown) {
+          console.log('🎯 Resetting drag state on right-click')
+          // Reset drag and mouse down states
+          if (currentTools.endDrag) {
+            const dataPoint = chartInstance.convertPixelToData(
+              params.offsetX,
+              params.offsetY,
+              config.data
+            )
+            if (dataPoint) {
+              const resetEvent = {
+                timestamp: dataPoint.timestamp,
+                price: dataPoint.price,
+                x: params.offsetX,
+                y: params.offsetY,
+              }
+              currentTools.endDrag(resetEvent, null)
+            }
+          }
+        }
+        
+        // Deselect any currently selected tool to remove highlighting
+        if (currentTools.selectedToolId) {
+          console.log('🎯 Deselecting tool before showing context menu:', currentTools.selectedToolId)
+          currentTools.selectTool(null)
+        }
+        
         // Show context menu for the drawing tool
         currentTools.showContextMenu?.(clickedTool.id, params.offsetX, params.offsetY)
       }
