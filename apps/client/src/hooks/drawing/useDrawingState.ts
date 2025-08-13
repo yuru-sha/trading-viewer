@@ -13,6 +13,15 @@ export interface DrawingState {
   snapTolerance: number
   currentDrawing: DrawingTool | null
   lastPreviewUpdate: number
+  // Drag state for handle manipulation
+  isDragging: boolean
+  isMouseDown: boolean
+  dragState: {
+    toolId: string | null
+    handleType: 'start' | 'end' | 'line' | null  // 'line' for moving entire line
+    startPos: { x: number; y: number } | null
+    originalPoints?: { timestamp: number; price: number }[] | null  // Store original line points
+  } | null
 }
 
 // Action types for state management
@@ -30,6 +39,10 @@ export type DrawingAction =
   | { type: 'SET_STYLE'; payload: Partial<DrawingStyle> }
   | { type: 'TOGGLE_SNAP' }
   | { type: 'LOAD_TOOLS'; payload: DrawingTool[] }
+  | { type: 'MOUSE_DOWN'; payload: { toolId: string; handleType: 'start' | 'end' | 'line'; startPos: { x: number; y: number }; originalPoints?: { timestamp: number; price: number }[] } }
+  | { type: 'START_DRAG'; payload: { toolId: string; handleType: 'start' | 'end' | 'line'; startPos: { x: number; y: number }; originalPoints?: { timestamp: number; price: number }[] } }
+  | { type: 'UPDATE_DRAG'; payload: { x: number; y: number } }
+  | { type: 'END_DRAG' }
 
 // Initial state configuration
 export const initialState: DrawingState = {
@@ -48,6 +61,9 @@ export const initialState: DrawingState = {
   snapTolerance: 2,
   currentDrawing: null,
   lastPreviewUpdate: 0,
+  isDragging: false,
+  isMouseDown: false,
+  dragState: null,
 }
 
 // State reducer for drawing operations
@@ -98,6 +114,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       }
 
     case 'SELECT_TOOL':
+      console.log('🎯 SELECT_TOOL reducer:', { payload: action.payload, currentSelected: state.selectedToolId })
       return {
         ...state,
         selectedToolId: action.payload,
@@ -151,6 +168,55 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
         selectedToolId: null,
         currentDrawing: null,
         isDrawing: false,
+      }
+
+    case 'MOUSE_DOWN':
+      console.log('🎯 MOUSE_DOWN reducer processing:', action.payload)
+      const newState = {
+        ...state,
+        isMouseDown: true,
+        dragState: {
+          toolId: action.payload.toolId,
+          handleType: action.payload.handleType,
+          startPos: action.payload.startPos,
+          originalPoints: action.payload.originalPoints,
+        },
+      }
+      console.log('🎯 New state after MOUSE_DOWN:', { isMouseDown: newState.isMouseDown, dragState: newState.dragState })
+      return newState
+
+    case 'START_DRAG':
+      return {
+        ...state,
+        isDragging: true,
+        isMouseDown: false,
+        dragState: state.dragState ? {
+          ...state.dragState,
+          toolId: action.payload.toolId,
+          handleType: action.payload.handleType,
+          startPos: action.payload.startPos,
+          originalPoints: action.payload.originalPoints,
+        } : {
+          toolId: action.payload.toolId,
+          handleType: action.payload.handleType,
+          startPos: action.payload.startPos,
+          originalPoints: action.payload.originalPoints,
+        },
+      }
+
+    case 'UPDATE_DRAG':
+      // ドラッグ中は実際の座標更新は行わず、プレビューのみ
+      return {
+        ...state,
+        lastPreviewUpdate: Date.now(),
+      }
+
+    case 'END_DRAG':
+      return {
+        ...state,
+        isDragging: false,
+        isMouseDown: false,
+        dragState: null,
       }
 
     default:

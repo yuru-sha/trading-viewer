@@ -35,6 +35,10 @@ export const useDrawingTools = () => {
     updateDrawing,
     finishDrawing,
     cancelDrawing,
+    mouseDown,
+    startDrag,
+    updateDrag,
+    endDrag,
   } = useDrawingActions(state, dispatch, currentDrawingRef)
 
   const {
@@ -73,8 +77,12 @@ export const useDrawingTools = () => {
       drawingMode: state.drawingMode,
       toolCount: state.tools.length,
       hasCurrentDrawing: !!currentDrawingRef.current,
+      isDragging: state.isDragging,
+      isMouseDown: state.isMouseDown,
+      dragState: state.dragState,
+      selectedToolId: state.selectedToolId
     })
-  }, [state.activeToolType, state.isDrawing, state.drawingMode, state.tools.length])
+  }, [state.activeToolType, state.isDrawing, state.drawingMode, state.tools.length, state.isDragging, state.isMouseDown, state.dragState, state.selectedToolId])
 
   return {
     // State (read-only access)
@@ -89,6 +97,9 @@ export const useDrawingTools = () => {
     snapTolerance: state.snapTolerance,
     currentDrawing: state.currentDrawing,
     lastPreviewUpdate: state.lastPreviewUpdate,
+    isDragging: state.isDragging,
+    isMouseDown: state.isMouseDown,
+    dragState: state.dragState,
 
     // Drawing actions
     setToolType,
@@ -97,6 +108,12 @@ export const useDrawingTools = () => {
     updateDrawing,
     finishDrawing,
     cancelDrawing,
+
+    // Drag actions
+    mouseDown,
+    startDrag,
+    updateDrag,
+    endDrag,
 
     // Tool management
     selectTool,

@@ -207,6 +207,195 @@ export const useDrawingActions = (
     dispatch({ type: 'STOP_DRAWING' })
   }, [dispatch])
 
+  // Mouse down on handle or line (prepare for potential drag)
+  const mouseDown = useCallback((toolId: string, handleType: 'start' | 'end' | 'line', startPos: { x: number; y: number }, originalPoints?: { timestamp: number; price: number }[]) => {
+    console.log('🎯 mouseDown called with:', { toolId, handleType, startPos, originalPoints })
+    console.log('🎯 Current state before MOUSE_DOWN:', { 
+      isMouseDown: state.isMouseDown, 
+      isDragging: state.isDragging, 
+      dragState: state.dragState,
+      selectedToolId: state.selectedToolId 
+    })
+    
+    // 重複実行を防ぐため、既にマウスダウン状態の場合は処理しない
+    if (state.isMouseDown) {
+      console.log('🎯 mouseDown ignored - already in mouse down state')
+      return
+    }
+    
+    // ドラッグ中の場合も処理しない
+    if (state.isDragging) {
+      console.log('🎯 mouseDown ignored - already in dragging state')
+      return
+    }
+    
+    console.log('🎯 Dispatching MOUSE_DOWN action')
+    dispatch({
+      type: 'MOUSE_DOWN',
+      payload: { toolId, handleType, startPos, originalPoints }
+    })
+    console.log('🎯 MOUSE_DOWN dispatched successfully')
+  }, [dispatch, state.isMouseDown, state.isDragging, state.dragState, state.selectedToolId])
+
+  // Start dragging a handle
+  const startDrag = useCallback((toolId: string, handleType: 'start' | 'end' | 'line', startPos: { x: number; y: number }, originalPoints?: { timestamp: number; price: number }[]) => {
+    console.log('🎯 startDrag called:', { toolId, handleType, startPos })
+    dispatch({
+      type: 'START_DRAG',
+      payload: { toolId, handleType, startPos, originalPoints }
+    })
+  }, [dispatch])
+
+  // Update drag position - ドラッグ中のリアルタイム座標更新
+  const updateDrag = useCallback((x: number, y: number, chartInstance?: any, data?: any) => {
+    console.log('🎯 updateDrag called:', { x, y, isDragging: state.isDragging, dragState: state.dragState })
+    if (!state.isDragging || !state.dragState) return
+    
+    const { toolId, handleType } = state.dragState
+    
+    // チャートインスタンスとデータが提供されている場合、リアルタイム座標変換
+    if (chartInstance && data) {
+      const dataPoint = chartInstance.convertPixelToData(x, y, data)
+      if (dataPoint) {
+        const snappedPrice = snapPrice(dataPoint.price)
+        const newPoint = {
+          timestamp: dataPoint.timestamp,
+          price: snappedPrice,
+        }
+        
+        // 現在のツールを取得して座標を更新
+        const currentTool = state.tools.find(tool => tool.id === toolId)
+        if (currentTool && currentTool.points && currentTool.points.length >= 2) {
+          const updatedPoints = [...currentTool.points]
+          
+          if (handleType === 'start') {
+            updatedPoints[0] = newPoint
+          } else if (handleType === 'end') {
+            updatedPoints[1] = newPoint
+          } else if (handleType === 'line' && state.dragState?.originalPoints && state.dragState?.startPos) {
+            // ライン全体移動: ドラッグ開始位置からの差分で移動
+            const originalPoints = state.dragState.originalPoints
+            const startPos = state.dragState.startPos
+            
+            if (originalPoints && originalPoints.length >= 2 && startPos) {
+              // ドラッグ開始位置と現在位置の差分を計算
+              const currentDataPoint = dataPoint
+              const startDataPoint = chartInstance.convertPixelToData(startPos.x, startPos.y, data)
+              
+              if (startDataPoint) {
+                const priceDelta = currentDataPoint.price - startDataPoint.price
+                const timeDelta = currentDataPoint.timestamp - startDataPoint.timestamp
+                
+                // 両方の点に同じ差分を適用してライン形状を維持
+                updatedPoints[0] = {
+                  timestamp: originalPoints[0].timestamp + timeDelta,
+                  price: originalPoints[0].price + priceDelta,
+                }
+                updatedPoints[1] = {
+                  timestamp: originalPoints[1].timestamp + timeDelta,
+                  price: originalPoints[1].price + priceDelta,
+                }
+              }
+            }
+          }
+          
+          // リアルタイムでツールの座標を更新（プレビュー）
+          dispatch({
+            type: 'UPDATE_TOOL',
+            payload: {
+              id: toolId,
+              updates: { points: updatedPoints }
+            }
+          })
+        }
+      }
+    }
+    
+    // ドラッグ状態も更新
+    dispatch({
+      type: 'UPDATE_DRAG',
+      payload: { x, y }
+    })
+  }, [dispatch, state.isDragging, state.dragState, state.tools, snapPrice])
+
+  // End dragging and apply changes
+  const endDrag = useCallback((event: any, currentTool?: DrawingTool | null) => {
+    console.log('🎯 endDrag called:', event)
+    
+    // If called with null tool, just reset state (for simple clicks that didn't become drags)
+    if (currentTool === null) {
+      console.log('🎯 endDrag: Resetting state for simple click')
+      dispatch({ type: 'END_DRAG' })
+      return
+    }
+    
+    if (!state.isDragging || !state.dragState) {
+      console.log('🎯 endDrag: Not in dragging state, just resetting')
+      dispatch({ type: 'END_DRAG' })
+      return
+    }
+
+    const { toolId, handleType } = state.dragState
+    const snappedPrice = snapPrice(event.price)
+    const newPoint: DrawingPoint = {
+      timestamp: event.timestamp,
+      price: snappedPrice,
+    }
+
+    // Get current tool to preserve existing points
+    if (!currentTool) {
+      console.error('🎯 endDrag: currentTool is required for actual drag')
+      dispatch({ type: 'END_DRAG' })
+      return
+    }
+
+    // Create updated points array
+    const updatedPoints = [...(currentTool.points || [])]
+    
+    if (handleType === 'start') {
+      updatedPoints[0] = newPoint
+    } else if (handleType === 'end') {
+      updatedPoints[1] = newPoint
+    } else if (handleType === 'line' && state.dragState?.originalPoints && state.dragState?.startPos) {
+      // Move entire line: ドラッグ開始位置からの差分で移動
+      const originalPoints = state.dragState.originalPoints
+      const startPos = state.dragState.startPos
+      
+      if (originalPoints && originalPoints.length >= 2 && startPos) {
+        // endDragでは、実際にはchartInstanceが利用できないため、
+        // 簡略化した計算を使用。updateDragで既にリアルタイム更新されているため、
+        // ここでは最終的な座標確定のみ行う
+        
+        // 現在のマウス位置とドラッグ開始位置の差分を、
+        // 既にupdateDragで計算済みの座標を使用
+        const currentPoints = currentTool.points
+        if (currentPoints && currentPoints.length >= 2) {
+          // updateDragで既に更新された座標を使用
+          updatedPoints[0] = currentPoints[0]
+          updatedPoints[1] = currentPoints[1]
+          
+          console.log('🎯 Line move finalized (using current points):', {
+            finalStart: updatedPoints[0],
+            finalEnd: updatedPoints[1]
+          })
+        }
+      }
+    }
+
+    // Update the actual tool coordinates
+    dispatch({
+      type: 'UPDATE_TOOL',
+      payload: {
+        id: toolId,
+        updates: {
+          points: updatedPoints
+        }
+      }
+    })
+
+    dispatch({ type: 'END_DRAG' })
+  }, [dispatch, state.isDragging, state.dragState, snapPrice])
+
   return {
     // Core actions
     setToolType,
@@ -215,6 +404,12 @@ export const useDrawingActions = (
     updateDrawing,
     finishDrawing,
     cancelDrawing,
+    
+    // Drag actions
+    mouseDown,
+    startDrag,
+    updateDrag,
+    endDrag,
     
     // Utilities
     generateId,

@@ -12,8 +12,9 @@ export const useDrawingToolManagement = (
 ) => {
   // Select a specific tool
   const selectTool = useCallback((toolId: string | null) => {
+    console.log('🎯 selectTool called:', { toolId, currentSelectedId: state.selectedToolId })
     dispatch({ type: 'SELECT_TOOL', payload: toolId })
-  }, [dispatch])
+  }, [dispatch, state.selectedToolId])
 
   // Update an existing tool
   const updateTool = useCallback((toolId: string, updates: Partial<DrawingTool>) => {
