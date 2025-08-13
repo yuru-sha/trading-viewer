@@ -218,6 +218,9 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
 
         // 選択中のツールかどうか判定
         const isSelected = drawingTools?.selectedToolId === tool.id
+        
+        // ドラッグ中のツールかどうか判定
+        const isDraggingThisTool = drawingTools?.isDragging && drawingTools?.dragState?.toolId === tool.id
 
         try {
           // Trendline の処理
@@ -267,6 +270,13 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                   },
                   z: 151,
                   cursor: 'move',
+                  // Add data attributes for drag detection
+                  $action: 'replace',
+                  info: {
+                    isHandle: true,
+                    toolId: tool.id,
+                    handleType: 'start'
+                  }
                 })
 
                 // 終点ハンドル
@@ -285,6 +295,13 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                   },
                   z: 151,
                   cursor: 'move',
+                  // Add data attributes for drag detection
+                  $action: 'replace',
+                  info: {
+                    isHandle: true,
+                    toolId: tool.id,
+                    handleType: 'end'
+                  }
                 })
               }
             }
