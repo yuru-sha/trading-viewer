@@ -4,7 +4,7 @@ import EChartsTradingChart from './EChartsTradingChart'
 import LeftDrawingToolbar from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
-import useDrawingTools from '../../hooks/useDrawingTools'
+import useDrawingToolsWithPersistence from '../../hooks/drawing/useDrawingToolsWithPersistence'
 import { DrawingTool } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import { DrawingObject } from './DrawingObjectsPanel'
@@ -61,7 +61,12 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
   periodWeeks = 52,
 }, ref) => {
   const [settings] = useState(defaultSettings)
-  const drawingTools = useDrawingTools()
+  const drawingTools = useDrawingToolsWithPersistence({ 
+    symbol, 
+    timeframe,
+    autoSave: true,
+    autoSaveInterval: 1000 // 1 秒後に自動保存
+  })
 
   // Chart instance ref to access chart functionality
   const chartRef = React.useRef<any>(null)
@@ -203,6 +208,11 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
           onToggleObjectVisibility={handleToggleObjectVisibility}
           onRemoveObject={handleRemoveObject}
           className=''
+          // Drawing persistence actions
+          onSaveDrawings={drawingTools.save}
+          onRestoreDrawings={drawingTools.restore}
+          onClearAllDrawings={drawingTools.clearAndSave}
+          drawingCount={drawingTools.tools.length}
         />
       )}
 

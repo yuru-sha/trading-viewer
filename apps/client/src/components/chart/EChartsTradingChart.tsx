@@ -78,6 +78,29 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
     showPeriodLow,
   })
 
+  // Helper function to find closest data index by timestamp
+  function findClosestDataIndex(targetTimestamp: number): number {
+    if (data.length === 0) return -1
+    
+    // First try exact match
+    const exactIndex = data.findIndex(d => d.timestamp === targetTimestamp)
+    if (exactIndex !== -1) return exactIndex
+    
+    // Find closest timestamp
+    let closestIndex = 0
+    let minDiff = Math.abs(data[0].timestamp - targetTimestamp)
+    
+    for (let i = 1; i < data.length; i++) {
+      const diff = Math.abs(data[i].timestamp - targetTimestamp)
+      if (diff < minDiff) {
+        minDiff = diff
+        closestIndex = i
+      }
+    }
+    
+    return closestIndex
+  }
+
   // 描画ツールのグラフィック要素生成
   function generateGraphicElements() {
     if (!drawingTools || !chartInstance.chartReady) {
@@ -225,8 +248,14 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
         try {
           // Trendline の処理
           if (tool.type === 'trendline' && tool.points && tool.points.length >= 2) {
-            const startDataIndex = data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            const endDataIndex = data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
+
+            // Skip rendering if data is empty
+            if (startDataIndex === -1 || endDataIndex === -1) {
+              console.warn(`🎨 Trendline ${tool.id} points not found in current chart data`)
+              return
+            }
 
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
@@ -309,7 +338,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
           
           // Horizontal Line の処理（チャート全幅に水平線を描画）
           else if (tool.type === 'horizontal' && tool.points && tool.points.length >= 1) {
-            const dataIndex = data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const dataIndex = findClosestDataIndex(tool.points[0].timestamp)
             const centerPixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
             
             if (centerPixel && Array.isArray(centerPixel)) {
@@ -342,7 +371,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
           
           // Vertical Line の処理（チャート全高に垂直線を描画）
           else if (tool.type === 'vertical' && tool.points && tool.points.length >= 1) {
-            const dataIndex = data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const dataIndex = findClosestDataIndex(tool.points[0].timestamp)
             const centerPixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
             
             if (centerPixel && Array.isArray(centerPixel)) {
@@ -375,8 +404,14 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
           
           // Fibonacci Retracement の処理（複数のリトレースメントレベルを描画）
           else if (tool.type === 'fibonacci' && tool.points && tool.points.length >= 2) {
-            const startDataIndex = data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            const endDataIndex = data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
+
+            // Skip rendering if data is empty
+            if (startDataIndex === -1 || endDataIndex === -1) {
+              console.warn(`🎨 Fibonacci ${tool.id} points not found in current chart data`)
+              return
+            }
 
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])

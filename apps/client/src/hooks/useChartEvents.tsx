@@ -18,6 +18,29 @@ export const useChartEvents = (
   drawingTools: ReturnType<typeof useDrawingTools> | undefined,
   config: ChartEventsConfig
 ) => {
+  // Helper function to find closest data index by timestamp
+  const findClosestDataIndex = useCallback((targetTimestamp: number): number => {
+    if (config.data.length === 0) return -1
+    
+    // First try exact match
+    const exactIndex = config.data.findIndex(d => d.timestamp === targetTimestamp)
+    if (exactIndex !== -1) return exactIndex
+    
+    // Find closest timestamp
+    let closestIndex = 0
+    let minDiff = Math.abs(config.data[0].timestamp - targetTimestamp)
+    
+    for (let i = 1; i < config.data.length; i++) {
+      const diff = Math.abs(config.data[i].timestamp - targetTimestamp)
+      if (diff < minDiff) {
+        minDiff = diff
+        closestIndex = i
+      }
+    }
+    
+    return closestIndex
+  }, [config.data])
+
   const handlersRef = useRef<any>({})
   const lastMouseMoveTime = useRef(0)
   const drawingToolsRef = useRef(drawingTools)
@@ -84,7 +107,8 @@ export const useChartEvents = (
             if (tool.type === 'horizontal' || tool.type === 'vertical') {
               if (tool.points.length < 1) return false
               
-              const dataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+              const dataIndex = findClosestDataIndex(tool.points[0].timestamp)
+              if (dataIndex === -1) return false
               const pixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
               
               if (pixel && Array.isArray(pixel)) {
@@ -103,7 +127,21 @@ export const useChartEvents = (
             if (tool.type === 'fibonacci') {
               if (tool.points.length < 2) return false
               
-              const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+              // Find closest data index instead of exact match
+            let startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            if (startDataIndex === -1) {
+              // Find closest timestamp if exact match not found
+              let closestIndex = 0
+              let minDiff = Math.abs(config.data[0].timestamp - tool.points[0].timestamp)
+              for (let i = 1; i < config.data.length; i++) {
+                const diff = Math.abs(config.data[i].timestamp - tool.points[0].timestamp)
+                if (diff < minDiff) {
+                  minDiff = diff
+                  closestIndex = i
+                }
+              }
+              startDataIndex = closestIndex
+            }
               const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
               
               if (startPixel && Array.isArray(startPixel)) {
@@ -121,7 +159,21 @@ export const useChartEvents = (
                     // Check if click is within tolerance of this fibonacci level
                     if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
                       // Also check if click is within the horizontal range of fibonacci lines
-                      const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+                      // Find closest data index for end point
+            let endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            if (endDataIndex === -1) {
+              // Find closest timestamp if exact match not found
+              let closestIndex = 0
+              let minDiff = Math.abs(config.data[0].timestamp - tool.points[1].timestamp)
+              for (let i = 1; i < config.data.length; i++) {
+                const diff = Math.abs(config.data[i].timestamp - tool.points[1].timestamp)
+                if (diff < minDiff) {
+                  minDiff = diff
+                  closestIndex = i
+                }
+              }
+              endDataIndex = closestIndex
+            }
                       const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
                       
                       if (endPixel && Array.isArray(endPixel)) {
@@ -144,8 +196,9 @@ export const useChartEvents = (
               return false
             }
 
-            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            // Find closest data index using helper function
+            const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
 
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
@@ -187,8 +240,9 @@ export const useChartEvents = (
               
               if (chart) {
                 try {
-                  const startDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[0].timestamp)
-                  const endDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[1].timestamp)
+                  // Find closest data indices for clicked tool
+                  const startDataIndex = findClosestDataIndex(clickedTool.points[0].timestamp)
+                  const endDataIndex = findClosestDataIndex(clickedTool.points[1].timestamp)
 
                   const startPixel = chart.convertToPixel('grid', [startDataIndex, clickedTool.points[0].price])
                   const endPixel = chart.convertToPixel('grid', [endDataIndex, clickedTool.points[1].price])
@@ -474,7 +528,7 @@ export const useChartEvents = (
         if (selectedTool.type === 'horizontal' || selectedTool.type === 'vertical') {
           if (selectedTool.points.length < 1) return
           
-          const dataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
+          const dataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
           const pixel = chart.convertToPixel('grid', [dataIndex, selectedTool.points[0].price])
           
           if (pixel && Array.isArray(pixel)) {
@@ -506,8 +560,34 @@ export const useChartEvents = (
         if (selectedTool.type === 'fibonacci') {
           if (selectedTool.points.length < 2) return
           
-          const startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
-          const endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
+          // Find closest data indices for selected tool
+          let startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
+          if (startDataIndex === -1) {
+            let closestIndex = 0
+            let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[0].timestamp)
+            for (let i = 1; i < config.data.length; i++) {
+              const diff = Math.abs(config.data[i].timestamp - selectedTool.points[0].timestamp)
+              if (diff < minDiff) {
+                minDiff = diff
+                closestIndex = i
+              }
+            }
+            startDataIndex = closestIndex
+          }
+          
+          let endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
+          if (endDataIndex === -1) {
+            let closestIndex = 0
+            let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[1].timestamp)
+            for (let i = 1; i < config.data.length; i++) {
+              const diff = Math.abs(config.data[i].timestamp - selectedTool.points[1].timestamp)
+              if (diff < minDiff) {
+                minDiff = diff
+                closestIndex = i
+              }
+            }
+            endDataIndex = closestIndex
+          }
           
           const startPixel = chart.convertToPixel('grid', [startDataIndex, selectedTool.points[0].price])
           const endPixel = chart.convertToPixel('grid', [endDataIndex, selectedTool.points[1].price])
@@ -586,8 +666,8 @@ export const useChartEvents = (
           return
         }
 
-        const startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
-        const endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
+        const startDataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
+        const endDataIndex = findClosestDataIndex(selectedTool.points[1].timestamp)
 
         const startPixel = chart.convertToPixel('grid', [startDataIndex, selectedTool.points[0].price])
         const endPixel = chart.convertToPixel('grid', [endDataIndex, selectedTool.points[1].price])
@@ -750,7 +830,7 @@ export const useChartEvents = (
           // Handle horizontal and vertical lines (single point)
           if (tool.type === 'horizontal' || tool.type === 'vertical') {
             if (tool.points.length < 1) return false
-            const dataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+            const dataIndex = findClosestDataIndex(tool.points[0].timestamp)
             const pixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
             if (pixel && Array.isArray(pixel)) {
               if (tool.type === 'horizontal') {
@@ -762,8 +842,9 @@ export const useChartEvents = (
           }
           // Handle fibonacci retracement (check all level lines)
           else if (tool.type === 'fibonacci' && tool.points.length >= 2) {
-            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            // Find closest data index using helper function
+            const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
             
@@ -796,8 +877,9 @@ export const useChartEvents = (
           }
           // Handle other two-point lines (trendlines)
           else if (tool.points.length >= 2) {
-            const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
+            // Find closest data index using helper function
+            const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
 
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])

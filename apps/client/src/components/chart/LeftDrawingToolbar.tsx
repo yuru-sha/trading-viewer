@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
-import { Icon } from 'lucide-react'
+import { Icon, Save, Download, Trash2 } from 'lucide-react'
 import { crosshairPlus } from '@lucide/lab'
 
 interface LeftDrawingToolbarProps {
@@ -13,6 +13,11 @@ interface LeftDrawingToolbarProps {
   onRemoveObject?: (id: string) => void
   onChangeObjectColor?: (id: string, color: string) => void
   className?: string
+  // Drawing persistence actions
+  onSaveDrawings?: () => void
+  onRestoreDrawings?: () => void
+  onClearAllDrawings?: () => void
+  drawingCount?: number
 }
 
 export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
@@ -23,6 +28,10 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
   onRemoveObject,
   onChangeObjectColor,
   className = '',
+  onSaveDrawings,
+  onRestoreDrawings,
+  onClearAllDrawings,
+  drawingCount = 0,
 }) => {
   const [showObjectsList, setShowObjectsList] = useState(false)
   const handleToolClick = (tool: DrawingTool) => {
@@ -75,6 +84,40 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
 
       {/* Spacer to push Objects button to bottom */}
       <div className='flex-1'></div>
+
+      {/* Separator */}
+      <div className='h-px bg-gray-300 dark:bg-gray-700 mx-2' />
+
+      {/* Drawing Management Tools */}
+      {onSaveDrawings && (
+        <button
+          onClick={onSaveDrawings}
+          className='flex items-center justify-center w-12 h-12 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+          title='Save Drawings'
+        >
+          <Save className='w-4 h-4' />
+        </button>
+      )}
+
+      {onRestoreDrawings && (
+        <button
+          onClick={onRestoreDrawings}
+          className='flex items-center justify-center w-12 h-12 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+          title='Restore Drawings'
+        >
+          <Download className='w-4 h-4' />
+        </button>
+      )}
+
+      {onClearAllDrawings && drawingCount > 0 && (
+        <button
+          onClick={onClearAllDrawings}
+          className='flex items-center justify-center w-12 h-12 transition-colors text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
+          title={`Clear All Drawings (${drawingCount})`}
+        >
+          <Trash2 className='w-4 h-4' />
+        </button>
+      )}
 
       {/* Separator */}
       <div className='h-px bg-gray-300 dark:bg-gray-700 mx-2' />
