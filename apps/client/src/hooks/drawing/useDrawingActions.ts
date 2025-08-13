@@ -265,10 +265,28 @@ export const useDrawingActions = (
         
         // 現在のツールを取得して座標を更新
         const currentTool = state.tools.find(tool => tool.id === toolId)
-        if (currentTool && currentTool.points && currentTool.points.length >= 2) {
+        if (currentTool && currentTool.points && currentTool.points.length >= 1) {
           const updatedPoints = [...currentTool.points]
           
-          if (handleType === 'start') {
+          // Handle horizontal and vertical lines (single point)
+          if (currentTool.type === 'horizontal' || currentTool.type === 'vertical') {
+            if (handleType === 'line') {
+              // For single-point lines, update the single point
+              if (currentTool.type === 'horizontal') {
+                // For horizontal lines, only update the price (Y coordinate)
+                updatedPoints[0] = {
+                  timestamp: currentTool.points[0].timestamp, // Keep original timestamp
+                  price: snappedPrice, // Update to new price level
+                }
+              } else if (currentTool.type === 'vertical') {
+                // For vertical lines, only update the timestamp (X coordinate)  
+                updatedPoints[0] = {
+                  timestamp: dataPoint.timestamp, // Update to new timestamp
+                  price: currentTool.points[0].price, // Keep original price
+                }
+              }
+            }
+          } else if (handleType === 'start') {
             updatedPoints[0] = newPoint
           } else if (handleType === 'end') {
             updatedPoints[1] = newPoint
@@ -352,7 +370,21 @@ export const useDrawingActions = (
     // Create updated points array
     const updatedPoints = [...(currentTool.points || [])]
     
-    if (handleType === 'start') {
+    // Handle horizontal and vertical lines (single point)
+    if (currentTool.type === 'horizontal' || currentTool.type === 'vertical') {
+      if (handleType === 'line') {
+        // For single-point lines, updateDrag already handled the movement
+        // Just use the current points that were updated in real-time
+        const currentPoints = currentTool.points
+        if (currentPoints && currentPoints.length >= 1) {
+          updatedPoints[0] = currentPoints[0]
+          console.log('🎯 Single-point line move finalized:', {
+            type: currentTool.type,
+            finalPoint: updatedPoints[0]
+          })
+        }
+      }
+    } else if (handleType === 'start') {
       updatedPoints[0] = newPoint
     } else if (handleType === 'end') {
       updatedPoints[1] = newPoint

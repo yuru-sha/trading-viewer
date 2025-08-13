@@ -329,11 +329,14 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                 },
                 style: {
                   stroke: tool.style?.color || '#ef4444',
-                  lineWidth: tool.style?.thickness || 2,
+                  lineWidth: isSelected ? (tool.style?.thickness || 2) + 2 : (tool.style?.thickness || 2),
                   opacity: tool.style?.opacity || 1,
+                  shadowBlur: isSelected ? 8 : 0,
+                  shadowColor: tool.style?.color || '#ef4444',
                 },
-                z: 100,
+                z: isSelected ? 150 : 100,
               })
+
             }
           }
           
@@ -359,11 +362,14 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(({
                 },
                 style: {
                   stroke: tool.style?.color || '#10b981',
-                  lineWidth: tool.style?.thickness || 2,
+                  lineWidth: isSelected ? (tool.style?.thickness || 2) + 2 : (tool.style?.thickness || 2),
                   opacity: tool.style?.opacity || 1,
+                  shadowBlur: isSelected ? 8 : 0,
+                  shadowColor: tool.style?.color || '#10b981',
                 },
-                z: 100,
+                z: isSelected ? 150 : 100,
               })
+
             }
           }
           

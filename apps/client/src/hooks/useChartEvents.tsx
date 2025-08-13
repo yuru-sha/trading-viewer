@@ -71,7 +71,7 @@ export const useChartEvents = (
       if (dataPoint) {
         // First, find if we clicked on any tool (line)
         const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
-          if (!tool.points || tool.points.length < 2) {
+          if (!tool.points || tool.points.length < 1) {
             return false
           }
 
@@ -80,6 +80,30 @@ export const useChartEvents = (
           if (!chart) return false
 
           try {
+            // Handle horizontal and vertical lines (single point)
+            if (tool.type === 'horizontal' || tool.type === 'vertical') {
+              if (tool.points.length < 1) return false
+              
+              const dataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
+              const pixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
+              
+              if (pixel && Array.isArray(pixel)) {
+                if (tool.type === 'horizontal') {
+                  // For horizontal lines, check if click is within tolerance of the price level
+                  return Math.abs(params.offsetY - pixel[1]) <= tolerance
+                } else if (tool.type === 'vertical') {
+                  // For vertical lines, check if click is within tolerance of the time level
+                  return Math.abs(params.offsetX - pixel[0]) <= tolerance
+                }
+              }
+              return false
+            }
+
+            // Handle two-point lines (trendlines, etc.)
+            if (tool.points.length < 2) {
+              return false
+            }
+
             const startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
             const endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
 
@@ -112,51 +136,60 @@ export const useChartEvents = (
             // If already selected, check if click is on handle first
             console.log('🎯 Line was already selected, checking for handle click')
             
-            let clickedHandle: { tool: any; handleType: 'start' | 'end' } | null = null
-            const chart = chartInstance.chartRef.current?.getEchartsInstance()
-            
-            if (chart) {
-              try {
-                const startDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[0].timestamp)
-                const endDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[1].timestamp)
+            // Skip handle detection for horizontal/vertical lines as they don't have endpoints
+            if (clickedTool.type === 'horizontal' || clickedTool.type === 'vertical') {
+              console.log('🎯 Single-point line clicked (no handle detection needed)')
+              // For single-point lines, any click on the line is considered a body click
+            } else {
+              // Handle detection for two-point lines (trendlines, etc.)
+              let clickedHandle: { tool: any; handleType: 'start' | 'end' } | null = null
+              const chart = chartInstance.chartRef.current?.getEchartsInstance()
+              
+              if (chart) {
+                try {
+                  const startDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[0].timestamp)
+                  const endDataIndex = config.data.findIndex(d => d.timestamp === clickedTool.points[1].timestamp)
 
-                const startPixel = chart.convertToPixel('grid', [startDataIndex, clickedTool.points[0].price])
-                const endPixel = chart.convertToPixel('grid', [endDataIndex, clickedTool.points[1].price])
+                  const startPixel = chart.convertToPixel('grid', [startDataIndex, clickedTool.points[0].price])
+                  const endPixel = chart.convertToPixel('grid', [endDataIndex, clickedTool.points[1].price])
 
-                if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
-                  const handleTolerance = 12 // pixels for handle detection
+                  if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+                    const handleTolerance = 12 // pixels for handle detection
 
-                  // Check start handle
-                  const startDistance = Math.sqrt(
-                    Math.pow(params.offsetX - startPixel[0], 2) + 
-                    Math.pow(params.offsetY - startPixel[1], 2)
-                  )
-                  if (startDistance <= handleTolerance) {
-                    clickedHandle = { tool: clickedTool, handleType: 'start' }
-                  } else {
-                    // Check end handle
-                    const endDistance = Math.sqrt(
-                      Math.pow(params.offsetX - endPixel[0], 2) + 
-                      Math.pow(params.offsetY - endPixel[1], 2)
+                    // Check start handle
+                    const startDistance = Math.sqrt(
+                      Math.pow(params.offsetX - startPixel[0], 2) + 
+                      Math.pow(params.offsetY - startPixel[1], 2)
                     )
-                    if (endDistance <= handleTolerance) {
-                      clickedHandle = { tool: clickedTool, handleType: 'end' }
+                    if (startDistance <= handleTolerance) {
+                      clickedHandle = { tool: clickedTool, handleType: 'start' }
+                    } else {
+                      // Check end handle
+                      const endDistance = Math.sqrt(
+                        Math.pow(params.offsetX - endPixel[0], 2) + 
+                        Math.pow(params.offsetY - endPixel[1], 2)
+                      )
+                      if (endDistance <= handleTolerance) {
+                        clickedHandle = { tool: clickedTool, handleType: 'end' }
+                      }
                     }
                   }
+                } catch (error) {
+                  console.error('🎯 Error checking handle click:', error)
                 }
-              } catch (error) {
-                console.error('🎯 Error checking handle click:', error)
+              }
+              
+              if (clickedHandle) {
+                console.log('🎯 Handle clicked:', clickedHandle.handleType)
+                // Don't start drag on click event - wait for actual mousedown
+                // This prevents the issue where click events leave isMouseDown state stuck
+              } else {
+                console.log('🎯 No handle clicked, line body clicked')
+                // Don't start drag on click event - wait for actual mousedown
               }
             }
-            
-            if (clickedHandle) {
-              console.log('🎯 Handle clicked:', clickedHandle.handleType)
-              // Don't start drag on click event - wait for actual mousedown
-              // This prevents the issue where click events leave isMouseDown state stuck
-            } else {
-              console.log('🎯 No handle clicked, line body clicked')
-              // Don't start drag on click event - wait for actual mousedown
-            }
+            // Common logic for both single-point and two-point lines
+            // Any further actions after selection would go here
           } else {
             // If not selected, select it now
             console.log('🎯 Selecting line for first time')
@@ -389,7 +422,7 @@ export const useChartEvents = (
     // If a tool is selected, check if we're clicking on a handle or line
     if (currentTools.selectedToolId) {
       const selectedTool = currentTools.getTool(currentTools.selectedToolId)
-      if (!selectedTool || !selectedTool.points || selectedTool.points.length < 2) {
+      if (!selectedTool || !selectedTool.points || selectedTool.points.length < 1) {
         return
       }
 
@@ -397,6 +430,43 @@ export const useChartEvents = (
       if (!chart) return
 
       try {
+        // Handle horizontal and vertical lines (single point)
+        if (selectedTool.type === 'horizontal' || selectedTool.type === 'vertical') {
+          if (selectedTool.points.length < 1) return
+          
+          const dataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
+          const pixel = chart.convertToPixel('grid', [dataIndex, selectedTool.points[0].price])
+          
+          if (pixel && Array.isArray(pixel)) {
+            const tolerance = 10 // pixels
+            let shouldStartDrag = false
+            
+            if (selectedTool.type === 'horizontal') {
+              // For horizontal lines, check if click is within tolerance of the price level
+              shouldStartDrag = Math.abs(params.offsetY - pixel[1]) <= tolerance
+            } else if (selectedTool.type === 'vertical') {
+              // For vertical lines, check if click is within tolerance of the time level
+              shouldStartDrag = Math.abs(params.offsetX - pixel[0]) <= tolerance
+            }
+            
+            if (shouldStartDrag) {
+              console.log('🎯 MouseDown on single-point line body')
+              currentTools.mouseDown(
+                selectedTool.id,
+                'line',
+                { x: params.offsetX, y: params.offsetY },
+                selectedTool.points
+              )
+            }
+          }
+          return
+        }
+
+        // Handle two-point lines (trendlines, etc.)
+        if (selectedTool.points.length < 2) {
+          return
+        }
+
         const startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
         const endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
 
