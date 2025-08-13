@@ -14,9 +14,13 @@ import {
   PanelLeftOpen,
   PanelBottomClose,
   PanelBottomOpen,
+  User,
+  LogIn,
+  LogOut,
 } from 'lucide-react'
 import { ChartType, POPULAR_SYMBOLS, CHART_TIMEFRAMES } from '@trading-viewer/shared'
 import { useApp, useAppActions } from '../../contexts/AppContext'
+import { useAuth } from '../../contexts/AuthContext'
 import SymbolSearch from '../SymbolSearch'
 import ChartSettings, { ChartSettings as ChartSettingsType } from './ChartSettings'
 
@@ -77,6 +81,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 }) => {
   const { state } = useApp()
   const { setTheme } = useAppActions()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const toggleTheme = () => {
     setTheme(state.theme === 'dark' ? 'light' : 'dark')
@@ -389,6 +394,34 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
             >
               {state.theme === 'dark' ? <Sun className='w-4 h-4' /> : <Moon className='w-4 h-4' />}
             </button>
+
+            {/* Auth Section */}
+            <div className='mx-2 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
+            
+            {isAuthenticated && user ? (
+              <div className='flex items-center space-x-2'>
+                <div className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300'>
+                  <User className='w-4 h-4 mr-2' />
+                  <span className='text-sm font-medium'>{user.email}</span>
+                </div>
+                <button
+                  onClick={() => logout()}
+                  className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+                  title='Logout'
+                >
+                  <LogOut className='w-4 h-4' />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => window.open('/login', '_blank')}
+                className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+                title='Login'
+              >
+                <LogIn className='w-4 h-4 mr-2' />
+                <span className='text-sm font-medium'>Login</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

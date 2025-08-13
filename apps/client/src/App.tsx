@@ -2,6 +2,8 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from '@trading-viewer/ui'
 import { AppProvider } from './contexts/AppContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { ErrorProvider } from './contexts/ErrorContext'
 import { Layout } from './components/Layout'
 import { HomePage, DashboardPage, ChartsPage, SearchPage, WatchlistPage } from './pages'
 
@@ -34,11 +36,15 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <AppProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AppProvider>
+      <ErrorProvider>
+        <AuthProvider>
+          <AppProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </AppProvider>
+        </AuthProvider>
+      </ErrorProvider>
     </ErrorBoundary>
   )
 }
