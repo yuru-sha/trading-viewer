@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Trash2, Palette, TrendingUp, Minus, AlignCenter, BarChart3 } from 'lucide-react'
+import { Eye, EyeOff, Trash2, Palette, ChartNoAxesGantt } from 'lucide-react'
 import { DrawingToolType } from '@trading-viewer/shared'
 
 export interface DrawingObject {
@@ -42,15 +42,31 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
   const getObjectIcon = (type: DrawingToolType) => {
     switch (type) {
       case 'trendline':
-        return <TrendingUp size={16} />
+        return (
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7l10 10' />
+          </svg>
+        )
       case 'horizontal':
-        return <Minus size={16} />
+        return (
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12h16' />
+          </svg>
+        )
       case 'vertical':
-        return <AlignCenter size={16} style={{ transform: 'rotate(90deg)' }} />
+        return (
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16' />
+          </svg>
+        )
       case 'fibonacci':
-        return <BarChart3 size={16} />
+        return <ChartNoAxesGantt className='w-4 h-4' />
       default:
-        return <TrendingUp size={16} />
+        return (
+          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7l10 10' />
+          </svg>
+        )
     }
   }
 

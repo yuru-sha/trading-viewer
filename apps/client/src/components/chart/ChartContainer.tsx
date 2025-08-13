@@ -204,15 +204,18 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
               })
             }, 0)
           }}
-          objects={chartObjects}
-          onToggleObjectVisibility={handleToggleObjectVisibility}
-          onRemoveObject={handleRemoveObject}
+          objects={drawingTools.tools.map(tool => ({
+            id: tool.id,
+            name: `${tool.type.charAt(0).toUpperCase() + tool.type.slice(1)} ${tool.id.slice(-4)}`,
+            type: tool.type,
+            visible: tool.visible ?? true,
+            color: tool.style?.color || '#3b82f6',
+            createdAt: tool.createdAt || Date.now(),
+          }))}
+          onToggleObjectVisibility={handleToggleDrawingToolVisibility}
+          onRemoveObject={handleDeleteDrawingTool}
+          onChangeObjectColor={handleChangeDrawingToolColor}
           className=''
-          // Drawing persistence actions
-          onSaveDrawings={drawingTools.save}
-          onRestoreDrawings={drawingTools.restore}
-          onClearAllDrawings={drawingTools.clearAndSave}
-          drawingCount={drawingTools.tools.length}
         />
       )}
 

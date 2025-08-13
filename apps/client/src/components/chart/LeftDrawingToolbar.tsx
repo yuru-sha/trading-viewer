@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
-import { Icon, Save, Download, Trash2 } from 'lucide-react'
+import { Icon } from 'lucide-react'
 import { crosshairPlus } from '@lucide/lab'
 
 interface LeftDrawingToolbarProps {
@@ -13,11 +13,6 @@ interface LeftDrawingToolbarProps {
   onRemoveObject?: (id: string) => void
   onChangeObjectColor?: (id: string, color: string) => void
   className?: string
-  // Drawing persistence actions
-  onSaveDrawings?: () => void
-  onRestoreDrawings?: () => void
-  onClearAllDrawings?: () => void
-  drawingCount?: number
 }
 
 export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
@@ -28,10 +23,6 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
   onRemoveObject,
   onChangeObjectColor,
   className = '',
-  onSaveDrawings,
-  onRestoreDrawings,
-  onClearAllDrawings,
-  drawingCount = 0,
 }) => {
   const [showObjectsList, setShowObjectsList] = useState(false)
   const handleToolClick = (tool: DrawingTool) => {
@@ -88,40 +79,6 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
       {/* Separator */}
       <div className='h-px bg-gray-300 dark:bg-gray-700 mx-2' />
 
-      {/* Drawing Management Tools */}
-      {onSaveDrawings && (
-        <button
-          onClick={onSaveDrawings}
-          className='flex items-center justify-center w-12 h-12 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
-          title='Save Drawings'
-        >
-          <Save className='w-4 h-4' />
-        </button>
-      )}
-
-      {onRestoreDrawings && (
-        <button
-          onClick={onRestoreDrawings}
-          className='flex items-center justify-center w-12 h-12 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
-          title='Restore Drawings'
-        >
-          <Download className='w-4 h-4' />
-        </button>
-      )}
-
-      {onClearAllDrawings && drawingCount > 0 && (
-        <button
-          onClick={onClearAllDrawings}
-          className='flex items-center justify-center w-12 h-12 transition-colors text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
-          title={`Clear All Drawings (${drawingCount})`}
-        >
-          <Trash2 className='w-4 h-4' />
-        </button>
-      )}
-
-      {/* Separator */}
-      <div className='h-px bg-gray-300 dark:bg-gray-700 mx-2' />
-
       {/* Objects List */}
       <div className='relative'>
         <button
@@ -131,14 +88,14 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
               ? 'bg-blue-600 text-white hover:bg-blue-700'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
-          title='Objects List'
+          title='Drawing Objects'
         >
           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path
               strokeLinecap='round'
               strokeLinejoin='round'
               strokeWidth={1.5}
-              d='M4 6h16M4 10h16M4 14h16M4 18h16'
+              d='M12 2L2 7l10 5 10-5L12 2z M2 17l10 5 10-5 M2 12l10 5 10-5'
             />
           </svg>
         </button>
