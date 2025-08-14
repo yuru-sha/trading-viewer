@@ -14,24 +14,75 @@ import watchlistRoutes from './routes/watchlist'
 import { requestLogger, errorLogger } from './middleware/logging'
 import { getWebSocketService } from './services/websocketService'
 import { securityHeaders } from './middleware/auth'
+import SecurityConfigValidator from './config/securityConfig'
 
 // Load environment variables
 dotenv.config()
 
+// Validate security configuration
+console.log('🔍 Validating security configuration...')
+SecurityConfigValidator.printStatus()
+
 const app: express.Application = express()
 const PORT = process.env.PORT || 8000
 
-// Rate limiting middleware
-const isRateLimitingEnabled = process.env.ENABLE_RATE_LIMITING === 'true'
-const limiter = rateLimit({
+// Rate limiting middleware - Financial application optimized
+const isRateLimitingEnabled = process.env.ENABLE_RATE_LIMITING !== 'false'
+
+// General API rate limiter (more permissive for trading data)
+const generalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000'), // Higher limit for trading apps
   message: {
     code: 'RATE_LIMIT_EXCEEDED',
     message: 'Too many requests from this IP, please try again later.',
     statusCode: 429,
   },
-  skip: () => !isRateLimitingEnabled, // Skip if rate limiting is disabled
+  skip: () => !isRateLimitingEnabled,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// Strict rate limiter for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_ATTEMPTS || '5'), // 5 attempts per window
+  message: {
+    code: 'AUTH_RATE_LIMIT_EXCEEDED',
+    message: 'Too many authentication attempts. Please try again later.',
+    statusCode: 429,
+  },
+  skip: () => !isRateLimitingEnabled,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// Moderate rate limiter for market data endpoints
+const marketDataLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MARKET_DATA_MAX || '60'), // 60 requests per minute
+  message: {
+    code: 'MARKET_DATA_RATE_LIMIT_EXCEEDED', 
+    message: 'Too many market data requests. Please slow down.',
+    statusCode: 429,
+  },
+  skip: () => !isRateLimitingEnabled,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// Very strict rate limiter for sensitive operations  
+const sensitiveLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: parseInt(process.env.RATE_LIMIT_SENSITIVE_MAX || '10'), // 10 requests per hour
+  message: {
+    code: 'SENSITIVE_RATE_LIMIT_EXCEEDED',
+    message: 'Too many sensitive operations. Please wait before trying again.',
+    statusCode: 429,
+  },
+  skip: () => !isRateLimitingEnabled,
+  standardHeaders: true,
+  legacyHeaders: false,
 })
 
 // Middleware
@@ -44,7 +95,7 @@ app.use(
 )
 app.use(cookieParser())
 app.use(compression())
-app.use(limiter)
+app.use(generalLimiter) // Apply general rate limiting to all routes
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(securityHeaders)
@@ -71,11 +122,11 @@ app.get('/health', async (_req, res) => {
   })
 })
 
-// API routes
-app.use('/api/auth', authRoutes)
-app.use('/api/market', marketRoutes)
-app.use('/api/alerts', alertRoutes)
-app.use('/api/watchlist', watchlistRoutes)
+// API routes with specific rate limiting
+app.use('/api/auth', authLimiter, authRoutes) // Strict rate limiting for auth
+app.use('/api/market', marketDataLimiter, marketRoutes) // Moderate rate limiting for market data
+app.use('/api/alerts', sensitiveLimiter, alertRoutes) // Strict rate limiting for alerts
+app.use('/api/watchlist', watchlistRoutes) // Use general rate limiting for watchlist
 
 app.get('/api', (_req, res) => {
   res.json({

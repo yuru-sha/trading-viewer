@@ -98,20 +98,20 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   // Fetch watchlist symbols on mount
   useEffect(() => {
     const fetchWatchlist = async () => {
-      try {
-        const response = await api.watchlist.get()
-        // Transform watchlist data to expected format
-        const symbols = response.data?.watchlist?.map(item => ({
-          symbol: item.symbol,
-          name: item.name,
-        })) || []
-        setWatchlistSymbols(symbols)
-      } catch (error) {
-        console.log('Using default watchlist symbols')
-        // Fallback to popular symbols if watchlist fetch fails
-        setWatchlistSymbols(POPULAR_SYMBOLS)
-      }
+    try {
+      const response = await api.watchlist.get()
+      // Transform watchlist data to expected format
+      const symbols = response.data?.watchlist?.map(item => ({
+        symbol: item.symbol,
+        name: item.name,
+      })) || []
+      setWatchlistSymbols(symbols)
+    } catch (error) {
+      console.log('Failed to fetch watchlist, showing empty list')
+      // Don't fallback to popular symbols - show empty watchlist instead
+      setWatchlistSymbols([])
     }
+  }
     fetchWatchlist()
   }, [])
 
@@ -495,7 +495,9 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 
             {/* Watchlist Symbols */}
             <div className='px-4 pb-4'>
-              <p className='text-sm text-gray-500 dark:text-gray-400 mb-3'>Your Watchlist</p>
+              <p className='text-sm text-gray-500 dark:text-gray-400 mb-3'>
+                {watchlistSymbols.length > 0 ? 'Your Watchlist' : 'Watchlist'}
+              </p>
               {watchlistSymbols.length > 0 ? (
                 <div className='grid grid-cols-2 gap-2'>
                   {watchlistSymbols.map(({ symbol, name }) => (

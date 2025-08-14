@@ -45,6 +45,32 @@ export class ApiError extends Error {
   }
 }
 
+// CSRF token management
+let csrfToken: string | null = null
+
+// Get CSRF token
+async function getCSRFToken(): Promise<string> {
+  if (!csrfToken) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/csrf-token`, {
+        credentials: 'include',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        csrfToken = data.data?.csrfToken
+      }
+    } catch (error) {
+      console.warn('Failed to get CSRF token:', error)
+    }
+  }
+  return csrfToken || ''
+}
+
+// Clear CSRF token (on logout or token expiry)
+export function clearCSRFToken(): void {
+  csrfToken = null
+}
+
 // Generic API request function
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
@@ -52,6 +78,14 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   const defaultHeaders = {
     'Content-Type': 'application/json',
     ...options.headers,
+  }
+
+  // Add CSRF token for state-changing operations
+  if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
+    const token = await getCSRFToken()
+    if (token) {
+      defaultHeaders['X-CSRF-Token'] = token
+    }
   }
 
   const response = await fetch(url, {
@@ -70,6 +104,11 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       errorCode = errorData.code || errorCode
     } catch {
       // If response is not JSON, use default error message
+    }
+
+    // Clear CSRF token on authentication/authorization errors
+    if (response.status === 401 || response.status === 403) {
+      clearCSRFToken()
     }
 
     throw new ApiError(errorMessage, response.status, errorCode)

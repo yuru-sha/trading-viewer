@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
+import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
 
 const router = Router()
 const prisma = new PrismaClient()
@@ -50,7 +50,7 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
 })
 
 // POST /api/watchlist - Add symbol to watchlist
-router.post('/', requireAuth, validateRequest({ body: AddWatchlistSchema }), async (req: AuthenticatedRequest, res) => {
+router.post('/', requireAuth, requireCSRF, validateRequest({ body: AddWatchlistSchema }), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {
@@ -108,7 +108,7 @@ router.post('/', requireAuth, validateRequest({ body: AddWatchlistSchema }), asy
 })
 
 // DELETE /api/watchlist - Remove symbol from watchlist
-router.delete('/', requireAuth, validateRequest({ body: RemoveWatchlistSchema }), async (req: AuthenticatedRequest, res) => {
+router.delete('/', requireAuth, requireCSRF, validateRequest({ body: RemoveWatchlistSchema }), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {
@@ -154,7 +154,7 @@ router.delete('/', requireAuth, validateRequest({ body: RemoveWatchlistSchema })
 })
 
 // DELETE /api/watchlist/:symbol - Remove symbol from watchlist (URL parameter version)
-router.delete('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete('/:symbol', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {
@@ -203,7 +203,7 @@ router.delete('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) =>
 })
 
 // PUT /api/watchlist/positions - Update watchlist item positions
-router.put('/positions', requireAuth, validateRequest({ body: UpdatePositionsSchema }), async (req: AuthenticatedRequest, res) => {
+router.put('/positions', requireAuth, requireCSRF, validateRequest({ body: UpdatePositionsSchema }), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {

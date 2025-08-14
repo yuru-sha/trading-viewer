@@ -13,6 +13,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:unit": "vitest run",
+    "test:security": "vitest run --testNamePattern=\"security\"",
+    "security:test": "pnpm test:security",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",

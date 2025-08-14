@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/database'
+import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
 import type {
   CreateDrawingToolRequest,
   CreateDrawingToolResponse,
@@ -57,7 +58,7 @@ const updateDrawingToolSchema = z.object({
 })
 
 // GET /api/drawings/:symbol - Get all drawing tools for a symbol
-router.get('/:symbol', async (req, res) => {
+router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { symbol } = req.params
     const { userId } = req.query
@@ -69,8 +70,14 @@ router.get('/:symbol', async (req, res) => {
       })
     }
 
-    // For now, use a default userId if not provided (in real app, get from auth)
-    const searchUserId = (userId as string) || 'default-user'
+    // Use authenticated user ID
+    const searchUserId = req.user?.userId
+    if (!searchUserId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not authenticated',
+      })
+    }
 
     const drawingTools = await prisma.drawingTool.findMany({
       where: {
@@ -111,7 +118,7 @@ router.get('/:symbol', async (req, res) => {
 })
 
 // POST /api/drawings - Create a new drawing tool
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res) => {
   try {
     const validation = createDrawingToolSchema.safeParse(req.body)
     if (!validation.success) {
@@ -124,8 +131,14 @@ router.post('/', async (req, res) => {
 
     const { symbol, tool } = validation.data
 
-    // For now, use a default userId (in real app, get from auth)
-    const userId = 'default-user'
+    // Use authenticated user ID
+    const userId = req.user?.userId
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not authenticated',
+      })
+    }
 
     const createdTool = await prisma.drawingTool.create({
       data: {
@@ -169,7 +182,7 @@ router.post('/', async (req, res) => {
 })
 
 // PUT /api/drawings/:id - Update a drawing tool
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params
     const validation = updateDrawingToolSchema.safeParse({ id, ...req.body })
@@ -233,7 +246,7 @@ router.put('/:id', async (req, res) => {
 })
 
 // DELETE /api/drawings/:id - Delete a drawing tool
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params
 

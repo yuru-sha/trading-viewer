@@ -95,9 +95,13 @@ export const generateTokens = async (
     )
   }
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  const accessToken = jwt.sign(payload, JWT_SECRET, { 
+    expiresIn: JWT_EXPIRES_IN,
+    algorithm: 'HS256' // Explicitly set algorithm to prevent confusion attacks
+  })
   const refreshToken = jwt.sign({ userId: payload.userId }, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_EXPIRES_IN,
+    algorithm: 'HS256' // Explicitly set algorithm
   })
 
   // Store refresh token in database

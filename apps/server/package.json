@@ -17,6 +17,8 @@
     "test": "jest",
     "test:unit": "jest",
     "test:integration": "jest --testMatch=\"**/__tests__/integration/**/*.test.ts\"",
+    "test:security": "jest --testMatch=\"**/__tests__/security/**/*.test.ts\"",
+    "security:test": "pnpm test:security",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:generate": "cd ../.. && prisma generate",

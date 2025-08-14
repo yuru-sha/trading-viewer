@@ -1,6 +1,9 @@
 import { Server } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import { EventEmitter } from 'events'
+import { IncomingMessage } from 'http'
+import { URL } from 'url'
+import jwt from 'jsonwebtoken'
 import { getFinnhubService } from './finnhubService'
 
 export interface WebSocketMessage {
@@ -10,19 +13,29 @@ export interface WebSocketMessage {
   timestamp?: number
 }
 
+export interface AuthenticatedWebSocket extends WebSocket {
+  userId?: string
+  isAuthenticated?: boolean
+  authTimestamp?: number
+  subscriptionCount?: number
+}
+
 export interface SubscriptionData {
   symbol: string
   clientId: string
-  ws: WebSocket
+  ws: AuthenticatedWebSocket
+  userId?: string
   lastUpdate?: number
 }
 
 export class WebSocketService extends EventEmitter {
   private wss: WebSocketServer | null = null
   private subscriptions: Map<string, Set<SubscriptionData>> = new Map()
-  private clients: Map<WebSocket, string> = new Map()
+  private clients: Map<AuthenticatedWebSocket, string> = new Map()
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map()
   private finnhubService = getFinnhubService()
+  private readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
+  private readonly MAX_SUBSCRIPTIONS_PER_USER = 50
 
   constructor() {
     super()
@@ -36,9 +49,10 @@ export class WebSocketService extends EventEmitter {
       maxPayload: 16 * 1024, // 16KB
       perMessageDeflate: false,
       clientTracking: true,
+      verifyClient: (info) => this.verifyClient(info),
     })
 
-    this.wss.on('connection', (ws, req) => {
+    this.wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
       // Check connection limits
       if (this.clients.size >= 100) {
         // Limit to 100 concurrent connections
@@ -48,6 +62,29 @@ export class WebSocketService extends EventEmitter {
 
       const clientId = this.generateClientId()
       this.clients.set(ws, clientId)
+      
+      // Initialize WebSocket properties
+      ws.subscriptionCount = 0
+      ws.authTimestamp = Date.now()
+
+      // Extract user info from verified token
+      try {
+        const token = this.extractTokenFromRequest(req)
+        if (token) {
+          const payload = jwt.verify(token, this.JWT_SECRET, { 
+            algorithms: ['HS256'] 
+          }) as any
+          ws.userId = payload.userId
+          ws.isAuthenticated = true
+          console.log(`✅ Authenticated WebSocket connection for user: ${ws.userId}`)
+        } else {
+          ws.isAuthenticated = false
+          console.log(`⚠️ Unauthenticated WebSocket connection`)
+        }
+      } catch (error) {
+        console.error('WebSocket authentication error:', error)
+        ws.isAuthenticated = false
+      }
 
       console.log(`WebSocket client connected: ${clientId} (${this.clients.size} total)`)
 
@@ -105,7 +142,7 @@ export class WebSocketService extends EventEmitter {
     console.log('WebSocket server initialized on /ws')
   }
 
-  private handleMessage(ws: WebSocket, clientId: string, message: WebSocketMessage): void {
+  private handleMessage(ws: AuthenticatedWebSocket, clientId: string, message: WebSocketMessage): void {
     switch (message.type) {
       case 'subscribe':
         if (message.symbol) {
@@ -136,7 +173,22 @@ export class WebSocketService extends EventEmitter {
     }
   }
 
-  private subscribeToSymbol(ws: WebSocket, clientId: string, symbol: string): void {
+  private subscribeToSymbol(ws: AuthenticatedWebSocket, clientId: string, symbol: string): void {
+    if (!symbol || typeof symbol !== 'string') {
+      this.sendError(ws, 'Invalid symbol provided')
+      return
+    }
+
+    // Check authentication for subscriptions in production
+    if (process.env.NODE_ENV === 'production' && !this.requireAuth(ws)) {
+      return
+    }
+
+    // Check subscription limits
+    if (!this.checkSubscriptionLimits(ws)) {
+      return
+    }
+
     if (!this.subscriptions.has(symbol)) {
       this.subscriptions.set(symbol, new Set())
     }
@@ -145,6 +197,7 @@ export class WebSocketService extends EventEmitter {
       symbol,
       clientId,
       ws,
+      userId: ws.userId,
     }
 
     const symbolSubscriptions = this.subscriptions.get(symbol)!
@@ -155,7 +208,10 @@ export class WebSocketService extends EventEmitter {
       this.startSymbolUpdates(symbol)
     }
 
-    console.log(`Client ${clientId} subscribed to ${symbol}`)
+    // Increment user's subscription count
+    ws.subscriptionCount = (ws.subscriptionCount || 0) + 1
+
+    console.log(`Client ${clientId} (user: ${ws.userId || 'anonymous'}) subscribed to ${symbol}`)
 
     // Send immediate quote
     this.sendQuoteUpdate(symbol)
@@ -169,7 +225,7 @@ export class WebSocketService extends EventEmitter {
     })
   }
 
-  private unsubscribeFromSymbol(ws: WebSocket, clientId: string, symbol: string): void {
+  private unsubscribeFromSymbol(ws: AuthenticatedWebSocket, clientId: string, symbol: string): void {
     const symbolSubscriptions = this.subscriptions.get(symbol)
     if (!symbolSubscriptions) return
 
@@ -177,6 +233,12 @@ export class WebSocketService extends EventEmitter {
     for (const subscription of symbolSubscriptions) {
       if (subscription.clientId === clientId && subscription.ws === ws) {
         symbolSubscriptions.delete(subscription)
+        
+        // Decrement subscription count
+        if (ws.subscriptionCount && ws.subscriptionCount > 0) {
+          ws.subscriptionCount--
+        }
+        
         break
       }
     }
@@ -187,7 +249,7 @@ export class WebSocketService extends EventEmitter {
       this.subscriptions.delete(symbol)
     }
 
-    console.log(`Client ${clientId} unsubscribed from ${symbol}`)
+    console.log(`Client ${clientId} (user: ${ws.userId || 'anonymous'}) unsubscribed from ${symbol}`)
 
     // Confirm unsubscription
     this.sendMessage(ws, {
@@ -420,6 +482,123 @@ export class WebSocketService extends EventEmitter {
   }
 
   private startTime = Date.now()
+
+  /**
+   * Verify client connection during WebSocket handshake
+   */
+  private verifyClient(info: { req: IncomingMessage; origin: string; secure: boolean }): boolean {
+    try {
+      // Check origin in production
+      if (process.env.NODE_ENV === 'production') {
+        const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || []
+        if (allowedOrigins.length > 0 && !allowedOrigins.includes(info.origin)) {
+          console.warn(`❌ WebSocket connection rejected - invalid origin: ${info.origin}`)
+          return false
+        }
+      }
+
+      // Basic rate limiting by IP
+      const clientIP = info.req.socket.remoteAddress || 'unknown'
+      if (this.isRateLimited(clientIP)) {
+        console.warn(`❌ WebSocket connection rejected - rate limited IP: ${clientIP}`)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error in WebSocket verifyClient:', error)
+      return false
+    }
+  }
+
+  /**
+   * Extract JWT token from WebSocket connection request
+   */
+  private extractTokenFromRequest(req: IncomingMessage): string | null {
+    try {
+      // Try Authorization header first
+      const authHeader = req.headers.authorization
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        return authHeader.substring(7)
+      }
+
+      // Try query parameter as fallback
+      const url = new URL(req.url || '', `http://${req.headers.host}`)
+      const token = url.searchParams.get('token')
+      if (token) {
+        return token
+      }
+
+      // Try cookies as last resort
+      const cookies = this.parseCookies(req.headers.cookie || '')
+      if (cookies.access_token) {
+        return cookies.access_token
+      }
+
+      return null
+    } catch (error) {
+      console.error('Error extracting token from WebSocket request:', error)
+      return null
+    }
+  }
+
+  /**
+   * Parse cookies from cookie header
+   */
+  private parseCookies(cookieHeader: string): Record<string, string> {
+    const cookies: Record<string, string> = {}
+    cookieHeader.split(';').forEach(cookie => {
+      const [name, value] = cookie.trim().split('=')
+      if (name && value) {
+        cookies[name] = decodeURIComponent(value)
+      }
+    })
+    return cookies
+  }
+
+  /**
+   * Basic IP-based rate limiting for WebSocket connections
+   */
+  private connectionAttempts = new Map<string, { count: number; lastAttempt: number }>()
+  
+  private isRateLimited(ip: string): boolean {
+    const now = Date.now()
+    const attempts = this.connectionAttempts.get(ip) || { count: 0, lastAttempt: 0 }
+    
+    // Reset counter if more than 1 minute has passed
+    if (now - attempts.lastAttempt > 60000) {
+      attempts.count = 0
+    }
+    
+    attempts.count++
+    attempts.lastAttempt = now
+    this.connectionAttempts.set(ip, attempts)
+    
+    // Allow max 10 connections per minute per IP
+    return attempts.count > 10
+  }
+
+  /**
+   * Check if WebSocket connection is authenticated
+   */
+  private requireAuth(ws: AuthenticatedWebSocket): boolean {
+    if (!ws.isAuthenticated || !ws.userId) {
+      this.sendError(ws, 'Authentication required for this operation')
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Check if user has exceeded subscription limits
+   */
+  private checkSubscriptionLimits(ws: AuthenticatedWebSocket): boolean {
+    if ((ws.subscriptionCount || 0) >= this.MAX_SUBSCRIPTIONS_PER_USER) {
+      this.sendError(ws, `Maximum subscriptions limit reached (${this.MAX_SUBSCRIPTIONS_PER_USER})`)
+      return false
+    }
+    return true
+  }
 }
 
 // Singleton pattern implementation

@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from 'react'
 import { useErrorHandlers } from './ErrorContext'
+import { clearCSRFToken } from '../lib/apiClient'
 
 // Types
 export interface User {
@@ -263,6 +264,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Clear auth state
   const clearAuth = useCallback(() => {
+    clearCSRFToken() // Clear CSRF token on logout/auth clear
     setAuthState({
       user: null,
       isAuthenticated: false,

@@ -475,7 +475,11 @@ router.get(
   '/csrf-token',
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const csrfToken = generateCSRFToken(req.user!.userId)
+    if (!req.user?.userId) {
+      throw new UnauthorizedError('Authentication required')
+    }
+    
+    const csrfToken = generateCSRFToken(req.user.userId)
     
     res.json({
       success: true,
