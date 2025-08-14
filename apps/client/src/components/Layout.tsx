@@ -78,12 +78,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       current: location.pathname === '/alerts',
       iconName: 'bell' as const,
     },
-    ...(user?.role === 'admin' ? [{
-      name: 'Users',
-      href: '/admin/users',
-      current: location.pathname === '/admin/users',
-      iconName: 'users' as const,
-    }] : []),
+    ...(user?.role === 'admin'
+      ? [
+          {
+            name: 'Users',
+            href: '/admin/users',
+            current: location.pathname === '/admin/users',
+            iconName: 'users' as const,
+          },
+        ]
+      : []),
   ]
 
   const toggleTheme = () => {

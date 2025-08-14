@@ -51,7 +51,7 @@ router.get('/:symbol', requireAuth, async (req, res) => {
     }
 
     const alerts = await prisma.priceAlert.findMany({
-      where: { 
+      where: {
         userId,
         symbol: symbol.toUpperCase(),
       },

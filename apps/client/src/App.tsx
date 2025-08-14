@@ -6,7 +6,15 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ErrorProvider } from './contexts/ErrorContext'
 import { useAuth } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
-import { HomePage, DashboardPage, ChartsPage, SearchPage, WatchlistPage, AlertsPage, AdminUsersPage } from './pages'
+import {
+  HomePage,
+  DashboardPage,
+  ChartsPage,
+  SearchPage,
+  WatchlistPage,
+  AlertsPage,
+  AdminUsersPage,
+} from './pages'
 import LoginPage from './pages/LoginPage'
 
 const AppContent: React.FC = () => {

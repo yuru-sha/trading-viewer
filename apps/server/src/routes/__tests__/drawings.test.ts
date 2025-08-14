@@ -26,7 +26,7 @@ describe('Drawing Tools API', () => {
           type: 'trendline',
           points: [
             { timestamp: 1640995200000, price: 150.0 },
-            { timestamp: 1641081600000, price: 155.0 }
+            { timestamp: 1641081600000, price: 155.0 },
           ],
           style: {
             color: '#3b82f6',
@@ -38,10 +38,7 @@ describe('Drawing Tools API', () => {
         },
       }
 
-      const response = await request(app)
-        .post('/api/drawings')
-        .send(newDrawingTool)
-        .expect(201)
+      const response = await request(app).post('/api/drawings').send(newDrawingTool).expect(201)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toBeDefined()
@@ -57,10 +54,7 @@ describe('Drawing Tools API', () => {
         },
       }
 
-      const response = await request(app)
-        .post('/api/drawings')
-        .send(invalidData)
-        .expect(400)
+      const response = await request(app).post('/api/drawings').send(invalidData).expect(400)
 
       expect(response.body.status).toBe('error')
     })
@@ -76,7 +70,7 @@ describe('Drawing Tools API', () => {
           type: 'trendline',
           points: JSON.stringify([
             { timestamp: 1640995200000, price: 150.0 },
-            { timestamp: 1641081600000, price: 155.0 }
+            { timestamp: 1641081600000, price: 155.0 },
           ]),
           style: JSON.stringify({
             color: '#3b82f6',
@@ -88,9 +82,7 @@ describe('Drawing Tools API', () => {
         },
       })
 
-      const response = await request(app)
-        .get('/api/drawings/AAPL')
-        .expect(200)
+      const response = await request(app).get('/api/drawings/AAPL').expect(200)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toHaveLength(1)
@@ -99,9 +91,7 @@ describe('Drawing Tools API', () => {
     })
 
     it('should return empty array for symbol with no drawings', async () => {
-      const response = await request(app)
-        .get('/api/drawings/MSFT')
-        .expect(200)
+      const response = await request(app).get('/api/drawings/MSFT').expect(200)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toHaveLength(0)
@@ -118,7 +108,7 @@ describe('Drawing Tools API', () => {
           type: 'trendline',
           points: JSON.stringify([
             { timestamp: 1640995200000, price: 150.0 },
-            { timestamp: 1641081600000, price: 155.0 }
+            { timestamp: 1641081600000, price: 155.0 },
           ]),
           style: JSON.stringify({
             color: '#3b82f6',
@@ -130,9 +120,7 @@ describe('Drawing Tools API', () => {
         },
       })
 
-      const response = await request(app)
-        .delete(`/api/drawings/${drawingTool.id}`)
-        .expect(200)
+      const response = await request(app).delete(`/api/drawings/${drawingTool.id}`).expect(200)
 
       expect(response.body.status).toBe('success')
 
@@ -144,9 +132,7 @@ describe('Drawing Tools API', () => {
     })
 
     it('should return 404 for non-existent drawing tool', async () => {
-      const response = await request(app)
-        .delete('/api/drawings/non-existent-id')
-        .expect(404)
+      const response = await request(app).delete('/api/drawings/non-existent-id').expect(404)
 
       expect(response.body.status).toBe('error')
       expect(response.body.message).toBe('Drawing tool not found')

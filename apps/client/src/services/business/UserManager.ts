@@ -60,8 +60,16 @@ export class UserManager {
 
       // Check for common weak passwords
       const commonPasswords = [
-        'password', 'password123', '12345678', 'qwerty', 'abc123',
-        'admin', 'letmein', 'welcome', 'monkey', '1234567890'
+        'password',
+        'password123',
+        '12345678',
+        'qwerty',
+        'abc123',
+        'admin',
+        'letmein',
+        'welcome',
+        'monkey',
+        '1234567890',
       ]
       if (commonPasswords.includes(password.toLowerCase())) {
         errors.push('より安全なパスワードを設定してください')
@@ -141,7 +149,7 @@ export class UserManager {
     } catch (error) {
       // Business logic for handling update errors
       console.error('Profile update failed:', error)
-      
+
       // Attempt recovery if possible
       try {
         await errorRecoveryManager.attemptRecovery(error, 'profile update')
@@ -192,24 +200,24 @@ export class UserManager {
   private calculateSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2
     const shorter = str1.length > str2.length ? str2 : str1
-    
+
     if (longer.length === 0) return 1.0
-    
+
     const editDistance = this.levenshteinDistance(longer, shorter)
     return (longer.length - editDistance) / longer.length
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
     const matrix = []
-    
+
     for (let i = 0; i <= str2.length; i++) {
       matrix[i] = [i]
     }
-    
+
     for (let j = 0; j <= str1.length; j++) {
       matrix[0][j] = j
     }
-    
+
     for (let i = 1; i <= str2.length; i++) {
       for (let j = 1; j <= str1.length; j++) {
         if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -223,7 +231,7 @@ export class UserManager {
         }
       }
     }
-    
+
     return matrix[str2.length][str1.length]
   }
 

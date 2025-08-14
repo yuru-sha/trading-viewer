@@ -9,12 +9,10 @@ const AlertsPage: React.FC = () => {
           Manage your price alerts and notifications
         </p>
       </div>
-      
+
       <div className='mt-8'>
         <div className='bg-white dark:bg-gray-800 shadow rounded-lg p-6'>
-          <h2 className='text-lg font-medium text-gray-900 dark:text-white mb-4'>
-            Coming Soon
-          </h2>
+          <h2 className='text-lg font-medium text-gray-900 dark:text-white mb-4'>Coming Soon</h2>
           <p className='text-gray-600 dark:text-gray-400'>
             Alerts functionality will be implemented in a future update.
           </p>

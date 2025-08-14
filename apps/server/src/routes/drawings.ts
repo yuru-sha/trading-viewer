@@ -48,7 +48,9 @@ const createDrawingToolSchema = z.object({
 const updateDrawingToolSchema = z.object({
   id: z.string(),
   updates: z.object({
-    type: z.enum(['trendline', 'horizontal', 'vertical', 'rectangle', 'circle', 'arrow', 'text']).optional(),
+    type: z
+      .enum(['trendline', 'horizontal', 'vertical', 'rectangle', 'circle', 'arrow', 'text'])
+      .optional(),
     points: z.array(drawingPointSchema).optional(),
     style: drawingStyleSchema.optional(),
     text: z.string().optional(),

@@ -11,20 +11,29 @@ export const useDrawingToolManagement = (
   dispatch: React.Dispatch<DrawingAction>
 ) => {
   // Select a specific tool
-  const selectTool = useCallback((toolId: string | null) => {
-    console.log('🎯 selectTool called:', { toolId, currentSelectedId: state.selectedToolId })
-    dispatch({ type: 'SELECT_TOOL', payload: toolId })
-  }, [dispatch, state.selectedToolId])
+  const selectTool = useCallback(
+    (toolId: string | null) => {
+      console.log('🎯 selectTool called:', { toolId, currentSelectedId: state.selectedToolId })
+      dispatch({ type: 'SELECT_TOOL', payload: toolId })
+    },
+    [dispatch, state.selectedToolId]
+  )
 
   // Update an existing tool
-  const updateTool = useCallback((toolId: string, updates: Partial<DrawingTool>) => {
-    dispatch({ type: 'UPDATE_TOOL', payload: { id: toolId, updates } })
-  }, [dispatch])
+  const updateTool = useCallback(
+    (toolId: string, updates: Partial<DrawingTool>) => {
+      dispatch({ type: 'UPDATE_TOOL', payload: { id: toolId, updates } })
+    },
+    [dispatch]
+  )
 
   // Delete a tool
-  const deleteTool = useCallback((toolId: string) => {
-    dispatch({ type: 'DELETE_TOOL', payload: toolId })
-  }, [dispatch])
+  const deleteTool = useCallback(
+    (toolId: string) => {
+      dispatch({ type: 'DELETE_TOOL', payload: toolId })
+    },
+    [dispatch]
+  )
 
   // Clear all tools
   const clearAllTools = useCallback(() => {
@@ -32,9 +41,12 @@ export const useDrawingToolManagement = (
   }, [dispatch])
 
   // Set default style for new tools
-  const setDefaultStyle = useCallback((style: Partial<DrawingStyle>) => {
-    dispatch({ type: 'SET_STYLE', payload: style })
-  }, [dispatch])
+  const setDefaultStyle = useCallback(
+    (style: Partial<DrawingStyle>) => {
+      dispatch({ type: 'SET_STYLE', payload: style })
+    },
+    [dispatch]
+  )
 
   // Toggle price snapping
   const toggleSnap = useCallback(() => {
@@ -42,9 +54,12 @@ export const useDrawingToolManagement = (
   }, [dispatch])
 
   // Load tools from external source
-  const loadTools = useCallback((tools: DrawingTool[]) => {
-    dispatch({ type: 'LOAD_TOOLS', payload: tools })
-  }, [dispatch])
+  const loadTools = useCallback(
+    (tools: DrawingTool[]) => {
+      dispatch({ type: 'LOAD_TOOLS', payload: tools })
+    },
+    [dispatch]
+  )
 
   // Export tools as JSON
   const exportTools = useCallback(() => {
@@ -52,16 +67,19 @@ export const useDrawingToolManagement = (
   }, [state.tools])
 
   // Import tools from JSON
-  const importTools = useCallback((jsonData: string) => {
-    try {
-      const tools = JSON.parse(jsonData) as DrawingTool[]
-      dispatch({ type: 'LOAD_TOOLS', payload: tools })
-      return true
-    } catch (error) {
-      console.error('Failed to import drawing tools:', error)
-      return false
-    }
-  }, [dispatch])
+  const importTools = useCallback(
+    (jsonData: string) => {
+      try {
+        const tools = JSON.parse(jsonData) as DrawingTool[]
+        dispatch({ type: 'LOAD_TOOLS', payload: tools })
+        return true
+      } catch (error) {
+        console.error('Failed to import drawing tools:', error)
+        return false
+      }
+    },
+    [dispatch]
+  )
 
   // Get tool by ID
   const getTool = useCallback(
@@ -101,49 +119,61 @@ export const useDrawingToolManagement = (
   }, [filterTools])
 
   // Duplicate a tool
-  const duplicateTool = useCallback((toolId: string) => {
-    const tool = getTool(toolId)
-    if (!tool) return null
+  const duplicateTool = useCallback(
+    (toolId: string) => {
+      const tool = getTool(toolId)
+      if (!tool) return null
 
-    const duplicatedTool: DrawingTool = {
-      ...tool,
-      id: `drawing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      // Offset the duplicated tool slightly
-      points: tool.points?.map(point => ({
-        ...point,
-        price: point.price * 1.001, // 0.1% offset
-      })),
-    }
+      const duplicatedTool: DrawingTool = {
+        ...tool,
+        id: `drawing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        // Offset the duplicated tool slightly
+        points: tool.points?.map(point => ({
+          ...point,
+          price: point.price * 1.001, // 0.1% offset
+        })),
+      }
 
-    dispatch({ type: 'ADD_TOOL', payload: duplicatedTool })
-    return duplicatedTool.id
-  }, [getTool, dispatch])
+      dispatch({ type: 'ADD_TOOL', payload: duplicatedTool })
+      return duplicatedTool.id
+    },
+    [getTool, dispatch]
+  )
 
   // Batch operations
-  const batchUpdateTools = useCallback((updates: Array<{ id: string; updates: Partial<DrawingTool> }>) => {
-    updates.forEach(({ id, updates }) => {
-      dispatch({ type: 'UPDATE_TOOL', payload: { id, updates } })
-    })
-  }, [dispatch])
+  const batchUpdateTools = useCallback(
+    (updates: Array<{ id: string; updates: Partial<DrawingTool> }>) => {
+      updates.forEach(({ id, updates }) => {
+        dispatch({ type: 'UPDATE_TOOL', payload: { id, updates } })
+      })
+    },
+    [dispatch]
+  )
 
-  const batchDeleteTools = useCallback((toolIds: string[]) => {
-    toolIds.forEach(id => {
-      dispatch({ type: 'DELETE_TOOL', payload: id })
-    })
-  }, [dispatch])
+  const batchDeleteTools = useCallback(
+    (toolIds: string[]) => {
+      toolIds.forEach(id => {
+        dispatch({ type: 'DELETE_TOOL', payload: id })
+      })
+    },
+    [dispatch]
+  )
 
   // Tool statistics
   const getToolStatistics = useCallback(() => {
     const totalTools = state.tools.length
     const visibleTools = getVisibleTools().length
     const lockedTools = getLockedTools().length
-    
-    const typeDistribution = state.tools.reduce((acc, tool) => {
-      acc[tool.type] = (acc[tool.type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+
+    const typeDistribution = state.tools.reduce(
+      (acc, tool) => {
+        acc[tool.type] = (acc[tool.type] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
 
     return {
       totalTools,
@@ -162,16 +192,16 @@ export const useDrawingToolManagement = (
     deleteTool,
     clearAllTools,
     duplicateTool,
-    
+
     // Style management
     setDefaultStyle,
     toggleSnap,
-    
+
     // Import/Export
     loadTools,
     exportTools,
     importTools,
-    
+
     // Tool queries
     getTool,
     selectedTool,
@@ -179,11 +209,11 @@ export const useDrawingToolManagement = (
     getToolsByType,
     getVisibleTools,
     getLockedTools,
-    
+
     // Batch operations
     batchUpdateTools,
     batchDeleteTools,
-    
+
     // Statistics
     getToolStatistics,
   }

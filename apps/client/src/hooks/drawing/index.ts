@@ -1,5 +1,11 @@
 // Refactored drawing hooks - separated from the original God Object
-export { useDrawingState, type DrawingState, type DrawingAction, initialState, drawingReducer } from './useDrawingState'
+export {
+  useDrawingState,
+  type DrawingState,
+  type DrawingAction,
+  initialState,
+  drawingReducer,
+} from './useDrawingState'
 export { useDrawingActions } from './useDrawingActions'
 export { useDrawingToolManagement } from './useDrawingToolManagement'
 export { useDrawingContextMenu, type ContextMenuState } from './useDrawingContextMenu'
@@ -16,16 +22,16 @@ import { useDrawingContextMenu } from './useDrawingContextMenu'
  * This replaces the original God Object with a clean, modular approach
  */
 export const useDrawingTools = () => {
-  const { 
-    state, 
-    currentDrawingRef, 
-    dispatch, 
-    hasTools, 
-    visibleTools, 
-    isInDrawingMode, 
-    isInEditingMode, 
-    canDraw, 
-    toolCount 
+  const {
+    state,
+    currentDrawingRef,
+    dispatch,
+    hasTools,
+    visibleTools,
+    isInDrawingMode,
+    isInEditingMode,
+    canDraw,
+    toolCount,
   } = useDrawingState()
 
   const {
@@ -63,11 +69,7 @@ export const useDrawingTools = () => {
     getToolStatistics,
   } = useDrawingToolManagement(state, dispatch)
 
-  const {
-    contextMenu,
-    showContextMenu,
-    hideContextMenu,
-  } = useDrawingContextMenu()
+  const { contextMenu, showContextMenu, hideContextMenu } = useDrawingContextMenu()
 
   // Debug logging for state changes
   useEffect(() => {
@@ -80,9 +82,18 @@ export const useDrawingTools = () => {
       isDragging: state.isDragging,
       isMouseDown: state.isMouseDown,
       dragState: state.dragState,
-      selectedToolId: state.selectedToolId
+      selectedToolId: state.selectedToolId,
     })
-  }, [state.activeToolType, state.isDrawing, state.drawingMode, state.tools.length, state.isDragging, state.isMouseDown, state.dragState, state.selectedToolId])
+  }, [
+    state.activeToolType,
+    state.isDrawing,
+    state.drawingMode,
+    state.tools.length,
+    state.isDragging,
+    state.isMouseDown,
+    state.dragState,
+    state.selectedToolId,
+  ])
 
   return {
     // State (read-only access)

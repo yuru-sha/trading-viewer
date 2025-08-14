@@ -17,9 +17,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import {
-  useSortable,
-} from '@dnd-kit/sortable'
+import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 interface QuoteData {
@@ -59,16 +57,11 @@ const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({
   item,
   selectedItems,
   onItemSelect,
-  onSymbolClick
+  onSymbolClick,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -94,11 +87,7 @@ const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({
           className='flex-shrink-0 touch-target p-1 cursor-grab active:cursor-grabbing'
           style={{ touchAction: 'none' }}
         >
-          <svg
-            className='w-5 h-5 text-gray-400'
-            fill='currentColor'
-            viewBox='0 0 20 20'
-          >
+          <svg className='w-5 h-5 text-gray-400' fill='currentColor' viewBox='0 0 20 20'>
             <path d='M7 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM17 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM17 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM17 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z' />
           </svg>
         </div>
@@ -128,16 +117,11 @@ const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({
         </button>
 
         {/* Symbol Info */}
-        <div
-          className='flex-1 min-w-0 cursor-pointer'
-          onClick={() => onSymbolClick(item.symbol)}
-        >
+        <div className='flex-1 min-w-0 cursor-pointer' onClick={() => onSymbolClick(item.symbol)}>
           <div className='flex items-center justify-between'>
             <div className='min-w-0 flex-1'>
               <div className='flex items-center space-x-2'>
-                <h3 className='text-lg font-bold text-gray-900 dark:text-white'>
-                  {item.symbol}
-                </h3>
+                <h3 className='text-lg font-bold text-gray-900 dark:text-white'>{item.symbol}</h3>
                 <svg
                   className='w-4 h-4 text-gray-400'
                   fill='none'
@@ -152,9 +136,7 @@ const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({
                   />
                 </svg>
               </div>
-              <p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
-                {item.name}
-              </p>
+              <p className='text-sm text-gray-500 dark:text-gray-400 truncate'>{item.name}</p>
             </div>
 
             {/* Price Info */}
@@ -179,15 +161,11 @@ const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({
           <div className='mt-3 grid grid-cols-3 gap-4 text-xs'>
             <div>
               <span className='text-gray-500 dark:text-gray-400'>Volume</span>
-              <div className='font-medium text-gray-900 dark:text-white'>
-                {item.volume}
-              </div>
+              <div className='font-medium text-gray-900 dark:text-white'>{item.volume}</div>
             </div>
             <div>
               <span className='text-gray-500 dark:text-gray-400'>Market Cap</span>
-              <div className='font-medium text-gray-900 dark:text-white'>
-                {item.marketCap}
-              </div>
+              <div className='font-medium text-gray-900 dark:text-white'>{item.marketCap}</div>
             </div>
             <div>
               <span className='text-gray-500 dark:text-gray-400'>Added</span>
@@ -208,7 +186,9 @@ const WatchlistPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [watchlistItems, setWatchlistItems] = useState<Array<{ symbol: string; name: string; addedAt: string }>>([])
+  const [watchlistItems, setWatchlistItems] = useState<
+    Array<{ symbol: string; name: string; addedAt: string }>
+  >([])
 
   // Sensors for drag and drop
   const sensors = useSensors(
@@ -238,15 +218,15 @@ const WatchlistPage: React.FC = () => {
   const deleteWatchlistItems = async (symbols: string[]) => {
     try {
       console.log('削除開始:', symbols)
-      
+
       // 各シンボルを並列で削除
       const deletePromises = symbols.map(symbol => {
         console.log(`削除リクエスト送信: ${symbol}`)
         return apiService.delete(`/watchlist/${symbol}`)
       })
-      
+
       const results = await Promise.allSettled(deletePromises)
-      
+
       // 結果をログ出力
       results.forEach((result, index) => {
         const symbol = symbols[index]
@@ -256,20 +236,20 @@ const WatchlistPage: React.FC = () => {
           console.error(`削除失敗: ${symbol}`, result.reason)
         }
       })
-      
+
       // 成功した削除をカウント
-      const successCount = results.filter(result => 
-        result.status === 'fulfilled' && result.value.success
+      const successCount = results.filter(
+        result => result.status === 'fulfilled' && result.value.success
       ).length
-      
+
       console.log(`削除結果: ${successCount}/${symbols.length} 成功`)
-      
+
       if (successCount > 0) {
         // ウォッチリストを再取得して表示を更新
         await fetchWatchlist()
         console.log(`Deleted ${successCount} symbols from watchlist`)
       }
-      
+
       if (successCount < symbols.length) {
         setError(`一部のシンボルの削除に失敗しました (${successCount}/${symbols.length})`)
       }
@@ -324,7 +304,7 @@ const WatchlistPage: React.FC = () => {
     // 位置を更新するための配列を作成
     const positionUpdates = newWatchlist.map((item, index) => ({
       symbol: item.symbol,
-      position: index
+      position: index,
     }))
 
     // サーバーに位置を送信
@@ -335,7 +315,7 @@ const WatchlistPage: React.FC = () => {
   const fetchMultipleQuotes = async (symbols: Array<{ symbol: string; name: string }>) => {
     const promises = symbols.map(async (stock, index) => {
       const quoteData = await fetchQuoteData(stock.symbol)
-      
+
       // API からデータが取得できない場合のフォールバック
       const fallbackData: QuoteData = {
         symbol: stock.symbol,
@@ -390,7 +370,7 @@ const WatchlistPage: React.FC = () => {
     const loadWatchlist = async () => {
       try {
         setIsLoading(true)
-        
+
         // ウォッチリストを取得
         await fetchWatchlist()
       } catch (err) {
@@ -455,7 +435,7 @@ const WatchlistPage: React.FC = () => {
     const selectedSymbols = watchlist
       .filter(item => selectedItems.has(item.id))
       .map(item => item.symbol)
-    
+
     if (selectedSymbols.length === 0) {
       setShowDeleteConfirm(false)
       return
@@ -463,7 +443,7 @@ const WatchlistPage: React.FC = () => {
 
     // データベースから削除
     await deleteWatchlistItems(selectedSymbols)
-    
+
     // UI の状態をリセット
     setSelectedItems(new Set())
     setShowDeleteConfirm(false)
@@ -566,157 +546,162 @@ const WatchlistPage: React.FC = () => {
           {watchlist.length} symbol{watchlist.length !== 1 ? 's' : ''} in your watchlist
         </p>
       </div>
-      
+
       <div className='h-full flex flex-col'>
-      {/* Actions Bar */}
-      <div className='flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4'>
-        <div className='flex items-center justify-between'>
-          {/* Left side - Selection controls */}
-          <div className='flex items-center space-x-4'>
-            {watchlist.length > 0 && (
-              <button
-                onClick={handleSelectAll}
-                className='flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
-              >
-                <div
-                  className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
-                    selectedItems.size === watchlist.length
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
+        {/* Actions Bar */}
+        <div className='flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4'>
+          <div className='flex items-center justify-between'>
+            {/* Left side - Selection controls */}
+            <div className='flex items-center space-x-4'>
+              {watchlist.length > 0 && (
+                <button
+                  onClick={handleSelectAll}
+                  className='flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
                 >
-                  {selectedItems.size === watchlist.length && (
-                    <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                  <div
+                    className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
+                      selectedItems.size === watchlist.length
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    {selectedItems.size === watchlist.length && (
+                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                        <path
+                          fillRule='evenodd'
+                          d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                          clipRule='evenodd'
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <span>
+                    {selectedItems.size === watchlist.length ? 'Deselect All' : 'Select All'}
+                  </span>
+                </button>
+              )}
+              {selectedItems.size > 0 && (
+                <span className='text-sm text-gray-500 dark:text-gray-400'>
+                  {selectedItems.size} selected
+                </span>
+              )}
+            </div>
+
+            {/* Right side - Action Buttons */}
+            <div className='flex items-center space-x-2'>
+              {selectedItems.size > 0 && (
+                <>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setSelectedItems(new Set())}
+                    className='hidden sm:flex'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={handleDeleteSelected}
+                    className='text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900'
+                  >
+                    <svg
+                      className='w-4 h-4 sm:mr-2'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
                       <path
-                        fillRule='evenodd'
-                        d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                        clipRule='evenodd'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
                       />
                     </svg>
-                  )}
-                </div>
-                <span>{selectedItems.size === watchlist.length ? 'Deselect All' : 'Select All'}</span>
-              </button>
-            )}
-            {selectedItems.size > 0 && (
-              <span className='text-sm text-gray-500 dark:text-gray-400'>
-                {selectedItems.size} selected
-              </span>
-            )}
-          </div>
-
-          {/* Right side - Action Buttons */}
-          <div className='flex items-center space-x-2'>
-            {selectedItems.size > 0 && (
-              <>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setSelectedItems(new Set())}
-                  className='hidden sm:flex'
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={handleDeleteSelected}
-                  className='text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900'
-                >
-                  <svg
-                    className='w-4 h-4 sm:mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                    />
-                  </svg>
-                  <span className='hidden sm:inline'>Delete ({selectedItems.size})</span>
-                </Button>
-              </>
-            )}
-            <Button variant='primary' size='sm' onClick={() => (window.location.href = '/search')}>
-              <svg
-                className='w-4 h-4 sm:mr-2'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M12 4v16m8-8H4'
-                />
-              </svg>
-              <span className='hidden sm:inline'>Add Symbol</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Watchlist Content */}
-      <div className='flex-1 overflow-hidden'>
-        <div className='h-full overflow-y-auto mobile-scroll'>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={watchlist} strategy={verticalListSortingStrategy}>
-              <div className='divide-y divide-gray-200 dark:divide-gray-700'>
-                {watchlist.map(item => (
-                  <SortableWatchlistItem
-                    key={item.id}
-                    item={item}
-                    selectedItems={selectedItems}
-                    onItemSelect={handleItemSelect}
-                    onSymbolClick={handleSymbolClick}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm'>
-            <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-4'>
-              Delete Selected Items
-            </h3>
-            <p className='text-sm text-gray-500 dark:text-gray-400 mb-6'>
-              Are you sure you want to remove {selectedItems.size} item
-              {selectedItems.size !== 1 ? 's' : ''} from your watchlist? This action cannot be
-              undone.
-            </p>
-            <div className='flex space-x-4'>
-              <Button
-                variant='outline'
-                onClick={() => setShowDeleteConfirm(false)}
-                className='flex-1'
-              >
-                Cancel
-              </Button>
+                    <span className='hidden sm:inline'>Delete ({selectedItems.size})</span>
+                  </Button>
+                </>
+              )}
               <Button
                 variant='primary'
-                onClick={confirmDelete}
-                className='flex-1 bg-red-600 hover:bg-red-700 border-red-600'
+                size='sm'
+                onClick={() => (window.location.href = '/search')}
               >
-                Delete
+                <svg
+                  className='w-4 h-4 sm:mr-2'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M12 4v16m8-8H4'
+                  />
+                </svg>
+                <span className='hidden sm:inline'>Add Symbol</span>
               </Button>
             </div>
           </div>
         </div>
-      )}
 
+        {/* Watchlist Content */}
+        <div className='flex-1 overflow-hidden'>
+          <div className='h-full overflow-y-auto mobile-scroll'>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={watchlist} strategy={verticalListSortingStrategy}>
+                <div className='divide-y divide-gray-200 dark:divide-gray-700'>
+                  {watchlist.map(item => (
+                    <SortableWatchlistItem
+                      key={item.id}
+                      item={item}
+                      selectedItems={selectedItems}
+                      onItemSelect={handleItemSelect}
+                      onSymbolClick={handleSymbolClick}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm'>
+              <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-4'>
+                Delete Selected Items
+              </h3>
+              <p className='text-sm text-gray-500 dark:text-gray-400 mb-6'>
+                Are you sure you want to remove {selectedItems.size} item
+                {selectedItems.size !== 1 ? 's' : ''} from your watchlist? This action cannot be
+                undone.
+              </p>
+              <div className='flex space-x-4'>
+                <Button
+                  variant='outline'
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className='flex-1'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant='primary'
+                  onClick={confirmDelete}
+                  className='flex-1 bg-red-600 hover:bg-red-700 border-red-600'
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

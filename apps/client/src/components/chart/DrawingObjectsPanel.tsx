@@ -21,7 +21,7 @@ interface DrawingObjectsPanelProps {
 
 const colorPresets = [
   '#3b82f6', // Blue
-  '#ef4444', // Red  
+  '#ef4444', // Red
   '#10b981', // Green
   '#f59e0b', // Orange
   '#8b5cf6', // Purple
@@ -151,7 +151,9 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
 
                     {/* Color Button */}
                     <button
-                      onClick={() => setColorPickerOpen(colorPickerOpen === object.id ? null : object.id)}
+                      onClick={() =>
+                        setColorPickerOpen(colorPickerOpen === object.id ? null : object.id)
+                      }
                       className='flex-shrink-0 p-1 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-600'
                       title='Change color'
                     >
@@ -178,7 +180,9 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
                 {/* Color Picker Dropdown */}
                 {colorPickerOpen === object.id && (
                   <div className='absolute left-3 right-3 top-full z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 mt-1'>
-                    <div className='text-xs text-gray-500 dark:text-gray-400 mb-2'>Choose Color</div>
+                    <div className='text-xs text-gray-500 dark:text-gray-400 mb-2'>
+                      Choose Color
+                    </div>
                     <div className='grid grid-cols-4 gap-2'>
                       {colorPresets.map(color => (
                         <button

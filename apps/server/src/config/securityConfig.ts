@@ -5,10 +5,7 @@ import crypto from 'crypto'
  * Validates environment variables for security compliance
  */
 export class SecurityConfigValidator {
-  private static readonly REQUIRED_SECRETS = [
-    'JWT_SECRET',
-    'JWT_REFRESH_SECRET',
-  ]
+  private static readonly REQUIRED_SECRETS = ['JWT_SECRET', 'JWT_REFRESH_SECRET']
 
   private static readonly PRODUCTION_REQUIREMENTS = {
     JWT_SECRET: { minLength: 32, pattern: /^[A-Za-z0-9+/=\-_]{32,}$/ },
@@ -31,7 +28,7 @@ export class SecurityConfigValidator {
   /**
    * Validates all security-related environment variables
    */
-  public static validate(): { 
+  public static validate(): {
     isValid: boolean
     errors: string[]
     warnings: string[]
@@ -45,7 +42,7 @@ export class SecurityConfigValidator {
         errors.push(`Missing required environment variable: ${secret}`)
       } else {
         const value = process.env[secret]!
-        
+
         // Check if secret is weak
         if (this.isWeakSecret(value)) {
           if (process.env.NODE_ENV === 'production') {
@@ -56,18 +53,25 @@ export class SecurityConfigValidator {
         }
 
         // Check length and pattern requirements
-        const requirement = this.PRODUCTION_REQUIREMENTS[secret as keyof typeof this.PRODUCTION_REQUIREMENTS]
+        const requirement =
+          this.PRODUCTION_REQUIREMENTS[secret as keyof typeof this.PRODUCTION_REQUIREMENTS]
         if (requirement) {
-          if (value.length < requirement.minLength) {
+          if ('minLength' in requirement && value.length < requirement.minLength) {
             if (process.env.NODE_ENV === 'production') {
-              errors.push(`${secret} too short. Minimum ${requirement.minLength} characters required.`)
+              errors.push(
+                `${secret} too short. Minimum ${requirement.minLength} characters required.`
+              )
             } else {
-              warnings.push(`${secret} should be at least ${requirement.minLength} characters for production.`)
+              warnings.push(
+                `${secret} should be at least ${requirement.minLength} characters for production.`
+              )
             }
           }
 
-          if (requirement.pattern && !requirement.pattern.test(value)) {
-            warnings.push(`${secret} should use strong alphanumeric characters for better security.`)
+          if ('pattern' in requirement && requirement.pattern && !requirement.pattern.test(value)) {
+            warnings.push(
+              `${secret} should use strong alphanumeric characters for better security.`
+            )
           }
         }
       }
@@ -110,9 +114,9 @@ export class SecurityConfigValidator {
    */
   public static printStatus(): void {
     const validation = this.validate()
-    
+
     console.log('\n🔒 Security Configuration Status:')
-    
+
     if (validation.isValid) {
       console.log('✅ All security checks passed')
     } else {
@@ -133,7 +137,7 @@ export class SecurityConfigValidator {
     console.log(`🔐 JWT Expiration: ${process.env.JWT_EXPIRES_IN || '15m'}`)
     console.log(`🔄 Refresh Token Expiration: ${process.env.JWT_REFRESH_EXPIRES_IN || '7d'}`)
     console.log(`🧂 BCrypt Salt Rounds: ${process.env.BCRYPT_SALT_ROUNDS || 12}`)
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.log('\n📝 For production deployment, ensure all secrets are changed!')
       console.log('   Use: openssl rand -base64 64')
@@ -146,7 +150,7 @@ export class SecurityConfigValidator {
     return this.WEAK_SECRETS.some(weak => lowerSecret.includes(weak))
   }
 
-  private static validateTokenExpiration(errors: string[], warnings: string[]): void {
+  private static validateTokenExpiration(_errors: string[], warnings: string[]): void {
     const jwtExpiration = process.env.JWT_EXPIRES_IN
     const refreshExpiration = process.env.JWT_REFRESH_EXPIRES_IN
 
@@ -165,7 +169,7 @@ export class SecurityConfigValidator {
 
   private static validateBcryptSaltRounds(errors: string[], warnings: string[]): void {
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12')
-    
+
     if (saltRounds < 10) {
       if (process.env.NODE_ENV === 'production') {
         errors.push('BCrypt salt rounds too low for production (minimum 12 recommended)')
@@ -179,7 +183,7 @@ export class SecurityConfigValidator {
     }
   }
 
-  private static validateCorsConfiguration(errors: string[], warnings: string[]): void {
+  private static validateCorsConfiguration(errors: string[], _warnings: string[]): void {
     const corsOrigin = process.env.CORS_ORIGIN
 
     if (process.env.NODE_ENV === 'production') {
@@ -191,7 +195,7 @@ export class SecurityConfigValidator {
     }
   }
 
-  private static validateRateLimiting(errors: string[], warnings: string[]): void {
+  private static validateRateLimiting(_errors: string[], warnings: string[]): void {
     const enableRateLimit = process.env.ENABLE_RATE_LIMITING
     const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')
 
@@ -213,7 +217,7 @@ export class SecurityConfigValidator {
 if (process.env.NODE_ENV !== 'test') {
   // Validate configuration when server starts
   const validation = SecurityConfigValidator.validate()
-  
+
   if (!validation.isValid && process.env.NODE_ENV === 'production') {
     console.error('❌ CRITICAL: Security validation failed in production!')
     validation.errors.forEach(error => console.error(`   ${error}`))

@@ -48,7 +48,7 @@ export class ApiService {
     } = options
 
     const url = `${this.baseURL}${endpoint}`
-    
+
     // Build headers
     const requestHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -58,6 +58,9 @@ export class ApiService {
     // Add CSRF token for state-changing operations
     if (requiresCSRF && this.csrfToken) {
       requestHeaders['x-csrf-token'] = this.csrfToken
+      console.log('🔐 ApiService sending CSRF token:', this.csrfToken.substring(0, 8) + '...', 'for', endpoint)
+    } else if (requiresCSRF) {
+      console.warn('🔐 CSRF token required but not available for', endpoint)
     }
 
     const config: RequestInit = {
@@ -90,7 +93,6 @@ export class ApiService {
 
       const data = await response.json()
       return data
-
     } catch (error) {
       clearTimeout(timeoutId)
 

@@ -8,7 +8,9 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   // Override res.send to log response details
   res.send = function (data) {
     const duration = Date.now() - start
-    const contentLength = Buffer.byteLength(data || '', 'utf8')
+    // Handle Object data by stringifying it before calculating byte length
+    const dataStr = typeof data === 'object' ? JSON.stringify(data) : (data || '')
+    const contentLength = Buffer.byteLength(dataStr, 'utf8')
 
     console.log(
       `${req.method} ${req.originalUrl} - ${req.ip} - ${res.statusCode} - ${duration}ms - ${contentLength}bytes`

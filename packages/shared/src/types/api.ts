@@ -110,7 +110,7 @@ export interface GetDrawingToolsRequest {
 
 export interface GetDrawingToolsResponse {
   data: DrawingTool[]
-  status: 'success' | 'error' 
+  status: 'success' | 'error'
   message?: string
 }
 

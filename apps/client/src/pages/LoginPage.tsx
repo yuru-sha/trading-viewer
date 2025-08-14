@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { login, register, isAuthenticated } = useAuth()
   const { handleApiError, showSuccess } = useErrorHandlers()
-  
+
   // Accessibility enhancement
   const { announceToScreenReader, focusElement, prefersReducedMotion } = useAccessibility()
   const formRef = useRef<HTMLFormElement>(null)
@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     // Announce page change
     announceToScreenReader(`${isLogin ? 'ログイン' : 'アカウント作成'}ページです`)
-    
+
     // Focus header for screen readers
     if (headerRef.current) {
       focusElement(headerRef.current)
@@ -49,7 +49,10 @@ const LoginPage: React.FC = () => {
       }
     } catch (error) {
       handleApiError(error, isLogin ? 'ログイン' : 'アカウント作成')
-      announceToScreenReader(`${isLogin ? 'ログイン' : 'アカウント作成'}でエラーが発生しました`, 'assertive')
+      announceToScreenReader(
+        `${isLogin ? 'ログイン' : 'アカウント作成'}でエラーが発生しました`,
+        'assertive'
+      )
     } finally {
       setIsLoading(false)
     }
@@ -59,7 +62,7 @@ const LoginPage: React.FC = () => {
     <div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8'>
       <div className='max-w-md w-full space-y-8'>
         <div>
-          <h1 
+          <h1
             ref={headerRef}
             className='mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white'
             tabIndex={-1}
@@ -67,25 +70,23 @@ const LoginPage: React.FC = () => {
           >
             {isLogin ? 'ログイン' : 'アカウント作成'}
           </h1>
-          <p 
+          <p
             className='mt-2 text-center text-sm text-gray-600 dark:text-gray-400'
             id='page-description'
           >
             TradingViewer へようこそ
           </p>
         </div>
-        <form 
+        <form
           ref={formRef}
-          className='mt-8 space-y-6' 
+          className='mt-8 space-y-6'
           onSubmit={handleSubmit}
           aria-labelledby='page-title'
           aria-describedby='page-description'
           noValidate
         >
           <fieldset className='space-y-4'>
-            <legend className='sr-only'>
-              {isLogin ? 'ログイン情報' : 'アカウント作成情報'}
-            </legend>
+            <legend className='sr-only'>{isLogin ? 'ログイン情報' : 'アカウント作成情報'}</legend>
             <div>
               <label htmlFor='email' className='sr-only'>
                 メールアドレス
@@ -95,7 +96,7 @@ const LoginPage: React.FC = () => {
                 type='email'
                 placeholder='メールアドレス'
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
                 autoComplete='email'
                 aria-describedby='email-error'
@@ -111,7 +112,7 @@ const LoginPage: React.FC = () => {
                 type='password'
                 placeholder='パスワード'
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
                 aria-describedby='password-error'
@@ -129,7 +130,7 @@ const LoginPage: React.FC = () => {
                     type='text'
                     placeholder='名前（任意）'
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={e => setFirstName(e.target.value)}
                     autoComplete='given-name'
                     className='w-full'
                   />
@@ -143,7 +144,7 @@ const LoginPage: React.FC = () => {
                     type='text'
                     placeholder='姓（任意）'
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={e => setLastName(e.target.value)}
                     autoComplete='family-name'
                     className='w-full'
                   />
@@ -186,13 +187,18 @@ const LoginPage: React.FC = () => {
 
           {/* Test Accounts */}
           <section className='mt-6 space-y-3' aria-labelledby='test-accounts-title'>
-            <h2 id='test-accounts-title' className='sr-only'>テスト用アカウント情報</h2>
-            <div 
+            <h2 id='test-accounts-title' className='sr-only'>
+              テスト用アカウント情報
+            </h2>
+            <div
               className='p-4 bg-gray-100 dark:bg-gray-800 rounded-lg'
               role='region'
               aria-labelledby='test-account-label'
             >
-              <p id='test-account-label' className='text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium'>
+              <p
+                id='test-account-label'
+                className='text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium'
+              >
                 テスト用アカウント:
               </p>
               <div className='text-xs text-gray-600 dark:text-gray-400'>
@@ -200,12 +206,15 @@ const LoginPage: React.FC = () => {
                 <div>Password: password123</div>
               </div>
             </div>
-            <div 
+            <div
               className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'
               role='region'
               aria-labelledby='admin-account-label'
             >
-              <p id='admin-account-label' className='text-xs text-blue-700 dark:text-blue-300 mb-2 font-medium'>
+              <p
+                id='admin-account-label'
+                className='text-xs text-blue-700 dark:text-blue-300 mb-2 font-medium'
+              >
                 管理者アカウント:
               </p>
               <div className='text-xs text-blue-700 dark:text-blue-300'>

@@ -113,8 +113,8 @@ const incrementFailedLogin = async (userId: string): Promise<void> => {
     const result = await prisma.user.update({
       where: { id: userId },
       data: {
-        failedLoginCount: { increment: 1 }
-      }
+        failedLoginCount: { increment: 1 },
+      },
     })
 
     // Lock account if max attempts reached
@@ -122,8 +122,8 @@ const incrementFailedLogin = async (userId: string): Promise<void> => {
       await prisma.user.update({
         where: { id: userId },
         data: {
-          lockedUntil: new Date(Date.now() + LOCK_TIME)
-        }
+          lockedUntil: new Date(Date.now() + LOCK_TIME),
+        },
       })
     }
   } catch (error) {
@@ -139,8 +139,8 @@ const resetFailedLogin = async (userId: string): Promise<void> => {
       data: {
         failedLoginCount: 0,
         lockedUntil: null,
-        lastLoginAt: new Date()
-      }
+        lastLoginAt: new Date(),
+      },
     })
   } catch (error) {
     console.error('Failed to reset login attempts:', error)
@@ -170,9 +170,9 @@ router.post(
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     })
-    
+
     if (existingUser) {
       throw new ConflictError('User with this email already exists')
     }
@@ -203,7 +203,7 @@ router.post(
         isEmailVerified: false, // In production, implement email verification
         failedLoginCount: 0,
         isActive: true,
-      }
+      },
     })
 
     // Create default watchlist with tech giants
@@ -220,7 +220,7 @@ router.post(
         userId: user.id,
         symbol: item.symbol,
         name: item.name,
-      }))
+      })),
     })
 
     // Log registration event
@@ -269,9 +269,9 @@ router.post(
 
       // Find user
       const user = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
       })
-      
+
       if (!user) {
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'User not found')
         throw new UnauthorizedError('Invalid email or password')
@@ -286,7 +286,9 @@ router.post(
       // Check if account is locked
       if (isAccountLocked(user)) {
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'Account locked')
-        throw new UnauthorizedError(`Account is locked. Try again after ${user.lockedUntil?.toLocaleTimeString()}`)
+        throw new UnauthorizedError(
+          `Account is locked. Try again after ${user.lockedUntil?.toLocaleTimeString()}`
+        )
       }
 
       // Verify password
@@ -368,7 +370,7 @@ router.post(
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     })
     if (!user) {
       revokeRefreshToken(refreshToken)
@@ -444,7 +446,7 @@ router.get(
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.userId },
     })
     if (!user) {
       throw new UnauthorizedError('User not found')
@@ -478,9 +480,9 @@ router.get(
     if (!req.user?.userId) {
       throw new UnauthorizedError('Authentication required')
     }
-    
+
     const csrfToken = generateCSRFToken(req.user.userId)
-    
+
     res.json({
       success: true,
       data: {

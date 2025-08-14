@@ -1,4 +1,8 @@
-import type { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from '@trading-viewer/shared'
+import type {
+  NormalizedSymbol,
+  NormalizedQuote,
+  NormalizedCandleResponse,
+} from '@trading-viewer/shared'
 
 /**
  * Generic Market Data Provider Interface
@@ -110,7 +114,7 @@ export class FinnhubAdapter extends BaseMarketDataAdapter {
     this.validateQuery(query)
 
     const url = `${this.baseUrl}/search?q=${encodeURIComponent(query)}&token=${this.apiKey}`
-    
+
     try {
       const response = await fetch(url)
       if (!response.ok) {
@@ -118,14 +122,14 @@ export class FinnhubAdapter extends BaseMarketDataAdapter {
       }
 
       const data: unknown = await response.json()
-      
+
       // Type guard for Finnhub symbol search response
       if (!this.isFinnhubSymbolSearchResponse(data)) {
         throw new Error('Invalid symbol search response format')
       }
-      
+
       // Adapt Finnhub response to our format
-      return (data.result || []).slice(0, limit).map((item) => ({
+      return (data.result || []).slice(0, limit).map(item => ({
         symbol: item.symbol,
         description: item.description,
         displaySymbol: item.displaySymbol || item.symbol,
@@ -207,14 +211,15 @@ export class FinnhubAdapter extends BaseMarketDataAdapter {
       }
 
       // Convert Finnhub format to normalized format
-      const candles = data.t?.map((timestamp, index) => ({
-        timestamp,
-        open: data.o?.[index] || 0,
-        high: data.h?.[index] || 0,
-        low: data.l?.[index] || 0,
-        close: data.c?.[index] || 0,
-        volume: data.v?.[index] || 0,
-      })) || []
+      const candles =
+        data.t?.map((timestamp, index) => ({
+          timestamp,
+          open: data.o?.[index] || 0,
+          high: data.h?.[index] || 0,
+          low: data.l?.[index] || 0,
+          close: data.c?.[index] || 0,
+          volume: data.v?.[index] || 0,
+        })) || []
 
       return {
         symbol,
@@ -239,11 +244,11 @@ export class FinnhubAdapter extends BaseMarketDataAdapter {
   private mapSecurityType(type: string): string {
     const typeMap: Record<string, string> = {
       'Common Stock': 'stock',
-      'ETF': 'etf',
-      'Index': 'index',
+      ETF: 'etf',
+      Index: 'index',
       'Mutual Fund': 'fund',
-      'Currency': 'currency',
-      'Cryptocurrency': 'crypto',
+      Currency: 'currency',
+      Cryptocurrency: 'crypto',
     }
     return typeMap[type] || 'unknown'
   }
@@ -263,11 +268,7 @@ export class FinnhubAdapter extends BaseMarketDataAdapter {
   }
 
   private isFinnhubSymbolSearchResponse(data: unknown): data is FinnhubSymbolSearchResponse {
-    return (
-      typeof data === 'object' &&
-      data !== null &&
-      Array.isArray((data as any).result)
-    )
+    return typeof data === 'object' && data !== null && Array.isArray((data as any).result)
   }
 
   private isFinnhubCandleResponse(data: unknown): data is FinnhubCandleResponse {
@@ -319,10 +320,12 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
     super('Alpha Vantage', 'https://www.alphavantage.co/query', apiKey)
   }
 
-  async searchSymbols(query: string, limit: number = 50): Promise<NormalizedSymbol[]> {
+  async searchSymbols(query: string, limit = 10): Promise<NormalizedSymbol[]> {
     this.validateQuery(query)
 
-    const url = `${this.baseUrl}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=${this.apiKey}`
+    const url = `${this.baseUrl}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(
+      query
+    )}&apikey=${this.apiKey}`
 
     try {
       const response = await fetch(url)
@@ -330,7 +333,7 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
         throw new Error(`Alpha Vantage API error: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: any = await response.json()
       const matches = data['bestMatches'] || []
 
       return matches.slice(0, limit).map((item: any) => ({
@@ -338,6 +341,7 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
         description: item['2. name'],
         displaySymbol: item['1. symbol'],
         type: this.mapAlphaVantageType(item['3. type']),
+        currency: 'USD',
       }))
     } catch (error) {
       throw new Error(`Failed to search symbols: ${error}`)
@@ -355,7 +359,7 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
         throw new Error(`Alpha Vantage API error: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: any = await response.json()
       const quote = data['Global Quote']
 
       if (!quote) {
@@ -368,14 +372,15 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
       const changePercent = parseFloat(quote['10. change percent'].replace('%', ''))
 
       return {
-        c: currentPrice,
-        d: change,
-        dp: changePercent,
-        h: parseFloat(quote['03. high']),
-        l: parseFloat(quote['04. low']),
-        o: parseFloat(quote['02. open']),
-        pc: parseFloat(quote['08. previous close']),
-        t: Math.floor(Date.now() / 1000), // Alpha Vantage doesn't provide timestamp
+        symbol,
+        price: currentPrice,
+        change: change,
+        changePercent: changePercent,
+        high: parseFloat(quote['03. high']),
+        low: parseFloat(quote['04. low']),
+        open: parseFloat(quote['02. open']),
+        previousClose: parseFloat(quote['08. previous close']),
+        timestamp: Math.floor(Date.now() / 1000), // Alpha Vantage doesn't provide timestamp
       }
     } catch (error) {
       throw new Error(`Failed to get quote: ${error}`)
@@ -400,18 +405,15 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
         throw new Error(`Alpha Vantage API error: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data: any = await response.json()
       const timeSeriesKey = Object.keys(data).find(key => key.includes('Time Series'))
-      
+
       if (!timeSeriesKey) {
         return {
-          c: [],
-          h: [],
-          l: [],
-          o: [],
-          s: 'no_data',
-          t: [],
-          v: [],
+          symbol,
+          resolution,
+          data: [],
+          status: 'error' as const,
         }
       }
 
@@ -432,8 +434,8 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
 
   private mapAlphaVantageType(type: string): string {
     const typeMap: Record<string, string> = {
-      'Equity': 'stock',
-      'ETF': 'etf',
+      Equity: 'stock',
+      ETF: 'etf',
     }
     return typeMap[type] || 'stock'
   }
@@ -445,9 +447,9 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
       '15': 'TIME_SERIES_INTRADAY',
       '30': 'TIME_SERIES_INTRADAY',
       '60': 'TIME_SERIES_INTRADAY',
-      'D': 'TIME_SERIES_DAILY',
-      'W': 'TIME_SERIES_WEEKLY',
-      'M': 'TIME_SERIES_MONTHLY',
+      D: 'TIME_SERIES_DAILY',
+      W: 'TIME_SERIES_WEEKLY',
+      M: 'TIME_SERIES_MONTHLY',
     }
     return functionMap[resolution] || 'TIME_SERIES_DAILY'
   }
@@ -457,32 +459,38 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
     from: number,
     to: number
   ): NormalizedCandleResponse {
-    const candles = {
-      c: [] as number[],
-      h: [] as number[],
-      l: [] as number[],
-      o: [] as number[],
-      s: 'ok' as string,
-      t: [] as number[],
-      v: [] as number[],
-    }
+    const candles: Array<{
+      timestamp: number
+      open: number
+      high: number
+      low: number
+      close: number
+      volume: number
+    }> = []
 
     Object.entries(timeSeries)
       .sort(([a], [b]) => a.localeCompare(b))
       .forEach(([dateString, data]: [string, any]) => {
         const timestamp = Math.floor(new Date(dateString).getTime() / 1000)
-        
+
         if (timestamp >= from && timestamp <= to) {
-          candles.t.push(timestamp)
-          candles.o.push(parseFloat(data['1. open']))
-          candles.h.push(parseFloat(data['2. high']))
-          candles.l.push(parseFloat(data['3. low']))
-          candles.c.push(parseFloat(data['4. close']))
-          candles.v.push(parseFloat(data['5. volume'] || '0'))
+          candles.push({
+            timestamp,
+            open: parseFloat(data['1. open']),
+            high: parseFloat(data['2. high']),
+            low: parseFloat(data['3. low']),
+            close: parseFloat(data['4. close']),
+            volume: parseFloat(data['5. volume'] || '0'),
+          })
         }
       })
 
-    return candles
+    return {
+      symbol: '',
+      resolution: '',
+      data: candles,
+      status: 'ok' as const,
+    }
   }
 }
 
@@ -490,15 +498,21 @@ export class AlphaVantageAdapter extends BaseMarketDataAdapter {
  * Market Data Adapter Factory
  * Creates appropriate adapter based on provider name
  */
+/**
+ * Market Data Adapter Factory
+ * Creates appropriate adapter based on provider name
+ */
 export class MarketDataAdapterFactory {
-  private static adapters: Map<string, new (apiKey: string) => IMarketDataProvider> = new Map([
-    ['finnhub', FinnhubAdapter],
-    ['alphavantage', AlphaVantageAdapter],
-  ])
+  private static adapters: Map<string, new (apiKey: string) => IMarketDataProvider> = new Map()
+
+  static {
+    this.adapters.set('finnhub', FinnhubAdapter)
+    this.adapters.set('alphavantage', AlphaVantageAdapter)
+  }
 
   static createAdapter(provider: string, apiKey: string): IMarketDataProvider {
     const AdapterClass = this.adapters.get(provider.toLowerCase())
-    
+
     if (!AdapterClass) {
       throw new Error(`Unsupported market data provider: ${provider}`)
     }
@@ -510,7 +524,10 @@ export class MarketDataAdapterFactory {
     return Array.from(this.adapters.keys())
   }
 
-  static registerAdapter(name: string, adapterClass: new (apiKey: string) => IMarketDataProvider): void {
+  static registerAdapter(
+    name: string,
+    adapterClass: new (apiKey: string) => IMarketDataProvider
+  ): void {
     this.adapters.set(name.toLowerCase(), adapterClass)
   }
 }
@@ -529,11 +546,11 @@ export class UnifiedMarketDataService {
   }
 
   async searchSymbols(query: string, limit?: number): Promise<NormalizedSymbol[]> {
-    return this.executeWithFallback((adapter) => adapter.searchSymbols(query, limit))
+    return this.executeWithFallback(adapter => adapter.searchSymbols(query, limit))
   }
 
   async getQuote(symbol: string): Promise<NormalizedQuote> {
-    return this.executeWithFallback((adapter) => adapter.getQuote(symbol))
+    return this.executeWithFallback(adapter => adapter.getQuote(symbol))
   }
 
   async getCandles(
@@ -542,7 +559,7 @@ export class UnifiedMarketDataService {
     from: number,
     to: number
   ): Promise<NormalizedCandleResponse> {
-    return this.executeWithFallback((adapter) => adapter.getCandles(symbol, resolution, from, to))
+    return this.executeWithFallback(adapter => adapter.getCandles(symbol, resolution, from, to))
   }
 
   private async executeWithFallback<T>(

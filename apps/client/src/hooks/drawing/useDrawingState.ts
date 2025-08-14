@@ -18,9 +18,9 @@ export interface DrawingState {
   isMouseDown: boolean
   dragState: {
     toolId: string | null
-    handleType: 'start' | 'end' | 'line' | null  // 'line' for moving entire line
+    handleType: 'start' | 'end' | 'line' | null // 'line' for moving entire line
     startPos: { x: number; y: number } | null
-    originalPoints?: { timestamp: number; price: number }[] | null  // Store original line points
+    originalPoints?: { timestamp: number; price: number }[] | null // Store original line points
   } | null
 }
 
@@ -39,8 +39,24 @@ export type DrawingAction =
   | { type: 'SET_STYLE'; payload: Partial<DrawingStyle> }
   | { type: 'TOGGLE_SNAP' }
   | { type: 'LOAD_TOOLS'; payload: DrawingTool[] }
-  | { type: 'MOUSE_DOWN'; payload: { toolId: string; handleType: 'start' | 'end' | 'line'; startPos: { x: number; y: number }; originalPoints?: { timestamp: number; price: number }[] } }
-  | { type: 'START_DRAG'; payload: { toolId: string; handleType: 'start' | 'end' | 'line'; startPos: { x: number; y: number }; originalPoints?: { timestamp: number; price: number }[] } }
+  | {
+      type: 'MOUSE_DOWN'
+      payload: {
+        toolId: string
+        handleType: 'start' | 'end' | 'line'
+        startPos: { x: number; y: number }
+        originalPoints?: { timestamp: number; price: number }[]
+      }
+    }
+  | {
+      type: 'START_DRAG'
+      payload: {
+        toolId: string
+        handleType: 'start' | 'end' | 'line'
+        startPos: { x: number; y: number }
+        originalPoints?: { timestamp: number; price: number }[]
+      }
+    }
   | { type: 'UPDATE_DRAG'; payload: { x: number; y: number } }
   | { type: 'END_DRAG' }
 
@@ -114,7 +130,10 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       }
 
     case 'SELECT_TOOL':
-      console.log('🎯 SELECT_TOOL reducer:', { payload: action.payload, currentSelected: state.selectedToolId })
+      console.log('🎯 SELECT_TOOL reducer:', {
+        payload: action.payload,
+        currentSelected: state.selectedToolId,
+      })
       return {
         ...state,
         selectedToolId: action.payload,
@@ -136,8 +155,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       return {
         ...state,
         tools: state.tools.filter(tool => tool.id !== action.payload),
-        selectedToolId:
-          state.selectedToolId === action.payload ? null : state.selectedToolId,
+        selectedToolId: state.selectedToolId === action.payload ? null : state.selectedToolId,
       }
 
     case 'CLEAR_ALL':
@@ -182,7 +200,10 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
           originalPoints: action.payload.originalPoints,
         },
       }
-      console.log('🎯 New state after MOUSE_DOWN:', { isMouseDown: newState.isMouseDown, dragState: newState.dragState })
+      console.log('🎯 New state after MOUSE_DOWN:', {
+        isMouseDown: newState.isMouseDown,
+        dragState: newState.dragState,
+      })
       return newState
 
     case 'START_DRAG':
@@ -190,18 +211,20 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
         ...state,
         isDragging: true,
         isMouseDown: false,
-        dragState: state.dragState ? {
-          ...state.dragState,
-          toolId: action.payload.toolId,
-          handleType: action.payload.handleType,
-          startPos: action.payload.startPos,
-          originalPoints: action.payload.originalPoints,
-        } : {
-          toolId: action.payload.toolId,
-          handleType: action.payload.handleType,
-          startPos: action.payload.startPos,
-          originalPoints: action.payload.originalPoints,
-        },
+        dragState: state.dragState
+          ? {
+              ...state.dragState,
+              toolId: action.payload.toolId,
+              handleType: action.payload.handleType,
+              startPos: action.payload.startPos,
+              originalPoints: action.payload.originalPoints,
+            }
+          : {
+              toolId: action.payload.toolId,
+              handleType: action.payload.handleType,
+              startPos: action.payload.startPos,
+              originalPoints: action.payload.originalPoints,
+            },
       }
 
     case 'UPDATE_DRAG':
@@ -236,10 +259,10 @@ export const useDrawingState = () => {
     // State
     state,
     currentDrawingRef,
-    
+
     // Actions
     dispatch,
-    
+
     // Computed properties
     hasTools: state.tools.length > 0,
     visibleTools: state.tools.filter(tool => tool.visible !== false),

@@ -1,10 +1,10 @@
 import { BaseCommand } from './BaseCommand'
-import type { 
-  DrawingCommandParams, 
-  CreateDrawingCommand, 
-  UpdateDrawingCommand, 
+import type {
+  DrawingCommandParams,
+  CreateDrawingCommand,
+  UpdateDrawingCommand,
   DeleteDrawingCommand,
-  DrawingToolType 
+  DrawingToolType,
 } from '@shared'
 
 /**
@@ -34,7 +34,10 @@ interface IDrawingContext {
 /**
  * Create Drawing Tool Command
  */
-export class CreateDrawingToolCommand extends BaseCommand<string, DrawingCommandParams> implements CreateDrawingCommand {
+export class CreateDrawingToolCommand
+  extends BaseCommand<string, DrawingCommandParams>
+  implements CreateDrawingCommand
+{
   readonly type = 'CREATE_DRAWING'
   private context: IDrawingContext
   private createdId?: string
@@ -100,17 +103,22 @@ export class CreateDrawingToolCommand extends BaseCommand<string, DrawingCommand
   }
 
   private isValidPoint(point: { x: number; y: number }): boolean {
-    return typeof point.x === 'number' && 
-           typeof point.y === 'number' && 
-           !isNaN(point.x) && 
-           !isNaN(point.y)
+    return (
+      typeof point.x === 'number' &&
+      typeof point.y === 'number' &&
+      !isNaN(point.x) &&
+      !isNaN(point.y)
+    )
   }
 }
 
 /**
  * Update Drawing Tool Command
  */
-export class UpdateDrawingToolCommand extends BaseCommand<void, { id: string; properties: Record<string, any> }> implements UpdateDrawingCommand {
+export class UpdateDrawingToolCommand
+  extends BaseCommand<void, { id: string; properties: Record<string, any> }>
+  implements UpdateDrawingCommand
+{
   readonly type = 'UPDATE_DRAWING'
   private context: IDrawingContext
   private originalProperties?: Record<string, any>
@@ -160,7 +168,10 @@ export class UpdateDrawingToolCommand extends BaseCommand<void, { id: string; pr
 /**
  * Delete Drawing Tool Command
  */
-export class DeleteDrawingToolCommand extends BaseCommand<void, { id: string }> implements DeleteDrawingCommand {
+export class DeleteDrawingToolCommand
+  extends BaseCommand<void, { id: string }>
+  implements DeleteDrawingCommand
+{
   readonly type = 'DELETE_DRAWING'
   private context: IDrawingContext
   private deletedTool?: DrawingToolState
@@ -217,7 +228,7 @@ export class BatchDrawingCommand extends BaseCommand<void, { commands: BaseComma
 
   async doExecute(): Promise<void> {
     this.executedCommands = []
-    
+
     for (const command of this.params.commands) {
       try {
         await command.execute()

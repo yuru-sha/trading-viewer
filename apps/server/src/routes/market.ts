@@ -379,7 +379,7 @@ router.get(
       // Use real Finnhub API data (no fallback to maintain consistency)
       console.log(`📈 Using REAL Finnhub data for quote: ${symbol} (USE_MOCK_DATA=false)`)
       const params: QuoteParams = {
-        symbol: symbol.toUpperCase()
+        symbol: symbol.toUpperCase(),
       }
       const finnhubService = getFinnhubService()
       const quote = await finnhubService.getQuote(params)
@@ -423,7 +423,7 @@ router.get(
         symbol: symbol.toUpperCase(),
         resolution,
         from,
-        to
+        to,
       }
       const finnhubService = getFinnhubService()
       const candleData = await finnhubService.getCandleData(params)
@@ -452,7 +452,7 @@ router.get('/data-source', (_req: Request, res: Response) => {
       isMockData: USE_MOCK_DATA,
       provider: USE_MOCK_DATA ? 'Mock Data' : 'Finnhub',
       status: USE_MOCK_DATA ? 'DEMO' : 'LIVE',
-      description: USE_MOCK_DATA ? 'Demo Data for Development' : 'Market Data by Finnhub'
+      description: USE_MOCK_DATA ? 'Demo Data for Development' : 'Market Data by Finnhub',
     })
   } catch (error) {
     console.error('Data source info error:', error)

@@ -50,7 +50,7 @@ export function withLoading<T extends any[], R>(
   return (...args: T) => {
     const [loading, setLoading] = useState(initialLoading)
     const [delayedLoading, setDelayedLoading] = useState(false)
-    
+
     const originalResult = hook(...args)
 
     // Handle delayed loading state
@@ -59,7 +59,7 @@ export function withLoading<T extends any[], R>(
         const timer = setTimeout(() => {
           setDelayedLoading(true)
         }, loadingDelay)
-        
+
         return () => {
           clearTimeout(timer)
           setDelayedLoading(false)
@@ -96,30 +96,33 @@ export function withErrorHandling<T extends any[], R>(
     const [error, setError] = useState<Error | null>(null)
     const { addError } = useError()
 
-    const wrappedHook = useCallback((...args: T) => {
-      try {
-        setError(null)
-        return hook(...args)
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err))
-        setError(error)
-        
-        if (onError) {
-          onError(error)
-        }
-        
-        if (showErrorNotification) {
-          addError({
-            type: 'error',
-            title: 'Hook Error',
-            message: error.message,
-            source: 'client',
-          })
-        }
+    const wrappedHook = useCallback(
+      (...args: T) => {
+        try {
+          setError(null)
+          return hook(...args)
+        } catch (err) {
+          const error = err instanceof Error ? err : new Error(String(err))
+          setError(error)
 
-        return fallbackValue
-      }
-    }, [addError, onError, showErrorNotification, fallbackValue])
+          if (onError) {
+            onError(error)
+          }
+
+          if (showErrorNotification) {
+            addError({
+              type: 'error',
+              title: 'Hook Error',
+              message: error.message,
+              source: 'client',
+            })
+          }
+
+          return fallbackValue
+        }
+      },
+      [addError, onError, showErrorNotification, fallbackValue]
+    )
 
     const result = wrappedHook(...args)
 
@@ -151,36 +154,37 @@ export function withRetry<T extends any[], R>(
     const [retryCount, setRetryCount] = useState(0)
     const [isRetrying, setIsRetrying] = useState(false)
 
-    const executeWithRetry = useCallback(async (...args: T): Promise<R> => {
-      let attempt = 0
-      
-      while (attempt <= maxRetries) {
-        try {
-          setIsRetrying(attempt > 0)
-          const result = await asyncHook(...args)
-          setRetryCount(0)
-          setIsRetrying(false)
-          return result
-        } catch (error) {
-          attempt++
-          setRetryCount(attempt)
-          
-          if (attempt > maxRetries || !retryCondition(error)) {
+    const executeWithRetry = useCallback(
+      async (...args: T): Promise<R> => {
+        let attempt = 0
+
+        while (attempt <= maxRetries) {
+          try {
+            setIsRetrying(attempt > 0)
+            const result = await asyncHook(...args)
+            setRetryCount(0)
             setIsRetrying(false)
-            throw error
+            return result
+          } catch (error) {
+            attempt++
+            setRetryCount(attempt)
+
+            if (attempt > maxRetries || !retryCondition(error)) {
+              setIsRetrying(false)
+              throw error
+            }
+
+            // Calculate retry delay
+            const delay = exponentialBackoff ? retryDelay * Math.pow(2, attempt - 1) : retryDelay
+
+            await new Promise(resolve => setTimeout(resolve, delay))
           }
-          
-          // Calculate retry delay
-          const delay = exponentialBackoff 
-            ? retryDelay * Math.pow(2, attempt - 1)
-            : retryDelay
-          
-          await new Promise(resolve => setTimeout(resolve, delay))
         }
-      }
-      
-      throw new Error('Max retries exceeded')
-    }, [asyncHook, maxRetries, retryDelay, exponentialBackoff, retryCondition])
+
+        throw new Error('Max retries exceeded')
+      },
+      [asyncHook, maxRetries, retryDelay, exponentialBackoff, retryCondition]
+    )
 
     return {
       execute: executeWithRetry,
@@ -199,7 +203,7 @@ export function withCache<T extends any[], R>(
   hook: HookFunction<T, R>,
   options: CacheDecoratorOptions = {}
 ) {
-  const { 
+  const {
     ttl = 5 * 60 * 1000, // 5 minutes default
     key = (...args) => JSON.stringify(args),
     staleWhileRevalidate = false,
@@ -231,13 +235,13 @@ export function withCache<T extends any[], R>(
       if (cachedResult && !shouldRevalidate) {
         return cachedResult.data
       }
-      
+
       if (shouldRevalidate) {
         setIsRevalidating(true)
       }
 
       const result = hook(...args)
-      
+
       // Cache the result
       cache.set(cacheKey, {
         data: result,
@@ -278,44 +282,46 @@ export function withThrottle<T extends any[], R>(
   hook: HookFunction<T, R>,
   options: ThrottleDecoratorOptions = {}
 ) {
-  const { 
-    delay = UI_TIMEOUTS.THROTTLE_DELAY,
-    leading = true,
-    trailing = true,
-  } = options
+  const { delay = UI_TIMEOUTS.THROTTLE_DELAY, leading = true, trailing = true } = options
 
   return (...args: T) => {
     const [throttledArgs, setThrottledArgs] = useState<T | null>(null)
     const [lastCallTime, setLastCallTime] = useState<number>(0)
     const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
 
-    const throttledExecution = useCallback((...newArgs: T) => {
-      const now = Date.now()
-      
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-        setTimeoutId(null)
-      }
+    const throttledExecution = useCallback(
+      (...newArgs: T) => {
+        const now = Date.now()
 
-      // Leading execution
-      if (leading && now - lastCallTime >= delay) {
-        setLastCallTime(now)
-        setThrottledArgs(newArgs)
-        return
-      }
-
-      // Trailing execution
-      if (trailing) {
-        const remainingDelay = delay - (now - lastCallTime)
-        const newTimeoutId = setTimeout(() => {
-          setLastCallTime(Date.now())
-          setThrottledArgs(newArgs)
+        if (timeoutId) {
+          clearTimeout(timeoutId)
           setTimeoutId(null)
-        }, Math.max(remainingDelay, 0))
-        
-        setTimeoutId(newTimeoutId)
-      }
-    }, [delay, leading, trailing, lastCallTime, timeoutId])
+        }
+
+        // Leading execution
+        if (leading && now - lastCallTime >= delay) {
+          setLastCallTime(now)
+          setThrottledArgs(newArgs)
+          return
+        }
+
+        // Trailing execution
+        if (trailing) {
+          const remainingDelay = delay - (now - lastCallTime)
+          const newTimeoutId = setTimeout(
+            () => {
+              setLastCallTime(Date.now())
+              setThrottledArgs(newArgs)
+              setTimeoutId(null)
+            },
+            Math.max(remainingDelay, 0)
+          )
+
+          setTimeoutId(newTimeoutId)
+        }
+      },
+      [delay, leading, trailing, lastCallTime, timeoutId]
+    )
 
     // Execute hook with throttled args
     const result = useMemo(() => {
@@ -365,11 +371,11 @@ export function withValidation<T extends any[], R>(
         const error = typeof result === 'string' ? result : 'Validation failed'
         setValidationError(error)
         setIsValid(false)
-        
+
         if (onValidationError) {
           onValidationError(error)
         }
-        
+
         return false
       }
     }, [validator, onValidationError, ...args])
@@ -403,7 +409,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
     trackRenders?: boolean
   } = {}
 ) {
-  const { 
+  const {
     name = hook.name || 'Anonymous Hook',
     warnThreshold = 100, // ms
     trackRenders = false,
@@ -430,10 +436,10 @@ export function withPerformanceMonitoring<T extends any[], R>(
       setExecutionTime(duration)
 
       if (duration > warnThreshold) {
-        console.warn(
-          `[Performance] Hook "${name}" took ${duration.toFixed(2)}ms to execute`,
-          { args, duration }
-        )
+        console.warn(`[Performance] Hook "${name}" took ${duration.toFixed(2)}ms to execute`, {
+          args,
+          duration,
+        })
       }
 
       return hookResult

@@ -40,39 +40,35 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
   const displayName = user.name || user.profile?.firstName || user.email.split('@')[0]
 
   return (
-    <div className="relative" ref={dropdownRef} id={onboardingId}>
+    <div className='relative' ref={dropdownRef} id={onboardingId}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+        className='flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400'
         aria-expanded={isOpen}
-        aria-haspopup="true"
-        aria-label="User menu"
+        aria-haspopup='true'
+        aria-label='User menu'
       >
         {/* User Avatar or Icon */}
-        <div className="w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+        <div className='w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center'>
           {user.profile?.avatar ? (
-            <img
-              src={user.profile.avatar}
-              alt={displayName}
-              className="w-8 h-8 rounded-full"
-            />
+            <img src={user.profile.avatar} alt={displayName} className='w-8 h-8 rounded-full' />
           ) : (
-            <span className="text-white font-semibold text-sm">
+            <span className='text-white font-semibold text-sm'>
               {displayName.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
 
         {/* User Name */}
-        <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className='hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300'>
           {displayName}
         </span>
 
         {/* Dropdown Arrow */}
         <Icon
-          name="chevronDown"
+          name='chevronDown'
           className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
@@ -82,40 +78,38 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
-          role="menu"
-          aria-orientation="vertical"
-          aria-labelledby="user-menu-button"
+          className='absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50'
+          role='menu'
+          aria-orientation='vertical'
+          aria-labelledby='user-menu-button'
         >
           {/* User Info */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
+          <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
+            <p className='text-sm font-medium text-gray-900 dark:text-white'>
               {user.profile?.firstName && user.profile?.lastName
                 ? `${user.profile.firstName} ${user.profile.lastName}`
                 : displayName}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {user.email}
-            </p>
+            <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>{user.email}</p>
             {user.role === 'admin' && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mt-2">
+              <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mt-2'>
                 Admin
               </span>
             )}
           </div>
 
           {/* Menu Items */}
-          <div className="py-1">
+          <div className='py-1'>
             <button
               onClick={() => {
                 setIsOpen(false)
                 // Navigate to profile
                 window.location.href = '/profile'
               }}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-              role="menuitem"
+              className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
+              role='menuitem'
             >
-              <Icon name="user" className="w-4 h-4 mr-3" />
+              <Icon name='user' className='w-4 h-4 mr-3' />
               プロフィール
             </button>
 
@@ -125,10 +119,10 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
                 // Navigate to settings
                 window.location.href = '/settings'
               }}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-              role="menuitem"
+              className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
+              role='menuitem'
             >
-              <Icon name="settings" className="w-4 h-4 mr-3" />
+              <Icon name='settings' className='w-4 h-4 mr-3' />
               設定
             </button>
 
@@ -138,25 +132,25 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
                 // Navigate to help
                 window.location.href = '/help'
               }}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-              role="menuitem"
+              className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
+              role='menuitem'
             >
-              <Icon name="helpCircle" className="w-4 h-4 mr-3" />
+              <Icon name='helpCircle' className='w-4 h-4 mr-3' />
               ヘルプ
             </button>
           </div>
 
           {/* Logout */}
-          <div className="border-t border-gray-200 dark:border-gray-700 py-1">
+          <div className='border-t border-gray-200 dark:border-gray-700 py-1'>
             <button
               onClick={async () => {
                 setIsOpen(false)
                 await logout()
               }}
-              className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
-              role="menuitem"
+              className='flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150'
+              role='menuitem'
             >
-              <Icon name="logOut" className="w-4 h-4 mr-3" />
+              <Icon name='logOut' className='w-4 h-4 mr-3' />
               ログアウト
             </button>
           </div>

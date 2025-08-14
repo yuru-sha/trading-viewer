@@ -1,10 +1,10 @@
 import type { ICommand, ICommandFactory, AppCommand } from '@shared'
 import { BaseCommand } from './BaseCommand'
-import { 
-  CreateDrawingToolCommand, 
-  UpdateDrawingToolCommand, 
+import {
+  CreateDrawingToolCommand,
+  UpdateDrawingToolCommand,
   DeleteDrawingToolCommand,
-  BatchDrawingCommand
+  BatchDrawingCommand,
 } from './DrawingCommands'
 import { ChartSettingsCommand, AddIndicatorCommand, RemoveIndicatorCommand } from './ChartCommands'
 import { UpdateUserPreferencesCommand } from './UserPreferencesCommands'
@@ -40,10 +40,7 @@ export class CommandFactory implements ICommandFactory {
   /**
    * Register a command creator
    */
-  registerCommand<T extends ICommand>(
-    type: string, 
-    creator: CommandCreator<T>
-  ): void {
+  registerCommand<T extends ICommand>(type: string, creator: CommandCreator<T>): void {
     this.registry.set(type, creator)
   }
 
@@ -103,42 +100,47 @@ export class CommandFactory implements ICommandFactory {
    */
   private registerDefaultCommands(): void {
     // Drawing Commands
-    this.registerCommand('CREATE_DRAWING', (params, contexts) => 
-      new CreateDrawingToolCommand(params, contexts.drawing)
-    )
-    
-    this.registerCommand('UPDATE_DRAWING', (params, contexts) => 
-      new UpdateDrawingToolCommand(params, contexts.drawing)
-    )
-    
-    this.registerCommand('DELETE_DRAWING', (params, contexts) => 
-      new DeleteDrawingToolCommand(params, contexts.drawing)
+    this.registerCommand(
+      'CREATE_DRAWING',
+      (params, contexts) => new CreateDrawingToolCommand(params, contexts.drawing)
     )
 
-    this.registerCommand('BATCH_DRAWING', (params) => 
-      new BatchDrawingCommand(params.commands)
+    this.registerCommand(
+      'UPDATE_DRAWING',
+      (params, contexts) => new UpdateDrawingToolCommand(params, contexts.drawing)
     )
+
+    this.registerCommand(
+      'DELETE_DRAWING',
+      (params, contexts) => new DeleteDrawingToolCommand(params, contexts.drawing)
+    )
+
+    this.registerCommand('BATCH_DRAWING', params => new BatchDrawingCommand(params.commands))
 
     // Chart Commands
-    this.registerCommand('UPDATE_CHART_SETTINGS', (params, contexts) => 
-      new ChartSettingsCommand(params, contexts.chart)
+    this.registerCommand(
+      'UPDATE_CHART_SETTINGS',
+      (params, contexts) => new ChartSettingsCommand(params, contexts.chart)
     )
-    
-    this.registerCommand('ADD_INDICATOR', (params, contexts) => 
-      new AddIndicatorCommand(params, contexts.chart)
+
+    this.registerCommand(
+      'ADD_INDICATOR',
+      (params, contexts) => new AddIndicatorCommand(params, contexts.chart)
     )
-    
-    this.registerCommand('REMOVE_INDICATOR', (params, contexts) => 
-      new RemoveIndicatorCommand(params, contexts.chart)
+
+    this.registerCommand(
+      'REMOVE_INDICATOR',
+      (params, contexts) => new RemoveIndicatorCommand(params, contexts.chart)
     )
 
     // User Preferences Commands
-    this.registerCommand('UPDATE_USER_PREFERENCES', (params, contexts) => 
-      new UpdateUserPreferencesCommand(params, contexts.userPreferences)
+    this.registerCommand(
+      'UPDATE_USER_PREFERENCES',
+      (params, contexts) => new UpdateUserPreferencesCommand(params, contexts.userPreferences)
     )
 
     // Batch Command
-    this.registerCommand('BATCH', (params) => {
+    this.registerCommand('BATCH', params => {
       return new BatchCommand(params.commands)
     })
   }
@@ -148,7 +150,7 @@ export class CommandFactory implements ICommandFactory {
  * Command Creator Function Type
  */
 type CommandCreator<T extends ICommand = ICommand> = (
-  params: T['params'], 
+  params: T['params'],
   contexts: Record<string, any>
 ) => T
 
@@ -165,12 +167,12 @@ class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
 
   async doExecute(): Promise<any[]> {
     this.results = []
-    
+
     for (const command of this.params.commands) {
       const result = await command.execute()
       this.results.push(result)
     }
-    
+
     return this.results
   }
 
@@ -190,12 +192,12 @@ class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
 
   protected async doRedo(): Promise<any[]> {
     this.results = []
-    
+
     for (const command of this.params.commands) {
       const result = command.redo ? await command.redo() : await command.execute()
       this.results.push(result)
     }
-    
+
     return this.results
   }
 

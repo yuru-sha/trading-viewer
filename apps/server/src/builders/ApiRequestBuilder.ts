@@ -63,7 +63,7 @@ export abstract class BaseRequestBuilder<T extends BaseApiRequest> {
 
   header(key: string, value: string): this {
     if (!this.request.headers) this.request.headers = {}
-    this.request.headers[key] = value
+    ;(this.request.headers as Record<string, string>)[key] = value
     return this
   }
 
@@ -133,13 +133,13 @@ export class MarketDataRequestBuilder extends BaseRequestBuilder<MarketDataReque
 
   lastDays(days: number): this {
     const to = Math.floor(Date.now() / 1000)
-    const from = to - (days * 24 * 60 * 60)
+    const from = to - days * 24 * 60 * 60
     return this.timeRange(from, to)
   }
 
   lastHours(hours: number): this {
     const to = Math.floor(Date.now() / 1000)
-    const from = to - (hours * 60 * 60)
+    const from = to - hours * 60 * 60
     return this.timeRange(from, to)
   }
 
@@ -150,20 +150,19 @@ export class MarketDataRequestBuilder extends BaseRequestBuilder<MarketDataReque
 
   // Predefined request types
   quote(): this {
-    return this
-      .method('GET')
-      .url(`${MarketDataRequestBuilder.BASE_URL}/quote/${this.request.symbol}`)
+    return this.method('GET').url(
+      `${MarketDataRequestBuilder.BASE_URL}/quote/${this.request.symbol}`
+    )
   }
 
   candles(): this {
-    return this
-      .method('GET')
-      .url(`${MarketDataRequestBuilder.BASE_URL}/candles/${this.request.symbol}`)
+    return this.method('GET').url(
+      `${MarketDataRequestBuilder.BASE_URL}/candles/${this.request.symbol}`
+    )
   }
 
   realTime(): this {
-    return this
-      .timeout(API_TIMEOUTS.LONG_POLLING)
+    return this.timeout(API_TIMEOUTS.LONG_POLLING)
       .header('Accept', 'application/json')
       .header('Cache-Control', 'no-cache')
   }
@@ -213,8 +212,7 @@ export class SearchRequestBuilder extends BaseRequestBuilder<SearchRequest> {
 
   // Predefined search types
   symbols(): this {
-    return this
-      .method('GET')
+    return this.method('GET')
       .url(`${SearchRequestBuilder.BASE_URL}/search`)
       .header('Content-Type', 'application/json')
   }
@@ -245,15 +243,13 @@ export class AuthenticatedRequestBuilder extends BaseRequestBuilder<Authenticate
 
   // Predefined authenticated request types
   userPreferences(): this {
-    return this
-      .method('GET')
+    return this.method('GET')
       .url('/api/user/preferences')
       .header('Content-Type', 'application/json')
   }
 
   updatePreferences(): this {
-    return this
-      .method('PUT')
+    return this.method('PUT')
       .url('/api/user/preferences')
       .header('Content-Type', 'application/json')
   }
@@ -302,7 +298,7 @@ export class RequestDirector {
         maxRetries: 2,
         retryDelay: 500,
         exponentialBackoff: true,
-        retryCondition: (error) => error?.status >= 500,
+        retryCondition: error => error?.status >= 500,
       })
   }
 

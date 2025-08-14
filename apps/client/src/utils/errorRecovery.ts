@@ -10,7 +10,15 @@ export interface RecoveryStrategy {
 }
 
 export interface ErrorClassification {
-  category: 'network' | 'authentication' | 'authorization' | 'validation' | 'server' | 'client' | 'rate_limit' | 'csrf'
+  category:
+    | 'network'
+    | 'authentication'
+    | 'authorization'
+    | 'validation'
+    | 'server'
+    | 'client'
+    | 'rate_limit'
+    | 'csrf'
   severity: 'low' | 'medium' | 'high' | 'critical'
   isRecoverable: boolean
   retryable: boolean
@@ -46,8 +54,10 @@ export const classifyError = (error: any): ErrorClassification => {
 
       case 403:
         // CSRF errors are recoverable
-        if (error.response.data?.message?.includes('CSRF') || 
-            error.response.data?.error?.includes('CSRF')) {
+        if (
+          error.response.data?.message?.includes('CSRF') ||
+          error.response.data?.error?.includes('CSRF')
+        ) {
           return {
             category: 'csrf',
             severity: 'medium',
@@ -183,7 +193,7 @@ export const createRecoveryStrategies = (): Record<string, RecoveryStrategy> => 
       // Clear all auth-related storage
       localStorage.removeItem('auth_user')
       sessionStorage.clear()
-      
+
       // Clear auth cookies by redirecting to logout
       window.location.href = '/api/auth/logout'
       return true
@@ -213,23 +223,23 @@ export class ErrorRecoveryManager {
 
   async attemptRecovery(error: any, context?: string): Promise<boolean> {
     const classification = classifyError(error)
-    
+
     if (!classification.isRecoverable) {
       return false
     }
 
     const strategiesForError = this.getStrategiesForError(classification)
-    
+
     for (const strategy of strategiesForError) {
       try {
         const attempts = this.retryAttempts.get(strategy.id) || 0
-        
+
         if (attempts >= this.maxRetries && strategy.canRetry) {
           continue
         }
 
         const success = await strategy.action()
-        
+
         if (success) {
           this.retryAttempts.delete(strategy.id)
           return true
@@ -251,51 +261,31 @@ export class ErrorRecoveryManager {
 
     switch (classification.category) {
       case 'network':
-        strategies.push(
-          this.strategies.retryRequest,
-          this.strategies.refreshPage
-        )
+        strategies.push(this.strategies.retryRequest, this.strategies.refreshPage)
         break
 
       case 'authentication':
-        strategies.push(
-          this.strategies.forceReauth,
-          this.strategies.navigateHome
-        )
+        strategies.push(this.strategies.forceReauth, this.strategies.navigateHome)
         break
 
       case 'csrf':
-        strategies.push(
-          this.strategies.retryRequest,
-          this.strategies.forceReauth
-        )
+        strategies.push(this.strategies.retryRequest, this.strategies.forceReauth)
         break
 
       case 'rate_limit':
-        strategies.push(
-          this.strategies.retryRequest
-        )
+        strategies.push(this.strategies.retryRequest)
         break
 
       case 'server':
-        strategies.push(
-          this.strategies.retryRequest,
-          this.strategies.refreshPage
-        )
+        strategies.push(this.strategies.retryRequest, this.strategies.refreshPage)
         break
 
       case 'client':
-        strategies.push(
-          this.strategies.clearCache,
-          this.strategies.refreshPage
-        )
+        strategies.push(this.strategies.clearCache, this.strategies.refreshPage)
         break
 
       default:
-        strategies.push(
-          this.strategies.refreshPage,
-          this.strategies.navigateHome
-        )
+        strategies.push(this.strategies.refreshPage, this.strategies.navigateHome)
     }
 
     return strategies.sort((a, b) => a.priority - b.priority)
@@ -327,20 +317,18 @@ export interface ErrorReport {
   recoverySuccessful?: boolean
 }
 
-export const createErrorReport = (
-  error: any, 
-  context?: string, 
-  userId?: string
-): ErrorReport => ({
+export const createErrorReport = (error: any, context?: string, userId?: string): ErrorReport => ({
   id: crypto.randomUUID(),
   timestamp: new Date(),
   error: {
     message: error?.message || 'Unknown error',
     stack: error?.stack,
-    response: error?.response ? {
-      status: error.response.status,
-      data: error.response.data,
-    } : undefined,
+    response: error?.response
+      ? {
+          status: error.response.status,
+          data: error.response.data,
+        }
+      : undefined,
   },
   classification: classifyError(error),
   context,

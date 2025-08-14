@@ -37,7 +37,7 @@ export const useChartData = (
 
     const dates = data.map(item => {
       const date = new Date(item.timestamp * 1000)
-      
+
       // タイムフレームに応じた日時フォーマット
       const formatDateByTimeframe = (date: Date, timeframe?: string): string => {
         const year = date.getFullYear()
@@ -45,11 +45,11 @@ export const useChartData = (
         const day = String(date.getDate()).padStart(2, '0')
         const hours = String(date.getHours()).padStart(2, '0')
         const minutes = String(date.getMinutes()).padStart(2, '0')
-        
+
         if (!timeframe) {
           return `${month}/${day}`
         }
-        
+
         switch (timeframe) {
           case '1': // 1 分足
           case '5': // 5 分足
@@ -59,13 +59,13 @@ export const useChartData = (
           case '240': // 4 時間足
             return `${month}/${day} ${hours}:${minutes}`
           case 'D': // 日足
-          case 'W': // 週足  
+          case 'W': // 週足
           case 'M': // 月足
           default:
             return `${month}/${day}`
         }
       }
-      
+
       return formatDateByTimeframe(date, timeframe)
     })
 
@@ -104,12 +104,12 @@ export const useChartData = (
     const visibleLow = Math.min(...data.map(d => d.low))
 
     // 指定期間の高値・安値を計算
-    const periodAgo = Date.now() / 1000 - (periodWeeks * 7 * 24 * 60 * 60) // 指定週数前のタイムスタンプ
+    const periodAgo = Date.now() / 1000 - periodWeeks * 7 * 24 * 60 * 60 // 指定週数前のタイムスタンプ
     const periodData = data.filter(d => d.timestamp >= periodAgo)
-    
+
     let periodHigh: number | undefined
     let periodLow: number | undefined
-    
+
     if (periodData.length > 0) {
       periodHigh = Math.max(...periodData.map(d => d.high))
       periodLow = Math.min(...periodData.map(d => d.low))

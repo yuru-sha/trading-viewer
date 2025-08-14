@@ -12,20 +12,20 @@ export interface AccessibilityOptions {
 export interface UseAccessibilityResult {
   // Screen Reader announcements
   announceToScreenReader: (message: string, priority?: 'polite' | 'assertive') => void
-  
+
   // Focus management
   focusElement: (element: HTMLElement | null) => void
   trapFocus: (container: HTMLElement, isActive: boolean) => void
-  
+
   // Motion preferences
   prefersReducedMotion: boolean
-  
+
   // High contrast detection
   prefersHighContrast: boolean
-  
+
   // Skip links
   skipLinkRef: React.RefObject<HTMLAnchorElement>
-  
+
   // Live region for announcements
   liveRegionRef: React.RefObject<HTMLDivElement>
 }
@@ -41,7 +41,7 @@ export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessi
   const liveRegionRef = useRef<HTMLDivElement>(null)
   const skipLinkRef = useRef<HTMLAnchorElement>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
-  
+
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [prefersHighContrast, setPrefersHighContrast] = useState(false)
 
@@ -73,7 +73,7 @@ export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessi
     if (reducedMotion) {
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
       setPrefersReducedMotion(mediaQuery.matches)
-      
+
       const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
       mediaQuery.addEventListener('change', handleChange)
       return () => mediaQuery.removeEventListener('change', handleChange)
@@ -84,7 +84,7 @@ export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessi
     if (highContrast) {
       const mediaQuery = window.matchMedia('(prefers-contrast: high)')
       setPrefersHighContrast(mediaQuery.matches)
-      
+
       const handleChange = (e: MediaQueryListEvent) => setPrefersHighContrast(e.matches)
       mediaQuery.addEventListener('change', handleChange)
       return () => mediaQuery.removeEventListener('change', handleChange)
@@ -92,88 +92,99 @@ export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessi
   }, [highContrast])
 
   // Screen reader announcements
-  const announceToScreenReader = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    if (liveRegionRef.current) {
-      liveRegionRef.current.setAttribute('aria-live', priority)
-      liveRegionRef.current.textContent = message
-      
-      // Clear after announcement to avoid repeated readings
-      setTimeout(() => {
-        if (liveRegionRef.current) {
-          liveRegionRef.current.textContent = ''
-        }
-      }, 1000)
-    }
-  }, [])
+  const announceToScreenReader = useCallback(
+    (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+      if (liveRegionRef.current) {
+        liveRegionRef.current.setAttribute('aria-live', priority)
+        liveRegionRef.current.textContent = message
+
+        // Clear after announcement to avoid repeated readings
+        setTimeout(() => {
+          if (liveRegionRef.current) {
+            liveRegionRef.current.textContent = ''
+          }
+        }, 1000)
+      }
+    },
+    []
+  )
 
   // Focus management
-  const focusElement = useCallback((element: HTMLElement | null) => {
-    if (element && focusManagement) {
-      // Store current focus for potential restoration
-      lastFocusRef.current = document.activeElement as HTMLElement
-      
-      // Ensure element is focusable
-      if (!element.hasAttribute('tabindex')) {
-        element.setAttribute('tabindex', '-1')
+  const focusElement = useCallback(
+    (element: HTMLElement | null) => {
+      if (element && focusManagement) {
+        // Store current focus for potential restoration
+        lastFocusRef.current = document.activeElement as HTMLElement
+
+        // Ensure element is focusable
+        if (!element.hasAttribute('tabindex')) {
+          element.setAttribute('tabindex', '-1')
+        }
+
+        element.focus()
       }
-      
-      element.focus()
-    }
-  }, [focusManagement])
+    },
+    [focusManagement]
+  )
 
-  const trapFocus = useCallback((container: HTMLElement, isActive: boolean) => {
-    if (!focusManagement) return
+  const trapFocus = useCallback(
+    (container: HTMLElement, isActive: boolean) => {
+      if (!focusManagement) return
 
-    const focusableElements = container.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    ) as NodeListOf<HTMLElement>
+      const focusableElements = container.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      ) as NodeListOf<HTMLElement>
 
-    if (!focusableElements.length) return
+      if (!focusableElements.length) return
 
-    const firstElement = focusableElements[0]
-    const lastElement = focusableElements[focusableElements.length - 1]
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Tab') {
-        if (e.shiftKey) {
-          // Shift + Tab
-          if (document.activeElement === firstElement) {
-            e.preventDefault()
-            lastElement.focus()
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            // Shift + Tab
+            if (document.activeElement === firstElement) {
+              e.preventDefault()
+              lastElement.focus()
+            }
+          } else {
+            // Tab
+            if (document.activeElement === lastElement) {
+              e.preventDefault()
+              firstElement.focus()
+            }
           }
-        } else {
-          // Tab
-          if (document.activeElement === lastElement) {
-            e.preventDefault()
-            firstElement.focus()
+        }
+
+        // Escape key to close modals/dialogs
+        if (e.key === 'Escape') {
+          const closeButton = container.querySelector(
+            '[aria-label*="close"], [aria-label*="Close"]'
+          ) as HTMLElement
+          if (closeButton) {
+            closeButton.click()
           }
         }
       }
-      
-      // Escape key to close modals/dialogs
-      if (e.key === 'Escape') {
-        const closeButton = container.querySelector('[aria-label*="close"], [aria-label*="Close"]') as HTMLElement
-        if (closeButton) {
-          closeButton.click()
+
+      if (isActive) {
+        container.addEventListener('keydown', handleKeyDown)
+        firstElement.focus()
+      } else {
+        container.removeEventListener('keydown', handleKeyDown)
+        // Restore focus to previous element
+        if (lastFocusRef.current) {
+          lastFocusRef.current.focus()
         }
       }
-    }
 
-    if (isActive) {
-      container.addEventListener('keydown', handleKeyDown)
-      firstElement.focus()
-    } else {
-      container.removeEventListener('keydown', handleKeyDown)
-      // Restore focus to previous element
-      if (lastFocusRef.current) {
-        lastFocusRef.current.focus()
+      return () => {
+        container.removeEventListener('keydown', handleKeyDown)
       }
-    }
-
-    return () => {
-      container.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [focusManagement])
+    },
+    [focusManagement]
+  )
 
   return {
     announceToScreenReader,
@@ -196,9 +207,7 @@ export const getContrastRatio = (foreground: string, background: string): number
     const g = parseInt(rgb[2], 16) / 255
     const b = parseInt(rgb[3], 16) / 255
 
-    const sRGB = [r, g, b].map(c => 
-      c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    )
+    const sRGB = [r, g, b].map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)))
 
     return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2]
   }
@@ -246,7 +255,7 @@ export const useArrowKeyNavigation = (
     const handleKeyDown = (e: KeyboardEvent) => {
       const elements = getNavigableElements(container)
       const currentIndex = elements.indexOf(document.activeElement as HTMLElement)
-      
+
       if (currentIndex === -1) return
 
       let nextIndex = currentIndex

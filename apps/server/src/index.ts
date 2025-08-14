@@ -15,6 +15,7 @@ import { requestLogger, errorLogger } from './middleware/logging'
 import { getWebSocketService } from './services/websocketService'
 import { securityHeaders } from './middleware/auth'
 import SecurityConfigValidator from './config/securityConfig'
+import { config } from './config/environment'
 
 // Load environment variables
 dotenv.config()
@@ -62,7 +63,7 @@ const marketDataLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: parseInt(process.env.RATE_LIMIT_MARKET_DATA_MAX || '60'), // 60 requests per minute
   message: {
-    code: 'MARKET_DATA_RATE_LIMIT_EXCEEDED', 
+    code: 'MARKET_DATA_RATE_LIMIT_EXCEEDED',
     message: 'Too many market data requests. Please slow down.',
     statusCode: 429,
   },
@@ -71,7 +72,7 @@ const marketDataLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// Very strict rate limiter for sensitive operations  
+// Very strict rate limiter for sensitive operations
 const sensitiveLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: parseInt(process.env.RATE_LIMIT_SENSITIVE_MAX || '10'), // 10 requests per hour
@@ -89,7 +90,7 @@ const sensitiveLimiter = rateLimit({
 app.use(helmet())
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: config.getCorsOrigin(),
     credentials: true,
   })
 )

@@ -9,6 +9,7 @@ import React, {
 } from 'react'
 import { useErrorHandlers } from './ErrorContext'
 import { clearCSRFToken } from '../lib/apiClient'
+import { apiService } from '../services/base/ApiService'
 
 // Types
 export interface User {
@@ -143,6 +144,9 @@ class AuthApiClient {
       const data = await response.json()
       if (data.success && data.data?.csrfToken) {
         this.csrfToken = data.data.csrfToken
+        // Sync CSRF token with apiService
+        apiService.setCSRFToken(this.csrfToken)
+        console.log('🔐 CSRF token updated:', this.csrfToken.substring(0, 8) + '...')
         return this.csrfToken
       }
 
@@ -155,6 +159,8 @@ class AuthApiClient {
 
   clearCSRFToken(): void {
     this.csrfToken = null
+    // Sync CSRF token clear with apiService
+    apiService.clearCSRFToken()
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -277,7 +283,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAuthStatus = useCallback(async (): Promise<void> => {
     try {
       const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
-      
+
       if (isAuthenticated && user) {
         setAuthState({
           user,
@@ -294,7 +300,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [clearAuth])
 
   // Initialize API client
-  const apiClient = useMemo(() => new AuthApiClient(clearAuth, handleApiError), [clearAuth, handleApiError])
+  const apiClient = useMemo(
+    () => new AuthApiClient(clearAuth, handleApiError),
+    [clearAuth, handleApiError]
+  )
 
   // Login
   const login = useCallback(
@@ -435,7 +444,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initAuth = async () => {
       // Check authentication status via server (httpOnly cookies)
       const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
-      
+
       if (isAuthenticated && user) {
         setAuthState({
           user,
@@ -443,6 +452,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           isLoading: false,
           tokens: null,
         })
+        // Pre-fetch CSRF token for authenticated users
+        try {
+          await apiClient.refreshCSRFToken()
+          console.log('🔐 CSRF token initialized on app startup')
+        } catch (csrfError) {
+          console.warn('Failed to initialize CSRF token on startup:', csrfError)
+        }
       } else {
         setAuthState(prev => ({ ...prev, isLoading: false }))
       }

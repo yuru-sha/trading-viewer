@@ -8,17 +8,15 @@ import { useDrawingPersistence, type DrawingPersistenceOptions } from './useDraw
  */
 export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOptions = {}) => {
   const drawingTools = useDrawingTools()
-  
-  const persistence = useDrawingPersistence(
-    drawingTools.tools,
-    drawingTools.loadTools,
-    options
-  )
+
+  const persistence = useDrawingPersistence(drawingTools.tools, drawingTools.loadTools, options)
 
   // When symbol or timeframe changes, restore tools for that combination
   useEffect(() => {
     if (options.symbol) {
-      console.log(`🔄 Symbol/timeframe changed to: ${options.symbol}:${options.timeframe || '1D'}, restoring drawings...`)
+      console.log(
+        `🔄 Symbol/timeframe changed to: ${options.symbol}:${options.timeframe || '1D'}, restoring drawings...`
+      )
       persistence.restoreForSymbolAndTimeframe(options.symbol, options.timeframe)
     }
   }, [options.symbol, options.timeframe]) // Re-run when symbol or timeframe changes
@@ -26,7 +24,7 @@ export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOption
   return {
     // All original drawing tools functionality
     ...drawingTools,
-    
+
     // Enhanced persistence methods
     saveToLocalStorage: persistence.saveToLocalStorage,
     loadFromLocalStorage: persistence.loadFromLocalStorage,
@@ -34,7 +32,7 @@ export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOption
     deleteSavedData: persistence.deleteSavedData,
     getSavedCombinations: persistence.getSavedCombinations,
     getStorageStatistics: persistence.getStorageStatistics,
-    
+
     // Manual save/load with current symbol and timeframe
     save: () => persistence.saveToLocalStorage(options.symbol, options.timeframe),
     restore: () => {
@@ -42,7 +40,7 @@ export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOption
         persistence.restoreForSymbolAndTimeframe(options.symbol, options.timeframe)
       }
     },
-    
+
     // Clear current tools and save empty state
     clearAndSave: () => {
       drawingTools.clearAllTools()

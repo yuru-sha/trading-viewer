@@ -102,7 +102,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
 
   const handleSaveDrawings = async () => {
     if (!currentSymbol || drawingElements.length === 0) return
-    
+
     setIsLoading(true)
     try {
       for (const element of drawingElements) {
@@ -128,7 +128,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
           tool: drawingTool,
         })
       }
-      
+
       console.log(`Saved ${drawingElements.length} drawings for ${currentSymbol}`)
     } catch (error) {
       console.error('Failed to save drawings:', error)
@@ -139,7 +139,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
 
   const handleDeleteSavedDrawings = async () => {
     if (!currentSymbol) return
-    
+
     setIsLoading(true)
     try {
       // Get saved drawings and delete them
@@ -159,7 +159,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
 
   const handleLoadDrawings = async () => {
     if (!currentSymbol) return
-    
+
     setIsLoading(true)
     try {
       const response = await api.drawing.getDrawingTools(currentSymbol)
@@ -168,7 +168,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
         const loadedElements: DrawingElement[] = response.data.map(tool => {
           // Find matching tool definition
           const toolDef = drawingTools.find(t => t.type === tool.type) || drawingTools[0]
-          
+
           return {
             id: tool.id,
             tool: toolDef,
@@ -187,14 +187,14 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
             created: tool.createdAt,
           }
         })
-        
+
         // Load the drawings into the chart
         loadedElements.forEach(element => {
           if (onSaveDrawing) {
             onSaveDrawing(element)
           }
         })
-        
+
         console.log(`Loaded ${loadedElements.length} drawings for ${currentSymbol}`)
       }
     } catch (error) {
@@ -332,7 +332,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
                     className='flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs'
                   >
                     <div className='flex items-center space-x-2'>
-                      <div 
+                      <div
                         className='w-3 h-3 rounded-full border'
                         style={{ backgroundColor: element.style.color }}
                       />
@@ -349,8 +349,18 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
                       className='p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded'
                       title='Delete this drawing'
                     >
-                      <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                      <svg
+                        className='w-3 h-3'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M6 18L18 6M6 6l12 12'
+                        />
                       </svg>
                     </button>
                   </div>

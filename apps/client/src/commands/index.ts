@@ -6,7 +6,13 @@
 // Base classes and interfaces
 export { BaseCommand } from './BaseCommand'
 export { CommandInvoker } from './CommandInvoker'
-export { CommandFactory, commandFactory, createCommand, buildCommand, CommandBuilder } from './CommandFactory'
+export {
+  CommandFactory,
+  commandFactory,
+  createCommand,
+  buildCommand,
+  CommandBuilder,
+} from './CommandFactory'
 
 // Specific command implementations
 export {
@@ -66,20 +72,21 @@ export function createCommandSystem(options?: {
   contexts?: Record<string, any>
 }) {
   const { maxHistorySize = 100, contexts = {} } = options || {}
-  
+
   const invoker = new CommandInvoker(maxHistorySize)
   const factory = new CommandFactory()
-  
+
   // Register contexts
   Object.entries(contexts).forEach(([name, context]) => {
     factory.registerContext(name, context)
   })
-  
+
   return {
     invoker,
     factory,
     execute: <T>(command: ICommand<T>) => invoker.execute(command),
-    createCommand: <T extends ICommand>(type: T['type'], params: T['params']) => factory.createCommand<T>(type, params),
+    createCommand: <T extends ICommand>(type: T['type'], params: T['params']) =>
+      factory.createCommand<T>(type, params),
     undo: () => invoker.undo(),
     redo: () => invoker.redo(),
     canUndo: () => invoker.canUndo(),

@@ -6,6 +6,7 @@ import { PriceData } from '../utils/indicators'
 interface ChartEventsConfig {
   enableDrawingTools: boolean
   onCrosshairMove?: (price: number | null, time: number | null) => void
+  onChartClick?: () => void
   data: PriceData[]
 }
 
@@ -19,27 +20,30 @@ export const useChartEvents = (
   config: ChartEventsConfig
 ) => {
   // Helper function to find closest data index by timestamp
-  const findClosestDataIndex = useCallback((targetTimestamp: number): number => {
-    if (config.data.length === 0) return -1
-    
-    // First try exact match
-    const exactIndex = config.data.findIndex(d => d.timestamp === targetTimestamp)
-    if (exactIndex !== -1) return exactIndex
-    
-    // Find closest timestamp
-    let closestIndex = 0
-    let minDiff = Math.abs(config.data[0].timestamp - targetTimestamp)
-    
-    for (let i = 1; i < config.data.length; i++) {
-      const diff = Math.abs(config.data[i].timestamp - targetTimestamp)
-      if (diff < minDiff) {
-        minDiff = diff
-        closestIndex = i
+  const findClosestDataIndex = useCallback(
+    (targetTimestamp: number): number => {
+      if (config.data.length === 0) return -1
+
+      // First try exact match
+      const exactIndex = config.data.findIndex(d => d.timestamp === targetTimestamp)
+      if (exactIndex !== -1) return exactIndex
+
+      // Find closest timestamp
+      let closestIndex = 0
+      let minDiff = Math.abs(config.data[0].timestamp - targetTimestamp)
+
+      for (let i = 1; i < config.data.length; i++) {
+        const diff = Math.abs(config.data[i].timestamp - targetTimestamp)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestIndex = i
+        }
       }
-    }
-    
-    return closestIndex
-  }, [config.data])
+
+      return closestIndex
+    },
+    [config.data]
+  )
 
   const handlersRef = useRef<any>({})
   const lastMouseMoveTime = useRef(0)
@@ -55,7 +59,7 @@ export const useChartEvents = (
     isDrawing: false,
     isMouseDown: false,
     isDragging: false,
-    selectedToolId: null
+    selectedToolId: null,
   })
   const MOUSE_MOVE_THROTTLE = 16 // 60fps 相当
 
@@ -70,7 +74,7 @@ export const useChartEvents = (
         isDrawing: drawingTools.isDrawing,
         isMouseDown: drawingTools.isMouseDown,
         isDragging: drawingTools.isDragging,
-        selectedToolId: drawingTools.selectedToolId
+        selectedToolId: drawingTools.selectedToolId,
       }
     }
   }, [drawingTools])
@@ -79,6 +83,9 @@ export const useChartEvents = (
   const handleChartClick = useCallback(
     (params: any) => {
       console.log('🎯 Chart clicked:', params)
+
+      // Call the onChartClick callback if provided
+      config.onChartClick?.()
 
       // 最新の drawingTools を取得（ref ではなく直接パラメータから）
       const currentTools = drawingTools
@@ -106,11 +113,11 @@ export const useChartEvents = (
             // Handle horizontal and vertical lines (single point)
             if (tool.type === 'horizontal' || tool.type === 'vertical') {
               if (tool.points.length < 1) return false
-              
+
               const dataIndex = findClosestDataIndex(tool.points[0].timestamp)
               if (dataIndex === -1) return false
               const pixel = chart.convertToPixel('grid', [dataIndex, tool.points[0].price])
-              
+
               if (pixel && Array.isArray(pixel)) {
                 if (tool.type === 'horizontal') {
                   // For horizontal lines, check if click is within tolerance of the price level
@@ -126,60 +133,72 @@ export const useChartEvents = (
             // Handle Fibonacci Retracement (multiple lines)
             if (tool.type === 'fibonacci') {
               if (tool.points.length < 2) return false
-              
+
               // Find closest data index instead of exact match
-            let startDataIndex = config.data.findIndex(d => d.timestamp === tool.points[0].timestamp)
-            if (startDataIndex === -1) {
-              // Find closest timestamp if exact match not found
-              let closestIndex = 0
-              let minDiff = Math.abs(config.data[0].timestamp - tool.points[0].timestamp)
-              for (let i = 1; i < config.data.length; i++) {
-                const diff = Math.abs(config.data[i].timestamp - tool.points[0].timestamp)
-                if (diff < minDiff) {
-                  minDiff = diff
-                  closestIndex = i
+              let startDataIndex = config.data.findIndex(
+                d => d.timestamp === tool.points[0].timestamp
+              )
+              if (startDataIndex === -1) {
+                // Find closest timestamp if exact match not found
+                let closestIndex = 0
+                let minDiff = Math.abs(config.data[0].timestamp - tool.points[0].timestamp)
+                for (let i = 1; i < config.data.length; i++) {
+                  const diff = Math.abs(config.data[i].timestamp - tool.points[0].timestamp)
+                  if (diff < minDiff) {
+                    minDiff = diff
+                    closestIndex = i
+                  }
                 }
+                startDataIndex = closestIndex
               }
-              startDataIndex = closestIndex
-            }
-              const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
-              
+              const startPixel = chart.convertToPixel('grid', [
+                startDataIndex,
+                tool.points[0].price,
+              ])
+
               if (startPixel && Array.isArray(startPixel)) {
                 const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
                 const startPrice = tool.points[0].price
                 const endPrice = tool.points[1].price
                 const priceRange = endPrice - startPrice
-                
+
                 // Check if click is within any fibonacci level line
                 for (const level of fibLevels) {
-                  const levelPrice = startPrice + (priceRange * level)
+                  const levelPrice = startPrice + priceRange * level
                   const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
-                  
+
                   if (levelPixel && Array.isArray(levelPixel)) {
                     // Check if click is within tolerance of this fibonacci level
                     if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
                       // Also check if click is within the horizontal range of fibonacci lines
                       // Find closest data index for end point
-            let endDataIndex = config.data.findIndex(d => d.timestamp === tool.points[1].timestamp)
-            if (endDataIndex === -1) {
-              // Find closest timestamp if exact match not found
-              let closestIndex = 0
-              let minDiff = Math.abs(config.data[0].timestamp - tool.points[1].timestamp)
-              for (let i = 1; i < config.data.length; i++) {
-                const diff = Math.abs(config.data[i].timestamp - tool.points[1].timestamp)
-                if (diff < minDiff) {
-                  minDiff = diff
-                  closestIndex = i
-                }
-              }
-              endDataIndex = closestIndex
-            }
-                      const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
-                      
+                      let endDataIndex = config.data.findIndex(
+                        d => d.timestamp === tool.points[1].timestamp
+                      )
+                      if (endDataIndex === -1) {
+                        // Find closest timestamp if exact match not found
+                        let closestIndex = 0
+                        let minDiff = Math.abs(config.data[0].timestamp - tool.points[1].timestamp)
+                        for (let i = 1; i < config.data.length; i++) {
+                          const diff = Math.abs(config.data[i].timestamp - tool.points[1].timestamp)
+                          if (diff < minDiff) {
+                            minDiff = diff
+                            closestIndex = i
+                          }
+                        }
+                        endDataIndex = closestIndex
+                      }
+                      const endPixel = chart.convertToPixel('grid', [
+                        endDataIndex,
+                        tool.points[1].price,
+                      ])
+
                       if (endPixel && Array.isArray(endPixel)) {
                         const lineStartX = Math.min(startPixel[0], endPixel[0])
-                        const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
-                        
+                        const lineEndX =
+                          Math.max(startPixel[0], endPixel[0]) +
+                          Math.abs(startPixel[0] - endPixel[0]) * 0.2
+
                         if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
                           return true
                         }
@@ -223,12 +242,17 @@ export const useChartEvents = (
         if (clickedTool) {
           console.log('🎯 Line clicked:', clickedTool.id)
           const wasSelected = currentSelectedToolRef.current === clickedTool.id
-          console.log('🎯 Current selectedToolId (ref):', currentSelectedToolRef.current, 'wasSelected:', wasSelected)
-          
+          console.log(
+            '🎯 Current selectedToolId (ref):',
+            currentSelectedToolRef.current,
+            'wasSelected:',
+            wasSelected
+          )
+
           if (wasSelected) {
             // If already selected, check if click is on handle first
             console.log('🎯 Line was already selected, checking for handle click')
-            
+
             // Skip handle detection for horizontal/vertical lines as they don't have endpoints
             if (clickedTool.type === 'horizontal' || clickedTool.type === 'vertical') {
               console.log('🎯 Single-point line clicked (no handle detection needed)')
@@ -237,31 +261,42 @@ export const useChartEvents = (
               // Handle detection for two-point lines (trendlines, etc.)
               let clickedHandle: { tool: any; handleType: 'start' | 'end' } | null = null
               const chart = chartInstance.chartRef.current?.getEchartsInstance()
-              
+
               if (chart) {
                 try {
                   // Find closest data indices for clicked tool
                   const startDataIndex = findClosestDataIndex(clickedTool.points[0].timestamp)
                   const endDataIndex = findClosestDataIndex(clickedTool.points[1].timestamp)
 
-                  const startPixel = chart.convertToPixel('grid', [startDataIndex, clickedTool.points[0].price])
-                  const endPixel = chart.convertToPixel('grid', [endDataIndex, clickedTool.points[1].price])
+                  const startPixel = chart.convertToPixel('grid', [
+                    startDataIndex,
+                    clickedTool.points[0].price,
+                  ])
+                  const endPixel = chart.convertToPixel('grid', [
+                    endDataIndex,
+                    clickedTool.points[1].price,
+                  ])
 
-                  if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+                  if (
+                    startPixel &&
+                    endPixel &&
+                    Array.isArray(startPixel) &&
+                    Array.isArray(endPixel)
+                  ) {
                     const handleTolerance = 12 // pixels for handle detection
 
                     // Check start handle
                     const startDistance = Math.sqrt(
-                      Math.pow(params.offsetX - startPixel[0], 2) + 
-                      Math.pow(params.offsetY - startPixel[1], 2)
+                      Math.pow(params.offsetX - startPixel[0], 2) +
+                        Math.pow(params.offsetY - startPixel[1], 2)
                     )
                     if (startDistance <= handleTolerance) {
                       clickedHandle = { tool: clickedTool, handleType: 'start' }
                     } else {
                       // Check end handle
                       const endDistance = Math.sqrt(
-                        Math.pow(params.offsetX - endPixel[0], 2) + 
-                        Math.pow(params.offsetY - endPixel[1], 2)
+                        Math.pow(params.offsetX - endPixel[0], 2) +
+                          Math.pow(params.offsetY - endPixel[1], 2)
                       )
                       if (endDistance <= handleTolerance) {
                         clickedHandle = { tool: clickedTool, handleType: 'end' }
@@ -272,7 +307,7 @@ export const useChartEvents = (
                   console.error('🎯 Error checking handle click:', error)
                 }
               }
-              
+
               if (clickedHandle) {
                 console.log('🎯 Handle clicked:', clickedHandle.handleType)
                 // Don't start drag on click event - wait for actual mousedown
@@ -363,7 +398,7 @@ export const useChartEvents = (
       // ドラッグ関連の場合はスロットリングを無視
       const currentState = drawingToolsStateRef.current
       const isDragRelated = currentState.isMouseDown || currentState.isDragging
-      
+
       // スロットリング: ドラッグ関連でない場合のみ制限
       if (!isDragRelated) {
         const now = Date.now()
@@ -378,7 +413,7 @@ export const useChartEvents = (
         offsetY: params.offsetY,
         isDragRelated,
         isMouseDown: currentState.isMouseDown,
-        isDragging: currentState.isDragging
+        isDragging: currentState.isDragging,
       })
 
       const dataPoint = chartInstance.convertPixelToData(
@@ -406,9 +441,9 @@ export const useChartEvents = (
         drawingToolsParam: !!drawingTools,
         isMouseDown: currentTools?.isMouseDown,
         isDragging: currentTools?.isDragging,
-        dragState: currentTools?.dragState
+        dragState: currentTools?.dragState,
       })
-      
+
       if (!config.enableDrawingTools || !currentTools) {
         console.log('🎯 Returning early - drawing tools not available')
         return
@@ -420,13 +455,14 @@ export const useChartEvents = (
           isMouseDown: currentTools.isMouseDown,
           isDragging: currentTools.isDragging,
           hasDragState: !!currentTools.dragState,
-          dragState: currentTools.dragState
+          dragState: currentTools.dragState,
         })
       }
-      
+
       // Start drag if mouse is down and moving
-      const canStartDrag = currentTools.isMouseDown && !currentTools.isDragging && currentTools.dragState
-      
+      const canStartDrag =
+        currentTools.isMouseDown && !currentTools.isDragging && currentTools.dragState
+
       // 詳細なドラッグ条件ログ - 常に出力
       console.log('🎯 Detailed drag conditions:', {
         isMouseDown: currentTools.isMouseDown,
@@ -434,27 +470,26 @@ export const useChartEvents = (
         dragState: currentTools.dragState,
         canStartDrag,
         hasStartDragFunction: !!currentTools.startDrag,
-        hasUpdateDragFunction: !!currentTools.updateDrag
+        hasUpdateDragFunction: !!currentTools.updateDrag,
       })
-      
+
       if (canStartDrag) {
         // ドラッグ開始に最小移動距離の判定を追加
         const dragThreshold = 5 // pixels
         const startPos = currentTools.dragState.startPos
         if (startPos) {
           const distance = Math.sqrt(
-            Math.pow(params.offsetX - startPos.x, 2) + 
-            Math.pow(params.offsetY - startPos.y, 2)
+            Math.pow(params.offsetX - startPos.x, 2) + Math.pow(params.offsetY - startPos.y, 2)
           )
-          
+
           console.log('🎯 Drag distance check:', {
             currentPos: { x: params.offsetX, y: params.offsetY },
             startPos,
             distance,
             threshold: dragThreshold,
-            shouldStartDrag: distance >= dragThreshold
+            shouldStartDrag: distance >= dragThreshold,
           })
-          
+
           if (distance >= dragThreshold) {
             console.log('🎯 Starting drag from mouse move - threshold exceeded')
             const { toolId, handleType, originalPoints } = currentTools.dragState
@@ -505,103 +540,202 @@ export const useChartEvents = (
   )
 
   // Chart mouse down handler - for starting drag operations
-  const handleChartMouseDown = useCallback((params: any) => {
-    const currentTools = drawingTools
-    if (!config.enableDrawingTools || !currentTools) {
-      return
-    }
-
-    console.log('🎯 handleChartMouseDown called:', params)
-
-    // If a tool is selected, check if we're clicking on a handle or line
-    if (currentTools.selectedToolId) {
-      const selectedTool = currentTools.getTool(currentTools.selectedToolId)
-      if (!selectedTool || !selectedTool.points || selectedTool.points.length < 1) {
+  const handleChartMouseDown = useCallback(
+    (params: any) => {
+      const currentTools = drawingTools
+      if (!config.enableDrawingTools || !currentTools) {
         return
       }
 
-      const chart = chartInstance.chartRef.current?.getEchartsInstance()
-      if (!chart) return
+      console.log('🎯 handleChartMouseDown called:', params)
 
-      try {
-        // Handle horizontal and vertical lines (single point)
-        if (selectedTool.type === 'horizontal' || selectedTool.type === 'vertical') {
-          if (selectedTool.points.length < 1) return
-          
-          const dataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
-          const pixel = chart.convertToPixel('grid', [dataIndex, selectedTool.points[0].price])
-          
-          if (pixel && Array.isArray(pixel)) {
-            const tolerance = 10 // pixels
-            let shouldStartDrag = false
-            
-            if (selectedTool.type === 'horizontal') {
-              // For horizontal lines, check if click is within tolerance of the price level
-              shouldStartDrag = Math.abs(params.offsetY - pixel[1]) <= tolerance
-            } else if (selectedTool.type === 'vertical') {
-              // For vertical lines, check if click is within tolerance of the time level
-              shouldStartDrag = Math.abs(params.offsetX - pixel[0]) <= tolerance
-            }
-            
-            if (shouldStartDrag) {
-              console.log('🎯 MouseDown on single-point line body')
-              currentTools.mouseDown(
-                selectedTool.id,
-                'line',
-                { x: params.offsetX, y: params.offsetY },
-                selectedTool.points
-              )
-            }
-          }
+      // If a tool is selected, check if we're clicking on a handle or line
+      if (currentTools.selectedToolId) {
+        const selectedTool = currentTools.getTool(currentTools.selectedToolId)
+        if (!selectedTool || !selectedTool.points || selectedTool.points.length < 1) {
           return
         }
 
-        // Handle Fibonacci Retracement (same as two-point tools but with multiple lines)
-        if (selectedTool.type === 'fibonacci') {
-          if (selectedTool.points.length < 2) return
-          
-          // Find closest data indices for selected tool
-          let startDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[0].timestamp)
-          if (startDataIndex === -1) {
-            let closestIndex = 0
-            let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[0].timestamp)
-            for (let i = 1; i < config.data.length; i++) {
-              const diff = Math.abs(config.data[i].timestamp - selectedTool.points[0].timestamp)
-              if (diff < minDiff) {
-                minDiff = diff
-                closestIndex = i
+        const chart = chartInstance.chartRef.current?.getEchartsInstance()
+        if (!chart) return
+
+        try {
+          // Handle horizontal and vertical lines (single point)
+          if (selectedTool.type === 'horizontal' || selectedTool.type === 'vertical') {
+            if (selectedTool.points.length < 1) return
+
+            const dataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
+            const pixel = chart.convertToPixel('grid', [dataIndex, selectedTool.points[0].price])
+
+            if (pixel && Array.isArray(pixel)) {
+              const tolerance = 10 // pixels
+              let shouldStartDrag = false
+
+              if (selectedTool.type === 'horizontal') {
+                // For horizontal lines, check if click is within tolerance of the price level
+                shouldStartDrag = Math.abs(params.offsetY - pixel[1]) <= tolerance
+              } else if (selectedTool.type === 'vertical') {
+                // For vertical lines, check if click is within tolerance of the time level
+                shouldStartDrag = Math.abs(params.offsetX - pixel[0]) <= tolerance
+              }
+
+              if (shouldStartDrag) {
+                console.log('🎯 MouseDown on single-point line body')
+                currentTools.mouseDown(
+                  selectedTool.id,
+                  'line',
+                  { x: params.offsetX, y: params.offsetY },
+                  selectedTool.points
+                )
               }
             }
-            startDataIndex = closestIndex
+            return
           }
-          
-          let endDataIndex = config.data.findIndex(d => d.timestamp === selectedTool.points[1].timestamp)
-          if (endDataIndex === -1) {
-            let closestIndex = 0
-            let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[1].timestamp)
-            for (let i = 1; i < config.data.length; i++) {
-              const diff = Math.abs(config.data[i].timestamp - selectedTool.points[1].timestamp)
-              if (diff < minDiff) {
-                minDiff = diff
-                closestIndex = i
+
+          // Handle Fibonacci Retracement (same as two-point tools but with multiple lines)
+          if (selectedTool.type === 'fibonacci') {
+            if (selectedTool.points.length < 2) return
+
+            // Find closest data indices for selected tool
+            let startDataIndex = config.data.findIndex(
+              d => d.timestamp === selectedTool.points[0].timestamp
+            )
+            if (startDataIndex === -1) {
+              let closestIndex = 0
+              let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[0].timestamp)
+              for (let i = 1; i < config.data.length; i++) {
+                const diff = Math.abs(config.data[i].timestamp - selectedTool.points[0].timestamp)
+                if (diff < minDiff) {
+                  minDiff = diff
+                  closestIndex = i
+                }
+              }
+              startDataIndex = closestIndex
+            }
+
+            let endDataIndex = config.data.findIndex(
+              d => d.timestamp === selectedTool.points[1].timestamp
+            )
+            if (endDataIndex === -1) {
+              let closestIndex = 0
+              let minDiff = Math.abs(config.data[0].timestamp - selectedTool.points[1].timestamp)
+              for (let i = 1; i < config.data.length; i++) {
+                const diff = Math.abs(config.data[i].timestamp - selectedTool.points[1].timestamp)
+                if (diff < minDiff) {
+                  minDiff = diff
+                  closestIndex = i
+                }
+              }
+              endDataIndex = closestIndex
+            }
+
+            const startPixel = chart.convertToPixel('grid', [
+              startDataIndex,
+              selectedTool.points[0].price,
+            ])
+            const endPixel = chart.convertToPixel('grid', [
+              endDataIndex,
+              selectedTool.points[1].price,
+            ])
+
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              const handleTolerance = 12 // pixels for handle detection
+
+              // Check start handle
+              const startDistance = Math.sqrt(
+                Math.pow(params.offsetX - startPixel[0], 2) +
+                  Math.pow(params.offsetY - startPixel[1], 2)
+              )
+              if (startDistance <= handleTolerance) {
+                console.log('🎯 MouseDown on fibonacci start handle')
+                currentTools.mouseDown(
+                  selectedTool.id,
+                  'start',
+                  { x: params.offsetX, y: params.offsetY },
+                  selectedTool.points
+                )
+                return
+              }
+
+              // Check end handle
+              const endDistance = Math.sqrt(
+                Math.pow(params.offsetX - endPixel[0], 2) +
+                  Math.pow(params.offsetY - endPixel[1], 2)
+              )
+              if (endDistance <= handleTolerance) {
+                console.log('🎯 MouseDown on fibonacci end handle')
+                currentTools.mouseDown(
+                  selectedTool.id,
+                  'end',
+                  { x: params.offsetX, y: params.offsetY },
+                  selectedTool.points
+                )
+                return
+              }
+
+              // Check if clicking on any fibonacci level line for line body drag
+              const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
+              const startPrice = selectedTool.points[0].price
+              const endPrice = selectedTool.points[1].price
+              const priceRange = endPrice - startPrice
+
+              for (const level of fibLevels) {
+                const levelPrice = startPrice + priceRange * level
+                const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
+
+                if (levelPixel && Array.isArray(levelPixel)) {
+                  const tolerance = 10 // pixels
+                  if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
+                    // Check if click is within horizontal range
+                    const lineStartX = Math.min(startPixel[0], endPixel[0])
+                    const lineEndX =
+                      Math.max(startPixel[0], endPixel[0]) +
+                      Math.abs(startPixel[0] - endPixel[0]) * 0.2
+
+                    if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
+                      console.log('🎯 MouseDown on fibonacci line body')
+                      currentTools.mouseDown(
+                        selectedTool.id,
+                        'line',
+                        { x: params.offsetX, y: params.offsetY },
+                        selectedTool.points
+                      )
+                      return
+                    }
+                  }
+                }
               }
             }
-            endDataIndex = closestIndex
+            return
           }
-          
-          const startPixel = chart.convertToPixel('grid', [startDataIndex, selectedTool.points[0].price])
-          const endPixel = chart.convertToPixel('grid', [endDataIndex, selectedTool.points[1].price])
-          
+
+          // Handle two-point lines (trendlines, etc.)
+          if (selectedTool.points.length < 2) {
+            return
+          }
+
+          const startDataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
+          const endDataIndex = findClosestDataIndex(selectedTool.points[1].timestamp)
+
+          const startPixel = chart.convertToPixel('grid', [
+            startDataIndex,
+            selectedTool.points[0].price,
+          ])
+          const endPixel = chart.convertToPixel('grid', [
+            endDataIndex,
+            selectedTool.points[1].price,
+          ])
+
           if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
             const handleTolerance = 12 // pixels for handle detection
-            
+
             // Check start handle
             const startDistance = Math.sqrt(
-              Math.pow(params.offsetX - startPixel[0], 2) + 
-              Math.pow(params.offsetY - startPixel[1], 2)
+              Math.pow(params.offsetX - startPixel[0], 2) +
+                Math.pow(params.offsetY - startPixel[1], 2)
             )
             if (startDistance <= handleTolerance) {
-              console.log('🎯 MouseDown on fibonacci start handle')
+              console.log('🎯 MouseDown on start handle')
               currentTools.mouseDown(
                 selectedTool.id,
                 'start',
@@ -610,14 +744,13 @@ export const useChartEvents = (
               )
               return
             }
-            
-            // Check end handle  
+
+            // Check end handle
             const endDistance = Math.sqrt(
-              Math.pow(params.offsetX - endPixel[0], 2) + 
-              Math.pow(params.offsetY - endPixel[1], 2)
+              Math.pow(params.offsetX - endPixel[0], 2) + Math.pow(params.offsetY - endPixel[1], 2)
             )
             if (endDistance <= handleTolerance) {
-              console.log('🎯 MouseDown on fibonacci end handle')
+              console.log('🎯 MouseDown on end handle')
               currentTools.mouseDown(
                 selectedTool.id,
                 'end',
@@ -626,174 +759,99 @@ export const useChartEvents = (
               )
               return
             }
-            
-            // Check if clicking on any fibonacci level line for line body drag
-            const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-            const startPrice = selectedTool.points[0].price
-            const endPrice = selectedTool.points[1].price
-            const priceRange = endPrice - startPrice
-            
-            for (const level of fibLevels) {
-              const levelPrice = startPrice + (priceRange * level)
-              const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
-              
-              if (levelPixel && Array.isArray(levelPixel)) {
-                const tolerance = 10 // pixels
-                if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
-                  // Check if click is within horizontal range
-                  const lineStartX = Math.min(startPixel[0], endPixel[0])
-                  const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
-                  
-                  if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
-                    console.log('🎯 MouseDown on fibonacci line body')
-                    currentTools.mouseDown(
-                      selectedTool.id,
-                      'line',
-                      { x: params.offsetX, y: params.offsetY },
-                      selectedTool.points
-                    )
-                    return
-                  }
-                }
-              }
+
+            // Check if clicking on line itself
+            const tolerance = 10 // pixels
+            const distance = distanceFromPointToLine(
+              params.offsetX,
+              params.offsetY,
+              startPixel[0],
+              startPixel[1],
+              endPixel[0],
+              endPixel[1]
+            )
+            if (distance <= tolerance) {
+              console.log('🎯 MouseDown on line body')
+              currentTools.mouseDown(
+                selectedTool.id,
+                'line',
+                { x: params.offsetX, y: params.offsetY },
+                selectedTool.points
+              )
             }
           }
-          return
+        } catch (error) {
+          console.error('🎯 Error in handleChartMouseDown:', error)
         }
-
-        // Handle two-point lines (trendlines, etc.)
-        if (selectedTool.points.length < 2) {
-          return
-        }
-
-        const startDataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
-        const endDataIndex = findClosestDataIndex(selectedTool.points[1].timestamp)
-
-        const startPixel = chart.convertToPixel('grid', [startDataIndex, selectedTool.points[0].price])
-        const endPixel = chart.convertToPixel('grid', [endDataIndex, selectedTool.points[1].price])
-
-        if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
-          const handleTolerance = 12 // pixels for handle detection
-
-          // Check start handle
-          const startDistance = Math.sqrt(
-            Math.pow(params.offsetX - startPixel[0], 2) + 
-            Math.pow(params.offsetY - startPixel[1], 2)
-          )
-          if (startDistance <= handleTolerance) {
-            console.log('🎯 MouseDown on start handle')
-            currentTools.mouseDown(
-              selectedTool.id,
-              'start',
-              { x: params.offsetX, y: params.offsetY },
-              selectedTool.points
-            )
-            return
-          }
-
-          // Check end handle  
-          const endDistance = Math.sqrt(
-            Math.pow(params.offsetX - endPixel[0], 2) + 
-            Math.pow(params.offsetY - endPixel[1], 2)
-          )
-          if (endDistance <= handleTolerance) {
-            console.log('🎯 MouseDown on end handle')
-            currentTools.mouseDown(
-              selectedTool.id,
-              'end',
-              { x: params.offsetX, y: params.offsetY },
-              selectedTool.points
-            )
-            return
-          }
-
-          // Check if clicking on line itself
-          const tolerance = 10 // pixels
-          const distance = distanceFromPointToLine(
-            params.offsetX,
-            params.offsetY,
-            startPixel[0],
-            startPixel[1],
-            endPixel[0],
-            endPixel[1]
-          )
-          if (distance <= tolerance) {
-            console.log('🎯 MouseDown on line body')
-            currentTools.mouseDown(
-              selectedTool.id,
-              'line',
-              { x: params.offsetX, y: params.offsetY },
-              selectedTool.points
-            )
-          }
-        }
-      } catch (error) {
-        console.error('🎯 Error in handleChartMouseDown:', error)
       }
-    }
-  }, [config.enableDrawingTools, config.data, chartInstance, drawingTools])
+    },
+    [config.enableDrawingTools, config.data, chartInstance, drawingTools]
+  )
 
   // Chart mouse up handler
-  const handleChartMouseUp = useCallback((params: any) => {
-    const currentTools = drawingTools
-    if (!config.enableDrawingTools || !currentTools) {
-      return
-    }
-
-    // Handle drag end
-    if (currentTools.isDragging) {
-      console.log('🎯 Mouse up during drag - ending drag')
-      
-      const dataPoint = chartInstance.convertPixelToData(
-        params.offsetX,
-        params.offsetY,
-        config.data
-      )
-      
-      if (dataPoint && currentTools.dragState?.toolId) {
-        const tool = currentTools.getTool(currentTools.dragState.toolId)
-        if (tool) {
-          const chartEvent = {
-            timestamp: dataPoint.timestamp,
-            price: dataPoint.price,
-            x: params.offsetX,
-            y: params.offsetY,
-          }
-          currentTools.endDrag(chartEvent, tool)
-        }
+  const handleChartMouseUp = useCallback(
+    (params: any) => {
+      const currentTools = drawingTools
+      if (!config.enableDrawingTools || !currentTools) {
+        return
       }
-      return
-    }
 
-    // Handle mouse up when in mouseDown state but not dragging (simple click)
-    if (currentTools.isMouseDown && !currentTools.isDragging) {
-      console.log('🎯 Mouse up without drag - resetting mouse down state')
-      // Reset mouse down state for simple clicks that didn't turn into drags
-      if (currentTools.endDrag) {
-        // Use a dummy event to reset the state
+      // Handle drag end
+      if (currentTools.isDragging) {
+        console.log('🎯 Mouse up during drag - ending drag')
+
         const dataPoint = chartInstance.convertPixelToData(
           params.offsetX,
           params.offsetY,
           config.data
         )
-        if (dataPoint) {
-          const dummyEvent = {
-            timestamp: dataPoint.timestamp,
-            price: dataPoint.price,
-            x: params.offsetX,
-            y: params.offsetY,
-          }
-          currentTools.endDrag(dummyEvent, null)
-        }
-      }
-      return
-    }
 
-    // Handle any mouse up logic for drawing tools
-    if (currentTools.isDrawing) {
-      // Could be used for complex drawing tools that need mouse up events
-    }
-  }, [config.enableDrawingTools, config.data, chartInstance, drawingTools])
+        if (dataPoint && currentTools.dragState?.toolId) {
+          const tool = currentTools.getTool(currentTools.dragState.toolId)
+          if (tool) {
+            const chartEvent = {
+              timestamp: dataPoint.timestamp,
+              price: dataPoint.price,
+              x: params.offsetX,
+              y: params.offsetY,
+            }
+            currentTools.endDrag(chartEvent, tool)
+          }
+        }
+        return
+      }
+
+      // Handle mouse up when in mouseDown state but not dragging (simple click)
+      if (currentTools.isMouseDown && !currentTools.isDragging) {
+        console.log('🎯 Mouse up without drag - resetting mouse down state')
+        // Reset mouse down state for simple clicks that didn't turn into drags
+        if (currentTools.endDrag) {
+          // Use a dummy event to reset the state
+          const dataPoint = chartInstance.convertPixelToData(
+            params.offsetX,
+            params.offsetY,
+            config.data
+          )
+          if (dataPoint) {
+            const dummyEvent = {
+              timestamp: dataPoint.timestamp,
+              price: dataPoint.price,
+              x: params.offsetX,
+              y: params.offsetY,
+            }
+            currentTools.endDrag(dummyEvent, null)
+          }
+        }
+        return
+      }
+
+      // Handle any mouse up logic for drawing tools
+      if (currentTools.isDrawing) {
+        // Could be used for complex drawing tools that need mouse up events
+      }
+    },
+    [config.enableDrawingTools, config.data, chartInstance, drawingTools]
+  )
 
   // Chart right click handler for context menu
   const handleChartRightClick = useCallback(
@@ -847,26 +905,28 @@ export const useChartEvents = (
             const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
             const startPixel = chart.convertToPixel('grid', [startDataIndex, tool.points[0].price])
             const endPixel = chart.convertToPixel('grid', [endDataIndex, tool.points[1].price])
-            
+
             if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
               // Fibonacci levels
               const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
               const startPrice = tool.points[0].price
               const endPrice = tool.points[1].price
               const priceRange = endPrice - startPrice
-              
+
               // Check if click is within any fibonacci level line
               for (const level of fibLevels) {
-                const levelPrice = startPrice + (priceRange * level)
+                const levelPrice = startPrice + priceRange * level
                 const levelPixel = chart.convertToPixel('grid', [startDataIndex, levelPrice])
-                
+
                 if (levelPixel && Array.isArray(levelPixel)) {
                   // Check if click is within tolerance of this fibonacci level
                   if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
                     // Also check if click is within the horizontal range of fibonacci lines
                     const lineStartX = Math.min(startPixel[0], endPixel[0])
-                    const lineEndX = Math.max(startPixel[0], endPixel[0]) + Math.abs(startPixel[0] - endPixel[0]) * 0.2
-                    
+                    const lineEndX =
+                      Math.max(startPixel[0], endPixel[0]) +
+                      Math.abs(startPixel[0] - endPixel[0]) * 0.2
+
                     if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
                       return true
                     }
@@ -905,7 +965,7 @@ export const useChartEvents = (
 
       if (clickedTool) {
         console.log('🎯 Right-clicked on drawing tool:', clickedTool.id)
-        
+
         // Reset drag state and selection highlighting before showing context menu
         if (currentTools.isDragging || currentTools.isMouseDown) {
           console.log('🎯 Resetting drag state on right-click')
@@ -927,13 +987,16 @@ export const useChartEvents = (
             }
           }
         }
-        
+
         // Deselect any currently selected tool to remove highlighting
         if (currentTools.selectedToolId) {
-          console.log('🎯 Deselecting tool before showing context menu:', currentTools.selectedToolId)
+          console.log(
+            '🎯 Deselecting tool before showing context menu:',
+            currentTools.selectedToolId
+          )
           currentTools.selectTool(null)
         }
-        
+
         // Show context menu for the drawing tool
         currentTools.showContextMenu?.(clickedTool.id, params.offsetX, params.offsetY)
       }
@@ -943,9 +1006,12 @@ export const useChartEvents = (
 
   // Helper function to calculate distance from point to line
   const distanceFromPointToLine = (
-    px: number, py: number,
-    x1: number, y1: number,
-    x2: number, y2: number
+    px: number,
+    py: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
   ): number => {
     const A = px - x1
     const B = py - y1
@@ -988,7 +1054,14 @@ export const useChartEvents = (
       drawingTools, // 最新の drawingTools も保存
     }
     console.log('🎯 Handlers ref updated')
-  }, [handleChartClick, handleChartMouseMove, handleChartMouseDown, handleChartMouseUp, handleChartRightClick, drawingTools])
+  }, [
+    handleChartClick,
+    handleChartMouseMove,
+    handleChartMouseDown,
+    handleChartMouseUp,
+    handleChartRightClick,
+    drawingTools,
+  ])
 
   // DOM イベントリスナーの管理
   useEffect(() => {
@@ -1019,7 +1092,7 @@ export const useChartEvents = (
 
     const mouseDownHandler = (event: MouseEvent) => {
       console.log('🎯 DOM mouse down event fired!')
-      
+
       if (!config.enableDrawingTools) return
 
       const params = {
@@ -1035,10 +1108,10 @@ export const useChartEvents = (
     const mouseMoveHandler = (event: MouseEvent) => {
       // DOM イベントハンドラー用の状態 ref から取得 - クロージャー問題を回避
       const currentState = drawingToolsStateRef.current
-      
+
       // ドラッグ関連のイベントのみスロットリングを無視してログ出力
       const isDragRelated = currentState.isMouseDown || currentState.isDragging
-      
+
       if (isDragRelated) {
         console.log('🎯 DOM mouse move (drag-related) event fired!', {
           offsetX: event.offsetX,
@@ -1047,11 +1120,13 @@ export const useChartEvents = (
           isDrawing: currentState.isDrawing,
           isMouseDown: currentState.isMouseDown,
           isDragging: currentState.isDragging,
-          conditionMet: config.enableDrawingTools && (currentState.isDrawing || currentState.isMouseDown || currentState.isDragging),
-          throttleTime: Date.now() - lastMouseMoveTime.current
+          conditionMet:
+            config.enableDrawingTools &&
+            (currentState.isDrawing || currentState.isMouseDown || currentState.isDragging),
+          throttleTime: Date.now() - lastMouseMoveTime.current,
         })
       }
-      
+
       // スロットリング: 60fps 相当（16ms 間隔）で制限
       const now = Date.now()
       if (now - lastMouseMoveTime.current < MOUSE_MOVE_THROTTLE) {
@@ -1064,7 +1139,10 @@ export const useChartEvents = (
       lastMouseMoveTime.current = now
 
       // 描画ツールが有効で、描画中またはマウスダウン中またはドラッグ中の場合処理
-      if (config.enableDrawingTools && (currentState.isDrawing || currentState.isMouseDown || currentState.isDragging)) {
+      if (
+        config.enableDrawingTools &&
+        (currentState.isDrawing || currentState.isMouseDown || currentState.isDragging)
+      ) {
         console.log('🎯 DOM mouse move - calling handleChartMouseMove')
         const params = {
           offsetX: event.offsetX,
@@ -1086,14 +1164,16 @@ export const useChartEvents = (
         }
       } else {
         if (isDragRelated) {
-          console.log('🎯 DOM mouse move - condition not met despite drag state, not calling handleChartMouseMove')
+          console.log(
+            '🎯 DOM mouse move - condition not met despite drag state, not calling handleChartMouseMove'
+          )
         }
       }
     }
 
     const mouseUpHandler = (event: MouseEvent) => {
       console.log('🎯 DOM mouse up event fired!')
-      
+
       if (!config.enableDrawingTools) return
 
       const params = {

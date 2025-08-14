@@ -35,7 +35,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: 'trendline' as DrawingToolType
+          payload: 'trendline' as DrawingToolType,
         })
       })
 
@@ -51,14 +51,14 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: 'trendline' as DrawingToolType
+          payload: 'trendline' as DrawingToolType,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: null
+          payload: null,
         })
       })
 
@@ -75,14 +75,14 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: 'trendline' as DrawingToolType
+          payload: 'trendline' as DrawingToolType,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SET_MODE',
-          payload: 'editing'
+          payload: 'editing',
         })
       })
 
@@ -98,7 +98,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: 'trendline' as DrawingToolType
+          payload: 'trendline' as DrawingToolType,
         })
       })
 
@@ -106,7 +106,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_MODE',
-          payload: 'editing'
+          payload: 'editing',
         })
       })
 
@@ -114,14 +114,14 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'SET_TOOL_TYPE',
-          payload: 'horizontal' as DrawingToolType
+          payload: 'horizontal' as DrawingToolType,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SET_MODE',
-          payload: 'drawing'
+          payload: 'drawing',
         })
       })
 
@@ -139,15 +139,15 @@ describe('useDrawingState', () => {
         type: 'trendline',
         points: [
           { timestamp: 1000, price: 100 },
-          { timestamp: 2000, price: 200 }
-        ]
+          { timestamp: 2000, price: 200 },
+        ],
       }
 
       // Start drawing
       act(() => {
         result.current.dispatch({
           type: 'START_DRAWING',
-          payload: mockTool
+          payload: mockTool,
         })
       })
 
@@ -155,11 +155,14 @@ describe('useDrawingState', () => {
       expect(result.current.state.currentDrawing).toEqual(mockTool)
 
       // Update preview
-      const updatedTool = { ...mockTool, points: [...mockTool.points!, { timestamp: 3000, price: 300 }] }
+      const updatedTool = {
+        ...mockTool,
+        points: [...mockTool.points!, { timestamp: 3000, price: 300 }],
+      }
       act(() => {
         result.current.dispatch({
           type: 'UPDATE_PREVIEW',
-          payload: updatedTool
+          payload: updatedTool,
         })
       })
 
@@ -169,7 +172,7 @@ describe('useDrawingState', () => {
       // Stop drawing
       act(() => {
         result.current.dispatch({
-          type: 'STOP_DRAWING'
+          type: 'STOP_DRAWING',
         })
       })
 
@@ -184,17 +187,17 @@ describe('useDrawingState', () => {
       type,
       points: [
         { timestamp: 1000, price: 100 },
-        { timestamp: 2000, price: 200 }
+        { timestamp: 2000, price: 200 },
       ],
       style: {
         color: '#2563eb',
         width: 2,
         opacity: 1,
-        dashPattern: []
+        dashPattern: [],
       },
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      visible: true
+      visible: true,
     })
 
     it('should add tool to tools array', () => {
@@ -204,7 +207,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool
+          payload: tool,
         })
       })
 
@@ -223,14 +226,14 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool
+          payload: tool,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SELECT_TOOL',
-          payload: 'test-tool-1'
+          payload: 'test-tool-1',
         })
       })
 
@@ -247,7 +250,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool
+          payload: tool,
         })
       })
 
@@ -260,9 +263,9 @@ describe('useDrawingState', () => {
           payload: {
             id: 'test-tool-1',
             updates: {
-              style: { ...tool.style, color: '#ef4444' }
-            }
-          }
+              style: { ...tool.style, color: '#ef4444' },
+            },
+          },
         })
       })
 
@@ -279,28 +282,28 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool1
+          payload: tool1,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool2
+          payload: tool2,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SELECT_TOOL',
-          payload: 'test-tool-1'
+          payload: 'test-tool-1',
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'DELETE_TOOL',
-          payload: 'test-tool-1'
+          payload: 'test-tool-1',
         })
       })
 
@@ -317,27 +320,27 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool1
+          payload: tool1,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'ADD_TOOL',
-          payload: tool2
+          payload: tool2,
         })
       })
 
       act(() => {
         result.current.dispatch({
           type: 'SELECT_TOOL',
-          payload: 'test-tool-1'
+          payload: 'test-tool-1',
         })
       })
 
       act(() => {
         result.current.dispatch({
-          type: 'CLEAR_ALL'
+          type: 'CLEAR_ALL',
         })
       })
 
@@ -349,15 +352,12 @@ describe('useDrawingState', () => {
 
     it('should load tools', () => {
       const { result } = renderHook(() => useDrawingState())
-      const tools = [
-        createMockTool('test-tool-1'),
-        createMockTool('test-tool-2')
-      ]
+      const tools = [createMockTool('test-tool-1'), createMockTool('test-tool-2')]
 
       act(() => {
         result.current.dispatch({
           type: 'LOAD_TOOLS',
-          payload: tools
+          payload: tools,
         })
       })
 
@@ -377,8 +377,8 @@ describe('useDrawingState', () => {
           type: 'SET_STYLE',
           payload: {
             color: '#ef4444',
-            width: 3
-          }
+            width: 3,
+          },
         })
       })
 
@@ -394,7 +394,7 @@ describe('useDrawingState', () => {
 
       act(() => {
         result.current.dispatch({
-          type: 'TOGGLE_SNAP'
+          type: 'TOGGLE_SNAP',
         })
       })
 
@@ -402,7 +402,7 @@ describe('useDrawingState', () => {
 
       act(() => {
         result.current.dispatch({
-          type: 'TOGGLE_SNAP'
+          type: 'TOGGLE_SNAP',
         })
       })
 
@@ -421,8 +421,8 @@ describe('useDrawingState', () => {
             toolId: 'test-tool-1',
             handleType: 'start',
             startPos: { x: 100, y: 200 },
-            originalPoints: [{ timestamp: 1000, price: 100 }]
-          }
+            originalPoints: [{ timestamp: 1000, price: 100 }],
+          },
         })
       })
 
@@ -431,7 +431,7 @@ describe('useDrawingState', () => {
         toolId: 'test-tool-1',
         handleType: 'start',
         startPos: { x: 100, y: 200 },
-        originalPoints: [{ timestamp: 1000, price: 100 }]
+        originalPoints: [{ timestamp: 1000, price: 100 }],
       })
     })
 
@@ -445,8 +445,8 @@ describe('useDrawingState', () => {
           payload: {
             toolId: 'test-tool-1',
             handleType: 'end',
-            startPos: { x: 150, y: 250 }
-          }
+            startPos: { x: 150, y: 250 },
+          },
         })
       })
 
@@ -459,7 +459,7 @@ describe('useDrawingState', () => {
       act(() => {
         result.current.dispatch({
           type: 'UPDATE_DRAG',
-          payload: { x: 160, y: 260 }
+          payload: { x: 160, y: 260 },
         })
       })
 
@@ -468,7 +468,7 @@ describe('useDrawingState', () => {
       // End drag
       act(() => {
         result.current.dispatch({
-          type: 'END_DRAG'
+          type: 'END_DRAG',
         })
       })
 
@@ -488,9 +488,9 @@ describe('useDrawingState', () => {
         style: { color: '#000', width: 1, opacity: 1, dashPattern: [] },
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        visible: true
+        visible: true,
       }
-      
+
       const hiddenTool = {
         id: 'hidden-tool',
         type: 'horizontal' as DrawingToolType,
@@ -498,13 +498,13 @@ describe('useDrawingState', () => {
         style: { color: '#000', width: 1, opacity: 1, dashPattern: [] },
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        visible: false
+        visible: false,
       }
 
       act(() => {
         result.current.dispatch({
           type: 'LOAD_TOOLS',
-          payload: [visibleTool, hiddenTool]
+          payload: [visibleTool, hiddenTool],
         })
       })
 

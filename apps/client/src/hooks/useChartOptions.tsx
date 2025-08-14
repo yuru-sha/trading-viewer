@@ -87,143 +87,144 @@ export const useChartOptions = (
           return ''
         },
       },
-      axisPointer: config.enableDrawingTools && config.activeDrawingTool
-        ? {
-          show: false,
-        }
-        : {
-          link: [{ xAxisIndex: 'all' }],
-          label: {
-            backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
-            color: '#ffffff',
-            formatter: (params: any) => {
-              if (params.axisDimension === 'y') {
-                return `$${params.value.toFixed(2)}`
-              }
-              return params.value
+      axisPointer:
+        config.enableDrawingTools && config.activeDrawingTool
+          ? {
+              show: false,
+            }
+          : {
+              link: [{ xAxisIndex: 'all' }],
+              label: {
+                backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
+                color: '#ffffff',
+                formatter: (params: any) => {
+                  if (params.axisDimension === 'y') {
+                    return `$${params.value.toFixed(2)}`
+                  }
+                  return params.value
+                },
+              },
             },
-          },
-        },
       grid: config.showVolume
         ? [
-          {
-            left: '2%',
-            right: '6%',
-            top: '2%',
-            height: '70%',
-            show: true,
-            borderWidth: 0,
-            backgroundColor: 'transparent',
-          },
-          {
-            left: '2%',
-            right: '6%',
-            top: '75%',
-            height: '18%',
-            show: true,
-            borderWidth: 0,
-            backgroundColor: 'transparent',
-          },
-        ]
+            {
+              left: '2%',
+              right: '6%',
+              top: '2%',
+              height: '70%',
+              show: true,
+              borderWidth: 0,
+              backgroundColor: 'transparent',
+            },
+            {
+              left: '2%',
+              right: '6%',
+              top: '75%',
+              height: '18%',
+              show: true,
+              borderWidth: 0,
+              backgroundColor: 'transparent',
+            },
+          ]
         : [
-          {
-            left: '2%',
-            right: '6%',
-            top: '2%',
-            height: '93%',
-            show: true,
-            borderWidth: 0,
-            backgroundColor: 'transparent',
-          },
-        ],
+            {
+              left: '2%',
+              right: '6%',
+              top: '2%',
+              height: '93%',
+              show: true,
+              borderWidth: 0,
+              backgroundColor: 'transparent',
+            },
+          ],
       xAxis: config.showVolume
         ? [
-          {
-            type: 'category',
-            data: chartData.dates,
-            boundaryGap: ['0%', '20%'],
-            axisTick: { alignWithLabel: true },
-            axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-            splitLine: { 
-              show: config.showGridlines !== false,
-              lineStyle: { 
-                color: isDarkMode ? '#374151' : '#e5e7eb',
-                width: 1,
-                type: 'solid' as const,
-                opacity: 0.6
-              }
-            },
-            axisLabel: {
-              show: false,
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
-            },
-            min: 'dataMin',
-            max: 'dataMax',
-            splitNumber: 8, // X 軸のグリッド線数を調整
-          },
-          {
-            type: 'category',
-            gridIndex: 1,
-            data: chartData.dates,
-            boundaryGap: false,
-            axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-            axisTick: { alignWithLabel: true },
-            splitLine: { 
-              show: config.showGridlines !== false,
-              lineStyle: { 
-                color: isDarkMode ? '#374151' : '#e5e7eb',
-                width: 1,
-                type: 'solid' as const,
-                opacity: 0.4
-              }
-            },
-            axisLabel: {
-              show: true,
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
-              formatter: (value: string) => {
-                if (value.includes(' ')) {
-                  const parts = value.split(' ')
-                  return parts[0]
-                }
-                return value
+            {
+              type: 'category',
+              data: chartData.dates,
+              boundaryGap: ['0%', '20%'],
+              axisTick: { alignWithLabel: true },
+              axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+              splitLine: {
+                show: config.showGridlines !== false,
+                lineStyle: {
+                  color: isDarkMode ? '#374151' : '#e5e7eb',
+                  width: 1,
+                  type: 'solid' as const,
+                  opacity: 0.6,
+                },
               },
+              axisLabel: {
+                show: false,
+                color: isDarkMode ? '#9ca3af' : '#6b7280',
+              },
+              min: 'dataMin',
+              max: 'dataMax',
+              splitNumber: 8, // X 軸のグリッド線数を調整
             },
-            min: 'dataMin',
-            max: 'dataMax',
-            splitNumber: 8,
-          },
-        ]
+            {
+              type: 'category',
+              gridIndex: 1,
+              data: chartData.dates,
+              boundaryGap: false,
+              axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+              axisTick: { alignWithLabel: true },
+              splitLine: {
+                show: config.showGridlines !== false,
+                lineStyle: {
+                  color: isDarkMode ? '#374151' : '#e5e7eb',
+                  width: 1,
+                  type: 'solid' as const,
+                  opacity: 0.4,
+                },
+              },
+              axisLabel: {
+                show: true,
+                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                formatter: (value: string) => {
+                  if (value.includes(' ')) {
+                    const parts = value.split(' ')
+                    return parts[0]
+                  }
+                  return value
+                },
+              },
+              min: 'dataMin',
+              max: 'dataMax',
+              splitNumber: 8,
+            },
+          ]
         : [
-          {
-            type: 'category',
-            data: chartData.dates,
-            boundaryGap: ['0%', '20%'],
-            axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-            axisTick: { alignWithLabel: true },
-            splitLine: { 
-              show: config.showGridlines !== false,
-              lineStyle: { 
-                color: isDarkMode ? '#374151' : '#e5e7eb',
-                width: 1,
-                type: 'solid' as const,
-                opacity: 0.6
-              }
-            },
-            axisLabel: {
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
-              formatter: (value: string) => {
-                if (value.includes(' ')) {
-                  const parts = value.split(' ')
-                  return parts[0]
-                }
-                return value
+            {
+              type: 'category',
+              data: chartData.dates,
+              boundaryGap: ['0%', '20%'],
+              axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+              axisTick: { alignWithLabel: true },
+              splitLine: {
+                show: config.showGridlines !== false,
+                lineStyle: {
+                  color: isDarkMode ? '#374151' : '#e5e7eb',
+                  width: 1,
+                  type: 'solid' as const,
+                  opacity: 0.6,
+                },
               },
+              axisLabel: {
+                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                formatter: (value: string) => {
+                  if (value.includes(' ')) {
+                    const parts = value.split(' ')
+                    return parts[0]
+                  }
+                  return value
+                },
+              },
+              min: 'dataMin',
+              max: 'dataMax',
+              splitNumber: 8, // X 軸のグリッド線数を調整
             },
-            min: 'dataMin',
-            max: 'dataMax',
-            splitNumber: 8, // X 軸のグリッド線数を調整
-          },
-        ],
+          ],
       yAxis: generateYAxisConfig(config, isDarkMode, priceStats, config.currentPrice),
       dataZoom: [
         {
@@ -250,11 +251,25 @@ export const useChartOptions = (
       )
       baseOption.series.push(candlestickSeries)
     } else if (config.chartType === 'line') {
-      const lineSeries = createLineSeries(chartData, config.symbol, priceStats, config.currentPrice, config.showPeriodHigh, config.showPeriodLow)
+      const lineSeries = createLineSeries(
+        chartData,
+        config.symbol,
+        priceStats,
+        config.currentPrice,
+        config.showPeriodHigh,
+        config.showPeriodLow
+      )
       baseOption.series.push(lineSeries)
     } else {
       // area
-      const areaSeries = createAreaSeries(chartData, config.symbol, priceStats, config.currentPrice, config.showPeriodHigh, config.showPeriodLow)
+      const areaSeries = createAreaSeries(
+        chartData,
+        config.symbol,
+        priceStats,
+        config.currentPrice,
+        config.showPeriodHigh,
+        config.showPeriodLow
+      )
       baseOption.series.push(areaSeries)
     }
 
@@ -297,7 +312,6 @@ export const useChartOptions = (
   return { option }
 }
 
-
 // Y 軸設定生成
 /**
  * キリの良い間隔を計算する関数
@@ -305,13 +319,13 @@ export const useChartOptions = (
  */
 function calculateNiceInterval(range: number, targetSplits: number): number {
   const rawInterval = range / targetSplits
-  
+
   // 基本単位を決定（0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100 など）
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)))
   const normalizedInterval = rawInterval / magnitude
-  
+
   let niceInterval: number
-  
+
   if (normalizedInterval <= 1) {
     niceInterval = 1
   } else if (normalizedInterval <= 2.5) {
@@ -321,7 +335,7 @@ function calculateNiceInterval(range: number, targetSplits: number): number {
   } else {
     niceInterval = 10
   }
-  
+
   return niceInterval * magnitude
 }
 
@@ -329,10 +343,14 @@ function calculateNiceInterval(range: number, targetSplits: number): number {
  * キリの良い境界値を計算する関数
  * 価格を xxx.00, xxx.50 のような値に丸める
  */
-function calculateNiceBounds(min: number, max: number, interval: number): { niceMin: number; niceMax: number } {
+function calculateNiceBounds(
+  min: number,
+  max: number,
+  interval: number
+): { niceMin: number; niceMax: number } {
   const niceMin = Math.floor(min / interval) * interval
   const niceMax = Math.ceil(max / interval) * interval
-  
+
   return { niceMin, niceMax }
 }
 
@@ -349,28 +367,28 @@ function generateYAxisConfig(
     axisTick: { show: false },
     splitLine: {
       show: true,
-      lineStyle: { 
+      lineStyle: {
         color: isDarkMode ? '#374151' : '#e5e7eb',
         width: 1,
         type: 'solid' as const,
-        opacity: 0.6 // グリッド線の透明度を調整
+        opacity: 0.6, // グリッド線の透明度を調整
       },
     },
 
     axisPointer: config.enableDrawingTools
       ? {
-        show: false,
-      }
+          show: false,
+        }
       : {
-        label: {
-          formatter: (params: any) => {
-            return `$${params.value.toFixed(2)}`
+          label: {
+            formatter: (params: any) => {
+              return `$${params.value.toFixed(2)}`
+            },
+            backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+            borderColor: isDarkMode ? '#374151' : '#d1d5db',
+            color: isDarkMode ? '#f9fafb' : '#111827',
           },
-          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-          borderColor: isDarkMode ? '#374151' : '#d1d5db',
-          color: isDarkMode ? '#f9fafb' : '#111827',
         },
-      },
     min: (value: any) => {
       if (!priceStats) return value.min
       // 安値を確実に含むように調整
@@ -392,7 +410,9 @@ function generateYAxisConfig(
       splitNumber: 10, // 目盛り数を指定
       interval: calculateNiceInterval(priceStats.high - priceStats.low, 10), // キリの良い間隔
       min: (() => {
-        const allLows = [priceStats.low, priceStats.periodLow].filter((val): val is number => typeof val === 'number')
+        const allLows = [priceStats.low, priceStats.periodLow].filter(
+          (val): val is number => typeof val === 'number'
+        )
         const minLow = allLows.length > 0 ? Math.min(...allLows) : priceStats.low
         const range = priceStats.high - priceStats.low
         const paddedMin = minLow - range * 0.05
@@ -401,7 +421,9 @@ function generateYAxisConfig(
         return niceMin
       })(),
       max: (() => {
-        const allHighs = [priceStats.high, priceStats.periodHigh].filter((val): val is number => typeof val === 'number')
+        const allHighs = [priceStats.high, priceStats.periodHigh].filter(
+          (val): val is number => typeof val === 'number'
+        )
         const maxHigh = allHighs.length > 0 ? Math.max(...allHighs) : priceStats.high
         const range = priceStats.high - priceStats.low
         const paddedMax = maxHigh + range * 0.05
@@ -411,11 +433,11 @@ function generateYAxisConfig(
       })(),
       splitLine: {
         show: true,
-        lineStyle: { 
+        lineStyle: {
           color: isDarkMode ? '#374151' : '#e5e7eb',
           width: 1,
           type: 'solid' as const,
-          opacity: 0.6 // グリッド線を少し薄くして視認性向上
+          opacity: 0.6, // グリッド線を少し薄くして視認性向上
         },
       },
       axisLabel: {
@@ -456,14 +478,14 @@ function generateYAxisConfig(
         splitNumber: 6, // ボリュームチャートのグリッド線も調整
         axisLabel: { show: false },
         axisLine: { show: false },
-        splitLine: { 
+        splitLine: {
           show: true,
-          lineStyle: { 
+          lineStyle: {
             color: isDarkMode ? '#374151' : '#e5e7eb',
             width: 1,
             type: 'solid' as const,
-            opacity: 0.4 // ボリュームのグリッド線はさらに薄く
-          }
+            opacity: 0.4, // ボリュームのグリッド線はさらに薄く
+          },
         },
         min: 'dataMin' as const,
         max: 'dataMax' as const,
@@ -511,40 +533,48 @@ function createCandlestickSeries(
         type: 'dashed',
       },
       data: [
-        ...(showPeriodHigh && priceStats.periodHigh ? [{
-          name: 'Period High',
-          yAxis: priceStats.periodHigh,
-          lineStyle: {
-            color: '#dc2626', // 期間高値は濃い赤
-          },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: `${priceStats.periodHigh.toFixed(2)}`,
-            color: '#ffffff',
-            fontSize: 11,
-            padding: [2, 4],
-            borderRadius: 2,
-            backgroundColor: '#dc2626',
-          },
-        }] : []),
-        ...(showPeriodLow && priceStats.periodLow ? [{
-          name: 'Period Low',
-          yAxis: priceStats.periodLow,
-          lineStyle: {
-            color: '#1d4ed8', // 期間安値は濃い青
-          },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: `${priceStats.periodLow.toFixed(2)}`,
-            color: '#ffffff',
-            fontSize: 11,
-            padding: [2, 4],
-            borderRadius: 2,
-            backgroundColor: '#1d4ed8',
-          },
-        }] : []),
+        ...(showPeriodHigh && priceStats.periodHigh
+          ? [
+              {
+                name: 'Period High',
+                yAxis: priceStats.periodHigh,
+                lineStyle: {
+                  color: '#dc2626', // 期間高値は濃い赤
+                },
+                label: {
+                  show: true,
+                  position: 'end',
+                  formatter: `${priceStats.periodHigh.toFixed(2)}`,
+                  color: '#ffffff',
+                  fontSize: 11,
+                  padding: [2, 4],
+                  borderRadius: 2,
+                  backgroundColor: '#dc2626',
+                },
+              },
+            ]
+          : []),
+        ...(showPeriodLow && priceStats.periodLow
+          ? [
+              {
+                name: 'Period Low',
+                yAxis: priceStats.periodLow,
+                lineStyle: {
+                  color: '#1d4ed8', // 期間安値は濃い青
+                },
+                label: {
+                  show: true,
+                  position: 'end',
+                  formatter: `${priceStats.periodLow.toFixed(2)}`,
+                  color: '#ffffff',
+                  fontSize: 11,
+                  padding: [2, 4],
+                  borderRadius: 2,
+                  backgroundColor: '#1d4ed8',
+                },
+              },
+            ]
+          : []),
         {
           name: 'Current',
           yAxis: currentPrice || priceStats.close,
@@ -634,7 +664,12 @@ function createAreaSeries(
 }
 
 // Mark line creation helper
-function createMarkLine(priceStats: PriceStats, currentPrice?: number, showPeriodHigh?: boolean, showPeriodLow?: boolean) {
+function createMarkLine(
+  priceStats: PriceStats,
+  currentPrice?: number,
+  showPeriodHigh?: boolean,
+  showPeriodLow?: boolean
+) {
   return {
     silent: true,
     symbol: 'none',
@@ -647,40 +682,48 @@ function createMarkLine(priceStats: PriceStats, currentPrice?: number, showPerio
       type: 'dashed',
     },
     data: [
-      ...(showPeriodHigh && priceStats.periodHigh ? [{
-        name: 'Period High',
-        yAxis: priceStats.periodHigh,
-        lineStyle: {
-          color: '#dc2626', // 期間高値は濃い赤
-        },
-        label: {
-          show: true,
-          position: 'end',
-          formatter: `${priceStats.periodHigh.toFixed(2)}`,
-          color: '#ffffff',
-          fontSize: 11,
-          padding: [2, 4],
-          borderRadius: 2,
-          backgroundColor: '#dc2626',
-        },
-      }] : []),
-      ...(showPeriodLow && priceStats.periodLow ? [{
-        name: 'Period Low',
-        yAxis: priceStats.periodLow,
-        lineStyle: {
-          color: '#1d4ed8', // 期間安値は濃い青
-        },
-        label: {
-          show: true,
-          position: 'end',
-          formatter: `${priceStats.periodLow.toFixed(2)}`,
-          color: '#ffffff',
-          fontSize: 11,
-          padding: [2, 4],
-          borderRadius: 2,
-          backgroundColor: '#1d4ed8',
-        },
-      }] : []),
+      ...(showPeriodHigh && priceStats.periodHigh
+        ? [
+            {
+              name: 'Period High',
+              yAxis: priceStats.periodHigh,
+              lineStyle: {
+                color: '#dc2626', // 期間高値は濃い赤
+              },
+              label: {
+                show: true,
+                position: 'end',
+                formatter: `${priceStats.periodHigh.toFixed(2)}`,
+                color: '#ffffff',
+                fontSize: 11,
+                padding: [2, 4],
+                borderRadius: 2,
+                backgroundColor: '#dc2626',
+              },
+            },
+          ]
+        : []),
+      ...(showPeriodLow && priceStats.periodLow
+        ? [
+            {
+              name: 'Period Low',
+              yAxis: priceStats.periodLow,
+              lineStyle: {
+                color: '#1d4ed8', // 期間安値は濃い青
+              },
+              label: {
+                show: true,
+                position: 'end',
+                formatter: `${priceStats.periodLow.toFixed(2)}`,
+                color: '#ffffff',
+                fontSize: 11,
+                padding: [2, 4],
+                borderRadius: 2,
+                backgroundColor: '#1d4ed8',
+              },
+            },
+          ]
+        : []),
       {
         name: 'Current',
         yAxis: currentPrice || priceStats.close,

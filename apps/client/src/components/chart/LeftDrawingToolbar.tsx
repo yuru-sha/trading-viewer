@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useImperativeHandle, forwardRef } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
@@ -12,19 +12,31 @@ interface LeftDrawingToolbarProps {
   onToggleObjectVisibility?: (id: string) => void
   onRemoveObject?: (id: string) => void
   onChangeObjectColor?: (id: string, color: string) => void
+  onCloseObjectsPanel?: () => void
   className?: string
 }
 
-export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
+export interface LeftDrawingToolbarRef {
+  closeObjectsPanel: () => void
+}
+
+export const LeftDrawingToolbar = forwardRef<LeftDrawingToolbarRef, LeftDrawingToolbarProps>(({
   activeTool,
   onToolSelect,
   objects = [],
   onToggleObjectVisibility,
   onRemoveObject,
   onChangeObjectColor,
+  onCloseObjectsPanel,
   className = '',
-}) => {
+}, ref) => {
   const [showObjectsList, setShowObjectsList] = useState(false)
+  
+  // Expose methods to parent component via ref
+  useImperativeHandle(ref, () => ({
+    closeObjectsPanel: () => setShowObjectsList(false)
+  }))
+
   const handleToolClick = (tool: DrawingTool) => {
     console.log('Tool clicked:', tool.type, 'current active:', activeTool)
     if (activeTool === tool.type) {
@@ -72,7 +84,6 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
         </button>
       ))}
 
-
       {/* Spacer to push Objects button to bottom */}
       <div className='flex-1'></div>
 
@@ -115,6 +126,8 @@ export const LeftDrawingToolbar: React.FC<LeftDrawingToolbarProps> = ({
       </div>
     </div>
   )
-}
+})
+
+LeftDrawingToolbar.displayName = 'LeftDrawingToolbar'
 
 export default LeftDrawingToolbar

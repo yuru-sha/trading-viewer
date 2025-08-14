@@ -227,7 +227,10 @@ export const watchlistApi = {
   },
 
   // Add symbol to watchlist
-  add: async (symbol: string, name: string): Promise<{
+  add: async (
+    symbol: string,
+    name: string
+  ): Promise<{
     success: boolean
     data: any
   }> => {
@@ -245,7 +248,9 @@ export const watchlistApi = {
   },
 
   // Update watchlist positions
-  updatePositions: async (items: Array<{ symbol: string; position: number }>): Promise<{
+  updatePositions: async (
+    items: Array<{ symbol: string; position: number }>
+  ): Promise<{
     success: boolean
     message: string
   }> => {
@@ -259,14 +264,17 @@ export const watchlistApi = {
 // Drawing Tools API endpoints
 export const drawingApi = {
   // Get all drawing tools for a symbol
-  getDrawingTools: async (symbol: string, userId?: string): Promise<{
+  getDrawingTools: async (
+    symbol: string,
+    userId?: string
+  ): Promise<{
     data: any[]
     status: 'success' | 'error'
     message?: string
   }> => {
     const queryParams = new URLSearchParams({ symbol })
     if (userId) queryParams.append('userId', userId)
-    
+
     return apiRequest(`/drawings/${encodeURIComponent(symbol)}?${queryParams}`)
   },
 
@@ -301,7 +309,9 @@ export const drawingApi = {
   },
 
   // Delete a drawing tool
-  deleteDrawingTool: async (id: string): Promise<{
+  deleteDrawingTool: async (
+    id: string
+  ): Promise<{
     status: 'success' | 'error'
     message?: string
   }> => {

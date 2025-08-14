@@ -93,25 +93,28 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   const { state } = useApp()
   const { setTheme } = useAppActions()
   const { user, isAuthenticated } = useAuth()
-  const [watchlistSymbols, setWatchlistSymbols] = useState<Array<{ symbol: string; name: string }>>([])  
+  const [watchlistSymbols, setWatchlistSymbols] = useState<Array<{ symbol: string; name: string }>>(
+    []
+  )
 
   // Fetch watchlist symbols on mount
   useEffect(() => {
     const fetchWatchlist = async () => {
-    try {
-      const response = await api.watchlist.get()
-      // Transform watchlist data to expected format
-      const symbols = response.data?.watchlist?.map(item => ({
-        symbol: item.symbol,
-        name: item.name,
-      })) || []
-      setWatchlistSymbols(symbols)
-    } catch (error) {
-      console.log('Failed to fetch watchlist, showing empty list')
-      // Don't fallback to popular symbols - show empty watchlist instead
-      setWatchlistSymbols([])
+      try {
+        const response = await api.watchlist.get()
+        // Transform watchlist data to expected format
+        const symbols =
+          response.data?.watchlist?.map(item => ({
+            symbol: item.symbol,
+            name: item.name,
+          })) || []
+        setWatchlistSymbols(symbols)
+      } catch (error) {
+        console.log('Failed to fetch watchlist, showing empty list')
+        // Don't fallback to popular symbols - show empty watchlist instead
+        setWatchlistSymbols([])
+      }
     }
-  }
     fetchWatchlist()
   }, [])
 
@@ -168,7 +171,9 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 className='flex items-center space-x-1 px-2 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
                 title='Select chart timeframe'
               >
-                <span>{CHART_TIMEFRAMES.find(tf => tf.value === selectedTimeframe)?.label || '1D'}</span>
+                <span>
+                  {CHART_TIMEFRAMES.find(tf => tf.value === selectedTimeframe)?.label || '1D'}
+                </span>
                 <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path
                     strokeLinecap='round'
@@ -384,27 +389,29 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 
             {/* Settings Component */}
             <ChartSettings
-              settings={chartSettings || {
-                chartType: chartType === 'candle' ? 'candlestick' : chartType,
-                timeframe: selectedTimeframe as any,
-                showVolume: true,
-                showGridlines: true,
-                showPeriodHigh: true,
-                showPeriodLow: true,
-                periodWeeks: 52,
-                indicators: {
-                  sma: { enabled: false, periods: [20, 50] },
-                  ema: { enabled: false, periods: [12, 26] },
-                  rsi: { enabled: false, period: 14 },
-                },
-                colors: {
-                  bullish: '#10b981',
-                  bearish: '#ef4444',
-                  volume: '#8b5cf6',
-                  grid: '#e5e7eb',
-                  background: '#ffffff',
-                },
-              }}
+              settings={
+                chartSettings || {
+                  chartType: chartType === 'candle' ? 'candlestick' : chartType,
+                  timeframe: selectedTimeframe as any,
+                  showVolume: true,
+                  showGridlines: true,
+                  showPeriodHigh: true,
+                  showPeriodLow: true,
+                  periodWeeks: 52,
+                  indicators: {
+                    sma: { enabled: false, periods: [20, 50] },
+                    ema: { enabled: false, periods: [12, 26] },
+                    rsi: { enabled: false, period: 14 },
+                  },
+                  colors: {
+                    bullish: '#10b981',
+                    bearish: '#ef4444',
+                    volume: '#8b5cf6',
+                    grid: '#e5e7eb',
+                    background: '#ffffff',
+                  },
+                }
+              }
               onSettingsChange={onSettingsChange || (() => {})}
               className=''
             />
@@ -415,11 +422,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
-              {isFullscreen ? (
-                <Minimize className='w-4 h-4' />
-              ) : (
-                <Maximize className='w-4 h-4' />
-              )}
+              {isFullscreen ? <Minimize className='w-4 h-4' /> : <Maximize className='w-4 h-4' />}
             </button>
 
             {/* Screenshot */}
@@ -445,7 +448,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 
             {/* Auth Section */}
             <div className='mx-2 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
-            
+
             {isAuthenticated && user ? (
               <UserDropdown />
             ) : (
@@ -511,14 +514,21 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                       }`}
                     >
                       <div className='font-medium text-gray-900 dark:text-white'>{symbol}</div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>{name}</div>
+                      <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>
+                        {name}
+                      </div>
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className='text-center py-4'>
-                  <p className='text-sm text-gray-500 dark:text-gray-400'>No symbols in watchlist</p>
-                  <a href='/watchlist' className='text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block'>
+                  <p className='text-sm text-gray-500 dark:text-gray-400'>
+                    No symbols in watchlist
+                  </p>
+                  <a
+                    href='/watchlist'
+                    className='text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block'
+                  >
                     Add symbols
                   </a>
                 </div>

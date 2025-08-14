@@ -24,12 +24,12 @@ const localStorageMock = (() => {
     key: (index: number) => {
       const keys = Object.keys(store)
       return keys[index] || null
-    }
+    },
   }
 })()
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 })
 
 describe('useDrawingPersistence', () => {
@@ -38,17 +38,17 @@ describe('useDrawingPersistence', () => {
     type: 'trendline',
     points: [
       { timestamp: 1000, price: 100 },
-      { timestamp: 2000, price: 200 }
+      { timestamp: 2000, price: 200 },
     ],
     style: {
       color: '#2563eb',
       width: 2,
       opacity: 1,
-      dashPattern: []
+      dashPattern: [],
     },
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    visible: true
+    visible: true,
   })
 
   let mockLoadTools: ReturnType<typeof vi.fn>
@@ -70,10 +70,10 @@ describe('useDrawingPersistence', () => {
   describe('Storage key generation', () => {
     it('should generate correct storage key with symbol and timeframe', () => {
       const tools: DrawingTool[] = []
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -83,9 +83,7 @@ describe('useDrawingPersistence', () => {
 
     it('should use default values when symbol/timeframe not provided', () => {
       const tools: DrawingTool[] = []
-      const { result } = renderHook(() => 
-        useDrawingPersistence(tools, mockLoadTools)
-      )
+      const { result } = renderHook(() => useDrawingPersistence(tools, mockLoadTools))
 
       const key = result.current.getStorageKey()
       expect(key).toBe('trading-viewer-drawings-default-1D')
@@ -93,10 +91,10 @@ describe('useDrawingPersistence', () => {
 
     it('should allow override of symbol and timeframe in getStorageKey', () => {
       const tools: DrawingTool[] = []
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -108,10 +106,10 @@ describe('useDrawingPersistence', () => {
   describe('Save functionality', () => {
     it('should save tools to localStorage', () => {
       const tools = [createMockTool('tool-1'), createMockTool('tool-2')]
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -122,7 +120,7 @@ describe('useDrawingPersistence', () => {
 
       const stored = localStorage.getItem('trading-viewer-drawings-AAPL-1H')
       expect(stored).toBeTruthy()
-      
+
       const data = JSON.parse(stored!)
       expect(data.version).toBe('1.0')
       expect(data.symbol).toBe('AAPL')
@@ -134,10 +132,10 @@ describe('useDrawingPersistence', () => {
 
     it('should save to custom symbol and timeframe', () => {
       const tools = [createMockTool('tool-1')]
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -148,7 +146,7 @@ describe('useDrawingPersistence', () => {
 
       const stored = localStorage.getItem('trading-viewer-drawings-MSFT-4H')
       expect(stored).toBeTruthy()
-      
+
       const data = JSON.parse(stored!)
       expect(data.symbol).toBe('MSFT')
       expect(data.timeframe).toBe('4H')
@@ -156,10 +154,10 @@ describe('useDrawingPersistence', () => {
 
     it('should handle localStorage errors gracefully', () => {
       const tools = [createMockTool('tool-1')]
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -183,21 +181,21 @@ describe('useDrawingPersistence', () => {
   describe('Load functionality', () => {
     it('should load tools from localStorage', () => {
       const tools = [createMockTool('tool-1'), createMockTool('tool-2')]
-      
+
       // Pre-populate localStorage
       const data = {
         version: '1.0',
         timestamp: Date.now(),
         symbol: 'AAPL',
         timeframe: '1H',
-        tools
+        tools,
       }
       localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify(data))
 
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -210,10 +208,10 @@ describe('useDrawingPersistence', () => {
     })
 
     it('should return empty array when no data exists', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -226,10 +224,10 @@ describe('useDrawingPersistence', () => {
     it('should handle corrupted localStorage data', () => {
       localStorage.setItem('trading-viewer-drawings-AAPL-1H', 'invalid-json')
 
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -253,10 +251,10 @@ describe('useDrawingPersistence', () => {
       }
       localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify(invalidData))
 
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -280,13 +278,13 @@ describe('useDrawingPersistence', () => {
 
     it('should auto-save tools after interval', () => {
       const tools = [createMockTool('tool-1')]
-      
-      renderHook(() => 
+
+      renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
           timeframe: '1H',
           autoSave: true,
-          autoSaveInterval: 1000
+          autoSaveInterval: 1000,
         })
       )
 
@@ -301,12 +299,12 @@ describe('useDrawingPersistence', () => {
 
     it('should not auto-save when autoSave is disabled', () => {
       const tools = [createMockTool('tool-1')]
-      
-      renderHook(() => 
+
+      renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
           timeframe: '1H',
-          autoSave: false
+          autoSave: false,
         })
       )
 
@@ -319,12 +317,12 @@ describe('useDrawingPersistence', () => {
 
     it('should not auto-save when tools array is empty', () => {
       const tools: DrawingTool[] = []
-      
-      renderHook(() => 
+
+      renderHook(() =>
         useDrawingPersistence(tools, mockLoadTools, {
           symbol: 'AAPL',
           timeframe: '1H',
-          autoSave: true
+          autoSave: true,
         })
       )
 
@@ -339,21 +337,21 @@ describe('useDrawingPersistence', () => {
   describe('Auto-restore functionality', () => {
     it('should auto-restore tools on mount when data exists', () => {
       const tools = [createMockTool('tool-1')]
-      
+
       // Pre-populate localStorage
       const data = {
         version: '1.0',
         timestamp: Date.now(),
         symbol: 'AAPL',
         timeframe: '1H',
-        tools
+        tools,
       }
       localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify(data))
 
-      renderHook(() => 
+      renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -361,9 +359,9 @@ describe('useDrawingPersistence', () => {
     })
 
     it('should not auto-restore when no symbol provided', () => {
-      renderHook(() => 
+      renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -377,18 +375,32 @@ describe('useDrawingPersistence', () => {
       const toolsMSFT = [createMockTool('msft-tool')]
 
       // Pre-populate localStorage for both symbols
-      localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'AAPL', timeframe: '1H', tools: toolsAAPL
-      }))
-      
-      localStorage.setItem('trading-viewer-drawings-MSFT-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'MSFT', timeframe: '1H', tools: toolsMSFT
-      }))
+      localStorage.setItem(
+        'trading-viewer-drawings-AAPL-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'AAPL',
+          timeframe: '1H',
+          tools: toolsAAPL,
+        })
+      )
 
-      const { result } = renderHook(() => 
+      localStorage.setItem(
+        'trading-viewer-drawings-MSFT-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'MSFT',
+          timeframe: '1H',
+          tools: toolsMSFT,
+        })
+      )
+
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -400,10 +412,10 @@ describe('useDrawingPersistence', () => {
     })
 
     it('should clear tools when switching to symbol with no saved data', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -418,25 +430,46 @@ describe('useDrawingPersistence', () => {
   describe('Management operations', () => {
     it('should get saved combinations', () => {
       // Pre-populate localStorage with multiple combinations
-      localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'AAPL', timeframe: '1H', tools: []
-      }))
-      
-      localStorage.setItem('trading-viewer-drawings-MSFT-4H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'MSFT', timeframe: '4H', tools: []
-      }))
-      
-      localStorage.setItem('trading-viewer-drawings-AAPL-1D', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'AAPL', timeframe: '1D', tools: []
-      }))
+      localStorage.setItem(
+        'trading-viewer-drawings-AAPL-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'AAPL',
+          timeframe: '1H',
+          tools: [],
+        })
+      )
+
+      localStorage.setItem(
+        'trading-viewer-drawings-MSFT-4H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'MSFT',
+          timeframe: '4H',
+          tools: [],
+        })
+      )
+
+      localStorage.setItem(
+        'trading-viewer-drawings-AAPL-1D',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'AAPL',
+          timeframe: '1D',
+          tools: [],
+        })
+      )
 
       // Add non-drawing-tools item to verify filtering
       localStorage.setItem('other-data', 'should-be-ignored')
 
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -446,20 +479,27 @@ describe('useDrawingPersistence', () => {
         expect(combinations).toEqual([
           { symbol: 'AAPL', timeframe: '1D' },
           { symbol: 'AAPL', timeframe: '1H' },
-          { symbol: 'MSFT', timeframe: '4H' }
+          { symbol: 'MSFT', timeframe: '4H' },
         ])
       })
     })
 
     it('should delete saved data', () => {
-      localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'AAPL', timeframe: '1H', tools: []
-      }))
+      localStorage.setItem(
+        'trading-viewer-drawings-AAPL-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'AAPL',
+          timeframe: '1H',
+          tools: [],
+        })
+      )
 
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useDrawingPersistence([], mockLoadTools, {
           symbol: 'AAPL',
-          timeframe: '1H'
+          timeframe: '1H',
         })
       )
 
@@ -477,17 +517,29 @@ describe('useDrawingPersistence', () => {
       const toolsAAPL = [createMockTool('aapl-1'), createMockTool('aapl-2')]
       const toolsMSFT = [createMockTool('msft-1')]
 
-      localStorage.setItem('trading-viewer-drawings-AAPL-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'AAPL', timeframe: '1H', tools: toolsAAPL
-      }))
-      
-      localStorage.setItem('trading-viewer-drawings-MSFT-1H', JSON.stringify({
-        version: '1.0', timestamp: Date.now(), symbol: 'MSFT', timeframe: '1H', tools: toolsMSFT
-      }))
-
-      const { result } = renderHook(() => 
-        useDrawingPersistence([], mockLoadTools)
+      localStorage.setItem(
+        'trading-viewer-drawings-AAPL-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'AAPL',
+          timeframe: '1H',
+          tools: toolsAAPL,
+        })
       )
+
+      localStorage.setItem(
+        'trading-viewer-drawings-MSFT-1H',
+        JSON.stringify({
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: 'MSFT',
+          timeframe: '1H',
+          tools: toolsMSFT,
+        })
+      )
+
+      const { result } = renderHook(() => useDrawingPersistence([], mockLoadTools))
 
       act(() => {
         const stats = result.current.getStorageStatistics()

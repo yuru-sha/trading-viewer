@@ -3,11 +3,7 @@ export interface DrawingPoint {
   price: number
 }
 
-export type DrawingToolType =
-  | 'trendline'
-  | 'horizontal'
-  | 'vertical'
-  | 'fibonacci'
+export type DrawingToolType = 'trendline' | 'horizontal' | 'vertical' | 'fibonacci'
 
 export interface DrawingTool {
   id: string

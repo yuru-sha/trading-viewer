@@ -7,7 +7,7 @@ async function createAdminUser() {
   try {
     // Check if admin user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: 'admin@tradingviewer.com' }
+      where: { email: 'admin@tradingviewer.com' },
     })
 
     if (existingUser) {
@@ -26,8 +26,8 @@ async function createAdminUser() {
         first_name: 'Admin',
         last_name: 'User',
         role: 'admin',
-        is_email_verified: true
-      }
+        is_email_verified: true,
+      },
     })
 
     console.log('Admin user created successfully:', user.email)

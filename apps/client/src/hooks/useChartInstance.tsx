@@ -65,38 +65,42 @@ export const useChartInstance = () => {
   )
 
   // Take screenshot of the chart
-  const takeScreenshot = useCallback((filename?: string) => {
-    const chart = getEChartsInstance()
-    if (!chart) {
-      console.error('Chart instance not available')
-      return null
-    }
+  const takeScreenshot = useCallback(
+    (filename?: string) => {
+      const chart = getEChartsInstance()
+      if (!chart) {
+        console.error('Chart instance not available')
+        return null
+      }
 
-    try {
-      // Generate screenshot as data URL
-      const dataURL = chart.getDataURL({
-        type: 'png',
-        pixelRatio: 2, // High quality
-        backgroundColor: '#ffffff'
-      })
+      try {
+        // Generate screenshot as data URL
+        const dataURL = chart.getDataURL({
+          type: 'png',
+          pixelRatio: 2, // High quality
+          backgroundColor: '#ffffff',
+        })
 
-      // Create download link
-      const link = document.createElement('a')
-      link.href = dataURL
-      link.download = filename || `chart-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.png`
-      
-      // Trigger download
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+        // Create download link
+        const link = document.createElement('a')
+        link.href = dataURL
+        link.download =
+          filename || `chart-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.png`
 
-      console.log('📸 Screenshot saved successfully')
-      return dataURL
-    } catch (error) {
-      console.error('Screenshot failed:', error)
-      return null
-    }
-  }, [getEChartsInstance])
+        // Trigger download
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        console.log('📸 Screenshot saved successfully')
+        return dataURL
+      } catch (error) {
+        console.error('Screenshot failed:', error)
+        return null
+      }
+    },
+    [getEChartsInstance]
+  )
 
   return {
     chartRef,

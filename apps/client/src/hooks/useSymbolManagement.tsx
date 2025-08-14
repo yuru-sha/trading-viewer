@@ -35,12 +35,7 @@ export const useSymbolManagement = (
   const currentSymbol = state.selectedSymbol || defaultSymbol
 
   // WebSocket for real-time data
-  const {
-    isConnected,
-    lastQuote,
-    subscribe,
-    unsubscribe,
-  } = useWebSocket({
+  const { isConnected, lastQuote, subscribe, unsubscribe } = useWebSocket({
     autoConnect: true,
   })
 

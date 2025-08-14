@@ -320,16 +320,13 @@ export class ServiceContainer {
    * Instantiate service with dependency resolution
    */
   private instantiateService<T>(descriptor: ServiceDescriptor<T>, scopeId?: string): T {
-    const dependencies = descriptor.dependencies?.map(depName => 
-      this.resolve(depName, scopeId)
-    ) || []
+    const dependencies =
+      descriptor.dependencies?.map(depName => this.resolve(depName, scopeId)) || []
 
     try {
       return descriptor.factory(...dependencies)
     } catch (error) {
-      throw new Error(
-        `Error creating instance of service '${descriptor.name}': ${error}`
-      )
+      throw new Error(`Error creating instance of service '${descriptor.name}': ${error}`)
     }
   }
 
@@ -368,7 +365,7 @@ export const container = GlobalServiceContainer.getInstance()
 export function Injectable(name?: string, lifetime: ServiceLifetime = ServiceLifetime.Transient) {
   return function <T extends { new (...args: any[]): {} }>(constructor: T) {
     const serviceName = name || constructor.name
-    
+
     // Register the service in the global container
     container.register(
       serviceName,
@@ -428,8 +425,7 @@ export const registerService = {
   scoped: <T>(name: string, factory: (...deps: any[]) => T, deps: string[] = []) =>
     container.registerScoped(name, factory, deps),
 
-  instance: <T>(name: string, instance: T) =>
-    container.registerInstance(name, instance),
+  instance: <T>(name: string, instance: T) => container.registerInstance(name, instance),
 }
 
 export default ServiceContainer

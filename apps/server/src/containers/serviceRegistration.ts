@@ -1,10 +1,10 @@
 import { container, registerService } from './ServiceContainer'
-import type { 
+import type {
   ISymbolService,
-  IQuoteService, 
+  IQuoteService,
   ICandleDataService,
   IUserPreferencesService,
-  IDataManagementService 
+  IDataManagementService,
 } from '../services/interfaces'
 
 /**
@@ -17,35 +17,35 @@ export const SERVICE_NAMES = {
   // Database and ORM
   PRISMA_CLIENT: 'PrismaClient',
   DATABASE_SERVICE: 'DatabaseService',
-  
+
   // External API adapters
   MARKET_DATA_ADAPTER: 'MarketDataAdapter',
   FINNHUB_SERVICE: 'FinnhubService',
-  
+
   // Core business services
   SYMBOL_SERVICE: 'SymbolService',
   QUOTE_SERVICE: 'QuoteService',
   CANDLE_DATA_SERVICE: 'CandleDataService',
   USER_PREFERENCES_SERVICE: 'UserPreferencesService',
   DATA_MANAGEMENT_SERVICE: 'DataManagementService',
-  
+
   // Caching services
   CACHE_SERVICE: 'CacheService',
   REDIS_CLIENT: 'RedisClient',
-  
+
   // WebSocket services
   WEBSOCKET_SERVICE: 'WebSocketService',
   OPTIMIZED_WEBSOCKET_SERVICE: 'OptimizedWebSocketService',
-  
+
   // Security services
   ENCRYPTION_SERVICE: 'EncryptionService',
   RATE_LIMIT_SERVICE: 'RateLimitService',
-  
+
   // Repositories
   SYMBOL_REPOSITORY: 'SymbolRepository',
   CANDLE_REPOSITORY: 'CandleRepository',
   USER_PREFERENCES_REPOSITORY: 'UserPreferencesRepository',
-  
+
   // Utilities
   LOGGER: 'Logger',
   CONFIG: 'Config',
@@ -56,34 +56,25 @@ export const SERVICE_NAMES = {
  */
 export function registerApplicationServices(): void {
   // Configuration services (Singleton)
-  registerService.singleton(
-    SERVICE_NAMES.CONFIG,
-    () => {
-      const { Environment } = require('../config/environment')
-      return new Environment()
-    }
-  )
+  registerService.singleton(SERVICE_NAMES.CONFIG, () => {
+    const { Environment } = require('../config/environment')
+    return new Environment()
+  })
 
-  registerService.singleton(
-    SERVICE_NAMES.LOGGER,
-    () => {
-      const { Logger } = require('../utils/logger')
-      return new Logger()
-    }
-  )
+  registerService.singleton(SERVICE_NAMES.LOGGER, () => {
+    const { Logger } = require('../utils/logger')
+    return new Logger()
+  })
 
   // Database services (Singleton)
-  registerService.singleton(
-    SERVICE_NAMES.PRISMA_CLIENT,
-    () => {
-      const { PrismaClient } = require('@prisma/client')
-      return new PrismaClient()
-    }
-  )
+  registerService.singleton(SERVICE_NAMES.PRISMA_CLIENT, () => {
+    const { PrismaClient } = require('@prisma/client')
+    return new PrismaClient()
+  })
 
   registerService.singleton(
     SERVICE_NAMES.DATABASE_SERVICE,
-    (prisma) => {
+    prisma => {
       const { DatabaseService } = require('../services/databaseService')
       return new DatabaseService(prisma)
     },
@@ -93,7 +84,7 @@ export function registerApplicationServices(): void {
   // Repository services (Singleton - they maintain connections)
   registerService.singleton(
     SERVICE_NAMES.SYMBOL_REPOSITORY,
-    (prisma) => {
+    prisma => {
       const { SymbolRepository } = require('../repositories/SymbolRepository')
       return new SymbolRepository(prisma)
     },
@@ -102,7 +93,7 @@ export function registerApplicationServices(): void {
 
   registerService.singleton(
     SERVICE_NAMES.CANDLE_REPOSITORY,
-    (prisma) => {
+    prisma => {
       const { CandleRepository } = require('../repositories/CandleRepository')
       return new CandleRepository(prisma)
     },
@@ -111,7 +102,7 @@ export function registerApplicationServices(): void {
 
   registerService.singleton(
     SERVICE_NAMES.USER_PREFERENCES_REPOSITORY,
-    (prisma) => {
+    prisma => {
       const { UserPreferencesRepository } = require('../repositories/UserPreferencesRepository')
       return new UserPreferencesRepository(prisma)
     },
@@ -121,7 +112,7 @@ export function registerApplicationServices(): void {
   // Cache services (Singleton)
   registerService.singleton(
     SERVICE_NAMES.CACHE_SERVICE,
-    (config) => {
+    config => {
       const { getCacheService } = require('../services/cacheService')
       return getCacheService()
     },
@@ -131,7 +122,7 @@ export function registerApplicationServices(): void {
   // External API services (Singleton with connection pooling)
   registerService.singleton(
     SERVICE_NAMES.FINNHUB_SERVICE,
-    (config) => {
+    config => {
       const { getFinnhubService } = require('../services/finnhubService')
       return getFinnhubService()
     },
@@ -140,7 +131,7 @@ export function registerApplicationServices(): void {
 
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
-    (config) => {
+    config => {
       const { FinnhubAdapter } = require('../adapters/MarketDataAdapter')
       return new FinnhubAdapter(config.get('FINNHUB_API_KEY'))
     },
@@ -161,7 +152,7 @@ export function registerApplicationServices(): void {
         getSymbol: async (symbol: string) => {
           const cached = await cacheService.getSymbol(symbol)
           if (cached) return cached
-          
+
           return symbolRepo.findBySymbol(symbol)
         },
         syncSymbol: async (symbol: string) => {
@@ -196,7 +187,7 @@ export function registerApplicationServices(): void {
             const cached = await cacheService.getQuote(symbol)
             if (cached) return cached
           }
-          
+
           const quote = await marketDataAdapter.getQuote(symbol)
           await cacheService.setQuote(symbol, quote)
           return quote
@@ -207,9 +198,7 @@ export function registerApplicationServices(): void {
           return quote
         },
         getMultipleQuotes: async (symbols: string[], useCache: boolean = true) => {
-          return Promise.all(symbols.map(s => 
-            marketDataAdapter.getQuote(s)
-          ))
+          return Promise.all(symbols.map(s => marketDataAdapter.getQuote(s)))
         },
         subscribeToQuote: (symbol: string, callback: (quote: any) => void) => {
           // WebSocket subscription logic
@@ -228,12 +217,18 @@ export function registerApplicationServices(): void {
     SERVICE_NAMES.CANDLE_DATA_SERVICE,
     (candleRepo, marketDataAdapter, cacheService, logger) => {
       return {
-        getCandleData: async (symbol: string, resolution: string, from: number, to: number, useCache: boolean = true) => {
+        getCandleData: async (
+          symbol: string,
+          resolution: string,
+          from: number,
+          to: number,
+          useCache: boolean = true
+        ) => {
           if (useCache) {
             const cached = await cacheService.getCandleData(symbol, resolution, from, to)
             if (cached) return cached
           }
-          
+
           const data = await marketDataAdapter.getCandles(symbol, resolution, from, to)
           await cacheService.setCandleData(symbol, resolution, from, to, data)
           return data
@@ -246,10 +241,16 @@ export function registerApplicationServices(): void {
         getLatestCandles: async (symbol: string, resolution: string, count: number) => {
           const to = Math.floor(Date.now() / 1000)
           const timeframes: Record<string, number> = {
-            '1': 60, '5': 300, '15': 900, '30': 1800, '60': 3600,
-            'D': 86400, 'W': 604800, 'M': 2592000
+            '1': 60,
+            '5': 300,
+            '15': 900,
+            '30': 1800,
+            '60': 3600,
+            D: 86400,
+            W: 604800,
+            M: 2592000,
           }
-          const from = to - (count * (timeframes[resolution] || 3600))
+          const from = to - count * (timeframes[resolution] || 3600)
           return marketDataAdapter.getCandles(symbol, resolution, from, to)
         },
         cleanupOldData: async (symbol: string, beforeTimestamp: number) => {
@@ -272,7 +273,7 @@ export function registerApplicationServices(): void {
   // WebSocket services (Singleton - maintain connections)
   registerService.singleton(
     SERVICE_NAMES.WEBSOCKET_SERVICE,
-    (logger) => {
+    logger => {
       const { getWebSocketService } = require('../services/websocketService')
       return getWebSocketService()
     },
@@ -281,7 +282,7 @@ export function registerApplicationServices(): void {
 
   registerService.singleton(
     SERVICE_NAMES.OPTIMIZED_WEBSOCKET_SERVICE,
-    (logger) => {
+    logger => {
       const { getOptimizedWebSocketService } = require('../services/optimizedWebsocketService')
       return getOptimizedWebSocketService()
     },
@@ -310,12 +311,12 @@ export function requestScopingMiddleware() {
   return (req: any, res: any, next: any) => {
     const scope = createRequestScope()
     req.serviceScope = scope.scopeId
-    
+
     // Clean up scope when response finishes
     res.on('finish', () => {
       container.disposeScope(scope.scopeId)
     })
-    
+
     next()
   }
 }
@@ -326,7 +327,7 @@ export function requestScopingMiddleware() {
  */
 export function initializeServices(): void {
   console.log('Initializing dependency injection container...')
-  
+
   try {
     registerApplicationServices()
     console.log('✅ All services registered successfully')

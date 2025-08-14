@@ -33,7 +33,7 @@ export abstract class BaseChart implements IChart {
   }
 
   abstract render(): React.ReactElement
-  
+
   updateData(data: any[]): void {
     this.props.data = data
     if (this.props.onDataUpdate) {
@@ -59,13 +59,10 @@ class CandlestickChart extends BaseChart {
   render(): React.ReactElement {
     // Lazy load TradingView Lightweight Charts component
     const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
-    
+
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart
-          {...this.props}
-          chartType="candlestick"
-        />
+        <TradingChart {...this.props} chartType='candlestick' />
       </React.Suspense>
     )
   }
@@ -78,13 +75,10 @@ class LineChart extends BaseChart {
 
   render(): React.ReactElement {
     const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
-    
+
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart
-          {...this.props}
-          chartType="line"
-        />
+        <TradingChart {...this.props} chartType='line' />
       </React.Suspense>
     )
   }
@@ -97,13 +91,10 @@ class AreaChart extends BaseChart {
 
   render(): React.ReactElement {
     const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
-    
+
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart
-          {...this.props}
-          chartType="area"
-        />
+        <TradingChart {...this.props} chartType='area' />
       </React.Suspense>
     )
   }
@@ -116,13 +107,10 @@ class BarChart extends BaseChart {
 
   render(): React.ReactElement {
     const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
-    
+
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart
-          {...this.props}
-          chartType="bar"
-        />
+        <TradingChart {...this.props} chartType='bar' />
       </React.Suspense>
     )
   }
@@ -136,13 +124,10 @@ class EChartsChart extends BaseChart {
 
   render(): React.ReactElement {
     const EChartsTradingChart = React.lazy(() => import('../components/chart/EChartsTradingChart'))
-    
+
     return (
       <React.Suspense fallback={<div>Loading ECharts...</div>}>
-        <EChartsTradingChart
-          {...this.props}
-          chartType={this.type}
-        />
+        <EChartsTradingChart {...this.props} chartType={this.type} />
       </React.Suspense>
     )
   }
@@ -179,7 +164,7 @@ export class ChartComponentFactory implements IChartFactory {
 
   createChart(type: ChartType, props: ChartProps): IChart {
     const ChartConstructor = this.chartConstructors.get(type)
-    
+
     if (!ChartConstructor) {
       throw new Error(`Unsupported chart type: ${type}`)
     }
@@ -276,13 +261,19 @@ export class ChartFactoryManager {
 export const useChartFactory = () => {
   const factoryManager = React.useMemo(() => ChartFactoryManager.getInstance(), [])
 
-  const createChart = React.useCallback((type: ChartType, props: ChartProps): IChart => {
-    return factoryManager.createChart(type, props)
-  }, [factoryManager])
+  const createChart = React.useCallback(
+    (type: ChartType, props: ChartProps): IChart => {
+      return factoryManager.createChart(type, props)
+    },
+    [factoryManager]
+  )
 
-  const setFactory = React.useCallback((factoryName: string) => {
-    factoryManager.setFactory(factoryName)
-  }, [factoryManager])
+  const setFactory = React.useCallback(
+    (factoryName: string) => {
+      factoryManager.setFactory(factoryName)
+    },
+    [factoryManager]
+  )
 
   return {
     createChart,
@@ -294,11 +285,9 @@ export const useChartFactory = () => {
 }
 
 // React Component Factory - Higher level abstraction
-export const ChartComponent: React.FC<ChartProps & { chartType: ChartType; factoryType?: string }> = ({
-  chartType,
-  factoryType = 'tradingview',
-  ...props
-}) => {
+export const ChartComponent: React.FC<
+  ChartProps & { chartType: ChartType; factoryType?: string }
+> = ({ chartType, factoryType = 'tradingview', ...props }) => {
   const factoryManager = ChartFactoryManager.getInstance()
 
   React.useEffect(() => {

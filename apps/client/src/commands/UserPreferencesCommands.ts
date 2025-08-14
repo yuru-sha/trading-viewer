@@ -1,5 +1,8 @@
 import { BaseCommand } from './BaseCommand'
-import type { UserPreferencesParams, UpdateUserPreferencesCommand as IUpdateUserPreferencesCommand } from '@trading-viewer/shared'
+import type {
+  UserPreferencesParams,
+  UpdateUserPreferencesCommand as IUpdateUserPreferencesCommand,
+} from '@trading-viewer/shared'
 
 /**
  * User Preferences State Interface
@@ -40,7 +43,10 @@ interface IUserPreferencesContext {
 /**
  * Update User Preferences Command
  */
-export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferencesParams> implements UpdateUserPreferencesCommand {
+export class UpdateUserPreferencesCommand
+  extends BaseCommand<void, UserPreferencesParams>
+  implements UpdateUserPreferencesCommand
+{
   readonly type = 'UPDATE_USER_PREFERENCES'
   private context: IUserPreferencesContext
   private previousPreferences?: Partial<UserPreferences>
@@ -52,10 +58,10 @@ export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferen
 
   protected async captureState(): Promise<Partial<UserPreferences>> {
     const currentPreferences = this.context.getUserPreferences()
-    
+
     // Only capture the preferences that will be changed
     const preferencesToCapture: Partial<UserPreferences> = {}
-    
+
     Object.keys(this.params).forEach(key => {
       if (key in currentPreferences) {
         ;(preferencesToCapture as any)[key] = (currentPreferences as any)[key]
@@ -124,8 +130,22 @@ export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferen
   private isValidLanguageCode(language: string): boolean {
     // Basic validation for common language codes
     const validLanguages = [
-      'en', 'ja', 'zh', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru',
-      'en-US', 'en-GB', 'ja-JP', 'zh-CN', 'zh-TW', 'ko-KR'
+      'en',
+      'ja',
+      'zh',
+      'ko',
+      'es',
+      'fr',
+      'de',
+      'it',
+      'pt',
+      'ru',
+      'en-US',
+      'en-GB',
+      'ja-JP',
+      'zh-CN',
+      'zh-TW',
+      'ko-KR',
     ]
     return validLanguages.includes(language)
   }
@@ -139,7 +159,10 @@ export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferen
       return false
     }
 
-    if (chartDefaults.chartType && !['candlestick', 'line', 'area'].includes(chartDefaults.chartType)) {
+    if (
+      chartDefaults.chartType &&
+      !['candlestick', 'line', 'area'].includes(chartDefaults.chartType)
+    ) {
       return false
     }
 
@@ -163,11 +186,17 @@ export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferen
       return false
     }
 
-    if (drawingDefaults.lineWidth && (typeof drawingDefaults.lineWidth !== 'number' || drawingDefaults.lineWidth < 1)) {
+    if (
+      drawingDefaults.lineWidth &&
+      (typeof drawingDefaults.lineWidth !== 'number' || drawingDefaults.lineWidth < 1)
+    ) {
       return false
     }
 
-    if (drawingDefaults.textSize && (typeof drawingDefaults.textSize !== 'number' || drawingDefaults.textSize < 8)) {
+    if (
+      drawingDefaults.textSize &&
+      (typeof drawingDefaults.textSize !== 'number' || drawingDefaults.textSize < 8)
+    ) {
       return false
     }
 
@@ -184,12 +213,26 @@ export class UpdateUserPreferencesCommand extends BaseCommand<void, UserPreferen
     const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
     const rgbPattern = /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/
     const rgbaPattern = /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0|1|0?\.\d+)\s*\)$/
-    const namedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
-    
-    return hexPattern.test(color) || 
-           rgbPattern.test(color) || 
-           rgbaPattern.test(color) || 
-           namedColors.includes(color.toLowerCase())
+    const namedColors = [
+      'red',
+      'green',
+      'blue',
+      'yellow',
+      'orange',
+      'purple',
+      'pink',
+      'brown',
+      'black',
+      'white',
+      'gray',
+    ]
+
+    return (
+      hexPattern.test(color) ||
+      rgbPattern.test(color) ||
+      rgbaPattern.test(color) ||
+      namedColors.includes(color.toLowerCase())
+    )
   }
 }
 
@@ -265,7 +308,7 @@ export class ImportUserPreferencesCommand extends BaseCommand<void, { data: stri
 
     try {
       const importedData = JSON.parse(this.params.data)
-      
+
       // Basic validation of imported data structure
       if (typeof importedData !== 'object') {
         return 'Invalid import data format'

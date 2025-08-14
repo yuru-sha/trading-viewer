@@ -3,7 +3,13 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { authService } from '../services/AuthService'
-import type { User, LoginCredentials, RegisterData, UpdateProfileData, ChangePasswordData } from '../contexts/AuthContext'
+import type {
+  User,
+  LoginCredentials,
+  RegisterData,
+  UpdateProfileData,
+  ChangePasswordData,
+} from '../contexts/AuthContext'
 
 export interface AuthState {
   // State
@@ -11,7 +17,7 @@ export interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  
+
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
@@ -38,20 +44,20 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await authService.login(credentials)
-          
+
           // Ensure CSRF token is available
           await authService.ensureCSRFToken()
-          
+
           set({
             user: response.user,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           })
-          
+
           // User data is now persisted via httpOnly cookies on the server
         } catch (error) {
           set({
@@ -66,20 +72,20 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await authService.register(data)
-          
+
           // Ensure CSRF token is available
           await authService.ensureCSRFToken()
-          
+
           set({
             user: response.user,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           })
-          
+
           // User data is now persisted via httpOnly cookies on the server
         } catch (error) {
           set({
@@ -94,7 +100,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         set({ isLoading: true })
-        
+
         try {
           await authService.logout()
         } catch (error) {
@@ -117,16 +123,16 @@ export const useAuthStore = create<AuthState>()(
         }
 
         set({ isLoading: true, error: null })
-        
+
         try {
           const updatedUser = await authService.updateProfile(data)
-          
+
           set({
             user: updatedUser,
             isLoading: false,
             error: null,
           })
-          
+
           // User state is now managed via server session
         } catch (error) {
           set({
@@ -139,10 +145,10 @@ export const useAuthStore = create<AuthState>()(
 
       changePassword: async (data: ChangePasswordData) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           await authService.changePassword(data)
-          
+
           // Password change forces logout
           set({
             user: null,
@@ -161,10 +167,10 @@ export const useAuthStore = create<AuthState>()(
 
       deleteAccount: async () => {
         set({ isLoading: true, error: null })
-        
+
         try {
           await authService.deleteAccount()
-          
+
           // Account deletion forces logout
           set({
             user: null,
@@ -183,21 +189,21 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuthStatus: async () => {
         set({ isLoading: true })
-        
+
         try {
           const { isAuthenticated, user } = await authService.checkAuthStatus()
-          
+
           if (isAuthenticated && user) {
             // Ensure CSRF token is available
             await authService.ensureCSRFToken()
-            
+
             set({
               user,
               isAuthenticated: true,
               isLoading: false,
               error: null,
             })
-            
+
             // User authenticated via httpOnly cookies
           } else {
             // Clear any stale data
@@ -236,18 +242,18 @@ export const useAuthStore = create<AuthState>()(
 // Initialize auth state on app startup
 export const initializeAuth = async () => {
   const { checkAuthStatus } = useAuthStore.getState()
-  
+
   // Directly verify with server - auth state is managed via httpOnly cookies
   await checkAuthStatus()
 }
 
 // Subscribe to auth changes for analytics/logging
 useAuthStore.subscribe(
-  (state) => state.isAuthenticated,
+  state => state.isAuthenticated,
   (isAuthenticated, prevIsAuthenticated) => {
     if (isAuthenticated !== prevIsAuthenticated) {
       console.log(`Auth state changed: ${prevIsAuthenticated} -> ${isAuthenticated}`)
-      
+
       // Could integrate with analytics here
       // analytics.track('auth_state_changed', { isAuthenticated })
     }

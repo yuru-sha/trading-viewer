@@ -11,7 +11,7 @@ describe('DrawingToolbar', () => {
       color: '#2563eb',
       width: 2,
       opacity: 1,
-      dashPattern: []
+      dashPattern: [],
     } as DrawingStyle,
     snapToPrice: true,
     toolCount: 0,
@@ -19,7 +19,7 @@ describe('DrawingToolbar', () => {
     onModeChange: vi.fn(),
     onStyleChange: vi.fn(),
     onToggleSnap: vi.fn(),
-    onClearAll: vi.fn()
+    onClearAll: vi.fn(),
   }
 
   beforeEach(() => {
@@ -45,12 +45,7 @@ describe('DrawingToolbar', () => {
   })
 
   it('should highlight active tool', () => {
-    render(
-      <DrawingToolbar 
-        {...mockProps} 
-        activeToolType="trendline" 
-      />
-    )
+    render(<DrawingToolbar {...mockProps} activeToolType='trendline' />)
 
     const trendlineButton = screen.getByRole('button', { name: /trend line/i })
     expect(trendlineButton).toHaveClass('bg-blue-600')
@@ -72,17 +67,12 @@ describe('DrawingToolbar', () => {
     fireEvent.click(redColorButton)
 
     expect(mockProps.onStyleChange).toHaveBeenCalledWith({
-      color: expect.any(String)
+      color: expect.any(String),
     })
   })
 
   it('should render with custom className', () => {
-    const { container } = render(
-      <DrawingToolbar 
-        {...mockProps} 
-        className="custom-toolbar" 
-      />
-    )
+    const { container } = render(<DrawingToolbar {...mockProps} className='custom-toolbar' />)
 
     expect(container.firstChild).toHaveClass('custom-toolbar')
   })

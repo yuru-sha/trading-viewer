@@ -40,7 +40,7 @@ const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d'
 export const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production', // Enable secure in production
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax' as const,
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : ('lax' as const),
   path: '/',
   maxAge: 15 * 60 * 1000, // 15 minutes for access token
 }
@@ -48,7 +48,7 @@ export const COOKIE_OPTIONS = {
 export const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax' as const,
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : ('lax' as const),
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
 }
@@ -95,27 +95,27 @@ export const generateTokens = async (
     )
   }
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, { 
+  const accessToken = jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
-    algorithm: 'HS256' // Explicitly set algorithm to prevent confusion attacks
+    algorithm: 'HS256', // Explicitly set algorithm to prevent confusion attacks
   })
   const refreshToken = jwt.sign({ userId: payload.userId }, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_EXPIRES_IN,
-    algorithm: 'HS256' // Explicitly set algorithm
+    algorithm: 'HS256', // Explicitly set algorithm
   })
 
   // Store refresh token in database
   try {
     const { PrismaClient } = await import('@prisma/client')
     const prisma = new PrismaClient()
-    
+
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: payload.userId,
         expiresAt: refreshTokenExpiresAt,
         isRevoked: false,
-      }
+      },
     })
   } catch (error) {
     console.error('Failed to store refresh token:', error)
@@ -155,9 +155,9 @@ export const verifyRefreshToken = async (token: string): Promise<{ userId: strin
     // Check if token exists in database and is not revoked
     const { PrismaClient } = await import('@prisma/client')
     const prisma = new PrismaClient()
-    
+
     const storedToken = await prisma.refreshToken.findUnique({
-      where: { token }
+      where: { token },
     })
 
     if (!storedToken) {
@@ -202,10 +202,10 @@ export const revokeRefreshToken = async (token: string): Promise<void> => {
   try {
     const { PrismaClient } = await import('@prisma/client')
     const prisma = new PrismaClient()
-    
+
     await prisma.refreshToken.update({
       where: { token },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     })
   } catch (error) {
     console.error('Failed to revoke refresh token:', error)
@@ -216,13 +216,13 @@ export const revokeAllUserTokens = async (userId: string): Promise<void> => {
   try {
     const { PrismaClient } = await import('@prisma/client')
     const prisma = new PrismaClient()
-    
+
     await prisma.refreshToken.updateMany({
-      where: { 
+      where: {
         userId,
-        isRevoked: false 
+        isRevoked: false,
       },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     })
   } catch (error) {
     console.error('Failed to revoke user tokens:', error)
@@ -407,7 +407,11 @@ export const requireRole = (...roles: Array<'user' | 'admin'>) => {
 }
 
 // CSRF protection middleware
-export const requireCSRF = (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
+export const requireCSRF = (
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction
+): void => {
   try {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required')
@@ -420,7 +424,7 @@ export const requireCSRF = (req: AuthenticatedRequest, _res: Response, next: Nex
     }
 
     const csrfToken = req.headers['x-csrf-token'] as string
-    
+
     if (!csrfToken) {
       throw new ForbiddenError('CSRF token is required')
     }
@@ -489,27 +493,27 @@ export const clearAuthAttempts = (identifier: string): void => {
 export const generateCSRFToken = (userId: string): string => {
   const token = crypto.randomBytes(32).toString('hex')
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-  
+
   csrfTokenStore.set(token, { userId, expiresAt })
   return token
 }
 
 export const verifyCSRFToken = (token: string, userId: string): boolean => {
   const storedData = csrfTokenStore.get(token)
-  
+
   if (!storedData) {
     return false
   }
-  
+
   if (storedData.userId !== userId) {
     return false
   }
-  
+
   if (storedData.expiresAt < new Date()) {
     csrfTokenStore.delete(token)
     return false
   }
-  
+
   return true
 }
 

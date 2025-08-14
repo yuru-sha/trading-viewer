@@ -10,17 +10,17 @@ describe('WebSocket Security Tests', () => {
   const TEST_PORT = 8001
   const JWT_SECRET = process.env.JWT_SECRET || 'test-secret'
 
-  beforeAll((done) => {
+  beforeAll(done => {
     server = new Server()
     wsService = new WebSocketService()
     wsService.initialize(server)
-    
+
     server.listen(TEST_PORT, () => {
       done()
     })
   })
 
-  afterAll((done) => {
+  afterAll(done => {
     wsService.close()
     server.close(() => {
       done()
@@ -28,7 +28,7 @@ describe('WebSocket Security Tests', () => {
   })
 
   describe('Authentication Tests', () => {
-    it('should accept connections with valid JWT token', (done) => {
+    it('should accept connections with valid JWT token', done => {
       const validToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -36,29 +36,29 @@ describe('WebSocket Security Tests', () => {
       )
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${validToken}`)
-      
+
       ws.on('open', () => {
         expect(true).toBe(true)
         ws.close()
         done()
       })
 
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         done(error)
       })
     })
 
-    it('should reject connections with invalid JWT token', (done) => {
+    it('should reject connections with invalid JWT token', done => {
       const invalidToken = 'invalid.jwt.token'
-      
+
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${invalidToken}`)
-      
+
       ws.on('open', () => {
         // Connection should not open, but if it does, it should be unauthenticated
         ws.send(JSON.stringify({ type: 'subscribe', symbol: 'AAPL' }))
       })
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         const message = JSON.parse(data.toString())
         if (message.type === 'error' && message.data?.error?.includes('Authentication')) {
           ws.close()
@@ -77,7 +77,7 @@ describe('WebSocket Security Tests', () => {
       }, 1000)
     })
 
-    it('should reject expired JWT tokens', (done) => {
+    it('should reject expired JWT tokens', done => {
       const expiredToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -85,13 +85,13 @@ describe('WebSocket Security Tests', () => {
       )
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${expiredToken}`)
-      
+
       ws.on('open', () => {
         // Even if connection opens, operations should fail
         ws.send(JSON.stringify({ type: 'subscribe', symbol: 'AAPL' }))
       })
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         const message = JSON.parse(data.toString())
         if (message.type === 'error') {
           ws.close()
@@ -107,7 +107,7 @@ describe('WebSocket Security Tests', () => {
   })
 
   describe('Rate Limiting Tests', () => {
-    it('should limit subscription requests per user', (done) => {
+    it('should limit subscription requests per user', done => {
       const validToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -116,18 +116,21 @@ describe('WebSocket Security Tests', () => {
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${validToken}`)
       let errorReceived = false
-      
+
       ws.on('open', () => {
         // Try to exceed subscription limits
-        for (let i = 0; i < 55; i++) { // More than MAX_SUBSCRIPTIONS_PER_USER (50)
-          ws.send(JSON.stringify({ 
-            type: 'subscribe', 
-            symbol: `TEST${i}` 
-          }))
+        for (let i = 0; i < 55; i++) {
+          // More than MAX_SUBSCRIPTIONS_PER_USER (50)
+          ws.send(
+            JSON.stringify({
+              type: 'subscribe',
+              symbol: `TEST${i}`,
+            })
+          )
         }
       })
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         const message = JSON.parse(data.toString())
         if (message.type === 'error' && message.data?.error?.includes('Maximum subscriptions')) {
           errorReceived = true
@@ -143,7 +146,7 @@ describe('WebSocket Security Tests', () => {
   })
 
   describe('Input Validation Tests', () => {
-    it('should validate subscription message format', (done) => {
+    it('should validate subscription message format', done => {
       const validToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -152,7 +155,7 @@ describe('WebSocket Security Tests', () => {
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${validToken}`)
       let errorReceived = false
-      
+
       ws.on('open', () => {
         // Send invalid message formats
         ws.send(JSON.stringify({ type: 'subscribe' })) // Missing symbol
@@ -160,7 +163,7 @@ describe('WebSocket Security Tests', () => {
         ws.send(JSON.stringify({ type: 'subscribe', symbol: null })) // Null symbol
       })
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         const message = JSON.parse(data.toString())
         if (message.type === 'error') {
           errorReceived = true
@@ -174,7 +177,7 @@ describe('WebSocket Security Tests', () => {
       }, 1000)
     })
 
-    it('should reject malformed JSON messages', (done) => {
+    it('should reject malformed JSON messages', done => {
       const validToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -182,11 +185,11 @@ describe('WebSocket Security Tests', () => {
       )
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${validToken}`)
-      
+
       ws.on('open', () => {
         // Send malformed JSON
-        ws.send('{"type":"subscribe","symbol"')  // Incomplete JSON
-        ws.send('invalid json')                  // Invalid JSON
+        ws.send('{"type":"subscribe","symbol"') // Incomplete JSON
+        ws.send('invalid json') // Invalid JSON
       })
 
       ws.on('error', () => {
@@ -211,9 +214,9 @@ describe('WebSocket Security Tests', () => {
 
       // This test would need to be expanded to actually test origin validation
       // in the WebSocket handshake process
-      
+
       expect(process.env.CORS_ORIGIN).toBe('https://allowed-domain.com')
-      
+
       // Restore environment
       process.env.NODE_ENV = originalEnv
     })
@@ -226,7 +229,7 @@ describe('WebSocket Security Tests', () => {
   })
 
   describe('Message Security Tests', () => {
-    it('should not echo back sensitive information', (done) => {
+    it('should not echo back sensitive information', done => {
       const validToken = jwt.sign(
         { userId: 'test-user', email: 'test@example.com', role: 'user' },
         JWT_SECRET,
@@ -234,16 +237,18 @@ describe('WebSocket Security Tests', () => {
       )
 
       const ws = new WebSocket(`ws://localhost:${TEST_PORT}/ws?token=${validToken}`)
-      
+
       ws.on('open', () => {
-        ws.send(JSON.stringify({ 
-          type: 'subscribe', 
-          symbol: 'AAPL',
-          sensitiveData: 'secret-info-should-not-be-echoed'
-        }))
+        ws.send(
+          JSON.stringify({
+            type: 'subscribe',
+            symbol: 'AAPL',
+            sensitiveData: 'secret-info-should-not-be-echoed',
+          })
+        )
       })
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         const message = JSON.parse(data.toString())
         // Response should not contain sensitive data from client
         expect(message.data?.sensitiveData).toBeUndefined()

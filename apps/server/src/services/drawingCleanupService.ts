@@ -2,7 +2,7 @@ import { prisma } from '../lib/database'
 
 /**
  * Drawing Tools Cleanup Service
- * 
+ *
  * Manages automatic cleanup of expired drawing tools to prevent
  * unlimited database growth.
  */
@@ -22,7 +22,7 @@ export class DrawingCleanupService {
     }
 
     console.log('🧹 Starting drawing tools cleanup service')
-    
+
     // Run initial cleanup
     this.runCleanup().catch(error => {
       console.error('❌ Initial cleanup failed:', error)
@@ -58,30 +58,32 @@ export class DrawingCleanupService {
     totalDeleted: number
   }> {
     console.log('🧹 Running drawing tools cleanup...')
-    
+
     try {
       const now = new Date()
-      
+
       // 1. Delete explicitly expired drawings
       const expiredResult = await prisma.drawingTool.deleteMany({
         where: {
           expiresAt: {
             not: null,
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       })
 
       // 2. Delete drawings that haven't been accessed for too long
-      const inactiveThreshold = new Date(now.getTime() - (this.INACTIVE_EXPIRY_DAYS * 24 * 60 * 60 * 1000))
+      const inactiveThreshold = new Date(
+        now.getTime() - this.INACTIVE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+      )
       const inactiveResult = await prisma.drawingTool.deleteMany({
         where: {
           lastAccessedAt: {
-            lte: inactiveThreshold
+            lte: inactiveThreshold,
           },
           // Don't delete locked drawings
-          locked: false
-        }
+          locked: false,
+        },
       })
 
       const totalDeleted = expiredResult.count + inactiveResult.count
@@ -90,7 +92,7 @@ export class DrawingCleanupService {
         console.log(`✅ Cleanup completed:`, {
           expired: expiredResult.count,
           inactive: inactiveResult.count,
-          total: totalDeleted
+          total: totalDeleted,
         })
       } else {
         console.log('✅ Cleanup completed - no drawings to delete')
@@ -99,7 +101,7 @@ export class DrawingCleanupService {
       return {
         expiredCount: expiredResult.count,
         inactiveCount: inactiveResult.count,
-        totalDeleted
+        totalDeleted,
       }
     } catch (error) {
       console.error('❌ Cleanup failed:', error)
@@ -111,11 +113,11 @@ export class DrawingCleanupService {
    * Set expiration date for a drawing tool
    */
   async setExpiration(toolId: string, days: number = this.DEFAULT_EXPIRY_DAYS): Promise<void> {
-    const expiresAt = new Date(Date.now() + (days * 24 * 60 * 60 * 1000))
-    
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+
     await prisma.drawingTool.update({
       where: { id: toolId },
-      data: { expiresAt }
+      data: { expiresAt },
     })
 
     console.log(`⏰ Set expiration for tool ${toolId}: ${expiresAt.toISOString()}`)
@@ -127,7 +129,7 @@ export class DrawingCleanupService {
   async makePermament(toolId: string): Promise<void> {
     await prisma.drawingTool.update({
       where: { id: toolId },
-      data: { expiresAt: null }
+      data: { expiresAt: null },
     })
 
     console.log(`♾️ Made tool ${toolId} permanent`)
@@ -139,7 +141,7 @@ export class DrawingCleanupService {
   async updateLastAccessed(toolId: string): Promise<void> {
     await prisma.drawingTool.update({
       where: { id: toolId },
-      data: { lastAccessedAt: new Date() }
+      data: { lastAccessedAt: new Date() },
     })
   }
 
@@ -153,8 +155,10 @@ export class DrawingCleanupService {
     inactive: number
   }> {
     const now = new Date()
-    const soonThreshold = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000))
-    const inactiveThreshold = new Date(now.getTime() - (this.INACTIVE_EXPIRY_DAYS * 24 * 60 * 60 * 1000))
+    const soonThreshold = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const inactiveThreshold = new Date(
+      now.getTime() - this.INACTIVE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+    )
 
     const [total, expiringSoon, expired, inactive] = await Promise.all([
       prisma.drawingTool.count(),
@@ -163,26 +167,26 @@ export class DrawingCleanupService {
           expiresAt: {
             not: null,
             lte: soonThreshold,
-            gt: now
-          }
-        }
+            gt: now,
+          },
+        },
       }),
       prisma.drawingTool.count({
         where: {
           expiresAt: {
             not: null,
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       }),
       prisma.drawingTool.count({
         where: {
           lastAccessedAt: {
-            lte: inactiveThreshold
+            lte: inactiveThreshold,
           },
-          locked: false
-        }
-      })
+          locked: false,
+        },
+      }),
     ])
 
     return { total, expiringSoon, expired, inactive }

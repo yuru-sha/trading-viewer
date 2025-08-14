@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Drawing Tools', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    
+
     // Wait for chart to load
     await expect(page.locator('[data-testid="chart-container"]')).toBeVisible()
     await page.waitForTimeout(2000)
@@ -90,7 +90,7 @@ test.describe('Drawing Tools', () => {
     // Start in drawing mode (default)
     const drawingModeButton = page.getByRole('button', { name: /drawing mode/i })
     const editingModeButton = page.getByRole('button', { name: /editing mode/i })
-    
+
     await expect(drawingModeButton).toHaveClass(/bg-blue-100/)
 
     // Switch to editing mode
@@ -133,7 +133,7 @@ test.describe('Drawing Tools', () => {
 
   test('should be able to toggle snap to price', async ({ page }) => {
     const snapButton = page.getByRole('button', { name: /snap to price/i })
-    
+
     // Initially enabled (default)
     await expect(snapButton).toHaveClass(/bg-blue-100/)
 
@@ -152,7 +152,7 @@ test.describe('Drawing Tools', () => {
     await trendlineButton.click()
 
     const chartCanvas = page.locator('canvas').first()
-    
+
     // Draw first line
     await chartCanvas.click({ position: { x: 200, y: 200 } })
     await chartCanvas.click({ position: { x: 300, y: 250 } })
@@ -193,7 +193,7 @@ test.describe('Drawing Tools', () => {
 
     // Verify line is selected (this might show handles or highlight)
     // The exact verification depends on your UI implementation
-    
+
     // Try to drag one of the endpoints
     await chartCanvas.hover({ position: { x: 200, y: 200 } })
     await page.mouse.down()
@@ -218,15 +218,15 @@ test.describe('Drawing Tools', () => {
     await editingModeButton.click()
 
     // Right-click on the line
-    await chartCanvas.click({ 
-      position: { x: 300, y: 250 }, 
-      button: 'right' 
+    await chartCanvas.click({
+      position: { x: 300, y: 250 },
+      button: 'right',
     })
 
     // Verify context menu appears
     const contextMenu = page.locator('[data-testid="drawing-context-menu"]')
     await expect(contextMenu).toBeVisible()
-    
+
     // Check menu options
     await expect(contextMenu.getByText(/delete/i)).toBeVisible()
     await expect(contextMenu.getByText(/duplicate/i)).toBeVisible()
@@ -270,25 +270,25 @@ test.describe('Drawing Tools', () => {
   test('should handle keyboard shortcuts', async ({ page }) => {
     // Test trendline shortcut (T key)
     await page.keyboard.press('t')
-    
+
     const trendlineButton = page.getByRole('button', { name: /trend line/i })
     await expect(trendlineButton).toHaveClass(/bg-blue-100/)
 
     // Test horizontal line shortcut (H key)
     await page.keyboard.press('h')
-    
+
     const horizontalButton = page.getByRole('button', { name: /horizontal line/i })
     await expect(horizontalButton).toHaveClass(/bg-blue-100/)
 
     // Test vertical line shortcut (V key)
     await page.keyboard.press('v')
-    
+
     const verticalButton = page.getByRole('button', { name: /vertical line/i })
     await expect(verticalButton).toHaveClass(/bg-blue-100/)
 
     // Test escape to deselect
     await page.keyboard.press('Escape')
-    
+
     await expect(trendlineButton).not.toHaveClass(/bg-blue-100/)
     await expect(horizontalButton).not.toHaveClass(/bg-blue-100/)
     await expect(verticalButton).not.toHaveClass(/bg-blue-100/)

@@ -26,7 +26,9 @@ const SearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [addingToWatchlist, setAddingToWatchlist] = useState<Set<string>>(new Set())
-  const [watchlistItems, setWatchlistItems] = useState<Array<{ symbol: string; name: string; addedAt: string }>>([])
+  const [watchlistItems, setWatchlistItems] = useState<
+    Array<{ symbol: string; name: string; addedAt: string }>
+  >([])
 
   // ユーザーのウォッチリストを取得
   const fetchWatchlist = async () => {
@@ -84,10 +86,10 @@ const SearchPage: React.FC = () => {
   const handleAddToWatchlist = async (symbol: string, name: string) => {
     try {
       setAddingToWatchlist(prev => new Set(prev).add(symbol))
-      
+
       const response = await apiService.post('/watchlist', {
         symbol: symbol.toUpperCase(),
-        name: name
+        name: name,
       })
 
       if (response.success) {
@@ -100,7 +102,7 @@ const SearchPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error adding to watchlist:', error)
-      
+
       // 409 Conflict (既に存在) の場合は情報メッセージとして扱う
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as any
@@ -112,7 +114,7 @@ const SearchPage: React.FC = () => {
           return
         }
       }
-      
+
       setError(error instanceof Error ? error.message : 'Failed to add to watchlist')
     } finally {
       setAddingToWatchlist(prev => {
@@ -293,7 +295,7 @@ const SearchPage: React.FC = () => {
                         {watchlistItems.some(w => w.symbol === result.symbol) ? (
                           <button
                             className='p-1.5 rounded-full transition-colors text-green-500'
-                            title="Already in watchlist"
+                            title='Already in watchlist'
                             disabled
                           >
                             <svg
@@ -322,12 +324,23 @@ const SearchPage: React.FC = () => {
                                 ? 'text-gray-300 cursor-not-allowed'
                                 : 'text-gray-400 hover:text-green-500'
                             }`}
-                            title="Add to watchlist"
+                            title='Add to watchlist'
                           >
                             {addingToWatchlist.has(result.symbol) ? (
-                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              <svg className='w-4 h-4 animate-spin' fill='none' viewBox='0 0 24 24'>
+                                <circle
+                                  className='opacity-25'
+                                  cx='12'
+                                  cy='12'
+                                  r='10'
+                                  stroke='currentColor'
+                                  strokeWidth='4'
+                                ></circle>
+                                <path
+                                  className='opacity-75'
+                                  fill='currentColor'
+                                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                                ></path>
                               </svg>
                             ) : (
                               <svg

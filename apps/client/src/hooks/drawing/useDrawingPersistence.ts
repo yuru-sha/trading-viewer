@@ -22,74 +22,92 @@ export const useDrawingPersistence = (
   const { symbol, timeframe, autoSave = true, autoSaveInterval = 2000 } = options
 
   // Generate storage key for current symbol and timeframe
-  const getStorageKey = useCallback((targetSymbol?: string, targetTimeframe?: string) => {
-    const symbolKey = targetSymbol || symbol || 'default'
-    const timeframeKey = targetTimeframe || timeframe || '1D'
-    return `${STORAGE_KEY_PREFIX}-${symbolKey}-${timeframeKey}`
-  }, [symbol, timeframe])
+  const getStorageKey = useCallback(
+    (targetSymbol?: string, targetTimeframe?: string) => {
+      const symbolKey = targetSymbol || symbol || 'default'
+      const timeframeKey = targetTimeframe || timeframe || '1D'
+      return `${STORAGE_KEY_PREFIX}-${symbolKey}-${timeframeKey}`
+    },
+    [symbol, timeframe]
+  )
 
   // Save tools to localStorage
-  const saveToLocalStorage = useCallback((targetSymbol?: string, targetTimeframe?: string) => {
-    try {
-      const key = getStorageKey(targetSymbol, targetTimeframe)
-      const data = {
-        version: '1.0',
-        timestamp: Date.now(),
-        symbol: targetSymbol || symbol,
-        timeframe: targetTimeframe || timeframe || '1D',
-        tools: tools
+  const saveToLocalStorage = useCallback(
+    (targetSymbol?: string, targetTimeframe?: string) => {
+      try {
+        const key = getStorageKey(targetSymbol, targetTimeframe)
+        const data = {
+          version: '1.0',
+          timestamp: Date.now(),
+          symbol: targetSymbol || symbol,
+          timeframe: targetTimeframe || timeframe || '1D',
+          tools: tools,
+        }
+        localStorage.setItem(key, JSON.stringify(data))
+        console.log(
+          `💾 Saved ${tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
+        )
+        return true
+      } catch (error) {
+        console.error('Failed to save drawing tools to localStorage:', error)
+        return false
       }
-      localStorage.setItem(key, JSON.stringify(data))
-      console.log(`💾 Saved ${tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`)
-      return true
-    } catch (error) {
-      console.error('Failed to save drawing tools to localStorage:', error)
-      return false
-    }
-  }, [tools, symbol, timeframe, getStorageKey])
+    },
+    [tools, symbol, timeframe, getStorageKey]
+  )
 
   // Load tools from localStorage
-  const loadFromLocalStorage = useCallback((targetSymbol?: string, targetTimeframe?: string) => {
-    try {
-      const key = getStorageKey(targetSymbol, targetTimeframe)
-      const stored = localStorage.getItem(key)
-      
-      if (!stored) {
-        console.log(`📂 No saved drawings found for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`)
+  const loadFromLocalStorage = useCallback(
+    (targetSymbol?: string, targetTimeframe?: string) => {
+      try {
+        const key = getStorageKey(targetSymbol, targetTimeframe)
+        const stored = localStorage.getItem(key)
+
+        if (!stored) {
+          console.log(
+            `📂 No saved drawings found for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
+          )
+          return []
+        }
+
+        const data = JSON.parse(stored)
+
+        // Validate data structure
+        if (!data.tools || !Array.isArray(data.tools)) {
+          console.warn('Invalid drawing data format in localStorage')
+          return []
+        }
+
+        console.log(
+          `📂 Loaded ${data.tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
+        )
+        return data.tools as DrawingTool[]
+      } catch (error) {
+        console.error('Failed to load drawing tools from localStorage:', error)
         return []
       }
-
-      const data = JSON.parse(stored)
-      
-      // Validate data structure
-      if (!data.tools || !Array.isArray(data.tools)) {
-        console.warn('Invalid drawing data format in localStorage')
-        return []
-      }
-
-      console.log(`📂 Loaded ${data.tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`)
-      return data.tools as DrawingTool[]
-    } catch (error) {
-      console.error('Failed to load drawing tools from localStorage:', error)
-      return []
-    }
-  }, [symbol, timeframe, getStorageKey])
+    },
+    [symbol, timeframe, getStorageKey]
+  )
 
   // Auto-restore on symbol and timeframe change
-  const restoreForSymbolAndTimeframe = useCallback((targetSymbol: string, targetTimeframe?: string) => {
-    const savedTools = loadFromLocalStorage(targetSymbol, targetTimeframe)
-    if (savedTools.length > 0) {
-      loadTools(savedTools)
-    } else {
-      // Clear current tools when switching to symbol/timeframe with no saved drawings
-      loadTools([])
-    }
-  }, [loadFromLocalStorage, loadTools])
+  const restoreForSymbolAndTimeframe = useCallback(
+    (targetSymbol: string, targetTimeframe?: string) => {
+      const savedTools = loadFromLocalStorage(targetSymbol, targetTimeframe)
+      if (savedTools.length > 0) {
+        loadTools(savedTools)
+      } else {
+        // Clear current tools when switching to symbol/timeframe with no saved drawings
+        loadTools([])
+      }
+    },
+    [loadFromLocalStorage, loadTools]
+  )
 
   // Get all saved symbol/timeframe combinations
   const getSavedCombinations = useCallback(() => {
     const combinations: { symbol: string; timeframe: string }[] = []
-    
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key?.startsWith(STORAGE_KEY_PREFIX)) {
@@ -106,7 +124,7 @@ export const useDrawingPersistence = (
         }
       }
     }
-    
+
     return combinations.sort((a, b) => {
       const symbolCompare = a.symbol.localeCompare(b.symbol)
       return symbolCompare !== 0 ? symbolCompare : a.timeframe.localeCompare(b.timeframe)
@@ -114,17 +132,20 @@ export const useDrawingPersistence = (
   }, [])
 
   // Delete saved data for a symbol and timeframe
-  const deleteSavedData = useCallback((targetSymbol: string, targetTimeframe?: string) => {
-    try {
-      const key = getStorageKey(targetSymbol, targetTimeframe)
-      localStorage.removeItem(key)
-      console.log(`🗑️ Deleted saved drawings for ${targetSymbol}:${targetTimeframe || '1D'}`)
-      return true
-    } catch (error) {
-      console.error('Failed to delete saved drawings:', error)
-      return false
-    }
-  }, [getStorageKey])
+  const deleteSavedData = useCallback(
+    (targetSymbol: string, targetTimeframe?: string) => {
+      try {
+        const key = getStorageKey(targetSymbol, targetTimeframe)
+        localStorage.removeItem(key)
+        console.log(`🗑️ Deleted saved drawings for ${targetSymbol}:${targetTimeframe || '1D'}`)
+        return true
+      } catch (error) {
+        console.error('Failed to delete saved drawings:', error)
+        return false
+      }
+    },
+    [getStorageKey]
+  )
 
   // Get statistics about saved data
   const getStorageStatistics = useCallback(() => {
@@ -152,7 +173,7 @@ export const useDrawingPersistence = (
       combinationCount: combinations.length,
       totalTools,
       totalSizeBytes: totalSize,
-      combinations
+      combinations,
     }
   }, [getSavedCombinations, getStorageKey])
 
@@ -182,12 +203,12 @@ export const useDrawingPersistence = (
     saveToLocalStorage,
     loadFromLocalStorage,
     restoreForSymbolAndTimeframe,
-    
+
     // Management operations
     deleteSavedData,
     getSavedCombinations,
     getStorageStatistics,
-    
+
     // Utilities
     getStorageKey,
   }

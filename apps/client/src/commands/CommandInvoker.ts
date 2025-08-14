@@ -80,7 +80,7 @@ export class CommandInvoker implements ICommandInvoker {
 
     try {
       const entry = this.history[this.currentIndex]
-      
+
       if (!entry.command.undo) {
         return false
       }
@@ -137,10 +137,12 @@ export class CommandInvoker implements ICommandInvoker {
    * Check if undo is possible
    */
   canUndo(): boolean {
-    return this.currentIndex >= 0 && 
-           this.history[this.currentIndex] && 
-           !this.history[this.currentIndex].undone &&
-           this.history[this.currentIndex].result.success
+    return (
+      this.currentIndex >= 0 &&
+      this.history[this.currentIndex] &&
+      !this.history[this.currentIndex].undone &&
+      this.history[this.currentIndex].result.success
+    )
   }
 
   /**
@@ -148,10 +150,12 @@ export class CommandInvoker implements ICommandInvoker {
    */
   canRedo(): boolean {
     const nextIndex = this.currentIndex + 1
-    return nextIndex < this.history.length && 
-           this.history[nextIndex] &&
-           this.history[nextIndex].undone &&
-           this.history[nextIndex].result.success
+    return (
+      nextIndex < this.history.length &&
+      this.history[nextIndex] &&
+      this.history[nextIndex].undone &&
+      this.history[nextIndex].result.success
+    )
   }
 
   /**
@@ -188,9 +192,7 @@ export class CommandInvoker implements ICommandInvoker {
    */
   cleanupHistory(maxAgeMs: number = 24 * 60 * 60 * 1000): void {
     const cutoffTime = Date.now() - maxAgeMs
-    const cutoffIndex = this.history.findIndex(entry => 
-      entry.command.timestamp > cutoffTime
-    )
+    const cutoffIndex = this.history.findIndex(entry => entry.command.timestamp > cutoffTime)
 
     if (cutoffIndex > 0) {
       this.history = this.history.slice(cutoffIndex)
@@ -203,7 +205,7 @@ export class CommandInvoker implements ICommandInvoker {
    */
   async executeSequence<T>(commands: ICommand<T>[]): Promise<CommandResult<T>[]> {
     const results: CommandResult<T>[] = []
-    
+
     for (const command of commands) {
       try {
         const result = await this.execute(command)
@@ -221,13 +223,16 @@ export class CommandInvoker implements ICommandInvoker {
    * Execute commands in parallel
    */
   async executeParallel<T>(commands: ICommand<T>[]): Promise<CommandResult<T>[]> {
-    const promises = commands.map(command => 
-      this.execute(command).catch(error => ({
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        executionTime: 0,
-        commandId: command.id,
-      } as CommandResult<T>))
+    const promises = commands.map(command =>
+      this.execute(command).catch(
+        error =>
+          ({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            executionTime: 0,
+            commandId: command.id,
+          }) as CommandResult<T>
+      )
     )
 
     return Promise.all(promises)
@@ -237,7 +242,7 @@ export class CommandInvoker implements ICommandInvoker {
    * Execute command with timeout
    */
   async executeWithTimeout<T>(
-    command: ICommand<T>, 
+    command: ICommand<T>,
     timeoutMs: number = UI_TIMEOUTS.DEFAULT_COMMAND
   ): Promise<CommandResult<T>> {
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -245,10 +250,7 @@ export class CommandInvoker implements ICommandInvoker {
     })
 
     try {
-      return await Promise.race([
-        this.execute(command),
-        timeoutPromise
-      ])
+      return await Promise.race([this.execute(command), timeoutPromise])
     } catch (error) {
       throw error
     }
@@ -263,17 +265,17 @@ export class CommandInvoker implements ICommandInvoker {
     initialDelay: number = 1000
   ): Promise<CommandResult<T>> {
     let lastError: Error | null = null
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await this.execute(command)
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error))
-        
+
         if (attempt < maxRetries) {
           const delay = initialDelay * Math.pow(2, attempt)
           await new Promise(resolve => setTimeout(resolve, delay))
-          
+
           // Create a new instance of the command for retry
           if ('clone' in command && typeof command.clone === 'function') {
             command = (command as any).clone()
@@ -293,14 +295,15 @@ export class CommandInvoker implements ICommandInvoker {
     const successful = this.history.filter(e => e.result.success).length
     const failed = total - successful
     const undone = this.history.filter(e => e.undone).length
-    
+
     const executionTimes = this.history
       .filter(e => e.result.success)
       .map(e => e.result.executionTime)
-    
-    const avgExecutionTime = executionTimes.length > 0 
-      ? executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length 
-      : 0
+
+    const avgExecutionTime =
+      executionTimes.length > 0
+        ? executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length
+        : 0
 
     const maxExecutionTime = executionTimes.length > 0 ? Math.max(...executionTimes) : 0
 

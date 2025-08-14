@@ -1,9 +1,9 @@
 import { BaseCommand } from './BaseCommand'
-import type { 
-  ChartSettingsParams, 
-  UpdateChartSettingsCommand, 
-  AddIndicatorCommand as IAddIndicatorCommand, 
-  RemoveIndicatorCommand as IRemoveIndicatorCommand 
+import type {
+  ChartSettingsParams,
+  UpdateChartSettingsCommand,
+  AddIndicatorCommand as IAddIndicatorCommand,
+  RemoveIndicatorCommand as IRemoveIndicatorCommand,
 } from '@trading-viewer/shared'
 
 /**
@@ -43,7 +43,10 @@ interface IChartContext {
 /**
  * Update Chart Settings Command
  */
-export class ChartSettingsCommand extends BaseCommand<void, ChartSettingsParams> implements UpdateChartSettingsCommand {
+export class ChartSettingsCommand
+  extends BaseCommand<void, ChartSettingsParams>
+  implements UpdateChartSettingsCommand
+{
   readonly type = 'UPDATE_CHART_SETTINGS'
   private context: IChartContext
   private previousSettings?: Partial<ChartState>
@@ -55,10 +58,10 @@ export class ChartSettingsCommand extends BaseCommand<void, ChartSettingsParams>
 
   protected async captureState(): Promise<Partial<ChartState>> {
     const currentState = this.context.getChartState()
-    
+
     // Only capture the settings that will be changed
     const settingsToCapture: Partial<ChartState> = {}
-    
+
     if (this.params.timeframe !== undefined) {
       settingsToCapture.timeframe = currentState.timeframe
     }
@@ -147,7 +150,10 @@ export class ChartSettingsCommand extends BaseCommand<void, ChartSettingsParams>
 /**
  * Add Indicator Command
  */
-export class AddIndicatorCommand extends BaseCommand<string, { type: string; params: Record<string, any> }> implements AddIndicatorCommand {
+export class AddIndicatorCommand
+  extends BaseCommand<string, { type: string; params: Record<string, any> }>
+  implements AddIndicatorCommand
+{
   readonly type = 'ADD_INDICATOR'
   private context: IChartContext
   private addedIndicatorId?: string
@@ -225,13 +231,13 @@ export class AddIndicatorCommand extends BaseCommand<string, { type: string; par
           return 'Period must be a positive number'
         }
         break
-      
+
       case 'RSI':
         if (!params.period || typeof params.period !== 'number' || params.period < 2) {
           return 'RSI period must be at least 2'
         }
         break
-      
+
       case 'BB':
         if (!params.period || typeof params.period !== 'number' || params.period < 2) {
           return 'Bollinger Bands period must be at least 2'
@@ -240,7 +246,7 @@ export class AddIndicatorCommand extends BaseCommand<string, { type: string; par
           return 'Standard deviation must be positive'
         }
         break
-      
+
       case 'MACD':
         if (!params.fastPeriod || !params.slowPeriod || !params.signalPeriod) {
           return 'MACD requires fastPeriod, slowPeriod, and signalPeriod'
@@ -255,7 +261,10 @@ export class AddIndicatorCommand extends BaseCommand<string, { type: string; par
 /**
  * Remove Indicator Command
  */
-export class RemoveIndicatorCommand extends BaseCommand<void, { id: string }> implements RemoveIndicatorCommand {
+export class RemoveIndicatorCommand
+  extends BaseCommand<void, { id: string }>
+  implements RemoveIndicatorCommand
+{
   readonly type = 'REMOVE_INDICATOR'
   private context: IChartContext
   private removedIndicator?: IndicatorConfig
@@ -314,7 +323,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
 
   async doExecute(): Promise<void> {
     this.executedCommands = []
-    
+
     for (const command of this.params.commands) {
       try {
         await command.execute()

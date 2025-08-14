@@ -5,7 +5,9 @@ import { ChartType } from '@trading-viewer/shared'
 import ChartContainer, { ChartContainerRef } from '../components/chart/ChartContainer'
 import ChartHeader from '../components/chart/ChartHeader'
 import ChartFooter from '../components/chart/ChartFooter'
-import ChartSettings, { ChartSettings as ChartSettingsType } from '../components/chart/ChartSettings'
+import ChartSettings, {
+  ChartSettings as ChartSettingsType,
+} from '../components/chart/ChartSettings'
 import { useChartControls } from '../hooks/useChartControls'
 import { useSymbolManagement } from '../hooks/useSymbolManagement'
 import { useIndicators } from '../hooks/useIndicators'
@@ -19,7 +21,10 @@ const ChartsPage: React.FC = () => {
   const [controlsState, controlsActions] = useChartControls('D', 'candle', 'UTC')
 
   // Symbol management hook with URL param as initial value
-  const [symbolState, symbolActions] = useSymbolManagement(symbolFromUrl, controlsState.selectedTimeframe)
+  const [symbolState, symbolActions] = useSymbolManagement(
+    symbolFromUrl,
+    controlsState.selectedTimeframe
+  )
 
   // Update symbol when URL changes
   useEffect(() => {
@@ -133,7 +138,9 @@ const ChartsPage: React.FC = () => {
           <div className='h-full flex items-center justify-center'>
             <div className='text-center'>
               <div className='animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mx-auto mb-4'></div>
-              <p className='text-gray-600 dark:text-gray-400'>Loading {symbolState.currentSymbol} chart...</p>
+              <p className='text-gray-600 dark:text-gray-400'>
+                Loading {symbolState.currentSymbol} chart...
+              </p>
             </div>
           </div>
         ) : symbolState.chartData.length > 0 ? (
@@ -147,7 +154,9 @@ const ChartsPage: React.FC = () => {
               isRealTime={true}
               onSymbolChange={symbolActions.handleSymbolChange}
               className='h-full'
-              chartType={controlsState.chartType === 'candlestick' ? 'candle' : controlsState.chartType}
+              chartType={
+                controlsState.chartType === 'candlestick' ? 'candle' : controlsState.chartType
+              }
               timeframe={controlsState.selectedTimeframe}
               showGridlines={chartSettings.showGridlines}
               showDrawingTools={showDrawingTools}
@@ -203,7 +212,6 @@ const ChartsPage: React.FC = () => {
           onTimezoneDropdownToggle={controlsActions.toggleTimezoneDropdown}
         />
       )}
-
     </div>
   )
 }

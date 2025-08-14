@@ -13,7 +13,7 @@ export interface ICommand<TResult = any, TParams = any> {
   readonly params: TParams
   readonly timestamp: number
   readonly canUndo: boolean
-  
+
   execute(): Promise<TResult> | TResult
   undo?(): Promise<void> | void
   redo?(): Promise<TResult> | TResult
@@ -56,7 +56,8 @@ export interface CreateDrawingCommand extends ICommand<string, DrawingCommandPar
   type: 'CREATE_DRAWING'
 }
 
-export interface UpdateDrawingCommand extends ICommand<void, { id: string; properties: Record<string, any> }> {
+export interface UpdateDrawingCommand
+  extends ICommand<void, { id: string; properties: Record<string, any> }> {
   type: 'UPDATE_DRAWING'
 }
 
@@ -78,7 +79,8 @@ export interface UpdateChartSettingsCommand extends ICommand<void, ChartSettings
   type: 'UPDATE_CHART_SETTINGS'
 }
 
-export interface AddIndicatorCommand extends ICommand<string, { type: string; params: Record<string, any> }> {
+export interface AddIndicatorCommand
+  extends ICommand<string, { type: string; params: Record<string, any> }> {
   type: 'ADD_INDICATOR'
 }
 
@@ -111,7 +113,7 @@ export interface BatchCommand extends ICommand<CommandResult[], { commands: ICom
 /**
  * Command Types Union
  */
-export type AppCommand = 
+export type AppCommand =
   | CreateDrawingCommand
   | UpdateDrawingCommand
   | DeleteDrawingCommand

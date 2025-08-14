@@ -15,7 +15,7 @@ interface DrawingContextMenuProps {
 
 const colorPresets = [
   '#3b82f6', // Blue
-  '#ef4444', // Red  
+  '#ef4444', // Red
   '#10b981', // Green
   '#f59e0b', // Orange
   '#8b5cf6', // Purple
@@ -64,7 +64,7 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
   const getMenuStyle = () => {
     const menuWidth = 200
     const menuHeight = showColorPicker ? 300 : 150
-    
+
     let left = x
     let top = y
 
@@ -89,7 +89,6 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
     setShowColorPicker(false)
     onClose()
   }
-
 
   const handleDelete = () => {
     onDelete()
@@ -153,7 +152,6 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
             </div>
           </div>
         )}
-
 
         {/* Duplicate */}
         {onDuplicate && (

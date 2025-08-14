@@ -51,7 +51,7 @@ export const useAlerts = ({
       const previousPrice = previousPriceRef.current
       const currentPriceValue = currentPrice
 
-      alerts.forEach((alert) => {
+      alerts.forEach(alert => {
         if (!alert.enabled || alert.triggeredAt) return
 
         let shouldTrigger = false
@@ -99,13 +99,7 @@ export const useAlerts = ({
       const response = await api.post(`/api/alerts/${alertId}/trigger`)
       if (response.ok) {
         // Update local state
-        setAlerts((prev) =>
-          prev.map((a) =>
-            a.id === alertId
-              ? { ...a, triggeredAt: new Date() }
-              : a
-          )
-        )
+        setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, triggeredAt: new Date() } : a)))
       }
     } catch (error) {
       console.error('Failed to trigger alert:', error)
@@ -121,12 +115,12 @@ export const useAlerts = ({
           const newAlert = {
             ...response.data.alert,
             createdAt: new Date(response.data.alert.createdAt),
-            triggeredAt: response.data.alert.triggeredAt 
-              ? new Date(response.data.alert.triggeredAt) 
+            triggeredAt: response.data.alert.triggeredAt
+              ? new Date(response.data.alert.triggeredAt)
               : undefined,
           }
-          
-          setAlerts((prev) => [...prev, newAlert])
+
+          setAlerts(prev => [...prev, newAlert])
           return newAlert
         }
       } catch (error) {
@@ -142,7 +136,7 @@ export const useAlerts = ({
     try {
       const response = await api.delete(`/api/alerts/${id}`)
       if (response.ok) {
-        setAlerts((prev) => prev.filter((alert) => alert.id !== id))
+        setAlerts(prev => prev.filter(alert => alert.id !== id))
         notifiedAlertsRef.current.delete(id)
       }
     } catch (error) {
@@ -151,46 +145,45 @@ export const useAlerts = ({
   }, [])
 
   // Toggle alert enabled/disabled
-  const toggleAlert = useCallback(async (id: string) => {
-    try {
-      const alert = alerts.find(a => a.id === id)
-      if (!alert) return
+  const toggleAlert = useCallback(
+    async (id: string) => {
+      try {
+        const alert = alerts.find(a => a.id === id)
+        if (!alert) return
 
-      const response = await api.put(`/api/alerts/${id}`, {
-        enabled: !alert.enabled,
-      })
-      
-      if (response.ok && response.data?.alert) {
-        const updatedAlert = {
-          ...response.data.alert,
-          createdAt: new Date(response.data.alert.createdAt),
-          triggeredAt: response.data.alert.triggeredAt 
-            ? new Date(response.data.alert.triggeredAt) 
-            : undefined,
+        const response = await api.put(`/api/alerts/${id}`, {
+          enabled: !alert.enabled,
+        })
+
+        if (response.ok && response.data?.alert) {
+          const updatedAlert = {
+            ...response.data.alert,
+            createdAt: new Date(response.data.alert.createdAt),
+            triggeredAt: response.data.alert.triggeredAt
+              ? new Date(response.data.alert.triggeredAt)
+              : undefined,
+          }
+
+          setAlerts(prev => prev.map(a => (a.id === id ? updatedAlert : a)))
+
+          // Reset notification state when re-enabling
+          if (updatedAlert.enabled) {
+            notifiedAlertsRef.current.delete(id)
+          }
         }
-        
-        setAlerts((prev) =>
-          prev.map((a) => a.id === id ? updatedAlert : a)
-        )
-        
-        // Reset notification state when re-enabling
-        if (updatedAlert.enabled) {
-          notifiedAlertsRef.current.delete(id)
-        }
+      } catch (error) {
+        console.error('Failed to toggle alert:', error)
       }
-    } catch (error) {
-      console.error('Failed to toggle alert:', error)
-    }
-  }, [alerts])
+    },
+    [alerts]
+  )
 
   // Clear all alerts
   const clearAlerts = useCallback(async () => {
     try {
       // Delete all alerts for this symbol
-      const deletePromises = alerts.map(alert => 
-        api.delete(`/api/alerts/${alert.id}`)
-      )
-      
+      const deletePromises = alerts.map(alert => api.delete(`/api/alerts/${alert.id}`))
+
       await Promise.all(deletePromises)
       setAlerts([])
       notifiedAlertsRef.current.clear()
@@ -203,31 +196,23 @@ export const useAlerts = ({
   const clearTriggeredAlerts = useCallback(async () => {
     try {
       const triggeredAlerts = alerts.filter(alert => alert.triggeredAt)
-      const deletePromises = triggeredAlerts.map(alert => 
-        api.delete(`/api/alerts/${alert.id}`)
-      )
-      
+      const deletePromises = triggeredAlerts.map(alert => api.delete(`/api/alerts/${alert.id}`))
+
       await Promise.all(deletePromises)
-      setAlerts((prev) => prev.filter((alert) => !alert.triggeredAt))
-      
+      setAlerts(prev => prev.filter(alert => !alert.triggeredAt))
+
       // Clear from notified set
-      triggeredAlerts.forEach((alert) => 
-        notifiedAlertsRef.current.delete(alert.id)
-      )
+      triggeredAlerts.forEach(alert => notifiedAlertsRef.current.delete(alert.id))
     } catch (error) {
       console.error('Failed to clear triggered alerts:', error)
     }
   }, [alerts])
 
   // Get active alerts count
-  const activeAlertsCount = alerts.filter(
-    (alert) => alert.enabled && !alert.triggeredAt
-  ).length
+  const activeAlertsCount = alerts.filter(alert => alert.enabled && !alert.triggeredAt).length
 
   // Get triggered alerts count
-  const triggeredAlertsCount = alerts.filter(
-    (alert) => alert.triggeredAt
-  ).length
+  const triggeredAlertsCount = alerts.filter(alert => alert.triggeredAt).length
 
   return {
     alerts,
@@ -244,11 +229,7 @@ export const useAlerts = ({
 }
 
 // Helper function to show browser notification
-async function showNotification(
-  alert: PriceAlert,
-  symbol: string,
-  currentPrice: number
-) {
+async function showNotification(alert: PriceAlert, symbol: string, currentPrice: number) {
   // Check if browser supports notifications
   if (!('Notification' in window)) {
     return
@@ -260,9 +241,7 @@ async function showNotification(
   }
 
   if (Notification.permission === 'granted') {
-    const typeLabel = 
-      alert.type === 'above' ? '以上' :
-      alert.type === 'below' ? '以下' : 'クロス'
+    const typeLabel = alert.type === 'above' ? '以上' : alert.type === 'below' ? '以下' : 'クロス'
 
     const notification = new Notification(`価格アラート: ${symbol}`, {
       body: `価格が $${alert.price} ${typeLabel}に達しました\n 現在価格: $${currentPrice.toFixed(2)}${

@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import { ERROR_TIMEOUTS } from '@shared'
-import { 
-  classifyError, 
-  errorRecoveryManager, 
-  createErrorReport, 
+import {
+  classifyError,
+  errorRecoveryManager,
+  createErrorReport,
   reportError,
-  type ErrorClassification 
+  type ErrorClassification,
 } from '../utils/errorRecovery'
 
 export interface ErrorInfo {
@@ -164,10 +164,10 @@ export const useErrorHandlers = () => {
     async (error: any, context?: string) => {
       // エラーを分類
       const classification = classifyError(error)
-      
+
       // エラーレポートを作成
       const errorReport = createErrorReport(error, context)
-      
+
       let title = 'API エラー'
       let message = 'サーバーとの通信中にエラーが発生しました。'
       let action: ErrorInfo['action'] | undefined
@@ -179,7 +179,7 @@ export const useErrorHandlers = () => {
         try {
           recoveryAttempted = true
           recoverySuccessful = await errorRecoveryManager.attemptRecovery(error, context)
-          
+
           if (recoverySuccessful) {
             // 回復成功時は警告レベルで表示
             return addError({
@@ -221,8 +221,10 @@ export const useErrorHandlers = () => {
             break
           case 403:
             // CSRF エラーの場合
-            if (error.response.data?.message?.includes('CSRF') || 
-                error.response.data?.error?.includes('CSRF')) {
+            if (
+              error.response.data?.message?.includes('CSRF') ||
+              error.response.data?.error?.includes('CSRF')
+            ) {
               title = 'セキュリティエラー'
               message = 'セキュリティトークンが無効です。'
               action = {

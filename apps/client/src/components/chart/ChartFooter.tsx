@@ -31,7 +31,7 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
       second: '2-digit',
       hour12: false,
     })
-    
+
     const parts = formatter.formatToParts(date)
     const year = parts.find(part => part.type === 'year')?.value
     const month = parts.find(part => part.type === 'month')?.value
@@ -39,9 +39,9 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
     const hour = parts.find(part => part.type === 'hour')?.value
     const minute = parts.find(part => part.type === 'minute')?.value
     const second = parts.find(part => part.type === 'second')?.value
-    
+
     const timezoneLabel = timezone
-    
+
     return `${year}/${month}/${day} ${hour}:${minute}:${second}(${timezoneLabel})`
   }
 

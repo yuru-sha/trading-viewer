@@ -76,8 +76,18 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
       type: 'fibonacci',
       icon: (
         <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 21l6-6m0 0l-6-6m6 6h12' />
-          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1} d='M9 3h6m-6 6h6m-6 6h6m-6 6h6' />
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth={2}
+            d='M3 21l6-6m0 0l-6-6m6 6h12'
+          />
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth={1}
+            d='M9 3h6m-6 6h6m-6 6h6m-6 6h6'
+          />
         </svg>
       ),
       label: 'Fibonacci',

@@ -21,32 +21,34 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'test-csrf-token' } })
+          json: async () => ({ data: { csrfToken: 'test-csrf-token' } }),
         })
         // Mock actual API request
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.add('AAPL', 'Apple Inc.')
 
       // Should have called CSRF endpoint first
       expect(mockFetch).toHaveBeenCalledTimes(2)
-      expect(mockFetch).toHaveBeenNthCalledWith(1, 
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
         expect.stringContaining('/auth/csrf-token'),
         expect.objectContaining({ credentials: 'include' })
       )
 
       // Second call should include CSRF token
-      expect(mockFetch).toHaveBeenNthCalledWith(2,
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'X-CSRF-Token': 'test-csrf-token'
-          })
+            'X-CSRF-Token': 'test-csrf-token',
+          }),
         })
       )
     })
@@ -55,15 +57,15 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'csrf-token-123' } })
+          json: async () => ({ data: { csrfToken: 'csrf-token-123' } }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.add('TSLA', 'Tesla Inc.')
 
       const postCall = mockFetch.mock.calls[1]
@@ -74,18 +76,18 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'csrf-token-456' } })
+          json: async () => ({ data: { csrfToken: 'csrf-token-456' } }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.updatePositions([
         { symbol: 'AAPL', position: 1 },
-        { symbol: 'TSLA', position: 2 }
+        { symbol: 'TSLA', position: 2 },
       ])
 
       const putCall = mockFetch.mock.calls[1]
@@ -96,15 +98,15 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'csrf-token-789' } })
+          json: async () => ({ data: { csrfToken: 'csrf-token-789' } }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.remove('AAPL')
 
       const deleteCall = mockFetch.mock.calls[1]
@@ -114,11 +116,11 @@ describe('CSRF Protection Tests', () => {
     it('should NOT include CSRF token in GET requests', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true, data: { watchlist: [] } })
+        json: async () => ({ success: true, data: { watchlist: [] } }),
       })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.get()
 
       expect(mockFetch).toHaveBeenCalledTimes(1)
@@ -132,13 +134,13 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'expired-token' } })
+          json: async () => ({ data: { csrfToken: 'expired-token' } }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 401,
           statusText: 'Unauthorized',
-          json: async () => ({ message: 'Token expired' })
+          json: async () => ({ message: 'Token expired' }),
         })
 
       const { api, clearCSRFToken } = await import('../../lib/apiClient')
@@ -158,13 +160,13 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'invalid-token' } })
+          json: async () => ({ data: { csrfToken: 'invalid-token' } }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 403,
           statusText: 'Forbidden',
-          json: async () => ({ message: 'CSRF token invalid' })
+          json: async () => ({ message: 'CSRF token invalid' }),
         })
 
       const { api, clearCSRFToken } = await import('../../lib/apiClient')
@@ -186,19 +188,19 @@ describe('CSRF Protection Tests', () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: { csrfToken: 'cached-token' } })
+          json: async () => ({ data: { csrfToken: 'cached-token' } }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ success: true })
+          json: async () => ({ success: true }),
         })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       // Make two POST requests
       await api.watchlist.add('AAPL', 'Apple Inc.')
       await api.watchlist.add('TSLA', 'Tesla Inc.')
@@ -213,11 +215,11 @@ describe('CSRF Protection Tests', () => {
     it('should include security headers in API requests', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true, data: { watchlist: [] } })
+        json: async () => ({ success: true, data: { watchlist: [] } }),
       })
 
       const { api } = await import('../../lib/apiClient')
-      
+
       await api.watchlist.get()
 
       const call = mockFetch.mock.calls[0]

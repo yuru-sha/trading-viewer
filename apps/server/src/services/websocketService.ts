@@ -49,7 +49,7 @@ export class WebSocketService extends EventEmitter {
       maxPayload: 16 * 1024, // 16KB
       perMessageDeflate: false,
       clientTracking: true,
-      verifyClient: (info) => this.verifyClient(info),
+      verifyClient: info => this.verifyClient(info),
     })
 
     this.wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
@@ -62,7 +62,7 @@ export class WebSocketService extends EventEmitter {
 
       const clientId = this.generateClientId()
       this.clients.set(ws, clientId)
-      
+
       // Initialize WebSocket properties
       ws.subscriptionCount = 0
       ws.authTimestamp = Date.now()
@@ -71,8 +71,8 @@ export class WebSocketService extends EventEmitter {
       try {
         const token = this.extractTokenFromRequest(req)
         if (token) {
-          const payload = jwt.verify(token, this.JWT_SECRET, { 
-            algorithms: ['HS256'] 
+          const payload = jwt.verify(token, this.JWT_SECRET, {
+            algorithms: ['HS256'],
           }) as any
           ws.userId = payload.userId
           ws.isAuthenticated = true
@@ -142,7 +142,11 @@ export class WebSocketService extends EventEmitter {
     console.log('WebSocket server initialized on /ws')
   }
 
-  private handleMessage(ws: AuthenticatedWebSocket, clientId: string, message: WebSocketMessage): void {
+  private handleMessage(
+    ws: AuthenticatedWebSocket,
+    clientId: string,
+    message: WebSocketMessage
+  ): void {
     switch (message.type) {
       case 'subscribe':
         if (message.symbol) {
@@ -225,7 +229,11 @@ export class WebSocketService extends EventEmitter {
     })
   }
 
-  private unsubscribeFromSymbol(ws: AuthenticatedWebSocket, clientId: string, symbol: string): void {
+  private unsubscribeFromSymbol(
+    ws: AuthenticatedWebSocket,
+    clientId: string,
+    symbol: string
+  ): void {
     const symbolSubscriptions = this.subscriptions.get(symbol)
     if (!symbolSubscriptions) return
 
@@ -233,12 +241,12 @@ export class WebSocketService extends EventEmitter {
     for (const subscription of symbolSubscriptions) {
       if (subscription.clientId === clientId && subscription.ws === ws) {
         symbolSubscriptions.delete(subscription)
-        
+
         // Decrement subscription count
         if (ws.subscriptionCount && ws.subscriptionCount > 0) {
           ws.subscriptionCount--
         }
-        
+
         break
       }
     }
@@ -249,7 +257,9 @@ export class WebSocketService extends EventEmitter {
       this.subscriptions.delete(symbol)
     }
 
-    console.log(`Client ${clientId} (user: ${ws.userId || 'anonymous'}) unsubscribed from ${symbol}`)
+    console.log(
+      `Client ${clientId} (user: ${ws.userId || 'anonymous'}) unsubscribed from ${symbol}`
+    )
 
     // Confirm unsubscription
     this.sendMessage(ws, {
@@ -286,9 +296,9 @@ export class WebSocketService extends EventEmitter {
     try {
       const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'
       const MOCK_REAL_TIME_UPDATES = process.env.MOCK_REAL_TIME_UPDATES === 'true'
-      
+
       let quote: any
-      
+
       if (USE_MOCK_DATA || MOCK_REAL_TIME_UPDATES) {
         // Use consistent mock data for development
         console.log(`🔄 WebSocket mock update for ${symbol}`)
@@ -560,20 +570,20 @@ export class WebSocketService extends EventEmitter {
    * Basic IP-based rate limiting for WebSocket connections
    */
   private connectionAttempts = new Map<string, { count: number; lastAttempt: number }>()
-  
+
   private isRateLimited(ip: string): boolean {
     const now = Date.now()
     const attempts = this.connectionAttempts.get(ip) || { count: 0, lastAttempt: 0 }
-    
+
     // Reset counter if more than 1 minute has passed
     if (now - attempts.lastAttempt > 60000) {
       attempts.count = 0
     }
-    
+
     attempts.count++
     attempts.lastAttempt = now
     this.connectionAttempts.set(ip, attempts)
-    
+
     // Allow max 10 connections per minute per IP
     return attempts.count > 10
   }
