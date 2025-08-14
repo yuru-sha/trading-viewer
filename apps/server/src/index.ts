@@ -9,6 +9,8 @@ import { createServer } from 'http'
 import { connectDatabase, disconnectDatabase, checkDatabaseHealth } from './lib/database.js'
 import marketRoutes from './routes/market'
 import authRoutes from './routes/auth'
+import alertRoutes from './routes/alerts'
+import watchlistRoutes from './routes/watchlist'
 import { requestLogger, errorLogger } from './middleware/logging'
 import { getWebSocketService } from './services/websocketService'
 import { securityHeaders } from './middleware/auth'
@@ -72,6 +74,8 @@ app.get('/health', async (_req, res) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/market', marketRoutes)
+app.use('/api/alerts', alertRoutes)
+app.use('/api/watchlist', watchlistRoutes)
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -95,6 +99,14 @@ app.get('/api', (_req, res) => {
         candles:
           'GET /api/market/candles/{symbol}?resolution={resolution}&from={timestamp}&to={timestamp}',
         rateLimit: 'GET /api/market/rate-limit',
+      },
+      alerts: {
+        list: 'GET /api/alerts',
+        listBySymbol: 'GET /api/alerts/{symbol}',
+        create: 'POST /api/alerts',
+        update: 'PUT /api/alerts/{id}',
+        delete: 'DELETE /api/alerts/{id}',
+        trigger: 'POST /api/alerts/{id}/trigger',
       },
       websocket: {
         endpoint: 'ws://localhost:' + PORT + '/ws',

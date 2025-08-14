@@ -8,17 +8,15 @@ datasource db {
 }
 
 model Symbol {
-  id          String   @id @default(cuid())
-  symbol      String   @unique
-  description String
-  displaySymbol String @map("display_symbol")
-  type        String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  candles     Candle[]
-  
+  id            String   @id @default(cuid())
+  symbol        String   @unique
+  description   String
+  displaySymbol String   @map("display_symbol")
+  type          String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  candles       Candle[]
+
   @@map("symbols")
 }
 
@@ -32,61 +30,120 @@ model Candle {
   close     Float
   volume    Int?
   createdAt DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  symbolRef Symbol @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
-  
+  symbolRef Symbol   @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
   @@unique([symbol, timestamp])
   @@index([symbol, timestamp])
   @@map("candles")
 }
 
 model UserPreferences {
-  id          String   @id @default(cuid())
-  userId      String   @unique @map("user_id")
-  theme       String   @default("dark")
-  chartType   String   @default("candlestick") @map("chart_type")
-  timeframe   String   @default("1D")
-  indicators  String   @default("[]")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
+  id         String   @id @default(cuid())
+  userId     String   @unique @map("user_id")
+  theme      String   @default("dark")
+  chartType  String   @default("candlestick") @map("chart_type")
+  timeframe  String   @default("1D")
+  indicators String   @default("[]")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
   @@map("user_preferences")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  drawingTools DrawingTool[]
-  
+  id               String         @id @default(cuid())
+  email            String         @unique
+  passwordHash     String         @default("") @map("password_hash")
+  name             String?
+  firstName        String?        @map("first_name")
+  lastName         String?        @map("last_name")
+  avatar           String?
+  role             String         @default("user")
+  isEmailVerified  Boolean        @default(false) @map("is_email_verified")
+  failedLoginCount Int            @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?      @map("locked_until")
+  lastLoginAt      DateTime?      @map("last_login_at")
+  isActive         Boolean        @default(true) @map("is_active")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  drawingTools     DrawingTool[]
+  refreshTokens    RefreshToken[]
+  priceAlerts      PriceAlert[]
+  watchlists       Watchlist[]
+
+  @@index([failedLoginCount])
+  @@index([lockedUntil])
+  @@index([isActive])
   @@map("users")
 }
 
 model DrawingTool {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  symbol         String
+  type           String
+  points         String
+  style          String
+  text           String?
+  locked         Boolean   @default(false)
+  visible        Boolean   @default(true)
+  expiresAt      DateTime? @map("expires_at")
+  lastAccessedAt DateTime  @default(now()) @map("last_accessed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([expiresAt])
+  @@index([lastAccessedAt])
+  @@map("drawing_tools")
+}
+
+model PriceAlert {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  symbol      String
+  type        String    // 'above', 'below', 'crosses'
+  price       Float
+  message     String?
+  enabled     Boolean   @default(true)
+  triggeredAt DateTime? @map("triggered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([enabled])
+  @@map("price_alerts")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([userId])
+  @@index([isRevoked])
+  @@map("refresh_tokens")
+}
+
+model Watchlist {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   symbol    String
-  type      String   // trendline, horizontal, vertical, rectangle, circle, arrow, text
-  points    String   // JSON array of DrawingPoint[] 
-  style     String   // JSON of DrawingStyle
-  text      String?  // For text tools
-  locked    Boolean  @default(false)
-  visible   Boolean  @default(true)
-  expiresAt DateTime? @map("expires_at") // Automatic deletion date (default: 30 days)
-  lastAccessedAt DateTime @default(now()) @map("last_accessed_at") // Track usage for cleanup
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // Relations
+  name      String
+  position  Int      @default(0)
+  addedAt   DateTime @default(now()) @map("added_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId, symbol])
-  @@index([expiresAt]) // Index for cleanup queries
-  @@index([lastAccessedAt]) // Index for usage-based cleanup
-  @@map("drawing_tools")
+
+  @@unique([userId, symbol])
+  @@index([userId])
+  @@index([symbol])
+  @@index([userId, position])
+  @@map("watchlists")
 }

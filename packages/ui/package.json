@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "@trading-viewer/shared": "workspace:*",
-    "clsx": "^2.0.0"
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.539.0"
   },
   "peerDependencies": {
     "react": "^18.0.0",

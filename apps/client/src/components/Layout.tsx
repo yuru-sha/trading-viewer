@@ -1,14 +1,15 @@
 import React, { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp, useAppActions } from '../contexts/AppContext'
+import { useAuth } from '../contexts/AuthContext'
 import { Button } from '@trading-viewer/ui'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
 import ErrorDisplay from './ErrorDisplay'
 import SkeletonLoader from './SkeletonLoader'
-import { Tooltip, HelpTooltip } from './Tooltip'
 import Onboarding from './Onboarding'
 import { useOnboarding, createTradingViewerOnboarding } from '../hooks/useOnboarding'
 import Icon from './Icon'
+import UserDropdown from './UserDropdown'
 
 interface LayoutProps {
   children: ReactNode
@@ -17,6 +18,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { state } = useApp()
   const { setTheme, clearAppError } = useAppActions()
+  const { user } = useAuth()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
@@ -30,11 +32,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   })
 
   // WCAG 2.1 準拠のフォーカス管理
-  const { containerRef, announceToScreenReader } = useFocusManagement({
+  const focusManagement = useFocusManagement({
     trapFocus: false,
     restoreFocus: true,
     skipLinks: true,
   })
+  const containerRef = focusManagement.containerRef as React.RefObject<HTMLDivElement>
+  const announceToScreenReader = focusManagement.announceToScreenReader
 
   // スキップリンク定義
   const skipLinks = [
@@ -45,10 +49,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navigation = [
     {
-      name: 'Home',
-      href: '/',
-      current: location.pathname === '/',
-      iconName: 'home' as const,
+      name: 'Watchlist',
+      href: '/watchlist',
+      current: location.pathname === '/watchlist' || location.pathname === '/',
+      iconName: 'heart' as const,
     },
     {
       name: 'Dashboard',
@@ -69,11 +73,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       iconName: 'search' as const,
     },
     {
-      name: 'Watchlist',
-      href: '/watchlist',
-      current: location.pathname === '/watchlist',
-      iconName: 'heart' as const,
+      name: 'Alerts',
+      href: '/alerts',
+      current: location.pathname === '/alerts',
+      iconName: 'bell' as const,
     },
+    ...(user?.role === 'admin' ? [{
+      name: 'Users',
+      href: '/admin/users',
+      current: location.pathname === '/admin/users',
+      iconName: 'users' as const,
+    }] : []),
   ]
 
   const toggleTheme = () => {
@@ -158,7 +168,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className='p-2 border-2 border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                className='p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200'
                 aria-label={`Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme`}
                 title={`Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme`}
               >
@@ -168,52 +178,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 />
               </button>
 
-              {/* Help Menu */}
-              <Tooltip
-                content={
-                  <div className='space-y-2'>
-                    <button
-                      onClick={onboarding.start}
-                      className='block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300'
-                      disabled={!onboarding.canStart}
-                    >
-                      🎯 Take Tour
-                    </button>
-                    <button
-                      onClick={() => window.open('https://github.com/your-repo/help', '_blank')}
-                      className='block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300'
-                    >
-                      📚 Help Center
-                    </button>
-                    <hr className='border-gray-300 dark:border-gray-600' />
-                    <div className='px-2 py-1 text-xs text-gray-500 dark:text-gray-400'>
-                      Press ? for keyboard shortcuts
-                    </div>
-                  </div>
-                }
-                trigger='click'
-                placement='bottom'
-                className='min-w-[160px]'
-              >
-                <button
-                  className='p-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all duration-200 hidden md:flex shadow-sm hover:shadow-md'
-                  aria-label='Help and support'
-                >
-                  <svg
-                    className='w-4 h-4 md:w-5 md:h-5'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                    />
-                  </svg>
-                </button>
-              </Tooltip>
+              {/* User Dropdown Menu */}
+              {user && <UserDropdown onboardingId='user-menu' />}
 
               {/* Mobile menu button */}
               <div className='lg:hidden'>

@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from 'react'
 import { useErrorHandlers } from './ErrorContext'
@@ -12,6 +13,7 @@ import { useErrorHandlers } from './ErrorContext'
 export interface User {
   id: string
   email: string
+  name?: string
   role: 'user' | 'admin'
   isEmailVerified: boolean
   createdAt: string
@@ -68,126 +70,97 @@ interface AuthContextValue extends AuthState {
   changePassword: (data: ChangePasswordData) => Promise<void>
   deleteAccount: () => Promise<void>
   clearAuth: () => void
+  getCSRFToken: () => Promise<string>
 }
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api'
-
-// Token storage keys
-const ACCESS_TOKEN_KEY = 'auth_access_token'
-const REFRESH_TOKEN_KEY = 'auth_refresh_token'
-const USER_KEY = 'auth_user'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 // Create context
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-// Token management utilities
-class TokenManager {
-  private refreshPromise: Promise<void> | null = null
-  private refreshTimer: NodeJS.Timeout | null = null
-
-  static setTokens(tokens: AuthTokens): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
-    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
-  }
-
-  static getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
-  }
-
-  static getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
-  }
-
-  static clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
-  }
-
-  static setUser(user: User): void {
-    localStorage.setItem(USER_KEY, JSON.stringify(user))
-  }
-
-  static getUser(): User | null {
+// Cookie-based authentication helper
+class AuthHelper {
+  // Check authentication status via server (httpOnly cookies)
+  static async checkAuthStatus(): Promise<{ isAuthenticated: boolean; user?: User }> {
     try {
-      const userData = localStorage.getItem(USER_KEY)
-      return userData ? JSON.parse(userData) : null
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        credentials: 'include', // Include httpOnly cookies
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.user) {
+          return { isAuthenticated: true, user: data.data.user }
+        }
+      }
+      return { isAuthenticated: false }
     } catch {
-      return null
-    }
-  }
-
-  static isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return Date.now() >= payload.exp * 1000
-    } catch {
-      return true
-    }
-  }
-
-  static getTokenExpirationTime(token: string): number | null {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.exp * 1000
-    } catch {
-      return null
-    }
-  }
-
-  setupAutoRefresh(refreshCallback: () => Promise<void>): void {
-    const accessToken = TokenManager.getAccessToken()
-    if (!accessToken) return
-
-    const expirationTime = TokenManager.getTokenExpirationTime(accessToken)
-    if (!expirationTime) return
-
-    // Refresh token 5 minutes before expiration
-    const refreshTime = expirationTime - Date.now() - 5 * 60 * 1000
-
-    if (refreshTime > 0) {
-      this.refreshTimer = setTimeout(() => {
-        refreshCallback().catch(console.error)
-      }, refreshTime)
-    }
-  }
-
-  clearAutoRefresh(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer)
-      this.refreshTimer = null
-    }
-  }
-
-  async refresh(refreshCallback: () => Promise<void>): Promise<void> {
-    // Prevent multiple simultaneous refresh attempts
-    if (this.refreshPromise) {
-      return this.refreshPromise
-    }
-
-    this.refreshPromise = refreshCallback()
-
-    try {
-      await this.refreshPromise
-    } finally {
-      this.refreshPromise = null
+      return { isAuthenticated: false }
     }
   }
 }
 
-// HTTP client with automatic token handling
+// HTTP client with httpOnly cookie authentication
 class AuthApiClient {
+  private csrfToken: string | null = null
+
   constructor(
-    private onTokenRefresh: () => Promise<void>,
     private onAuthError: () => void,
     private handleApiError: (error: any, context?: string) => void
   ) {}
+
+  // CSRF token management
+  private async ensureCSRFToken(): Promise<string> {
+    if (!this.csrfToken) {
+      await this.refreshCSRFToken()
+    }
+    return this.csrfToken!
+  }
+
+  async refreshCSRFToken(): Promise<string> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/csrf-token`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.onAuthError()
+        }
+        throw new Error('Failed to get CSRF token')
+      }
+
+      const data = await response.json()
+      if (data.success && data.data?.csrfToken) {
+        this.csrfToken = data.data.csrfToken
+        return this.csrfToken
+      }
+
+      throw new Error('Invalid CSRF token response')
+    } catch (error) {
+      this.csrfToken = null
+      throw error
+    }
+  }
+
+  clearCSRFToken(): void {
+    this.csrfToken = null
+  }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
 
     const config: RequestInit = {
+      credentials: 'include', // Always include httpOnly cookies
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -195,12 +168,17 @@ class AuthApiClient {
       ...options,
     }
 
-    // Add auth header if token exists
-    const accessToken = TokenManager.getAccessToken()
-    if (accessToken) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${accessToken}`,
+    // Add CSRF token for state-changing operations
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase() || 'GET')) {
+      try {
+        const csrfToken = await this.ensureCSRFToken()
+        config.headers = {
+          ...config.headers,
+          'x-csrf-token': csrfToken,
+        }
+      } catch (error) {
+        // If CSRF token fetch fails, proceed without it (will likely get 403)
+        console.warn('Failed to get CSRF token:', error)
       }
     }
 
@@ -208,26 +186,30 @@ class AuthApiClient {
       const response = await fetch(url, config)
 
       if (!response.ok) {
-        // Handle 401 errors with token refresh
-        if (response.status === 401 && accessToken) {
-          try {
-            await this.onTokenRefresh()
+        // Handle 401 errors - no manual token refresh needed with httpOnly cookies
+        if (response.status === 401) {
+          this.clearCSRFToken()
+          this.onAuthError()
+        }
 
-            // Retry with new token
-            const newToken = TokenManager.getAccessToken()
-            if (newToken) {
-              config.headers = {
+        // Handle 403 CSRF errors - try to refresh CSRF token once
+        if (response.status === 403 && this.csrfToken) {
+          try {
+            await this.refreshCSRFToken()
+            // Retry the request with new CSRF token
+            const retryConfig = {
+              ...config,
+              headers: {
                 ...config.headers,
-                Authorization: `Bearer ${newToken}`,
-              }
-              const retryResponse = await fetch(url, config)
-              if (retryResponse.ok) {
-                return await retryResponse.json()
-              }
+                'x-csrf-token': this.csrfToken,
+              },
             }
-          } catch (refreshError) {
-            this.onAuthError()
-            throw refreshError
+            const retryResponse = await fetch(url, retryConfig)
+            if (retryResponse.ok) {
+              return await retryResponse.json()
+            }
+          } catch (retryError) {
+            console.warn('CSRF token refresh retry failed:', retryError)
           }
         }
 
@@ -278,10 +260,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   })
 
   const { handleApiError, handleNetworkError } = useErrorHandlers()
-  const tokenManager = new TokenManager()
-
-  // Initialize API client
-  const apiClient = new AuthApiClient(refreshTokens, clearAuth, handleApiError)
 
   // Clear auth state
   const clearAuth = useCallback(() => {
@@ -291,68 +269,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isLoading: false,
       tokens: null,
     })
-    TokenManager.clearTokens()
-    tokenManager.clearAutoRefresh()
-  }, [tokenManager])
+  }, [])
 
-  // Refresh tokens
-  const refreshTokens = useCallback(async (): Promise<void> => {
-    const refreshToken = TokenManager.getRefreshToken()
-    if (!refreshToken) {
-      clearAuth()
-      return
-    }
-
+  // Check authentication status (httpOnly cookie-based)
+  const checkAuthStatus = useCallback(async (): Promise<void> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      })
-
-      if (!response.ok) {
-        clearAuth()
-        return
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.data) {
-        const {
-          user,
-          accessToken,
-          refreshToken: newRefreshToken,
-          accessTokenExpiresAt,
-          refreshTokenExpiresAt,
-        } = data.data
-
-        const tokens: AuthTokens = {
-          accessToken,
-          refreshToken: newRefreshToken,
-          accessTokenExpiresAt,
-          refreshTokenExpiresAt,
-        }
-
-        TokenManager.setTokens(tokens)
-        TokenManager.setUser(user)
-
+      const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
+      
+      if (isAuthenticated && user) {
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
-          tokens,
+          tokens: null,
         })
-
-        // Setup auto refresh for new token
-        tokenManager.setupAutoRefresh(refreshTokens)
       } else {
         clearAuth()
       }
     } catch (error) {
-      handleNetworkError(error, 'token refresh')
       clearAuth()
     }
-  }, [clearAuth, handleNetworkError, tokenManager])
+  }, [clearAuth])
+
+  // Initialize API client
+  const apiClient = useMemo(() => new AuthApiClient(clearAuth, handleApiError), [clearAuth, handleApiError])
 
   // Login
   const login = useCallback(
@@ -360,31 +300,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({ ...prev, isLoading: true }))
 
       try {
-        const data = await apiClient.post<any>('/auth/login', credentials)
+        // Use direct fetch for login to avoid token dependencies
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(credentials),
+        })
 
-        if (data.success && data.data) {
-          const { user, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-            data.data
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw { response: { status: response.status, data: errorData } }
+        }
 
-          const tokens: AuthTokens = {
-            accessToken,
-            refreshToken,
-            accessTokenExpiresAt,
-            refreshTokenExpiresAt,
-          }
+        const data = await response.json()
 
-          TokenManager.setTokens(tokens)
-          TokenManager.setUser(user)
+        if (data.success && data.data?.user) {
+          const { user } = data.data
 
           setAuthState({
             user,
             isAuthenticated: true,
             isLoading: false,
-            tokens,
+            tokens: null,
           })
 
-          // Setup auto refresh
-          tokenManager.setupAutoRefresh(refreshTokens)
+          // Pre-fetch CSRF token for future requests
+          try {
+            await apiClient.refreshCSRFToken()
+          } catch (csrfError) {
+            console.warn('Failed to fetch CSRF token after login:', csrfError)
+          }
+        } else {
+          throw new Error('Invalid login response')
         }
       } catch (error) {
         setAuthState(prev => ({ ...prev, isLoading: false }))
@@ -392,7 +340,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw error
       }
     },
-    [apiClient, handleApiError, tokenManager, refreshTokens]
+    [handleApiError, apiClient]
   )
 
   // Register
@@ -403,29 +351,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const response = await apiClient.post<any>('/auth/register', data)
 
-        if (response.success && response.data) {
-          const { user, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-            response.data
-
-          const tokens: AuthTokens = {
-            accessToken,
-            refreshToken,
-            accessTokenExpiresAt,
-            refreshTokenExpiresAt,
-          }
-
-          TokenManager.setTokens(tokens)
-          TokenManager.setUser(user)
+        if (response.success && response.data?.user) {
+          const { user } = response.data
 
           setAuthState({
             user,
             isAuthenticated: true,
             isLoading: false,
-            tokens,
+            tokens: null,
           })
-
-          // Setup auto refresh
-          tokenManager.setupAutoRefresh(refreshTokens)
         }
       } catch (error) {
         setAuthState(prev => ({ ...prev, isLoading: false }))
@@ -433,7 +367,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw error
       }
     },
-    [apiClient, handleApiError, tokenManager, refreshTokens]
+    [apiClient, handleApiError]
   )
 
   // Logout
@@ -441,7 +375,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await apiClient.post('/auth/logout')
     } catch (error) {
-      // Continue with logout even if API call fails
       console.warn('Logout API call failed:', error)
     } finally {
       clearAuth()
@@ -456,7 +389,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (response.success && response.data?.user) {
           const updatedUser = response.data.user
-          TokenManager.setUser(updatedUser)
 
           setAuthState(prev => ({
             ...prev,
@@ -476,7 +408,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     async (data: ChangePasswordData): Promise<void> => {
       try {
         await apiClient.post('/auth/change-password', data)
-        // Password change logs out the user
         clearAuth()
       } catch (error) {
         handleApiError(error, 'password change')
@@ -500,70 +431,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Initialize auth state on mount
   useEffect(() => {
     const initAuth = async () => {
-      const accessToken = TokenManager.getAccessToken()
-      const refreshToken = TokenManager.getRefreshToken()
-      const user = TokenManager.getUser()
-
-      if (!accessToken || !refreshToken || !user) {
-        setAuthState(prev => ({ ...prev, isLoading: false }))
-        return
-      }
-
-      // Check if access token is still valid
-      if (TokenManager.isTokenExpired(accessToken)) {
-        // Try to refresh
-        try {
-          await tokenManager.refresh(refreshTokens)
-        } catch (error) {
-          console.warn('Failed to refresh token on init:', error)
-          clearAuth()
-        }
-      } else {
-        // Token is still valid
-        const accessTokenExpiresAt =
-          TokenManager.getTokenExpirationTime(accessToken)?.toString() || ''
-        const refreshTokenExpiresAt =
-          TokenManager.getTokenExpirationTime(refreshToken)?.toString() || ''
-
-        const tokens: AuthTokens = {
-          accessToken,
-          refreshToken,
-          accessTokenExpiresAt,
-          refreshTokenExpiresAt,
-        }
-
+      // Check authentication status via server (httpOnly cookies)
+      const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
+      
+      if (isAuthenticated && user) {
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
-          tokens,
+          tokens: null,
         })
-
-        // Setup auto refresh
-        tokenManager.setupAutoRefresh(refreshTokens)
+      } else {
+        setAuthState(prev => ({ ...prev, isLoading: false }))
       }
     }
 
     initAuth()
-  }, [tokenManager, refreshTokens, clearAuth])
+  }, [])
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      tokenManager.clearAutoRefresh()
-    }
-  }, [tokenManager])
-
+  // Get CSRF token
+  const getCSRFToken = useCallback(async (): Promise<string> => {
+    return await apiClient.refreshCSRFToken()
+  }, [apiClient])
   const value: AuthContextValue = {
     ...authState,
     login,
     register,
     logout,
-    refreshTokens,
+    refreshTokens: checkAuthStatus, // Use checkAuthStatus instead of refreshTokens
     updateProfile,
     changePassword,
     deleteAccount,
     clearAuth,
+    getCSRFToken,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

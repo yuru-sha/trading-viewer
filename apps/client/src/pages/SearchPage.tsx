@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button, Input, Loading } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
+import { apiService } from '../services/base/ApiService'
 
 interface SearchResult {
   description: string
@@ -24,6 +25,37 @@ const SearchPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [addingToWatchlist, setAddingToWatchlist] = useState<Set<string>>(new Set())
+  const [watchlistItems, setWatchlistItems] = useState<Array<{ symbol: string; name: string; addedAt: string }>>([])
+
+  // ユーザーのウォッチリストを取得
+  const fetchWatchlist = async () => {
+    try {
+      const response = await apiService.get('/watchlist')
+      if (response.success && response.data?.watchlist) {
+        setWatchlistItems(response.data.watchlist)
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist:', error)
+    }
+  }
+
+  // ウォッチリストから削除
+  const handleRemoveFromWatchlist = async (symbol: string) => {
+    try {
+      const response = await apiService.delete(`/watchlist/${symbol}`)
+      if (response.success) {
+        // ウォッチリストを再取得して表示を更新
+        await fetchWatchlist()
+        console.log(`Removed ${symbol} from watchlist`)
+      } else {
+        setError(`Failed to remove ${symbol} from watchlist`)
+      }
+    } catch (error) {
+      console.error('Error removing from watchlist:', error)
+      setError(error instanceof Error ? error.message : 'Failed to remove from watchlist')
+    }
+  }
 
   const performSearch = async (query: string) => {
     if (!query.trim()) {
@@ -49,6 +81,48 @@ const SearchPage: React.FC = () => {
     }
   }
 
+  const handleAddToWatchlist = async (symbol: string, name: string) => {
+    try {
+      setAddingToWatchlist(prev => new Set(prev).add(symbol))
+      
+      const response = await apiService.post('/watchlist', {
+        symbol: symbol.toUpperCase(),
+        name: name
+      })
+
+      if (response.success) {
+        setError(null)
+        // ウォッチリストを再取得して表示を更新
+        await fetchWatchlist()
+        console.log(`Added ${symbol} to watchlist`)
+      } else {
+        setError(`Failed to add ${symbol} to watchlist`)
+      }
+    } catch (error) {
+      console.error('Error adding to watchlist:', error)
+      
+      // 409 Conflict (既に存在) の場合は情報メッセージとして扱う
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as any
+        if (apiError.response?.status === 409) {
+          console.log(`${symbol} is already in watchlist`)
+          // 既に追加済みの場合はエラーではなく、リストを更新するだけ
+          await fetchWatchlist()
+          setError(null) // エラーメッセージをクリア
+          return
+        }
+      }
+      
+      setError(error instanceof Error ? error.message : 'Failed to add to watchlist')
+    } finally {
+      setAddingToWatchlist(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(symbol)
+        return newSet
+      })
+    }
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     performSearch(searchQuery)
@@ -61,6 +135,11 @@ const SearchPage: React.FC = () => {
       window.location.href = '/charts'
     }, 100)
   }
+
+  // 初期ロード時にウォッチリストを取得
+  useEffect(() => {
+    fetchWatchlist()
+  }, [])
 
   // Debounced search
   useEffect(() => {
@@ -211,55 +290,68 @@ const SearchPage: React.FC = () => {
                         </button>
 
                         {/* Watchlist button */}
-                        <button
-                          onClick={e => {
-                            e.stopPropagation()
-                            if (state.watchlist.includes(result.symbol)) {
-                              removeFromWatchlist(result.symbol)
-                            } else {
-                              addToWatchlist(result.symbol)
-                            }
-                          }}
-                          className={`p-1.5 rounded-full transition-colors ${
-                            state.watchlist.includes(result.symbol)
-                              ? 'text-green-500 hover:text-green-600'
-                              : 'text-gray-400 hover:text-green-500'
-                          }`}
-                          title={
-                            state.watchlist.includes(result.symbol)
-                              ? 'Remove from watchlist'
-                              : 'Add to watchlist'
-                          }
-                        >
-                          <svg
-                            className='w-4 h-4'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
+                        {watchlistItems.some(w => w.symbol === result.symbol) ? (
+                          <button
+                            className='p-1.5 rounded-full transition-colors text-green-500'
+                            title="Already in watchlist"
+                            disabled
                           >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d={
-                                state.watchlist.includes(result.symbol)
-                                  ? 'M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'
-                                  : 'M12 6v6m0 0v6m0-6h6m-6 0H6'
-                              }
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              className='w-4 h-4'
+                              fill='none'
+                              stroke='currentColor'
+                              viewBox='0 0 24 24'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M5 13l4 4L19 7'
+                              />
+                            </svg>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleAddToWatchlist(result.symbol, result.description)
+                            }}
+                            disabled={addingToWatchlist.has(result.symbol)}
+                            className={`p-1.5 rounded-full transition-colors ${
+                              addingToWatchlist.has(result.symbol)
+                                ? 'text-gray-300 cursor-not-allowed'
+                                : 'text-gray-400 hover:text-green-500'
+                            }`}
+                            title="Add to watchlist"
+                          >
+                            {addingToWatchlist.has(result.symbol) ? (
+                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <svg
+                                className='w-4 h-4'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                              >
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M12 6v6m0 0v6m0-6h6m-6 0H6'
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        )}
 
                         {/* Status indicators */}
                         <div className='flex items-center space-x-1'>
                           {state.favorites.includes(result.symbol) && (
                             <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'>
                               ★
-                            </span>
-                          )}
-                          {state.watchlist.includes(result.symbol) && (
-                            <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
-                              W
                             </span>
                           )}
                           {state.selectedSymbol === result.symbol && (
@@ -315,7 +407,7 @@ const SearchPage: React.FC = () => {
       )}
 
       {/* Watchlist and Favorites */}
-      {(state.watchlist.length > 0 || state.favorites.length > 0) && !hasSearched && (
+      {(watchlistItems.length > 0 || state.favorites.length > 0) && !hasSearched && (
         <div className='mb-8 space-y-6'>
           {/* Favorites */}
           {state.favorites.length > 0 && (
@@ -363,7 +455,7 @@ const SearchPage: React.FC = () => {
           )}
 
           {/* Watchlist */}
-          {state.watchlist.length > 0 && (
+          {watchlistItems.length > 0 && (
             <div>
               <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
                 <svg
@@ -379,25 +471,25 @@ const SearchPage: React.FC = () => {
                     d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
                   />
                 </svg>
-                Watchlist ({state.watchlist.length})
+                Watchlist ({watchlistItems.length})
               </h2>
               <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3'>
-                {state.watchlist.map(symbol => (
+                {watchlistItems.map(item => (
                   <div
-                    key={symbol}
+                    key={item.symbol}
                     className='bg-white dark:bg-gray-800 shadow rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-green-400'
-                    onClick={() => handleSymbolSelect(symbol)}
+                    onClick={() => handleSymbolSelect(item.symbol)}
                   >
                     <div className='flex items-center justify-between'>
                       <div>
                         <h3 className='text-sm font-medium text-gray-900 dark:text-white'>
-                          {symbol}
+                          {item.symbol}
                         </h3>
                       </div>
                       <button
                         onClick={e => {
                           e.stopPropagation()
-                          removeFromWatchlist(symbol)
+                          handleRemoveFromWatchlist(item.symbol)
                         }}
                         className='text-green-500 hover:text-green-600 transition-colors'
                         title='Remove from watchlist'
@@ -447,59 +539,23 @@ const SearchPage: React.FC = () => {
                     <p className='text-sm text-gray-600 dark:text-gray-400'>{item.name}</p>
                   </div>
                   <div className='flex items-center space-x-2'>
-                    {/* Favorites button */}
-                    <button
-                      onClick={e => {
-                        e.stopPropagation()
-                        if (state.favorites.includes(item.symbol)) {
-                          removeFromFavorites(item.symbol)
-                        } else {
-                          addToFavorites(item.symbol)
-                        }
-                      }}
-                      className={`p-1.5 rounded-full transition-colors ${
-                        state.favorites.includes(item.symbol)
-                          ? 'text-yellow-500 hover:text-yellow-600'
-                          : 'text-gray-400 hover:text-yellow-500'
-                      }`}
-                      title={
-                        state.favorites.includes(item.symbol)
-                          ? 'Remove from favorites'
-                          : 'Add to favorites'
-                      }
-                    >
-                      <svg
-                        className='w-4 h-4'
-                        fill={state.favorites.includes(item.symbol) ? 'currentColor' : 'none'}
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'
-                        />
-                      </svg>
-                    </button>
-
                     {/* Watchlist button */}
                     <button
                       onClick={e => {
                         e.stopPropagation()
-                        if (state.watchlist.includes(item.symbol)) {
-                          removeFromWatchlist(item.symbol)
+                        if (watchlistItems.some(w => w.symbol === item.symbol)) {
+                          handleRemoveFromWatchlist(item.symbol)
                         } else {
-                          addToWatchlist(item.symbol)
+                          handleAddToWatchlist(item.symbol, item.name)
                         }
                       }}
                       className={`p-1.5 rounded-full transition-colors ${
-                        state.watchlist.includes(item.symbol)
+                        watchlistItems.some(w => w.symbol === item.symbol)
                           ? 'text-green-500 hover:text-green-600'
                           : 'text-gray-400 hover:text-green-500'
                       }`}
                       title={
-                        state.watchlist.includes(item.symbol)
+                        watchlistItems.some(w => w.symbol === item.symbol)
                           ? 'Remove from watchlist'
                           : 'Add to watchlist'
                       }
@@ -515,7 +571,7 @@ const SearchPage: React.FC = () => {
                           strokeLinejoin='round'
                           strokeWidth={2}
                           d={
-                            state.watchlist.includes(item.symbol)
+                            watchlistItems.some(w => w.symbol === item.symbol)
                               ? 'M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'
                               : 'M12 6v6m0 0v6m0-6h6m-6 0H6'
                           }
@@ -525,12 +581,7 @@ const SearchPage: React.FC = () => {
 
                     {/* Status indicators */}
                     <div className='flex items-center space-x-1'>
-                      {state.favorites.includes(item.symbol) && (
-                        <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'>
-                          ★
-                        </span>
-                      )}
-                      {state.watchlist.includes(item.symbol) && (
+                      {watchlistItems.some(w => w.symbol === item.symbol) && (
                         <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
                           W
                         </span>

@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import { ERROR_TIMEOUTS } from '@shared'
+import { 
+  classifyError, 
+  errorRecoveryManager, 
+  createErrorReport, 
+  reportError,
+  type ErrorClassification 
+} from '../utils/errorRecovery'
 
 export interface ErrorInfo {
   id: string
@@ -16,6 +23,12 @@ export interface ErrorInfo {
   timestamp: Date
   source?: 'api' | 'websocket' | 'client' | 'network'
   details?: any
+  // Enhanced error handling
+  classification?: ErrorClassification
+  recoveryAttempted?: boolean
+  recoverySuccessful?: boolean
+  retryCount?: number
+  context?: string
 }
 
 interface ErrorContextValue {
@@ -148,13 +161,52 @@ export const useErrorHandlers = () => {
   const { addError } = useError()
 
   const handleApiError = useCallback(
-    (error: any, context?: string) => {
+    async (error: any, context?: string) => {
+      // エラーを分類
+      const classification = classifyError(error)
+      
+      // エラーレポートを作成
+      const errorReport = createErrorReport(error, context)
+      
       let title = 'API エラー'
       let message = 'サーバーとの通信中にエラーが発生しました。'
       let action: ErrorInfo['action'] | undefined
+      let recoveryAttempted = false
+      let recoverySuccessful = false
 
+      // 自動回復を試行（回復可能なエラーの場合）
+      if (classification.isRecoverable && !classification.userActionRequired) {
+        try {
+          recoveryAttempted = true
+          recoverySuccessful = await errorRecoveryManager.attemptRecovery(error, context)
+          
+          if (recoverySuccessful) {
+            // 回復成功時は警告レベルで表示
+            return addError({
+              type: 'warning',
+              title: '問題を自動解決しました',
+              message: `一時的な問題が発生しましたが、自動的に回復しました。${context ? `(${context})` : ''}`,
+              classification,
+              recoveryAttempted,
+              recoverySuccessful,
+              context,
+              autoHide: true,
+              duration: ERROR_TIMEOUTS.WARNING_NOTIFICATION,
+              source: 'api',
+              details: error,
+            })
+          }
+        } catch (recoveryError) {
+          console.warn('Error recovery failed:', recoveryError)
+        }
+      }
+
+      // HTTPステータスに基づくエラーメッセージ
       if (error?.response?.status) {
-        switch (error.response.status) {
+        const status = error.response.status
+        const retryCount = errorRecoveryManager.getRetryCount('retryRequest')
+
+        switch (status) {
           case 400:
             title = 'リクエストエラー'
             message = '入力データに問題があります。'
@@ -168,8 +220,21 @@ export const useErrorHandlers = () => {
             }
             break
           case 403:
-            title = 'アクセス拒否'
-            message = 'この操作を実行する権限がありません。'
+            // CSRF エラーの場合
+            if (error.response.data?.message?.includes('CSRF') || 
+                error.response.data?.error?.includes('CSRF')) {
+              title = 'セキュリティエラー'
+              message = 'セキュリティトークンが無効です。'
+              action = {
+                label: '再試行',
+                onClick: async () => {
+                  await errorRecoveryManager.attemptRecovery(error, context)
+                },
+              }
+            } else {
+              title = 'アクセス拒否'
+              message = 'この操作を実行する権限がありません。'
+            }
             break
           case 404:
             title = 'リソースが見つかりません'
@@ -177,15 +242,25 @@ export const useErrorHandlers = () => {
             break
           case 429:
             title = 'レート制限'
-            message = 'リクエスト数が上限に達しました。しばらく待ってから再試行してください。'
-            action = {
-              label: '再試行',
-              onClick: () => window.location.reload(),
+            message = `リクエスト数が上限に達しました。${retryCount > 0 ? `(再試行 ${retryCount}回目)` : 'しばらく待ってから再試行してください。'}`
+            if (retryCount < 3) {
+              action = {
+                label: '再試行',
+                onClick: async () => {
+                  await errorRecoveryManager.attemptRecovery(error, context)
+                },
+              }
             }
             break
           case 500:
             title = 'サーバーエラー'
             message = 'サーバー側でエラーが発生しました。'
+            action = {
+              label: '再試行',
+              onClick: async () => {
+                await errorRecoveryManager.attemptRecovery(error, context)
+              },
+            }
             break
           case 502:
           case 503:
@@ -194,7 +269,9 @@ export const useErrorHandlers = () => {
             message = 'サービスが一時的に利用できません。'
             action = {
               label: '再試行',
-              onClick: () => window.location.reload(),
+              onClick: async () => {
+                await errorRecoveryManager.attemptRecovery(error, context)
+              },
             }
             break
         }
@@ -204,6 +281,13 @@ export const useErrorHandlers = () => {
         message += ` (${context})`
       }
 
+      // エラーレポートを送信
+      await reportError({
+        ...errorReport,
+        recoveryAttempted,
+        recoverySuccessful,
+      })
+
       return addError({
         type: 'error',
         title,
@@ -211,6 +295,11 @@ export const useErrorHandlers = () => {
         action,
         source: 'api',
         details: error,
+        classification,
+        recoveryAttempted,
+        recoverySuccessful,
+        retryCount: errorRecoveryManager.getRetryCount('retryRequest'),
+        context,
       })
     },
     [addError]
@@ -369,7 +458,7 @@ export class ErrorBoundary extends React.Component<
               <p className='text-sm text-gray-600'>
                 申し訳ございません。予期しないエラーが発生しました。ページを再読み込みしてください。
               </p>
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className='mt-4 text-xs text-gray-500'>
                   <summary>エラー詳細</summary>
                   <pre className='mt-2 whitespace-pre-wrap break-words'>

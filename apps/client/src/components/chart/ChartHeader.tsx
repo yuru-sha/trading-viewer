@@ -17,12 +17,14 @@ import {
   User,
   LogIn,
   LogOut,
+  Bell,
 } from 'lucide-react'
 import { ChartType, POPULAR_SYMBOLS, CHART_TIMEFRAMES } from '@trading-viewer/shared'
 import { useApp, useAppActions } from '../../contexts/AppContext'
 import { useAuth } from '../../contexts/AuthContext'
 import SymbolSearch from '../SymbolSearch'
 import ChartSettings, { ChartSettings as ChartSettingsType } from './ChartSettings'
+import UserDropdown from '../UserDropdown'
 
 interface ChartHeaderProps {
   currentSymbol: string
@@ -50,6 +52,10 @@ interface ChartHeaderProps {
   onToggleDrawingTools?: () => void
   showFooter?: boolean
   onToggleFooter?: () => void
+  // Alert props
+  currentPrice?: number
+  onOpenAlerts?: () => void
+  activeAlertsCount?: number
 }
 
 const ChartHeader: React.FC<ChartHeaderProps> = ({
@@ -78,10 +84,14 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   onToggleDrawingTools,
   showFooter,
   onToggleFooter,
+  // Alert props
+  currentPrice,
+  onOpenAlerts,
+  activeAlertsCount,
 }) => {
   const { state } = useApp()
   const { setTheme } = useAppActions()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated } = useAuth()
 
   const toggleTheme = () => {
     setTheme(state.theme === 'dark' ? 'light' : 'dark')
@@ -296,6 +306,22 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 
           {/* Right - Action Buttons */}
           <div className='flex items-center space-x-1'>
+            {/* Alert Button */}
+            {onOpenAlerts && (
+              <button
+                onClick={onOpenAlerts}
+                className='relative flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+                title='Price Alerts'
+              >
+                <Bell className='w-4 h-4' />
+                {activeAlertsCount && activeAlertsCount > 0 && (
+                  <span className='absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center'>
+                    {activeAlertsCount > 9 ? '9+' : activeAlertsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             {/* Save Button */}
             <button
               onClick={onSaveTemplate}
@@ -399,19 +425,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
             <div className='mx-2 h-5 w-px bg-gray-300 dark:bg-gray-600'></div>
             
             {isAuthenticated && user ? (
-              <div className='flex items-center space-x-2'>
-                <div className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300'>
-                  <User className='w-4 h-4 mr-2' />
-                  <span className='text-sm font-medium'>{user.email}</span>
-                </div>
-                <button
-                  onClick={() => logout()}
-                  className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
-                  title='Logout'
-                >
-                  <LogOut className='w-4 h-4' />
-                </button>
-              </div>
+              <UserDropdown />
             ) : (
               <button
                 onClick={() => window.open('/login', '_blank')}

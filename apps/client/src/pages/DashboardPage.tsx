@@ -102,7 +102,7 @@ const DashboardPage: React.FC = () => {
                           : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       }`}
                     >
-                      {healthStatus.status}
+                      {healthStatus.status === 'ok' ? 'OK' : healthStatus.status}
                     </span>
                   </div>
 
@@ -115,7 +115,7 @@ const DashboardPage: React.FC = () => {
                           : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       }`}
                     >
-                      {healthStatus.database}
+                      {healthStatus.database === 'connected' ? 'Connected' : healthStatus.database}
                     </span>
                   </div>
 

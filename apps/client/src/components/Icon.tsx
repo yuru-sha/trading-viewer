@@ -16,6 +16,7 @@ import {
   Pause,
   Settings,
   User,
+  Users,
   LogIn,
   LogOut,
   Eye,
@@ -39,6 +40,7 @@ import {
   Loader,
   Target,
   BookOpen,
+  Bell,
 } from 'lucide-react'
 
 // アイコンマップ - 汎用的なアイコンコンポーネント
@@ -50,6 +52,8 @@ const iconMap = {
   barChart3: BarChart3,
   search: Search,
   heart: Heart,
+  bell: Bell,
+  users: Users,
   helpCircle: HelpCircle,
   menu: Menu,
   x: X,

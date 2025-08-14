@@ -12,10 +12,15 @@ import {
   rateLimitAuth,
   clearAuthAttempts,
   requireAuth,
+  requireCSRF,
   AuthenticatedRequest,
   COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
+  CSRF_TOKEN_COOKIE,
+  generateCSRFToken,
+  revokeAllUserCSRFTokens,
 } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError, ConflictError } from '../middleware/errorHandling'
@@ -24,20 +29,27 @@ import { requirePermission, requireAdmin, ResourceType, Action } from '../middle
 
 const router = Router()
 
+// Database integration with Prisma
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+
 // Mock user database (in production, use proper database)
 interface User {
   id: string
   email: string
   passwordHash: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  avatar?: string
   role: 'user' | 'admin'
   isEmailVerified: boolean
+  failedLoginCount: number
+  lockedUntil?: Date
+  lastLoginAt?: Date
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
-  profile?: {
-    firstName?: string
-    lastName?: string
-    avatar?: string
-  }
 }
 
 const users: Map<string, User> = new Map()
@@ -86,14 +98,67 @@ const generateUserId = (): string => {
   return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
+// Security configuration
+const MAX_LOGIN_ATTEMPTS = 5
+const LOCK_TIME = 15 * 60 * 1000 // 15 minutes
+
+// Helper function to check if account is locked
+const isAccountLocked = (user: User): boolean => {
+  return !!(user.lockedUntil && user.lockedUntil > new Date())
+}
+
+// Helper function to increment failed login attempts
+const incrementFailedLogin = async (userId: string): Promise<void> => {
+  try {
+    const result = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        failedLoginCount: { increment: 1 }
+      }
+    })
+
+    // Lock account if max attempts reached
+    if (result.failedLoginCount >= MAX_LOGIN_ATTEMPTS) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          lockedUntil: new Date(Date.now() + LOCK_TIME)
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Failed to increment login attempts:', error)
+  }
+}
+
+// Helper function to reset failed login attempts
+const resetFailedLogin = async (userId: string): Promise<void> => {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        failedLoginCount: 0,
+        lockedUntil: null,
+        lastLoginAt: new Date()
+      }
+    })
+  } catch (error) {
+    console.error('Failed to reset login attempts:', error)
+  }
+}
+
 // Helper function to create user response (without password)
 const createUserResponse = (user: User) => ({
   id: user.id,
   email: user.email,
+  name: user.name,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  avatar: user.avatar,
   role: user.role,
   isEmailVerified: user.isEmailVerified,
+  lastLoginAt: user.lastLoginAt,
   createdAt: user.createdAt,
-  profile: user.profile || {},
 })
 
 // POST /api/auth/register
@@ -104,7 +169,11 @@ router.post(
     const { email, password, firstName, lastName } = req.body
 
     // Check if user already exists
-    if (usersByEmail.has(email)) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
+    
+    if (existingUser) {
       throw new ConflictError('User with this email already exists')
     }
 
@@ -123,24 +192,36 @@ router.post(
     // Hash password
     const passwordHash = await hashPassword(password)
 
-    // Create user
-    const userId = generateUserId()
-    const user: User = {
-      id: userId,
-      email,
-      passwordHash,
-      role: 'user',
-      isEmailVerified: false, // In production, implement email verification
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      profile: {
+    // Create user in database
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
         firstName,
         lastName,
-      },
-    }
+        role: 'user',
+        isEmailVerified: false, // In production, implement email verification
+        failedLoginCount: 0,
+        isActive: true,
+      }
+    })
 
-    users.set(userId, user)
-    usersByEmail.set(email, user)
+    // Create default watchlist with tech giants
+    const defaultWatchlist = [
+      { symbol: 'AAPL', name: 'Apple Inc.' },
+      { symbol: 'MSFT', name: 'Microsoft Corporation' },
+      { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+      { symbol: 'AMZN', name: 'Amazon.com Inc.' },
+      { symbol: 'NVDA', name: 'NVIDIA Corporation' },
+    ]
+
+    await prisma.watchlist.createMany({
+      data: defaultWatchlist.map(item => ({
+        userId: user.id,
+        symbol: item.symbol,
+        name: item.name,
+      }))
+    })
 
     // Log registration event
     securityLogger.logRequest(
@@ -148,25 +229,19 @@ router.post(
       SecurityEventType.REGISTER,
       `New user registered: ${email}`,
       SecuritySeverity.INFO,
-      { userId, email }
+      { userId: user.id, email }
     )
 
     // Generate tokens
-    const tokens = generateTokens({
+    const tokens = await generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
     })
 
     // Set cookies
-    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    })
-    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    })
+    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, COOKIE_OPTIONS)
+    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
 
     res.status(201).json({
       success: true,
@@ -193,44 +268,52 @@ router.post(
       rateLimitAuth(email)
 
       // Find user
-      const user = usersByEmail.get(email)
+      const user = await prisma.user.findUnique({
+        where: { email }
+      })
+      
       if (!user) {
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'User not found')
         throw new UnauthorizedError('Invalid email or password')
       }
 
+      // Check if account is active
+      if (!user.isActive) {
+        securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'Account deactivated')
+        throw new UnauthorizedError('Account has been deactivated')
+      }
+
+      // Check if account is locked
+      if (isAccountLocked(user)) {
+        securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'Account locked')
+        throw new UnauthorizedError(`Account is locked. Try again after ${user.lockedUntil?.toLocaleTimeString()}`)
+      }
+
       // Verify password
       const isValidPassword = await comparePassword(password, user.passwordHash)
       if (!isValidPassword) {
+        await incrementFailedLogin(user.id)
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'Invalid password')
         throw new UnauthorizedError('Invalid email or password')
       }
 
       // Clear failed attempts on successful login
+      await resetFailedLogin(user.id)
       clearAuthAttempts(email)
 
       // Log successful login
       securityLogger.logAuthSuccess(req as AuthenticatedRequest, user.id, email)
 
-      // Update last login
-      user.updatedAt = new Date()
-
       // Generate tokens
-      const tokens = generateTokens({
+      const tokens = await generateTokens({
         userId: user.id,
         email: user.email,
         role: user.role,
       })
 
       // Set cookies
-      res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: 15 * 60 * 1000, // 15 minutes
-      })
-      res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      })
+      res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, COOKIE_OPTIONS)
+      res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
 
       res.json({
         success: true,
@@ -273,7 +356,7 @@ router.post(
     }
 
     // Verify refresh token
-    const { userId } = verifyRefreshToken(refreshToken)
+    const { userId } = await verifyRefreshToken(refreshToken)
 
     // Log token refresh
     securityLogger.logRequest(
@@ -284,37 +367,43 @@ router.post(
     )
 
     // Find user
-    const user = users.get(userId)
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    })
     if (!user) {
       revokeRefreshToken(refreshToken)
       throw new UnauthorizedError('User not found')
     }
 
     // Revoke old refresh token
-    revokeRefreshToken(refreshToken)
+    await revokeRefreshToken(refreshToken)
 
     // Generate new tokens
-    const tokens = generateTokens({
+    const tokens = await generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
     })
 
     // Set new cookies
-    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    })
-    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-      ...COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    })
+    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, COOKIE_OPTIONS)
+    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
 
     res.json({
       success: true,
       message: 'Tokens refreshed successfully',
       data: {
-        user: createUserResponse(user),
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: user.is_email_verified,
+          createdAt: user.createdAt,
+          profile: {
+            firstName: user.first_name,
+            lastName: user.last_name,
+          },
+        },
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
         refreshTokenExpiresAt: tokens.refreshTokenExpiresAt,
       },
@@ -354,7 +443,9 @@ router.get(
   '/me',
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const user = users.get(req.user!.userId)
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId }
+    })
     if (!user) {
       throw new UnauthorizedError('User not found')
     }
@@ -362,7 +453,34 @@ router.get(
     res.json({
       success: true,
       data: {
-        user: createUserResponse(user),
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          isEmailVerified: user.is_email_verified,
+          createdAt: user.createdAt,
+          profile: {
+            firstName: user.first_name,
+            lastName: user.last_name,
+          },
+        },
+      },
+    })
+  })
+)
+
+// GET /api/auth/csrf-token
+router.get(
+  '/csrf-token',
+  requireAuth,
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const csrfToken = generateCSRFToken(req.user!.userId)
+    
+    res.json({
+      success: true,
+      data: {
+        csrfToken,
       },
     })
   })
@@ -372,6 +490,7 @@ router.get(
 router.put(
   '/profile',
   requireAuth,
+  requireCSRF,
   requirePermission(ResourceType.USER_PROFILE, Action.UPDATE, req => req.user!.userId),
   validateRequest(updateProfileSchema),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {

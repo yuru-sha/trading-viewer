@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { UnauthorizedError, ForbiddenError } from './errorHandling'
 
 // JWT payload interface
@@ -35,30 +36,43 @@ const JWT_REFRESH_SECRET =
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m'
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d'
 
-// Cookie configuration
+// Cookie configuration with environment-based security
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  secure: process.env.NODE_ENV === 'production', // Enable secure in production
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax' as const,
   path: '/',
+  maxAge: 15 * 60 * 1000, // 15 minutes for access token
+}
+
+export const REFRESH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax' as const,
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
 }
 
 export const ACCESS_TOKEN_COOKIE = 'access_token'
 export const REFRESH_TOKEN_COOKIE = 'refresh_token'
+export const CSRF_TOKEN_COOKIE = 'csrf_token'
 
 // Token blacklist (in-memory store - in production, use Redis)
 const tokenBlacklist = new Set<string>()
 const refreshTokenStore = new Map<string, { userId: string; version: number; createdAt: Date }>()
 
+// CSRF token store (in-memory - in production, use Redis)
+const csrfTokenStore = new Map<string, { userId: string; expiresAt: Date }>()
+
 // JWT utilities
-export const generateTokens = (
+export const generateTokens = async (
   payload: Omit<JWTPayload, 'iat' | 'exp'>
-): {
+): Promise<{
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: Date
   refreshTokenExpiresAt: Date
-} => {
+}> => {
   const accessTokenExpiresAt = new Date()
   const refreshTokenExpiresAt = new Date()
 
@@ -86,13 +100,23 @@ export const generateTokens = (
     expiresIn: JWT_REFRESH_EXPIRES_IN,
   })
 
-  // Store refresh token
-  const tokenVersion = Date.now()
-  refreshTokenStore.set(refreshToken, {
-    userId: payload.userId,
-    version: tokenVersion,
-    createdAt: new Date(),
-  })
+  // Store refresh token in database
+  try {
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+    
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: payload.userId,
+        expiresAt: refreshTokenExpiresAt,
+        isRevoked: false,
+      }
+    })
+  } catch (error) {
+    console.error('Failed to store refresh token:', error)
+    throw new Error('Token generation failed')
+  }
 
   return {
     accessToken,
@@ -120,29 +144,42 @@ export const verifyAccessToken = (token: string): JWTPayload => {
   }
 }
 
-export const verifyRefreshToken = (token: string): { userId: string } => {
-  const storedToken = refreshTokenStore.get(token)
-  if (!storedToken) {
-    throw new UnauthorizedError('Invalid refresh token')
-  }
-
+export const verifyRefreshToken = async (token: string): Promise<{ userId: string }> => {
   try {
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as { userId: string }
 
-    // Verify stored token matches
+    // Check if token exists in database and is not revoked
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+    
+    const storedToken = await prisma.refreshToken.findUnique({
+      where: { token }
+    })
+
+    if (!storedToken) {
+      throw new UnauthorizedError('Invalid refresh token')
+    }
+
+    if (storedToken.isRevoked) {
+      throw new UnauthorizedError('Refresh token has been revoked')
+    }
+
+    if (storedToken.expiresAt < new Date()) {
+      throw new UnauthorizedError('Refresh token has expired')
+    }
+
     if (decoded.userId !== storedToken.userId) {
       throw new UnauthorizedError('Token mismatch')
     }
 
     return decoded
   } catch (error) {
-    // Remove invalid token from store
-    refreshTokenStore.delete(token)
-
     if (error instanceof jwt.TokenExpiredError) {
       throw new UnauthorizedError('Refresh token has expired')
     } else if (error instanceof jwt.JsonWebTokenError) {
       throw new UnauthorizedError('Invalid refresh token')
+    } else if (error instanceof UnauthorizedError) {
+      throw error
     }
     throw new UnauthorizedError('Refresh token verification failed')
   }
@@ -157,16 +194,34 @@ export const revokeToken = (token: string): void => {
   }
 }
 
-export const revokeRefreshToken = (token: string): void => {
-  refreshTokenStore.delete(token)
+export const revokeRefreshToken = async (token: string): Promise<void> => {
+  try {
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+    
+    await prisma.refreshToken.update({
+      where: { token },
+      data: { isRevoked: true }
+    })
+  } catch (error) {
+    console.error('Failed to revoke refresh token:', error)
+  }
 }
 
-export const revokeAllUserTokens = (userId: string): void => {
-  // Remove all refresh tokens for the user
-  for (const [token, data] of refreshTokenStore.entries()) {
-    if (data.userId === userId) {
-      refreshTokenStore.delete(token)
-    }
+export const revokeAllUserTokens = async (userId: string): Promise<void> => {
+  try {
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+    
+    await prisma.refreshToken.updateMany({
+      where: { 
+        userId,
+        isRevoked: false 
+      },
+      data: { isRevoked: true }
+    })
+  } catch (error) {
+    console.error('Failed to revoke user tokens:', error)
   }
 }
 
@@ -347,6 +402,35 @@ export const requireRole = (...roles: Array<'user' | 'admin'>) => {
   }
 }
 
+// CSRF protection middleware
+export const requireCSRF = (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
+  try {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required')
+    }
+
+    // Skip CSRF check for GET requests (they should be idempotent)
+    if (req.method === 'GET') {
+      next()
+      return
+    }
+
+    const csrfToken = req.headers['x-csrf-token'] as string
+    
+    if (!csrfToken) {
+      throw new ForbiddenError('CSRF token is required')
+    }
+
+    if (!verifyCSRFToken(csrfToken, req.user.userId)) {
+      throw new ForbiddenError('Invalid CSRF token')
+    }
+
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
 // Rate limiting for authentication attempts
 const authAttempts = new Map<string, { count: number; lastAttempt: Date }>()
 const MAX_AUTH_ATTEMPTS = 5
@@ -395,6 +479,46 @@ export const rateLimitAuth = (identifier: string): void => {
 
 export const clearAuthAttempts = (identifier: string): void => {
   authAttempts.delete(identifier)
+}
+
+// CSRF Token utilities
+export const generateCSRFToken = (userId: string): string => {
+  const token = crypto.randomBytes(32).toString('hex')
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+  
+  csrfTokenStore.set(token, { userId, expiresAt })
+  return token
+}
+
+export const verifyCSRFToken = (token: string, userId: string): boolean => {
+  const storedData = csrfTokenStore.get(token)
+  
+  if (!storedData) {
+    return false
+  }
+  
+  if (storedData.userId !== userId) {
+    return false
+  }
+  
+  if (storedData.expiresAt < new Date()) {
+    csrfTokenStore.delete(token)
+    return false
+  }
+  
+  return true
+}
+
+export const revokeCSRFToken = (token: string): void => {
+  csrfTokenStore.delete(token)
+}
+
+export const revokeAllUserCSRFTokens = (userId: string): void => {
+  for (const [token, data] of csrfTokenStore.entries()) {
+    if (data.userId === userId) {
+      csrfTokenStore.delete(token)
+    }
+  }
 }
 
 // Security headers middleware with strict CSP
