@@ -592,14 +592,14 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
     return (
       <div className={`relative ${className}`}>
         {priceStats && (
-          <div className='absolute top-3 left-3 z-10 bg-black bg-opacity-50 text-white px-3 py-2 rounded text-xs'>
+          <div className='absolute top-3 left-3 z-10 bg-white bg-opacity-95 dark:bg-black dark:bg-opacity-50 text-gray-800 dark:text-white px-3 py-2 rounded text-xs shadow-lg'>
             <div className='flex space-x-4'>
               <span className='font-semibold'>{getCompanyName(symbol || '')}</span>
               <span>O: {priceStats.open.toFixed(2)}</span>
               <span>H: {priceStats.high.toFixed(2)}</span>
               <span>L: {priceStats.low.toFixed(2)}</span>
               <span>C: {priceStats.close.toFixed(2)}</span>
-              <span className={priceStats.change >= 0 ? 'text-green-400' : 'text-red-400'}>
+              <span className={priceStats.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                 {priceStats.change >= 0 ? '+' : ''}
                 {priceStats.change.toFixed(2)} ({priceStats.changePercent.toFixed(2)}%)
               </span>
