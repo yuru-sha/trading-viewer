@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync } from 'fs'
+import { appendFileSync, existsSync, mkdirSync, statSync, renameSync } from 'fs'
 import path from 'path'
 import { AuthenticatedRequest } from '../middleware/auth'
 
@@ -137,7 +137,7 @@ class SecurityLogger {
       appendFileSync(this.logPath, formattedEvent)
 
       // Rotate log file if it gets too large (100MB)
-      const stats = require('fs').statSync(this.logPath)
+      const stats = statSync(this.logPath)
       if (stats.size > 100 * 1024 * 1024) {
         this.rotateLogFile()
       }
@@ -151,7 +151,7 @@ class SecurityLogger {
     const rotatedPath = path.join(this.config.logDir, `${this.config.logFile}.${timestamp}`)
 
     try {
-      require('fs').renameSync(this.logPath, rotatedPath)
+      renameSync(this.logPath, rotatedPath)
     } catch (error) {
       console.error('Failed to rotate security log:', error)
     }

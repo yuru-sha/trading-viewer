@@ -57,6 +57,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   const response = await fetch(url, {
     ...options,
     headers: defaultHeaders,
+    credentials: 'include', // Include cookies for authentication
   })
 
   if (!response.ok) {
@@ -167,6 +168,55 @@ export const infoApi = {
   },
 }
 
+// Watchlist API endpoints
+export const watchlistApi = {
+  // Get user's watchlist
+  get: async (): Promise<{
+    success: boolean
+    data: {
+      watchlist: Array<{
+        id: string
+        symbol: string
+        name: string
+        position: number
+        createdAt: string
+        updatedAt: string
+      }>
+    }
+  }> => {
+    return apiRequest('/watchlist')
+  },
+
+  // Add symbol to watchlist
+  add: async (symbol: string, name: string): Promise<{
+    success: boolean
+    data: any
+  }> => {
+    return apiRequest('/watchlist', {
+      method: 'POST',
+      body: JSON.stringify({ symbol, name }),
+    })
+  },
+
+  // Remove symbol from watchlist
+  remove: async (symbol: string): Promise<void> => {
+    return apiRequest(`/watchlist/${encodeURIComponent(symbol)}`, {
+      method: 'DELETE',
+    })
+  },
+
+  // Update watchlist positions
+  updatePositions: async (items: Array<{ symbol: string; position: number }>): Promise<{
+    success: boolean
+    message: string
+  }> => {
+    return apiRequest('/watchlist/positions', {
+      method: 'PUT',
+      body: JSON.stringify({ items }),
+    })
+  },
+}
+
 // Drawing Tools API endpoints
 export const drawingApi = {
   // Get all drawing tools for a symbol
@@ -227,6 +277,7 @@ export const api = {
   market: marketApi,
   health: healthApi,
   info: infoApi,
+  watchlist: watchlistApi,
   drawing: drawingApi,
 }
 

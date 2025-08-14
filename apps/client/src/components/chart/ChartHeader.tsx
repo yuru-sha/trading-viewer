@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   AlignHorizontalDistributeCenter,
   TrendingUpDown,
@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import SymbolSearch from '../SymbolSearch'
 import ChartSettings, { ChartSettings as ChartSettingsType } from './ChartSettings'
 import UserDropdown from '../UserDropdown'
+import { api } from '../../lib/apiClient'
 
 interface ChartHeaderProps {
   currentSymbol: string
@@ -92,6 +93,27 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   const { state } = useApp()
   const { setTheme } = useAppActions()
   const { user, isAuthenticated } = useAuth()
+  const [watchlistSymbols, setWatchlistSymbols] = useState<Array<{ symbol: string; name: string }>>([])  
+
+  // Fetch watchlist symbols on mount
+  useEffect(() => {
+    const fetchWatchlist = async () => {
+      try {
+        const response = await api.watchlist.get()
+        // Transform watchlist data to expected format
+        const symbols = response.data?.watchlist?.map(item => ({
+          symbol: item.symbol,
+          name: item.name,
+        })) || []
+        setWatchlistSymbols(symbols)
+      } catch (error) {
+        console.log('Using default watchlist symbols')
+        // Fallback to popular symbols if watchlist fetch fails
+        setWatchlistSymbols(POPULAR_SYMBOLS)
+      }
+    }
+    fetchWatchlist()
+  }, [])
 
   const toggleTheme = () => {
     setTheme(state.theme === 'dark' ? 'light' : 'dark')
@@ -471,25 +493,34 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               />
             </div>
 
-            {/* Popular Symbols */}
+            {/* Watchlist Symbols */}
             <div className='px-4 pb-4'>
-              <p className='text-sm text-gray-500 dark:text-gray-400 mb-3'>Popular Symbols</p>
-              <div className='grid grid-cols-2 gap-2'>
-                {POPULAR_SYMBOLS.map(({ symbol, name }) => (
-                  <button
-                    key={symbol}
-                    onClick={() => handleSymbolSelect(symbol)}
-                    className={`text-left px-3 py-2 rounded-lg transition-colors ${
-                      currentSymbol === symbol
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <div className='font-medium text-gray-900 dark:text-white'>{symbol}</div>
-                    <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>{name}</div>
-                  </button>
-                ))}
-              </div>
+              <p className='text-sm text-gray-500 dark:text-gray-400 mb-3'>Your Watchlist</p>
+              {watchlistSymbols.length > 0 ? (
+                <div className='grid grid-cols-2 gap-2'>
+                  {watchlistSymbols.map(({ symbol, name }) => (
+                    <button
+                      key={symbol}
+                      onClick={() => handleSymbolSelect(symbol)}
+                      className={`text-left px-3 py-2 rounded-lg transition-colors ${
+                        currentSymbol === symbol
+                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <div className='font-medium text-gray-900 dark:text-white'>{symbol}</div>
+                      <div className='text-xs text-gray-500 dark:text-gray-400 truncate'>{name}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className='text-center py-4'>
+                  <p className='text-sm text-gray-500 dark:text-gray-400'>No symbols in watchlist</p>
+                  <a href='/watchlist' className='text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block'>
+                    Add symbols
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>

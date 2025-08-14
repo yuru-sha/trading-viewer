@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Button } from '@trading-viewer/ui'
 import { ChartType } from '@trading-viewer/shared'
 import ChartContainer, { ChartContainerRef } from '../components/chart/ChartContainer'
@@ -10,11 +11,22 @@ import { useSymbolManagement } from '../hooks/useSymbolManagement'
 import { useIndicators } from '../hooks/useIndicators'
 
 const ChartsPage: React.FC = () => {
+  // Get symbol from URL params
+  const [searchParams] = useSearchParams()
+  const symbolFromUrl = searchParams.get('symbol') || 'AAPL'
+
   // Chart controls hook
   const [controlsState, controlsActions] = useChartControls('D', 'candle', 'UTC')
 
-  // Symbol management hook
-  const [symbolState, symbolActions] = useSymbolManagement('AAPL', controlsState.selectedTimeframe)
+  // Symbol management hook with URL param as initial value
+  const [symbolState, symbolActions] = useSymbolManagement(symbolFromUrl, controlsState.selectedTimeframe)
+
+  // Update symbol when URL changes
+  useEffect(() => {
+    if (symbolFromUrl !== symbolState.currentSymbol) {
+      symbolActions.handleSymbolChange(symbolFromUrl)
+    }
+  }, [symbolFromUrl])
 
   // Indicators management hook (separated from chart settings)
   const indicatorsManager = useIndicators()
