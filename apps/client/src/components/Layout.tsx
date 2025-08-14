@@ -55,10 +55,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       iconName: 'heart' as const,
     },
     {
-      name: 'Dashboard',
-      href: '/dashboard',
-      current: location.pathname === '/dashboard',
-      iconName: 'database' as const,
+      name: 'Market',
+      href: '/market',
+      current: location.pathname === '/market',
+      iconName: 'trendingUp' as const,
     },
     {
       name: 'Charts',

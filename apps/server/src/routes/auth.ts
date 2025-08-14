@@ -501,26 +501,38 @@ router.put(
   validateRequest(updateProfileSchema),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { firstName, lastName, avatar } = req.body
-    const user = users.get(req.user!.userId)
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    })
 
     if (!user) {
       throw new UnauthorizedError('User not found')
     }
 
-    // Update profile
-    user.profile = {
-      ...user.profile,
-      ...(firstName !== undefined && { firstName }),
-      ...(lastName !== undefined && { lastName }),
-      ...(avatar !== undefined && { avatar }),
-    }
-    user.updatedAt = new Date()
+    // Update profile in database
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: {
+        ...(firstName !== undefined && { firstName }),
+        ...(lastName !== undefined && { lastName }),
+        // Note: avatar field doesn't exist in current schema, would need migration
+      },
+    })
 
     res.json({
       success: true,
       message: 'Profile updated successfully',
       data: {
-        user: createUserResponse(user),
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          role: updatedUser.role,
+          isEmailVerified: updatedUser.isEmailVerified,
+          createdAt: updatedUser.createdAt,
+        },
       },
     })
   })
@@ -530,11 +542,15 @@ router.put(
 router.post(
   '/change-password',
   requireAuth,
+  requireCSRF,
   requirePermission(ResourceType.USER_SETTINGS, Action.UPDATE, req => req.user!.userId),
   validateRequest(changePasswordSchema),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { currentPassword, newPassword } = req.body
-    const user = users.get(req.user!.userId)
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    })
 
     if (!user) {
       throw new UnauthorizedError('User not found')
@@ -558,9 +574,14 @@ router.post(
       throw new ValidationError('New password must be different from current password')
     }
 
-    // Hash new password
-    user.passwordHash = await hashPassword(newPassword)
-    user.updatedAt = new Date()
+    // Hash new password and update in database
+    const hashedNewPassword = await hashPassword(newPassword)
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: {
+        passwordHash: hashedNewPassword,
+      },
+    })
 
     // Log password change
     securityLogger.logRequest(
@@ -573,6 +594,7 @@ router.post(
 
     // Revoke all user's tokens to force re-login
     revokeAllUserTokens(user.id)
+    revokeAllUserCSRFTokens(user.id)
 
     // Clear cookies
     res.clearCookie(ACCESS_TOKEN_COOKIE, COOKIE_OPTIONS)
@@ -589,9 +611,12 @@ router.post(
 router.delete(
   '/account',
   requireAuth,
+  requireCSRF,
   requirePermission(ResourceType.USER_DATA, Action.DELETE, req => req.user!.userId),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const user = users.get(req.user!.userId)
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    })
 
     if (!user) {
       throw new UnauthorizedError('User not found')
@@ -606,12 +631,14 @@ router.delete(
       { userId: user.id, email: user.email }
     )
 
-    // Remove user from storage
-    users.delete(user.id)
-    usersByEmail.delete(user.email)
+    // Delete user from database (cascade will handle related records)
+    await prisma.user.delete({
+      where: { id: req.user!.userId },
+    })
 
     // Revoke all tokens
     revokeAllUserTokens(user.id)
+    revokeAllUserCSRFTokens(user.id)
 
     // Clear cookies
     res.clearCookie(ACCESS_TOKEN_COOKIE, COOKIE_OPTIONS)
@@ -630,9 +657,10 @@ router.get(
   requireAuth,
   requireAdmin(),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const totalUsers = users.size
-    const verifiedUsers = Array.from(users.values()).filter(u => u.isEmailVerified).length
-    const adminUsers = Array.from(users.values()).filter(u => u.role === 'admin').length
+    const totalUsers = await prisma.user.count()
+    const verifiedUsers = await prisma.user.count({ where: { isEmailVerified: true } })
+    const adminUsers = await prisma.user.count({ where: { role: 'admin' } })
+    const activeUsers = await prisma.user.count({ where: { isActive: true } })
 
     res.json({
       success: true,
@@ -642,7 +670,247 @@ router.get(
         unverifiedUsers: totalUsers - verifiedUsers,
         adminUsers,
         regularUsers: totalUsers - adminUsers,
+        activeUsers,
+        inactiveUsers: totalUsers - activeUsers,
       },
+    })
+  })
+)
+
+// GET /api/auth/users (admin only)
+router.get(
+  '/users',
+  requireAuth,
+  requireAdmin(),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100)
+    const skip = (page - 1) * limit
+    
+    const search = req.query.search as string
+    const role = req.query.role as string
+    const status = req.query.status as string
+
+    const where: any = {}
+    
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+    
+    if (role && ['admin', 'user'].includes(role)) {
+      where.role = role
+    }
+    
+    if (status === 'active') {
+      where.isActive = true
+    } else if (status === 'inactive') {
+      where.isActive = false
+    }
+
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          isEmailVerified: true,
+          isActive: true,
+          failedLoginCount: true,
+          lockedUntil: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.user.count({ where }),
+    ])
+
+    const totalPages = Math.ceil(totalCount / limit)
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      },
+    })
+  })
+)
+
+// PUT /api/auth/users/:userId/status (admin only)
+router.put(
+  '/users/:userId/status',
+  requireAuth,
+  requireAdmin(),
+  requireCSRF,
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { userId } = req.params
+    const { isActive } = req.body
+
+    if (typeof isActive !== 'boolean') {
+      throw new ValidationError('isActive must be a boolean value')
+    }
+
+    // Prevent admin from deactivating themselves
+    if (req.user!.userId === userId && !isActive) {
+      throw new ValidationError('You cannot deactivate your own account')
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new ValidationError('User not found')
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        isActive,
+        lockedUntil: null, // Clear any lockout when activating
+        failedLoginCount: 0, // Reset failed attempts when activating
+      },
+    })
+
+    // Log the action
+    securityLogger.logRequest(
+      req,
+      SecurityEventType.USER_STATUS_CHANGE,
+      `User ${user.email} ${isActive ? 'activated' : 'deactivated'} by admin ${req.user!.email}`,
+      SecuritySeverity.HIGH,
+      { targetUserId: userId, targetEmail: user.email, newStatus: isActive }
+    )
+
+    // If deactivating, revoke all user's tokens
+    if (!isActive) {
+      revokeAllUserTokens(userId)
+      revokeAllUserCSRFTokens(userId)
+    }
+
+    res.json({
+      success: true,
+      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          isActive: updatedUser.isActive,
+        },
+      },
+    })
+  })
+)
+
+// PUT /api/auth/users/:userId/role (admin only)
+router.put(
+  '/users/:userId/role',
+  requireAuth,
+  requireAdmin(),
+  requireCSRF,
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { userId } = req.params
+    const { role } = req.body
+
+    if (!['admin', 'user'].includes(role)) {
+      throw new ValidationError('Role must be either "admin" or "user"')
+    }
+
+    // Prevent admin from demoting themselves
+    if (req.user!.userId === userId && role === 'user') {
+      throw new ValidationError('You cannot change your own role')
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new ValidationError('User not found')
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    })
+
+    // Log the action
+    securityLogger.logRequest(
+      req,
+      SecurityEventType.ROLE_CHANGE,
+      `User ${user.email} role changed from ${user.role} to ${role} by admin ${req.user!.email}`,
+      SecuritySeverity.HIGH,
+      { targetUserId: userId, targetEmail: user.email, oldRole: user.role, newRole: role }
+    )
+
+    res.json({
+      success: true,
+      message: `User role updated successfully`,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+        },
+      },
+    })
+  })
+)
+
+// POST /api/auth/users/:userId/unlock (admin only)
+router.post(
+  '/users/:userId/unlock',
+  requireAuth,
+  requireAdmin(),
+  requireCSRF,
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { userId } = req.params
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new ValidationError('User not found')
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        failedLoginCount: 0,
+        lockedUntil: null,
+      },
+    })
+
+    // Log the action
+    securityLogger.logRequest(
+      req,
+      SecurityEventType.ACCOUNT_UNLOCK,
+      `User ${user.email} unlocked by admin ${req.user!.email}`,
+      SecuritySeverity.INFO,
+      { targetUserId: userId, targetEmail: user.email }
+    )
+
+    res.json({
+      success: true,
+      message: 'User account unlocked successfully',
     })
   })
 )

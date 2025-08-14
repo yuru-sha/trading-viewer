@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Icon from './Icon'
 
@@ -100,31 +101,27 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
 
           {/* Menu Items */}
           <div className='py-1'>
-            <button
-              onClick={() => {
-                setIsOpen(false)
-                // Navigate to profile
-                window.location.href = '/profile'
-              }}
-              className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
-              role='menuitem'
-            >
-              <Icon name='user' className='w-4 h-4 mr-3' />
-              プロフィール
-            </button>
-
-            <button
-              onClick={() => {
-                setIsOpen(false)
-                // Navigate to settings
-                window.location.href = '/settings'
-              }}
+            <Link
+              to='/settings'
+              onClick={() => setIsOpen(false)}
               className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
               role='menuitem'
             >
               <Icon name='settings' className='w-4 h-4 mr-3' />
               設定
-            </button>
+            </Link>
+
+            {user.role === 'admin' && (
+              <Link
+                to='/admin/users'
+                onClick={() => setIsOpen(false)}
+                className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
+                role='menuitem'
+              >
+                <Icon name='users' className='w-4 h-4 mr-3' />
+                ユーザー管理
+              </Link>
+            )}
 
             <button
               onClick={() => {

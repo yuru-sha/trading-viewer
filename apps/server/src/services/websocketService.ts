@@ -5,6 +5,7 @@ import { IncomingMessage } from 'http'
 import { URL } from 'url'
 import jwt from 'jsonwebtoken'
 import { getFinnhubService } from './finnhubService'
+import { getYahooFinanceService } from './yahooFinanceService'
 
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'ping' | 'error' | 'quote' | 'candle'
@@ -34,6 +35,7 @@ export class WebSocketService extends EventEmitter {
   private clients: Map<AuthenticatedWebSocket, string> = new Map()
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map()
   private finnhubService = getFinnhubService()
+  private yahooFinanceService = getYahooFinanceService()
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
   private readonly MAX_SUBSCRIPTIONS_PER_USER = 50
 
@@ -296,15 +298,69 @@ export class WebSocketService extends EventEmitter {
     try {
       const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'
       const MOCK_REAL_TIME_UPDATES = process.env.MOCK_REAL_TIME_UPDATES === 'true'
+      const USE_YAHOO_FINANCE = process.env.USE_YAHOO_FINANCE === 'true'
+
 
       let quote: any
 
-      if (USE_MOCK_DATA || MOCK_REAL_TIME_UPDATES) {
+      // Priority: Yahoo Finance > Mock Data > Finnhub
+      if (USE_YAHOO_FINANCE && !USE_MOCK_DATA && !MOCK_REAL_TIME_UPDATES) {
+        console.log(`🔄 WebSocket Yahoo Finance update for ${symbol}`)
+        try {
+          const yahooQuote = await this.yahooFinanceService.getQuote(symbol)
+          quote = {
+            c: yahooQuote.currentPrice,
+            d: yahooQuote.change,
+            dp: yahooQuote.changePercent,
+            h: yahooQuote.high,
+            l: yahooQuote.low,
+            o: yahooQuote.open,
+            pc: yahooQuote.previousClose,
+            t: Math.floor(yahooQuote.timestamp / 1000),
+          }
+        } catch (error) {
+          console.warn(`Failed to get Yahoo Finance quote for ${symbol}, falling back to mock:`, error)
+          // Fallback to improved mock data if Yahoo Finance fails
+          const basePrice =
+            symbol === 'AAPL' ? 150 : 
+            symbol === 'GOOGL' ? 2500 : 
+            symbol === 'TSLA' ? 200 : 
+            symbol === 'EC' ? 8.7 : 
+            symbol === 'MSFT' ? 400 :
+            symbol === 'NVDA' ? 130 :
+            symbol === 'AMZN' ? 180 :
+            symbol === 'KO' ? 60 :
+            100
+          const volatility = basePrice < 20 ? 0.5 : basePrice < 100 ? 2 : 5
+          const change = (Math.random() - 0.5) * volatility
+          const currentPrice = basePrice + change
+          quote = {
+            c: Number(currentPrice.toFixed(2)),
+            d: Number(change.toFixed(2)),
+            dp: Number(((change / basePrice) * 100).toFixed(2)),
+            h: Number((currentPrice + Math.random() * (volatility/2)).toFixed(2)),
+            l: Number((currentPrice - Math.random() * (volatility/2)).toFixed(2)),
+            o: Number(basePrice.toFixed(2)),
+            pc: Number(basePrice.toFixed(2)),
+            t: Math.floor(Date.now() / 1000),
+          }
+        }
+      } else if (USE_MOCK_DATA || MOCK_REAL_TIME_UPDATES) {
         // Use consistent mock data for development
         console.log(`🔄 WebSocket mock update for ${symbol}`)
         const basePrice =
-          symbol === 'AAPL' ? 150 : symbol === 'GOOGL' ? 2500 : symbol === 'TSLA' ? 200 : 100
-        const change = (Math.random() - 0.5) * 5
+          symbol === 'AAPL' ? 150 : 
+          symbol === 'GOOGL' ? 2500 : 
+          symbol === 'TSLA' ? 200 : 
+          symbol === 'EC' ? 8.7 : 
+          symbol === 'MSFT' ? 400 :
+          symbol === 'NVDA' ? 130 :
+          symbol === 'AMZN' ? 180 :
+          symbol === 'KO' ? 60 :
+          100
+        // Adjust price volatility based on the base price
+        const volatility = basePrice < 20 ? 0.5 : basePrice < 100 ? 2 : 5
+        const change = (Math.random() - 0.5) * volatility
         const currentPrice = basePrice + change
         const previousClose = basePrice
 
@@ -320,7 +376,7 @@ export class WebSocketService extends EventEmitter {
         }
       } else {
         // Use real Finnhub API for production
-        console.log(`🔄 WebSocket real-time update for ${symbol}`)
+        console.log(`🔄 WebSocket Finnhub update for ${symbol}`)
         quote = await this.finnhubService.getQuote({ symbol })
       }
       const symbolSubscriptions = this.subscriptions.get(symbol)

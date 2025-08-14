@@ -228,7 +228,7 @@ export class EnvironmentConfig {
   }
 
   public getCorsOrigin(): string | string[] {
-    const origin = this.get('CORS_ORIGIN', 'http://localhost:3000,http://localhost:3001')
+    const origin = this.get('CORS_ORIGIN', 'http://localhost:3000')
 
     // Support multiple origins separated by comma
     if (origin.includes(',')) {

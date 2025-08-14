@@ -8,12 +8,13 @@ import { useAuth } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
 import {
   HomePage,
-  DashboardPage,
+  MarketPage,
   ChartsPage,
   SearchPage,
   WatchlistPage,
   AlertsPage,
   AdminUsersPage,
+  SettingsPage,
 } from './pages'
 import LoginPage from './pages/LoginPage'
 
@@ -59,10 +60,11 @@ const AppContent: React.FC = () => {
     <Layout>
       <Routes>
         <Route path='/' element={<HomePage />} />
-        <Route path='/dashboard' element={<DashboardPage />} />
+        <Route path='/market' element={<MarketPage />} />
         <Route path='/search' element={<SearchPage />} />
         <Route path='/watchlist' element={<WatchlistPage />} />
         <Route path='/alerts' element={<AlertsPage />} />
+        <Route path='/settings' element={<SettingsPage />} />
         <Route path='/admin/users' element={<AdminUsersPage />} />
       </Routes>
     </Layout>

@@ -369,7 +369,7 @@ export const preventPathTraversal = () => {
 export const validateCorsOrigin = () => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const origin = req.headers.origin
-    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:3001']
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000']
 
     if (origin && !allowedOrigins.includes(origin)) {
       securityLogger.logRequest(

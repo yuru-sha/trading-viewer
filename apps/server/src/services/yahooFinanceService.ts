@@ -35,6 +35,10 @@ export interface YahooSearchResult {
 
 export class YahooFinanceService {
   private static instance: YahooFinanceService
+  private cache = new Map<string, { data: YahooQuoteData; timestamp: number }>()
+  private rateLimitMap = new Map<string, number>()
+  private readonly CACHE_TTL = 30 * 1000 // 30 seconds cache
+  private readonly RATE_LIMIT_DELAY = 100 // 100ms between requests per symbol
   
   static getInstance(): YahooFinanceService {
     if (!YahooFinanceService.instance) {
@@ -43,11 +47,51 @@ export class YahooFinanceService {
     return YahooFinanceService.instance
   }
 
+  private async waitForRateLimit(symbol: string): Promise<void> {
+    const lastRequest = this.rateLimitMap.get(symbol) || 0
+    const now = Date.now()
+    const timeSinceLastRequest = now - lastRequest
+    
+    if (timeSinceLastRequest < this.RATE_LIMIT_DELAY) {
+      const waitTime = this.RATE_LIMIT_DELAY - timeSinceLastRequest
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+    
+    this.rateLimitMap.set(symbol, Date.now())
+  }
+
+  private getCachedQuote(symbol: string): YahooQuoteData | null {
+    const cached = this.cache.get(symbol)
+    if (!cached) return null
+    
+    const now = Date.now()
+    if (now - cached.timestamp > this.CACHE_TTL) {
+      this.cache.delete(symbol)
+      return null
+    }
+    
+    return cached.data
+  }
+
+  private setCachedQuote(symbol: string, data: YahooQuoteData): void {
+    this.cache.set(symbol, { data, timestamp: Date.now() })
+  }
+
   /**
    * Get real-time quote data for a symbol
    */
   async getQuote(symbol: string): Promise<YahooQuoteData> {
+    // Check cache first
+    const cached = this.getCachedQuote(symbol)
+    if (cached) {
+      console.log(`📋 Using cached data for ${symbol}`)
+      return cached
+    }
+
     try {
+      // Apply rate limiting
+      await this.waitForRateLimit(symbol)
+      
       const result = await yahooFinance.quote(symbol)
       
       if (!result) {
@@ -56,7 +100,7 @@ export class YahooFinanceService {
 
       const quote = result
       
-      return {
+      const quoteData: YahooQuoteData = {
         symbol: quote.symbol || symbol,
         currentPrice: quote.regularMarketPrice || 0,
         change: quote.regularMarketChange || 0,
@@ -69,6 +113,11 @@ export class YahooFinanceService {
         marketCap: quote.marketCap,
         timestamp: Date.now()
       }
+
+      // Cache the result
+      this.setCachedQuote(symbol, quoteData)
+      
+      return quoteData
     } catch (error) {
       console.error(`Yahoo Finance API error for ${symbol}:`, error)
       throw new Error(`Failed to fetch quote for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`)
