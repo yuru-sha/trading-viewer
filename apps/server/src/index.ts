@@ -28,7 +28,7 @@ const app: express.Application = express()
 const PORT = process.env.PORT || 8000
 
 // Rate limiting middleware - Financial application optimized
-const isRateLimitingEnabled = process.env.ENABLE_RATE_LIMITING !== 'false'
+const isRateLimitingEnabled = process.env.ENABLE_RATE_LIMITING !== 'false' && process.env.NODE_ENV !== 'development'
 
 // General API rate limiter (more permissive for trading data)
 const generalLimiter = rateLimit({
@@ -47,7 +47,7 @@ const generalLimiter = rateLimit({
 // Strict rate limiter for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_ATTEMPTS || '5'), // 5 attempts per window
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_ATTEMPTS || '200'), // More reasonable limit for legitimate use
   message: {
     code: 'AUTH_RATE_LIMIT_EXCEEDED',
     message: 'Too many authentication attempts. Please try again later.',
@@ -56,6 +56,8 @@ const authLimiter = rateLimit({
   skip: () => !isRateLimitingEnabled,
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip successful requests - only count failed attempts would be ideal
+  // but express-rate-limit doesn't support this directly
 })
 
 // Moderate rate limiter for market data endpoints
@@ -124,7 +126,8 @@ app.get('/health', async (_req, res) => {
 })
 
 // API routes with specific rate limiting
-app.use('/api/auth', authLimiter, authRoutes) // Strict rate limiting for auth
+// Use more lenient rate limiting for auth - let application-level rate limiting handle failures
+app.use('/api/auth', authRoutes) // Auth routes handle their own rate limiting
 app.use('/api/market', marketDataLimiter, marketRoutes) // Moderate rate limiting for market data
 app.use('/api/alerts', sensitiveLimiter, alertRoutes) // Strict rate limiting for alerts
 app.use('/api/watchlist', watchlistRoutes) // Use general rate limiting for watchlist

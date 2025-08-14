@@ -441,11 +441,18 @@ export const requireCSRF = (
 
 // Rate limiting for authentication attempts
 const authAttempts = new Map<string, { count: number; lastAttempt: Date }>()
-const MAX_AUTH_ATTEMPTS = 5
+const MAX_AUTH_ATTEMPTS = 10 // Increased from 5 for better UX
 const AUTH_ATTEMPT_WINDOW = 15 * 60 * 1000 // 15 minutes
-const LOCKOUT_DURATION = 30 * 60 * 1000 // 30 minutes
+const LOCKOUT_DURATION = 15 * 60 * 1000 // Reduced from 30 to 15 minutes
 
 export const rateLimitAuth = (identifier: string): void => {
+  // Skip rate limiting in development environment
+  if (process.env.NODE_ENV === 'development') {
+    return
+  }
+  
+  // More lenient production settings for legitimate users
+
   const now = new Date()
   const attempts = authAttempts.get(identifier)
 

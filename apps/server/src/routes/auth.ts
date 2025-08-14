@@ -399,11 +399,11 @@ router.post(
           id: user.id,
           email: user.email,
           role: user.role,
-          isEmailVerified: user.is_email_verified,
+          isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
           profile: {
-            firstName: user.first_name,
-            lastName: user.last_name,
+            firstName: user.firstName,
+            lastName: user.lastName,
           },
         },
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
@@ -460,11 +460,11 @@ router.get(
           email: user.email,
           name: user.name,
           role: user.role,
-          isEmailVerified: user.is_email_verified,
+          isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
           profile: {
-            firstName: user.first_name,
-            lastName: user.last_name,
+            firstName: user.firstName,
+            lastName: user.lastName,
           },
         },
       },
@@ -650,23 +650,58 @@ router.get(
 // Development/testing endpoints (strictly controlled)
 if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS === 'true') {
   console.warn('⚠️  Development endpoints are enabled. DO NOT use in production!')
-  // Create default admin user
-  const adminId = generateUserId()
-  const adminUser: User = {
-    id: adminId,
-    email: 'admin@tradingviewer.com',
-    passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
-    role: 'admin',
-    isEmailVerified: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    profile: {
-      firstName: 'Admin',
-      lastName: 'User',
-    },
+  
+  // Initialize development users in database
+  const initializeDevUsers = async () => {
+    try {
+      // Create admin user if not exists
+      const adminExists = await prisma.user.findUnique({
+        where: { email: 'admin@tradingviewer.com' }
+      })
+      
+      if (!adminExists) {
+        await prisma.user.create({
+          data: {
+            email: 'admin@tradingviewer.com',
+            passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
+            firstName: 'Admin',
+            lastName: 'User',
+            role: 'admin',
+            isEmailVerified: true,
+            isActive: true,
+            failedLoginCount: 0,
+          }
+        })
+        console.log('✅ Admin user created: admin@tradingviewer.com')
+      }
+
+      // Create test user if not exists
+      const testExists = await prisma.user.findUnique({
+        where: { email: 'test@example.com' }
+      })
+      
+      if (!testExists) {
+        await prisma.user.create({
+          data: {
+            email: 'test@example.com',
+            passwordHash: await hashPassword('password123'),
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'user',
+            isEmailVerified: true,
+            isActive: true,
+            failedLoginCount: 0,
+          }
+        })
+        console.log('✅ Test user created: test@example.com')
+      }
+    } catch (error) {
+      console.error('Failed to initialize dev users:', error)
+    }
   }
-  users.set(adminId, adminUser)
-  usersByEmail.set(adminUser.email, adminUser)
+  
+  // Initialize users on startup
+  initializeDevUsers()
 
   // GET /api/auth/dev/users - List all users (dev only)
   router.get('/dev/users', (req: Request, res: Response) => {
