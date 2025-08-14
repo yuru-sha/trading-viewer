@@ -1,5 +1,6 @@
 import { Router, Response } from 'express'
 import { getFinnhubService } from '../services/finnhubService'
+import { getYahooFinanceService } from '../services/yahooFinanceService'
 import { SymbolSearchParams, QuoteParams, CandleDataParams, ApiError } from '@trading-viewer/shared'
 import {
   validateSymbolSearch,
@@ -12,8 +13,9 @@ import {
 
 const router = Router()
 
-// Check if we should use mock data
+// Check data source configuration
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'
+const USE_YAHOO_FINANCE = process.env.USE_YAHOO_FINANCE === 'true'
 
 /**
  * テスト用のモックローソク足データを生成します。
@@ -323,27 +325,55 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
   try {
     const { q, limit } = req.validated
 
-    // Return mock data for development to avoid rate limits
-    const symbols = searchMockSymbols(q.trim(), limit)
+    // Use mock data for development to avoid rate limits
+    if (USE_MOCK_DATA) {
+      console.log(`🔍 Using MOCK data for search: ${q} (USE_MOCK_DATA=true)`)
+      const symbols = searchMockSymbols(q.trim(), limit)
+      res.json({
+        symbols,
+        query: q.trim(),
+        count: symbols.length,
+      })
+      return
+    }
+
+    // Use Yahoo Finance search if configured
+    if (USE_YAHOO_FINANCE) {
+      console.log(`🔍 Using Yahoo Finance search for: ${q} (USE_YAHOO_FINANCE=true)`)
+      const yahooService = getYahooFinanceService()
+      const results = await yahooService.searchSymbols(q.trim(), limit)
+      
+      // Convert Yahoo Finance format to Finnhub-compatible format
+      const symbols = results.map(result => ({
+        symbol: result.symbol,
+        description: result.longname || result.shortname || result.symbol,
+        displaySymbol: result.symbol,
+        type: result.typeDisp || 'Common Stock',
+        currency: 'USD', // Yahoo Finance doesn't always provide currency
+        exchange: result.exchange || '',
+      }))
+      
+      res.json({
+        symbols,
+        query: q.trim(),
+        count: symbols.length,
+      })
+      return
+    }
+
+    // Use real Finnhub API data
+    console.log(`🔍 Using Finnhub search for: ${q} (real API)`)
+    const params: SymbolSearchParams = {
+      q: q.trim(),
+      limit
+    }
+    const finnhubService = getFinnhubService()
+    const symbols = await finnhubService.searchSymbols(params)
     res.json({
       symbols,
-      query: q.trim(),
-      count: symbols.length,
+      query: params.q,
+      count: symbols.length
     })
-    return
-
-    // Commented out real API call
-    // const params: SymbolSearchParams = {
-    //   q: q.trim(),
-    //   limit
-    // }
-    // const finnhubService = getFinnhubService()
-    // const symbols = await finnhubService.searchSymbols(params)
-    // res.json({
-    //   symbols,
-    //   query: params.q,
-    //   count: symbols.length
-    // })
   } catch (error) {
     console.error('Symbol search error:', error)
 
@@ -373,6 +403,28 @@ router.get(
         console.log(`📈 Using MOCK data for quote: ${symbol} (USE_MOCK_DATA=true)`)
         const mockQuote = generateMockQuote(symbol.toUpperCase())
         res.json(mockQuote)
+        return
+      }
+
+      // Use Yahoo Finance API if configured
+      if (USE_YAHOO_FINANCE) {
+        console.log(`📈 Using Yahoo Finance data for quote: ${symbol} (USE_YAHOO_FINANCE=true)`)
+        const yahooService = getYahooFinanceService()
+        const quote = await yahooService.getQuote(symbol.toUpperCase())
+        
+        // Convert Yahoo Finance format to Finnhub format
+        const finnhubQuote = {
+          c: quote.currentPrice,
+          d: quote.change,
+          dp: quote.changePercent,
+          h: quote.high,
+          l: quote.low,
+          o: quote.open,
+          pc: quote.previousClose,
+          t: Math.floor(quote.timestamp / 1000),
+        }
+        
+        res.json(finnhubQuote)
         return
       }
 
@@ -417,6 +469,21 @@ router.get(
         return
       }
 
+      // Use Yahoo Finance API if configured
+      if (USE_YAHOO_FINANCE) {
+        console.log(`📊 Using Yahoo Finance data for candles: ${symbol} (USE_YAHOO_FINANCE=true)`)
+        const yahooService = getYahooFinanceService()
+        const candleData = await yahooService.getCandlesWithResolution(
+          symbol.toUpperCase(),
+          resolution,
+          from,
+          to
+        )
+        
+        res.json(candleData)
+        return
+      }
+
       // Use real Finnhub API data (no fallback to maintain consistency)
       console.log(`📊 Using REAL Finnhub data for candles: ${symbol} (USE_MOCK_DATA=false)`)
       const params: CandleDataParams = {
@@ -448,11 +515,30 @@ router.get(
 // Data source info endpoint
 router.get('/data-source', (_req: Request, res: Response) => {
   try {
+    let provider: string
+    let status: string
+    let description: string
+    
+    if (USE_MOCK_DATA) {
+      provider = 'Mock Data'
+      status = 'DEMO'
+      description = 'Demo Data for Development'
+    } else if (USE_YAHOO_FINANCE) {
+      provider = 'Yahoo Finance'
+      status = 'LIVE'
+      description = 'Market Data by Yahoo Finance (Unofficial API)'
+    } else {
+      provider = 'Finnhub'
+      status = 'LIVE'
+      description = 'Market Data by Finnhub'
+    }
+
     res.json({
       isMockData: USE_MOCK_DATA,
-      provider: USE_MOCK_DATA ? 'Mock Data' : 'Finnhub',
-      status: USE_MOCK_DATA ? 'DEMO' : 'LIVE',
-      description: USE_MOCK_DATA ? 'Demo Data for Development' : 'Market Data by Finnhub',
+      provider,
+      status,
+      description,
+      useYahooFinance: USE_YAHOO_FINANCE,
     })
   } catch (error) {
     console.error('Data source info error:', error)
