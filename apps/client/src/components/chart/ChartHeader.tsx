@@ -18,6 +18,8 @@ import {
   LogIn,
   LogOut,
   Bell,
+  Heart,
+  BellPlus,
 } from 'lucide-react'
 import { ChartType, POPULAR_SYMBOLS, CHART_TIMEFRAMES } from '@trading-viewer/shared'
 import { useApp, useAppActions } from '../../contexts/AppContext'
@@ -57,6 +59,11 @@ interface ChartHeaderProps {
   currentPrice?: number
   onOpenAlerts?: () => void
   activeAlertsCount?: number
+  // Watchlist props
+  onAddToWatchlist?: () => void
+  isInWatchlist?: boolean
+  // Alert creation props
+  onCreateAlert?: () => void
 }
 
 const ChartHeader: React.FC<ChartHeaderProps> = ({
@@ -89,6 +96,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   currentPrice,
   onOpenAlerts,
   activeAlertsCount,
+  // Watchlist props
+  onAddToWatchlist,
+  isInWatchlist,
+  // Alert creation props
+  onCreateAlert,
 }) => {
   const { state } = useApp()
   const { setTheme } = useAppActions()
@@ -333,6 +345,30 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
 
           {/* Right - Action Buttons */}
           <div className='flex items-center space-x-1'>
+            {/* Add to Watchlist Button */}
+            {onAddToWatchlist && isAuthenticated && (
+              <button
+                onClick={onAddToWatchlist}
+                className={`flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors ${
+                  isInWatchlist ? 'text-red-500 dark:text-red-400' : ''
+                }`}
+                title={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              >
+                <Heart className={`w-4 h-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+              </button>
+            )}
+
+            {/* Create Alert Button */}
+            {onCreateAlert && isAuthenticated && (
+              <button
+                onClick={onCreateAlert}
+                className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
+                title='Create Price Alert'
+              >
+                <BellPlus className='w-4 h-4' />
+              </button>
+            )}
+
             {/* Alert Button */}
             {onOpenAlerts && (
               <button

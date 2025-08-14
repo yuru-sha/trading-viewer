@@ -18,7 +18,6 @@ export interface AppState {
   error: string | null
   appError: AppError | null
   watchlist: string[]
-  favorites: string[]
 }
 
 // Action Types
@@ -33,10 +32,7 @@ export type AppAction =
   | { type: 'CLEAR_APP_ERROR' }
   | { type: 'ADD_TO_WATCHLIST'; payload: string }
   | { type: 'REMOVE_FROM_WATCHLIST'; payload: string }
-  | { type: 'ADD_TO_FAVORITES'; payload: string }
-  | { type: 'REMOVE_FROM_FAVORITES'; payload: string }
   | { type: 'SET_WATCHLIST'; payload: string[] }
-  | { type: 'SET_FAVORITES'; payload: string[] }
 
 // Initial State
 const initialState: AppState = {
@@ -47,7 +43,6 @@ const initialState: AppState = {
   error: null,
   appError: null,
   watchlist: [],
-  favorites: [],
 }
 
 // Reducer
@@ -81,22 +76,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         ...state,
         watchlist: state.watchlist.filter(symbol => symbol !== action.payload),
       }
-    case 'ADD_TO_FAVORITES':
-      return {
-        ...state,
-        favorites: state.favorites.includes(action.payload)
-          ? state.favorites
-          : [...state.favorites, action.payload],
-      }
-    case 'REMOVE_FROM_FAVORITES':
-      return {
-        ...state,
-        favorites: state.favorites.filter(symbol => symbol !== action.payload),
-      }
     case 'SET_WATCHLIST':
       return { ...state, watchlist: action.payload }
-    case 'SET_FAVORITES':
-      return { ...state, favorites: action.payload }
     default:
       return state
   }
@@ -135,10 +116,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [state.theme])
 
-  // Load watchlist and favorites from localStorage
+  // Load watchlist from localStorage
   React.useEffect(() => {
     const savedWatchlist = localStorage.getItem('watchlist')
-    const savedFavorites = localStorage.getItem('favorites')
 
     if (savedWatchlist) {
       try {
@@ -150,28 +130,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.error('Failed to parse watchlist from localStorage:', e)
       }
     }
-
-    if (savedFavorites) {
-      try {
-        const favorites = JSON.parse(savedFavorites)
-        if (Array.isArray(favorites)) {
-          dispatch({ type: 'SET_FAVORITES', payload: favorites })
-        }
-      } catch (e) {
-        console.error('Failed to parse favorites from localStorage:', e)
-      }
-    }
   }, [])
 
   // Save watchlist to localStorage when it changes
   React.useEffect(() => {
     localStorage.setItem('watchlist', JSON.stringify(state.watchlist))
   }, [state.watchlist])
-
-  // Save favorites to localStorage when it changes
-  React.useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(state.favorites))
-  }, [state.favorites])
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>
 }
@@ -233,10 +197,6 @@ export const useAppActions = () => {
     addToWatchlist: (symbol: string) => dispatch({ type: 'ADD_TO_WATCHLIST', payload: symbol }),
     removeFromWatchlist: (symbol: string) =>
       dispatch({ type: 'REMOVE_FROM_WATCHLIST', payload: symbol }),
-    addToFavorites: (symbol: string) => dispatch({ type: 'ADD_TO_FAVORITES', payload: symbol }),
-    removeFromFavorites: (symbol: string) =>
-      dispatch({ type: 'REMOVE_FROM_FAVORITES', payload: symbol }),
     setWatchlist: (watchlist: string[]) => dispatch({ type: 'SET_WATCHLIST', payload: watchlist }),
-    setFavorites: (favorites: string[]) => dispatch({ type: 'SET_FAVORITES', payload: favorites }),
   }
 }

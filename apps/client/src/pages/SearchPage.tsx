@@ -18,8 +18,6 @@ const SearchPage: React.FC = () => {
     setError,
     addToWatchlist,
     removeFromWatchlist,
-    addToFavorites,
-    removeFromFavorites,
   } = useAppActions()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -255,42 +253,6 @@ const SearchPage: React.FC = () => {
                         </p>
                       </div>
                       <div className='flex items-center space-x-2'>
-                        {/* Favorites button */}
-                        <button
-                          onClick={e => {
-                            e.stopPropagation()
-                            if (state.favorites.includes(result.symbol)) {
-                              removeFromFavorites(result.symbol)
-                            } else {
-                              addToFavorites(result.symbol)
-                            }
-                          }}
-                          className={`p-1.5 rounded-full transition-colors ${
-                            state.favorites.includes(result.symbol)
-                              ? 'text-yellow-500 hover:text-yellow-600'
-                              : 'text-gray-400 hover:text-yellow-500'
-                          }`}
-                          title={
-                            state.favorites.includes(result.symbol)
-                              ? 'Remove from favorites'
-                              : 'Add to favorites'
-                          }
-                        >
-                          <svg
-                            className='w-4 h-4'
-                            fill={state.favorites.includes(result.symbol) ? 'currentColor' : 'none'}
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
-                          >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'
-                            />
-                          </svg>
-                        </button>
-
                         {/* Watchlist button */}
                         {watchlistItems.some(w => w.symbol === result.symbol) ? (
                           <button
@@ -362,11 +324,6 @@ const SearchPage: React.FC = () => {
 
                         {/* Status indicators */}
                         <div className='flex items-center space-x-1'>
-                          {state.favorites.includes(result.symbol) && (
-                            <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'>
-                              ★
-                            </span>
-                          )}
                           {state.selectedSymbol === result.symbol && (
                             <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'>
                               Selected
@@ -419,55 +376,9 @@ const SearchPage: React.FC = () => {
         </div>
       )}
 
-      {/* Watchlist and Favorites */}
-      {(watchlistItems.length > 0 || state.favorites.length > 0) && !hasSearched && (
-        <div className='mb-8 space-y-6'>
-          {/* Favorites */}
-          {state.favorites.length > 0 && (
-            <div>
-              <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
-                <svg
-                  className='w-5 h-5 text-yellow-500 mr-2'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' />
-                </svg>
-                Favorites ({state.favorites.length})
-              </h2>
-              <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3'>
-                {state.favorites.map(symbol => (
-                  <div
-                    key={symbol}
-                    className='bg-white dark:bg-gray-800 shadow rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-yellow-400'
-                    onClick={() => handleSymbolSelect(symbol)}
-                  >
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h3 className='text-sm font-medium text-gray-900 dark:text-white'>
-                          {symbol}
-                        </h3>
-                      </div>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation()
-                          removeFromFavorites(symbol)
-                        }}
-                        className='text-yellow-500 hover:text-yellow-600 transition-colors'
-                        title='Remove from favorites'
-                      >
-                        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
-                          <path d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Watchlist */}
+      {/* Watchlist */}
+      {watchlistItems.length > 0 && !hasSearched && (
+        <div className='mb-8'>
           {watchlistItems.length > 0 && (
             <div>
               <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
@@ -526,7 +437,7 @@ const SearchPage: React.FC = () => {
                 ))}
               </div>
             </div>
-          )}
+          )
         </div>
       )}
 
