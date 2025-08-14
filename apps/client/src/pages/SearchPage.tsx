@@ -379,8 +379,7 @@ const SearchPage: React.FC = () => {
       {/* Watchlist */}
       {watchlistItems.length > 0 && !hasSearched && (
         <div className='mb-8'>
-          {watchlistItems.length > 0 && (
-            <div>
+          <div>
               <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
                 <svg
                   className='w-5 h-5 text-green-500 mr-2'
@@ -437,7 +436,6 @@ const SearchPage: React.FC = () => {
                 ))}
               </div>
             </div>
-          )
         </div>
       )}
 
