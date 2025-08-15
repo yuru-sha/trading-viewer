@@ -20,7 +20,6 @@ export const SERVICE_NAMES = {
 
   // External API adapters
   MARKET_DATA_ADAPTER: 'MarketDataAdapter',
-  FINNHUB_SERVICE: 'FinnhubService',
 
   // Core business services
   SYMBOL_SERVICE: 'SymbolService',
@@ -35,7 +34,6 @@ export const SERVICE_NAMES = {
 
   // WebSocket services
   WEBSOCKET_SERVICE: 'WebSocketService',
-  OPTIMIZED_WEBSOCKET_SERVICE: 'OptimizedWebSocketService',
 
   // Security services
   ENCRYPTION_SERVICE: 'EncryptionService',
@@ -119,21 +117,12 @@ export function registerApplicationServices(): void {
     [SERVICE_NAMES.CONFIG]
   )
 
-  // External API services (Singleton with connection pooling)
-  registerService.singleton(
-    SERVICE_NAMES.FINNHUB_SERVICE,
-    config => {
-      const { getFinnhubService } = require('../services/finnhubService')
-      return getFinnhubService()
-    },
-    [SERVICE_NAMES.CONFIG]
-  )
 
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
     config => {
-      const { FinnhubAdapter } = require('../adapters/MarketDataAdapter')
-      return new FinnhubAdapter(config.get('FINNHUB_API_KEY'))
+      const { AlphaVantageAdapter } = require('../adapters/MarketDataAdapter')
+      return new AlphaVantageAdapter(config.get('ALPHA_VANTAGE_API_KEY'))
     },
     [SERVICE_NAMES.CONFIG]
   )
@@ -280,14 +269,6 @@ export function registerApplicationServices(): void {
     [SERVICE_NAMES.LOGGER]
   )
 
-  registerService.singleton(
-    SERVICE_NAMES.OPTIMIZED_WEBSOCKET_SERVICE,
-    logger => {
-      const { getOptimizedWebSocketService } = require('../services/optimizedWebsocketService')
-      return getOptimizedWebSocketService()
-    },
-    [SERVICE_NAMES.LOGGER]
-  )
 }
 
 /**

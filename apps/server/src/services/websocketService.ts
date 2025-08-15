@@ -4,7 +4,6 @@ import { EventEmitter } from 'events'
 import { IncomingMessage } from 'http'
 import { URL } from 'url'
 import jwt from 'jsonwebtoken'
-import { getFinnhubService } from './finnhubService'
 import { getYahooFinanceService } from './yahooFinanceService'
 
 export interface WebSocketMessage {
@@ -34,7 +33,6 @@ export class WebSocketService extends EventEmitter {
   private subscriptions: Map<string, Set<SubscriptionData>> = new Map()
   private clients: Map<AuthenticatedWebSocket, string> = new Map()
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map()
-  private finnhubService = getFinnhubService()
   private yahooFinanceService = getYahooFinanceService()
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
   private readonly MAX_SUBSCRIPTIONS_PER_USER = 50
@@ -303,7 +301,7 @@ export class WebSocketService extends EventEmitter {
 
       let quote: any
 
-      // Priority: Yahoo Finance > Mock Data > Finnhub
+      // Priority: Yahoo Finance > Mock Data
       if (USE_YAHOO_FINANCE && !USE_MOCK_DATA && !MOCK_REAL_TIME_UPDATES) {
         console.log(`🔄 WebSocket Yahoo Finance update for ${symbol}`)
         try {
@@ -375,9 +373,18 @@ export class WebSocketService extends EventEmitter {
           t: Math.floor(Date.now() / 1000),
         }
       } else {
-        // Use real Finnhub API for production
-        console.log(`🔄 WebSocket Finnhub update for ${symbol}`)
-        quote = await this.finnhubService.getQuote({ symbol })
+        // Use Yahoo Finance API
+        const yahooQuote = await this.yahooFinanceService.getQuote(symbol)
+        quote = {
+          c: yahooQuote.currentPrice,
+          d: yahooQuote.change,
+          dp: yahooQuote.changePercent,
+          h: yahooQuote.high,
+          l: yahooQuote.low,
+          o: yahooQuote.open,
+          pc: yahooQuote.previousClose,
+          t: Math.floor(yahooQuote.timestamp / 1000),
+        }
       }
       const symbolSubscriptions = this.subscriptions.get(symbol)
 

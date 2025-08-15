@@ -69,7 +69,7 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
             </div>
           )}
           <span className='text-xs text-gray-500 dark:text-gray-400'>
-            {dataSource ? dataSource.description : 'Market Data by Finnhub'}
+            {dataSource ? dataSource.description : 'Market Data by Yahoo Finance'}
           </span>
         </div>
 

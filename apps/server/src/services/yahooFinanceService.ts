@@ -237,7 +237,7 @@ export class YahooFinanceService {
   }
 
   /**
-   * Convert Finnhub resolution to Yahoo Finance interval
+   * Convert resolution to Yahoo Finance interval
    */
   private convertResolutionToInterval(resolution: string): '1m' | '5m' | '15m' | '1h' | '1d' | '1wk' | '1mo' {
     switch (resolution) {
@@ -253,7 +253,7 @@ export class YahooFinanceService {
   }
 
   /**
-   * Get candles with Finnhub-compatible resolution parameter
+   * Get candles with resolution parameter
    */
   async getCandlesWithResolution(
     symbol: string, 

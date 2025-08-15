@@ -1,12 +1,53 @@
 // API Contract types for client-server communication
 
-import {
-  NormalizedSymbol,
-  NormalizedQuote,
-  NormalizedCandleResponse,
-  ApiError,
-  RateLimitInfo,
-} from './finnhub'
+// Normalized API response types
+export interface NormalizedSymbol {
+  symbol: string
+  description: string
+  displaySymbol: string
+  type: string
+  currency?: string
+  exchange?: string
+}
+
+export interface NormalizedQuote {
+  symbol: string
+  currentPrice: number
+  change: number
+  changePercent: number
+  high: number
+  low: number
+  open: number
+  previousClose: number
+  timestamp: number
+}
+
+export interface NormalizedCandleResponse {
+  symbol: string
+  resolution: string
+  data: Array<{
+    timestamp: number
+    open: number
+    high: number
+    low: number
+    close: number
+    volume: number
+  }>
+  status: 'ok' | 'error'
+}
+
+export interface ApiError {
+  error: string
+  message?: string
+  code?: string
+}
+
+export interface RateLimitInfo {
+  limit: number
+  remaining: number
+  reset: number
+  retryAfter?: number
+}
 
 // Request interfaces
 export interface SearchSymbolsRequest {

@@ -16,7 +16,7 @@ interface HealthStatus {
     database: ServiceHealth
     redis?: ServiceHealth
     websocket: ServiceHealth
-    finnhub?: ServiceHealth
+    yahooFinance?: ServiceHealth
   }
   system: {
     memory: {
@@ -129,26 +129,22 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     health.status = health.status === 'unhealthy' ? 'unhealthy' : 'degraded'
   }
 
-  // Check Finnhub API (optional)
-  if (process.env.FINNHUB_API_KEY) {
-    try {
-      const finnhubStart = Date.now()
-      const response = await fetch(
-        'https://finnhub.io/api/v1/quote?symbol=AAPL&token=' + process.env.FINNHUB_API_KEY
-      )
-      if (response.ok) {
-        health.services.finnhub = {
-          status: 'up',
-          latency: Date.now() - finnhubStart,
-        }
-      } else {
-        health.services.finnhub = { status: 'down' }
+  // Market data service check (Yahoo Finance)
+  try {
+    const yahooStart = Date.now()
+    const response = await fetch('https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL')
+    if (response.ok) {
+      health.services.yahooFinance = {
+        status: 'up',
+        latency: Date.now() - yahooStart,
       }
-    } catch (error) {
-      health.services.finnhub = {
-        status: 'down',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }
+    } else {
+      health.services.yahooFinance = { status: 'down' }
+    }
+  } catch (error) {
+    health.services.yahooFinance = {
+      status: 'down',
+      error: error instanceof Error ? error.message : 'Unknown error',
     }
   }
 

@@ -9,7 +9,7 @@ TradingViewer is a modern web-based financial charting application built as a Tr
 ### Current Implementation Status
 
 - ✅ **Core Infrastructure**: Monorepo setup with pnpm workspaces
-- ✅ **Backend API**: Express server with Finnhub integration, WebSocket support
+- ✅ **Backend API**: Express server with Yahoo Finance integration, WebSocket support
 - ✅ **Frontend Foundation**: React app with routing, state management, responsive design
 - ✅ **Real-time Data**: WebSocket connections for live market data
 - ✅ **Chart Visualization**: TradingView Lightweight Charts integration
@@ -33,7 +33,7 @@ The project uses a monorepo architecture with the following packages:
 
 - **Frontend**: React 18, TypeScript, Vite, TailwindCSS, TradingView Lightweight Charts
 - **Backend**: Express.js, TypeScript (ESM), Prisma ORM, PostgreSQL
-- **External APIs**: Finnhub API for market data
+- **External APIs**: Yahoo Finance API for market data
 - **Real-time**: WebSocket connections for live data streaming
 - **Testing**: Vitest, React Testing Library, Playwright for E2E
 
@@ -41,7 +41,7 @@ The project uses a monorepo architecture with the following packages:
 
 - `@trading-viewer/shared` and `@trading-viewer/ui` are used across both apps
 - Client uses `@tanstack/react-query` for server state management
-- Server integrates with Finnhub API and uses Prisma for database operations
+- Server integrates with Yahoo Finance API and uses Prisma for database operations
 - All packages use workspace dependencies (`workspace:*`)
 
 ## Development Commands
@@ -115,7 +115,7 @@ pnpm --filter packages/ui [command]
 ### API Integration
 
 - Frontend communicates with backend via `/api` routes (proxied through Vite dev server)
-- Backend fetches real-time and historical data from Finnhub API
+- Backend fetches real-time and historical data from Yahoo Finance API
 - Data is cached in PostgreSQL database using Prisma ORM
 - WebSocket connections provide real-time market data streaming
 
@@ -145,7 +145,7 @@ pnpm --filter packages/ui [command]
 - Environment variables configured via `.env` files
 - Development: Client on port 3000, Server on port 8000
 - Database connection via `DATABASE_URL`
-- Finnhub API integration via `FINNHUB_API_KEY`
+- Yahoo Finance API integration for market data
 - CORS configured for frontend-backend communication
 
 ## Import Aliases

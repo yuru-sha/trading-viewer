@@ -51,7 +51,7 @@ services:
       PORT: 8000
       DATABASE_URL: postgresql://${DB_USER:-tradingviewer}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-tradingviewer}
       REDIS_URL: redis://redis:6379
-      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
+      USE_MOCK_DATA: ${USE_MOCK_DATA:-false}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
     depends_on:

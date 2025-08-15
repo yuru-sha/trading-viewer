@@ -1,7 +1,6 @@
 import { Router, Response } from 'express'
-import { getFinnhubService } from '../services/finnhubService'
 import { getYahooFinanceService } from '../services/yahooFinanceService'
-import { SymbolSearchParams, QuoteParams, CandleDataParams, ApiError } from '@trading-viewer/shared'
+import { ApiError } from '@trading-viewer/shared'
 import {
   validateSymbolSearch,
   validateCandleParams,
@@ -15,7 +14,6 @@ const router = Router()
 
 // Check data source configuration
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'
-const USE_YAHOO_FINANCE = process.env.USE_YAHOO_FINANCE === 'true'
 
 /**
  * テスト用のモックローソク足データを生成します。
@@ -327,7 +325,6 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
 
     // Use mock data for development to avoid rate limits
     if (USE_MOCK_DATA) {
-      console.log(`🔍 Using MOCK data for search: ${q} (USE_MOCK_DATA=true)`)
       const symbols = searchMockSymbols(q.trim(), limit)
       res.json({
         symbols,
@@ -337,42 +334,23 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
       return
     }
 
-    // Use Yahoo Finance search if configured
-    if (USE_YAHOO_FINANCE) {
-      console.log(`🔍 Using Yahoo Finance search for: ${q} (USE_YAHOO_FINANCE=true)`)
-      const yahooService = getYahooFinanceService()
-      const results = await yahooService.searchSymbols(q.trim(), limit)
-      
-      // Convert Yahoo Finance format to Finnhub-compatible format
-      const symbols = results.map(result => ({
-        symbol: result.symbol,
-        description: result.longname || result.shortname || result.symbol,
-        displaySymbol: result.symbol,
-        type: result.typeDisp || 'Common Stock',
-        currency: 'USD', // Yahoo Finance doesn't always provide currency
-        exchange: result.exchange || '',
-      }))
-      
-      res.json({
-        symbols,
-        query: q.trim(),
-        count: symbols.length,
-      })
-      return
-    }
-
-    // Use real Finnhub API data
-    console.log(`🔍 Using Finnhub search for: ${q} (real API)`)
-    const params: SymbolSearchParams = {
-      q: q.trim(),
-      limit
-    }
-    const finnhubService = getFinnhubService()
-    const symbols = await finnhubService.searchSymbols(params)
+    // Use Yahoo Finance API
+    const yahooService = getYahooFinanceService()
+    const results = await yahooService.searchSymbols(q.trim(), limit)
+    
+    const symbols = results.map(result => ({
+      symbol: result.symbol,
+      description: result.longname || result.shortname || result.symbol,
+      displaySymbol: result.symbol,
+      type: result.typeDisp || 'Common Stock',
+      currency: 'USD',
+      exchange: result.exchange || '',
+    }))
+    
     res.json({
       symbols,
-      query: params.q,
-      count: symbols.length
+      query: q.trim(),
+      count: symbols.length,
     })
   } catch (error) {
     console.error('Symbol search error:', error)
@@ -400,42 +378,28 @@ router.get(
 
       // Use mock or real data based on configuration (no mixing)
       if (USE_MOCK_DATA) {
-        console.log(`📈 Using MOCK data for quote: ${symbol} (USE_MOCK_DATA=true)`)
         const mockQuote = generateMockQuote(symbol.toUpperCase())
         res.json(mockQuote)
         return
       }
 
-      // Use Yahoo Finance API if configured
-      if (USE_YAHOO_FINANCE) {
-        console.log(`📈 Using Yahoo Finance data for quote: ${symbol} (USE_YAHOO_FINANCE=true)`)
-        const yahooService = getYahooFinanceService()
-        const quote = await yahooService.getQuote(symbol.toUpperCase())
-        
-        // Convert Yahoo Finance format to Finnhub format
-        const finnhubQuote = {
-          c: quote.currentPrice,
-          d: quote.change,
-          dp: quote.changePercent,
-          h: quote.high,
-          l: quote.low,
-          o: quote.open,
-          pc: quote.previousClose,
-          t: Math.floor(quote.timestamp / 1000),
-        }
-        
-        res.json(finnhubQuote)
-        return
+      // Use Yahoo Finance API
+      const yahooService = getYahooFinanceService()
+      const quote = await yahooService.getQuote(symbol.toUpperCase())
+      
+      // Convert Yahoo Finance format to expected format
+      const responseQuote = {
+        c: quote.currentPrice,
+        d: quote.change,
+        dp: quote.changePercent,
+        h: quote.high,
+        l: quote.low,
+        o: quote.open,
+        pc: quote.previousClose,
+        t: Math.floor(quote.timestamp / 1000),
       }
-
-      // Use real Finnhub API data (no fallback to maintain consistency)
-      console.log(`📈 Using REAL Finnhub data for quote: ${symbol} (USE_MOCK_DATA=false)`)
-      const params: QuoteParams = {
-        symbol: symbol.toUpperCase(),
-      }
-      const finnhubService = getFinnhubService()
-      const quote = await finnhubService.getQuote(params)
-      res.json(quote)
+      
+      res.json(responseQuote)
     } catch (error) {
       console.error('Quote fetch error:', error)
 
@@ -463,37 +427,20 @@ router.get(
 
       // Use mock or real data based on configuration (no mixing)
       if (USE_MOCK_DATA) {
-        console.log(`📊 Using MOCK data for candles: ${symbol} (USE_MOCK_DATA=true)`)
         const mockCandleData = generateMockCandleData(symbol.toUpperCase(), resolution, from, to)
         res.json(mockCandleData)
         return
       }
 
-      // Use Yahoo Finance API if configured
-      if (USE_YAHOO_FINANCE) {
-        console.log(`📊 Using Yahoo Finance data for candles: ${symbol} (USE_YAHOO_FINANCE=true)`)
-        const yahooService = getYahooFinanceService()
-        const candleData = await yahooService.getCandlesWithResolution(
-          symbol.toUpperCase(),
-          resolution,
-          from,
-          to
-        )
-        
-        res.json(candleData)
-        return
-      }
-
-      // Use real Finnhub API data (no fallback to maintain consistency)
-      console.log(`📊 Using REAL Finnhub data for candles: ${symbol} (USE_MOCK_DATA=false)`)
-      const params: CandleDataParams = {
-        symbol: symbol.toUpperCase(),
+      // Use Yahoo Finance API
+      const yahooService = getYahooFinanceService()
+      const candleData = await yahooService.getCandlesWithResolution(
+        symbol.toUpperCase(),
         resolution,
         from,
-        to,
-      }
-      const finnhubService = getFinnhubService()
-      const candleData = await finnhubService.getCandleData(params)
+        to
+      )
+      
       res.json(candleData)
     } catch (error) {
       console.error('Candle data fetch error:', error)
@@ -523,14 +470,10 @@ router.get('/data-source', (_req: Request, res: Response) => {
       provider = 'Mock Data'
       status = 'DEMO'
       description = 'Demo Data for Development'
-    } else if (USE_YAHOO_FINANCE) {
+    } else {
       provider = 'Yahoo Finance'
       status = 'LIVE'
-      description = 'Market Data by Yahoo Finance (Unofficial API)'
-    } else {
-      provider = 'Finnhub'
-      status = 'LIVE'
-      description = 'Market Data by Finnhub'
+      description = 'Market Data by Yahoo Finance'
     }
 
     res.json({
@@ -538,7 +481,6 @@ router.get('/data-source', (_req: Request, res: Response) => {
       provider,
       status,
       description,
-      useYahooFinance: USE_YAHOO_FINANCE,
     })
   } catch (error) {
     console.error('Data source info error:', error)
@@ -550,24 +492,5 @@ router.get('/data-source', (_req: Request, res: Response) => {
   }
 })
 
-// Rate limit info endpoint
-router.get('/rate-limit', (_req: Request, res: Response) => {
-  try {
-    const finnhubService = getFinnhubService()
-    const rateLimitInfo = finnhubService.getRateLimitInfo()
-    res.json({
-      ...rateLimitInfo,
-      canMakeRequest: finnhubService.canMakeRequest(),
-      timeUntilReset: finnhubService.getTimeUntilReset(),
-    })
-  } catch (error) {
-    console.error('Rate limit info error:', error)
-    res.status(500).json({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Internal server error',
-      statusCode: 500,
-    } as ApiError)
-  }
-})
 
 export default router
