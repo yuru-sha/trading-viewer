@@ -67,6 +67,8 @@ interface ChartProviderProps {
 }
 
 export const ChartProvider: React.FC<ChartProviderProps> = ({ children }) => {
+  console.warn('ChartProvider is deprecated. Use ChartProviders from ChartProviders.tsx instead.')
+
   // Get symbol from URL params
   const [searchParams, setSearchParams] = useSearchParams()
   const symbolFromUrl = searchParams.get('symbol') || 'AAPL'

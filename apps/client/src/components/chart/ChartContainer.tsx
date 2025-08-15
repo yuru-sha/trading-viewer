@@ -1,13 +1,13 @@
-import React, { useState, useCallback, forwardRef, useImperativeHandle } from 'react'
+import React, { useCallback, forwardRef, useImperativeHandle } from 'react'
 import { Loading } from '@trading-viewer/ui'
 import EChartsTradingChart from './EChartsTradingChart'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
-import useDrawingToolsWithServerPersistence from '../../hooks/drawing/useDrawingToolsWithServerPersistence'
-import { DrawingTool } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
-import { DrawingObject } from './DrawingObjectsPanel'
+import { useChartDataManager } from '../../hooks/chart/useChartDataManager'
+import { useChartRendering } from '../../hooks/chart/useChartRendering'
+import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
 
 interface TechnicalIndicators {
   sma?: { enabled: boolean; periods: number[] }
@@ -64,16 +64,25 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
     },
     ref
   ) => {
-    const [settings] = useState(defaultSettings)
-    const drawingTools = useDrawingToolsWithServerPersistence({
+    // Separated concerns using custom hooks
+    const dataManager = useChartDataManager({
+      symbol,
+      data,
+      currentPrice,
+      isLoading,
+      isRealTime,
+    })
+
+    const renderingManager = useChartRendering({
+      showDrawingTools: showDrawingTools ?? defaultSettings.showDrawingTools,
+    })
+
+    const drawingManager = useChartDrawingManager({
       symbol,
       timeframe,
       autoSave: true,
-      autoSaveInterval: 1000, // 1 秒後に自動保存
+      autoSaveInterval: 1000,
     })
-
-    // Chart instance ref to access chart functionality
-    const chartRef = React.useRef<any>(null)
 
     // Drawing toolbar ref to close objects panel
     const drawingToolbarRef = React.useRef<LeftDrawingToolbarRef>(null)
@@ -82,89 +91,52 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
     useImperativeHandle(
       ref,
       () => ({
-        takeScreenshot: (filename?: string) => {
-          if (chartRef.current?.takeScreenshot) {
-            return chartRef.current.takeScreenshot(filename)
-          } else {
-            console.warn('Chart instance not available for screenshot')
-            return null
-          }
-        },
+        takeScreenshot: renderingManager.takeScreenshot,
       }),
-      []
+      [renderingManager.takeScreenshot]
     )
 
-    // Chart objects state (Price Chart is excluded from objects list as it's always the main chart)
-    const [chartObjects, setChartObjects] = useState<DrawingObject[]>([
-      {
-        id: 'volume',
-        name: 'Volume',
-        type: 'vertical', // Temporary type for volume, should be adjusted based on actual needs
-        visible: settings.showVolume,
-        color: '#6366f1',
-        createdAt: Date.now(),
-      },
-    ])
+    // Handle drawing tool selection with detailed logging
+    const handleToolSelect = useCallback(
+      (toolType: DrawingToolType | null) => {
+        console.log('🔧 ChartContainer - Tool selected:', toolType)
+        console.log('🔧 Drawing tools state before setToolType:', {
+          activeToolType: drawingManager.drawingTools.activeToolType,
+          drawingMode: drawingManager.drawingTools.drawingMode,
+          canDraw: drawingManager.drawingTools.canDraw,
+          isDrawing: drawingManager.drawingTools.isDrawing,
+        })
 
-    // Handle object visibility toggle
-    const handleToggleObjectVisibility = useCallback((id: string) => {
-      setChartObjects(prev =>
-        prev.map(obj => (obj.id === id ? { ...obj, visible: !obj.visible } : obj))
-      )
-    }, [])
+        drawingManager.drawingTools.setToolType(toolType)
 
-    // Handle object removal
-    const handleRemoveObject = useCallback((id: string) => {
-      setChartObjects(prev => prev.filter(obj => obj.id !== id))
-    }, [])
-
-    // Handle drawing tool context menu actions
-    const handleChangeDrawingToolColor = useCallback(
-      (toolId: string, color: string) => {
-        console.log('🎯 Changing drawing tool color:', toolId, color)
-        const tool = drawingTools.getTool(toolId)
-        if (tool) {
-          drawingTools.updateTool(toolId, {
-            style: {
-              ...tool.style,
-              color,
-            },
+        // 状態更新後の確認は次のレンダリングサイクルで行う
+        setTimeout(() => {
+          console.log('🔧 Drawing tools state after setToolType (next tick):', {
+            activeToolType: drawingManager.drawingTools.activeToolType,
+            drawingMode: drawingManager.drawingTools.drawingMode,
+            canDraw: drawingManager.drawingTools.canDraw,
+            isDrawing: drawingManager.drawingTools.isDrawing,
           })
-        }
+        }, 0)
       },
-      [drawingTools]
+      [drawingManager.drawingTools]
     )
 
-    const handleToggleDrawingToolVisibility = useCallback(
-      (toolId: string) => {
-        console.log('🎯 Toggling drawing tool visibility:', toolId)
-        const tool = drawingTools.getTool(toolId)
-        if (tool) {
-          drawingTools.updateTool(toolId, { visible: !(tool.visible ?? true) })
-        }
-      },
-      [drawingTools]
-    )
+    // Handle chart click to close panels
+    const handleChartClick = useCallback(() => {
+      if (drawingToolbarRef.current) {
+        drawingToolbarRef.current.closeObjectsPanel()
+      }
+    }, [])
 
-    const handleDeleteDrawingTool = useCallback(
-      (toolId: string) => {
-        console.log('🎯 Deleting drawing tool:', toolId)
-        drawingTools.deleteTool(toolId)
-        drawingTools.hideContextMenu()
-      },
-      [drawingTools]
-    )
+    // Handle crosshair move
+    const handleCrosshairMove = useCallback((price: number, time: number) => {
+      // カーソル位置の価格表示を復活させる
+      // 必要に応じてここで価格表示の処理を行う
+    }, [])
 
-    const handleDuplicateDrawingTool = useCallback(
-      (toolId: string) => {
-        console.log('🎯 Duplicating drawing tool:', toolId)
-        drawingTools.duplicateTool(toolId)
-        drawingTools.hideContextMenu()
-      },
-      [drawingTools]
-    )
-
-    if (isLoading && !data.length) {
+    // Early returns for loading and no data states
+    if (dataManager.isInitialLoading) {
       return (
         <div
           className={`flex items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-lg border ${className}`}
@@ -174,7 +146,7 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
       )
     }
 
-    if (!data.length) {
+    if (!dataManager.hasData) {
       return (
         <div
           className={`flex flex-col items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-lg border ${className}`}
@@ -204,41 +176,15 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
     return (
       <div className={`h-full flex relative ${className}`}>
         {/* Left Drawing Toolbar */}
-        {(showDrawingTools ?? settings.showDrawingTools) && (
+        {(showDrawingTools ?? renderingManager.settings.showDrawingTools) && (
           <LeftDrawingToolbar
             ref={drawingToolbarRef}
-            activeTool={drawingTools.activeToolType}
-            onToolSelect={(toolType: DrawingToolType | null) => {
-              console.log('🔧 ChartContainer - Tool selected:', toolType)
-              console.log('🔧 Drawing tools state before setToolType:', {
-                activeToolType: drawingTools.activeToolType,
-                drawingMode: drawingTools.drawingMode,
-                canDraw: drawingTools.canDraw,
-                isDrawing: drawingTools.isDrawing,
-              })
-              drawingTools.setToolType(toolType)
-
-              // 状態更新後の確認は次のレンダリングサイクルで行う
-              setTimeout(() => {
-                console.log('🔧 Drawing tools state after setToolType (next tick):', {
-                  activeToolType: drawingTools.activeToolType,
-                  drawingMode: drawingTools.drawingMode,
-                  canDraw: drawingTools.canDraw,
-                  isDrawing: drawingTools.isDrawing,
-                })
-              }, 0)
-            }}
-            objects={drawingTools.tools.map(tool => ({
-              id: tool.id,
-              name: `${tool.type.charAt(0).toUpperCase() + tool.type.slice(1)} ${tool.id.slice(-4)}`,
-              type: tool.type,
-              visible: tool.visible ?? true,
-              color: tool.style?.color || '#3b82f6',
-              createdAt: tool.createdAt || Date.now(),
-            }))}
-            onToggleObjectVisibility={handleToggleDrawingToolVisibility}
-            onRemoveObject={handleDeleteDrawingTool}
-            onChangeObjectColor={handleChangeDrawingToolColor}
+            activeTool={drawingManager.drawingTools.activeToolType}
+            onToolSelect={handleToolSelect}
+            objects={drawingManager.getDrawingObjects()}
+            onToggleObjectVisibility={drawingManager.toggleDrawingToolVisibility}
+            onRemoveObject={drawingManager.deleteDrawingTool}
+            onChangeObjectColor={drawingManager.changeDrawingToolColor}
             className=''
           />
         )}
@@ -246,21 +192,17 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
         {/* Main Chart Area - Full height */}
         <div className='flex-1 min-w-0'>
           <EChartsTradingChart
-            ref={chartRef}
-            onChartClick={() => {
-              // Close Drawing Objects panel when chart is clicked
-              if (drawingToolbarRef.current) {
-                drawingToolbarRef.current.closeObjectsPanel()
-              }
-            }}
-            data={data}
-            currentPrice={currentPrice}
+            ref={renderingManager.chartRef}
+            onChartClick={handleChartClick}
+            data={dataManager.data}
+            currentPrice={dataManager.latestPrice}
             showVolume={
-              chartObjects.find(obj => obj.id === 'volume')?.visible ?? settings.showVolume
+              renderingManager.chartObjects.find(obj => obj.id === 'volume')?.visible ??
+              renderingManager.settings.showVolume
             }
             className='h-full'
-            enableDrawingTools={showDrawingTools ?? settings.showDrawingTools}
-            drawingTools={drawingTools}
+            enableDrawingTools={showDrawingTools ?? renderingManager.settings.showDrawingTools}
+            drawingTools={drawingManager.drawingTools}
             symbol={symbol}
             chartType={chartType}
             timeframe={timeframe}
@@ -268,34 +210,47 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
             showPeriodHigh={showPeriodHigh}
             showPeriodLow={showPeriodLow}
             periodWeeks={periodWeeks}
-            onCrosshairMove={(price, time) => {
-              // カーソル位置の価格表示を復活させる
-              // 必要に応じてここで価格表示の処理を行う
-            }}
+            onCrosshairMove={handleCrosshairMove}
           />
         </div>
 
         {/* Loading Overlay */}
-        {isLoading && (
+        {dataManager.isUpdating && (
           <div className='absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center'>
             <Loading size='lg' text='Updating chart data...' />
           </div>
         )}
 
         {/* Drawing Context Menu */}
-        {drawingTools.contextMenu.isVisible && drawingTools.contextMenu.targetToolId && (
-          <DrawingContextMenu
-            x={drawingTools.contextMenu.x}
-            y={drawingTools.contextMenu.y}
-            tool={drawingTools.getTool(drawingTools.contextMenu.targetToolId)!}
-            onClose={drawingTools.hideContextMenu}
-            onChangeColor={color =>
-              handleChangeDrawingToolColor(drawingTools.contextMenu.targetToolId!, color)
-            }
-            onDelete={() => handleDeleteDrawingTool(drawingTools.contextMenu.targetToolId!)}
-            onDuplicate={() => handleDuplicateDrawingTool(drawingTools.contextMenu.targetToolId!)}
-          />
-        )}
+        {drawingManager.drawingTools.contextMenu.isVisible &&
+          drawingManager.drawingTools.contextMenu.targetToolId && (
+            <DrawingContextMenu
+              x={drawingManager.drawingTools.contextMenu.x}
+              y={drawingManager.drawingTools.contextMenu.y}
+              tool={
+                drawingManager.drawingTools.getTool(
+                  drawingManager.drawingTools.contextMenu.targetToolId
+                )!
+              }
+              onClose={drawingManager.drawingTools.hideContextMenu}
+              onChangeColor={color =>
+                drawingManager.changeDrawingToolColor(
+                  drawingManager.drawingTools.contextMenu.targetToolId!,
+                  color
+                )
+              }
+              onDelete={() =>
+                drawingManager.deleteDrawingTool(
+                  drawingManager.drawingTools.contextMenu.targetToolId!
+                )
+              }
+              onDuplicate={() =>
+                drawingManager.duplicateDrawingTool(
+                  drawingManager.drawingTools.contextMenu.targetToolId!
+                )
+              }
+            />
+          )}
       </div>
     )
   }
