@@ -121,8 +121,8 @@ export function registerApplicationServices(): void {
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
     config => {
-      const { AlphaVantageAdapter } = require('../adapters/MarketDataAdapter')
-      return new AlphaVantageAdapter(config.get('ALPHA_VANTAGE_API_KEY'))
+      const { getYahooFinanceService } = require('../services/yahooFinanceService')
+      return getYahooFinanceService()
     },
     [SERVICE_NAMES.CONFIG]
   )
