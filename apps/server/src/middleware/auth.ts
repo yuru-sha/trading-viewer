@@ -40,7 +40,7 @@ const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d'
 export const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production', // Enable secure in production
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : ('lax' as const),
+  sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax') as 'strict' | 'lax',
   path: '/',
   maxAge: 15 * 60 * 1000, // 15 minutes for access token
 }
@@ -48,7 +48,7 @@ export const COOKIE_OPTIONS = {
 export const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : ('lax' as const),
+  sameSite: (process.env.NODE_ENV === 'production' ? 'strict' : 'lax') as 'strict' | 'lax',
   path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
 }
@@ -96,11 +96,11 @@ export const generateTokens = async (
   }
 
   const accessToken = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN as string | number,
+    expiresIn: JWT_EXPIRES_IN as string,
     algorithm: 'HS256', // Explicitly set algorithm to prevent confusion attacks
   })
   const refreshToken = jwt.sign({ userId: payload.userId }, JWT_REFRESH_SECRET, {
-    expiresIn: JWT_REFRESH_EXPIRES_IN as string | number,
+    expiresIn: JWT_REFRESH_EXPIRES_IN as string,
     algorithm: 'HS256', // Explicitly set algorithm
   })
 
@@ -537,7 +537,7 @@ export const revokeAllUserCSRFTokens = (userId: string): void => {
 }
 
 // Security headers middleware with strict CSP
-export const securityHeaders = (req: Request, res: Response, next: NextFunction): void => {
+export const securityHeaders = (_req: Request, res: Response, next: NextFunction): void => {
   // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'DENY')
 
@@ -597,7 +597,7 @@ setInterval(
     }
 
     // Clean up expired refresh tokens
-    for (const [token, data] of refreshTokenStore.entries()) {
+    for (const [token, _data] of refreshTokenStore.entries()) {
       try {
         jwt.verify(token, JWT_REFRESH_SECRET)
       } catch (error) {
