@@ -4,11 +4,35 @@ module.exports = {
     browser: true,
     es2022: true
   },
-  extends: [],
+  extends: ['eslint:recommended', '@typescript-eslint/recommended', 'plugin:react/recommended', 'plugin:react-hooks/recommended'],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2022,
-    sourceType: 'module'
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true
+    }
   },
-  rules: {},
+  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
+  settings: {
+    react: {
+      version: 'detect'
+    }
+  },
+  rules: {
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'warn',
+    'no-console': 'warn',
+    'prefer-const': 'error',
+    'no-var': 'error',
+    'sort-imports': ['error', { ignoreDeclarationSort: true }],
+    'no-eval': 'error',
+    'no-implied-eval': 'error',
+    'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off'
+  },
   ignorePatterns: ['dist', '*.js', '*.cjs']
 }

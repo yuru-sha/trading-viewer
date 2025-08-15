@@ -30,7 +30,8 @@ const app: express.Application = express()
 const PORT = process.env.PORT || 8000
 
 // Rate limiting middleware - Financial application optimized
-const isRateLimitingEnabled = process.env.ENABLE_RATE_LIMITING !== 'false' && process.env.NODE_ENV !== 'development'
+const isRateLimitingEnabled =
+  process.env.ENABLE_RATE_LIMITING !== 'false' && process.env.NODE_ENV !== 'development'
 
 // General API rate limiter (more permissive for trading data)
 const generalLimiter = rateLimit({

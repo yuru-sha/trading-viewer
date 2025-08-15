@@ -69,7 +69,7 @@ export const initialState: DrawingState = {
   isDrawing: false,
   defaultStyle: {
     color: '#2563eb',
-    width: 2,
+    thickness: 2,
     opacity: 1,
     dashPattern: [],
   },
@@ -137,8 +137,8 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       return {
         ...state,
         selectedToolId: action.payload,
-        drawingMode: 'editing',
-        activeToolType: null,
+        // ✨ FIX: Don't change drawingMode or activeToolType when selecting existing tools
+        // This allows users to keep their drawing tool active while selecting/editing existing tools
       }
 
     case 'UPDATE_TOOL':

@@ -270,17 +270,17 @@ export const watchlistApi = {
 
 // Drawing Tools API endpoints
 export const drawingApi = {
-  // Get all drawing tools for a symbol
+  // Get all drawing tools for a symbol and timeframe
   getDrawingTools: async (
     symbol: string,
-    userId?: string
+    timeframe?: string
   ): Promise<{
     data: any[]
     status: 'success' | 'error'
     message?: string
   }> => {
     const queryParams = new URLSearchParams({ symbol })
-    if (userId) queryParams.append('userId', userId)
+    if (timeframe) queryParams.append('timeframe', timeframe)
 
     return apiRequest(`/drawings/${encodeURIComponent(symbol)}?${queryParams}`)
   },
@@ -288,6 +288,7 @@ export const drawingApi = {
   // Create a new drawing tool
   createDrawingTool: async (data: {
     symbol: string
+    timeframe?: string
     tool: any
   }): Promise<{
     data: any
@@ -336,7 +337,7 @@ export const apiClient = {
     const response = await apiRequest(cleanUrl)
     return { data: response }
   },
-  
+
   post: async (url: string, data?: any) => {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
@@ -345,7 +346,7 @@ export const apiClient = {
     })
     return { data: response }
   },
-  
+
   put: async (url: string, data?: any) => {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
@@ -354,7 +355,7 @@ export const apiClient = {
     })
     return { data: response }
   },
-  
+
   delete: async (url: string) => {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
@@ -371,6 +372,7 @@ export const api = {
   info: infoApi,
   watchlist: watchlistApi,
   drawing: drawingApi,
+  drawings: drawingApi, // Alias for backward compatibility
 }
 
 export default api

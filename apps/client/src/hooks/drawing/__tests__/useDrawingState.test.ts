@@ -191,7 +191,7 @@ describe('useDrawingState', () => {
       ],
       style: {
         color: '#2563eb',
-        width: 2,
+        thickness: 2,
         opacity: 1,
         dashPattern: [],
       },

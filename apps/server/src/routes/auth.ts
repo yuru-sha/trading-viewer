@@ -809,13 +809,13 @@ router.get(
     const page = parseInt(req.query.page as string) || 1
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100)
     const skip = (page - 1) * limit
-    
+
     const search = req.query.search as string
     const role = req.query.role as string
     const status = req.query.status as string
 
     const where: any = {}
-    
+
     if (search) {
       where.OR = [
         { email: { contains: search, mode: 'insensitive' } },
@@ -823,11 +823,11 @@ router.get(
         { lastName: { contains: search, mode: 'insensitive' } },
       ]
     }
-    
+
     if (role && ['admin', 'user'].includes(role)) {
       where.role = role
     }
-    
+
     if (status === 'active') {
       where.isActive = true
     } else if (status === 'inactive') {
@@ -906,7 +906,7 @@ router.put(
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         isActive,
         lockedUntil: null, // Clear any lockout when activating
         failedLoginCount: 0, // Reset failed attempts when activating
@@ -1041,15 +1041,15 @@ router.post(
 // Development/testing endpoints (strictly controlled)
 if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS === 'true') {
   console.warn('⚠️  Development endpoints are enabled. DO NOT use in production!')
-  
+
   // Initialize development users in database
   const initializeDevUsers = async () => {
     try {
       // Create admin user if not exists
       const adminExists = await prisma.user.findUnique({
-        where: { email: 'admin@tradingviewer.com' }
+        where: { email: 'admin@tradingviewer.com' },
       })
-      
+
       if (!adminExists) {
         await prisma.user.create({
           data: {
@@ -1061,16 +1061,16 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
             isEmailVerified: true,
             isActive: true,
             failedLoginCount: 0,
-          }
+          },
         })
         console.log('✅ Admin user created: admin@tradingviewer.com')
       }
 
       // Create test user if not exists
       const testExists = await prisma.user.findUnique({
-        where: { email: 'test@example.com' }
+        where: { email: 'test@example.com' },
       })
-      
+
       if (!testExists) {
         await prisma.user.create({
           data: {
@@ -1082,7 +1082,7 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
             isEmailVerified: true,
             isActive: true,
             failedLoginCount: 0,
-          }
+          },
         })
         console.log('✅ Test user created: test@example.com')
       }
@@ -1090,7 +1090,7 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
       console.error('Failed to initialize dev users:', error)
     }
   }
-  
+
   // Initialize users on startup
   initializeDevUsers()
 

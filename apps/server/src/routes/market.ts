@@ -337,7 +337,7 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
     // Use Yahoo Finance API
     const yahooService = getYahooFinanceService()
     const results = await yahooService.searchSymbols(q.trim(), limit)
-    
+
     const symbols = results.map(result => ({
       symbol: result.symbol,
       description: result.longname || result.shortname || result.symbol,
@@ -346,7 +346,7 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
       currency: 'USD',
       exchange: result.exchange || '',
     }))
-    
+
     res.json({
       symbols,
       query: q.trim(),
@@ -386,7 +386,7 @@ router.get(
       // Use Yahoo Finance API
       const yahooService = getYahooFinanceService()
       const quote = await yahooService.getQuote(symbol.toUpperCase())
-      
+
       // Convert Yahoo Finance format to expected format
       const responseQuote = {
         c: quote.currentPrice,
@@ -398,7 +398,7 @@ router.get(
         pc: quote.previousClose,
         t: Math.floor(quote.timestamp / 1000),
       }
-      
+
       res.json(responseQuote)
     } catch (error) {
       console.error('Quote fetch error:', error)
@@ -440,7 +440,7 @@ router.get(
         from,
         to
       )
-      
+
       res.json(candleData)
     } catch (error) {
       console.error('Candle data fetch error:', error)
@@ -465,7 +465,7 @@ router.get('/data-source', (_req: Request, res: Response) => {
     let provider: string
     let status: string
     let description: string
-    
+
     if (USE_MOCK_DATA) {
       provider = 'Mock Data'
       status = 'DEMO'
@@ -491,6 +491,5 @@ router.get('/data-source', (_req: Request, res: Response) => {
     } as ApiError)
   }
 })
-
 
 export default router

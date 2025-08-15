@@ -85,6 +85,7 @@ model DrawingTool {
   id             String    @id @default(cuid())
   userId         String    @map("user_id")
   symbol         String
+  timeframe      String    @default("1D")
   type           String
   points         String
   style          String
@@ -97,7 +98,7 @@ model DrawingTool {
   updatedAt      DateTime  @updatedAt @map("updated_at")
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, symbol])
+  @@index([userId, symbol, timeframe])
   @@index([expiresAt])
   @@index([lastAccessedAt])
   @@map("drawing_tools")

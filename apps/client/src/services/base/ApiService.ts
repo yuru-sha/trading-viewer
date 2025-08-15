@@ -58,7 +58,12 @@ export class ApiService {
     // Add CSRF token for state-changing operations
     if (requiresCSRF && this.csrfToken) {
       requestHeaders['x-csrf-token'] = this.csrfToken
-      console.log('🔐 ApiService sending CSRF token:', this.csrfToken.substring(0, 8) + '...', 'for', endpoint)
+      console.log(
+        '🔐 ApiService sending CSRF token:',
+        this.csrfToken.substring(0, 8) + '...',
+        'for',
+        endpoint
+      )
     } else if (requiresCSRF) {
       console.warn('🔐 CSRF token required but not available for', endpoint)
     }

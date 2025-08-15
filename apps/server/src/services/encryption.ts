@@ -410,12 +410,5 @@ export class SecureRandom {
 // Export singleton instances
 export const symmetricEncryption = new SymmetricEncryption()
 
-// Export all classes and utilities
-export {
-  CryptographicValidator,
-  SymmetricEncryption,
-  KeyDerivation,
-  PasswordSecurity,
-  MessageAuthentication,
-  SecureRandom,
-}
+// Export all utilities as default exports
+// Note: Classes are already exported above

@@ -7,10 +7,7 @@ interface MarketTabsProps {
   onCategoryChange: (category: MarketCategory) => void
 }
 
-export const MarketTabs: React.FC<MarketTabsProps> = ({
-  activeCategory,
-  onCategoryChange,
-}) => {
+export const MarketTabs: React.FC<MarketTabsProps> = ({ activeCategory, onCategoryChange }) => {
   const tabs: { key: MarketCategory; label: string; icon: string }[] = [
     { key: 'indices', label: 'Indices', icon: '📈' },
     { key: 'stocks', label: 'Stocks', icon: '📊' },
@@ -22,9 +19,9 @@ export const MarketTabs: React.FC<MarketTabsProps> = ({
   ]
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
-      <nav className="flex space-x-8 overflow-x-auto">
-        {tabs.map((tab) => (
+    <div className='border-b border-gray-200 dark:border-gray-700 mb-8'>
+      <nav className='flex space-x-8 overflow-x-auto'>
+        {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => onCategoryChange(tab.key)}

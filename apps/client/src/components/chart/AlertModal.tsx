@@ -6,7 +6,9 @@ export interface PriceAlert {
   id: string
   symbol: string
   type: 'above' | 'below' | 'crosses'
-  price: number
+  price?: number
+  percentageChange?: number
+  alertType: 'price' | 'percentage'
   message?: string
   enabled: boolean
   createdAt: Date
@@ -40,31 +42,58 @@ const AlertModal: React.FC<AlertModalProps> = ({
   const [alertPrice, setAlertPrice] = useState<string>(currentPrice.toFixed(2))
   const [alertMessage, setAlertMessage] = useState<string>('')
   const [showExisting, setShowExisting] = useState(true)
+  const [priceAlertType, setPriceAlertType] = useState<'price' | 'percentage'>('price')
+  const [percentageChange, setPercentageChange] = useState<string>('5')
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const price = parseFloat(alertPrice)
 
-    if (isNaN(price) || price <= 0) {
-      alert('有効な価格を入力してください')
-      return
-    }
+    if (priceAlertType === 'price') {
+      const price = parseFloat(alertPrice)
+      if (isNaN(price) || price <= 0) {
+        alert('有効な価格を入力してください')
+        return
+      }
 
-    const result = await onCreateAlert({
-      symbol,
-      type: alertType,
-      price,
-      message: alertMessage || undefined,
-      enabled: true,
-    })
+      const result = await onCreateAlert({
+        symbol,
+        type: alertType,
+        price,
+        alertType: 'price',
+        message: alertMessage || undefined,
+        enabled: true,
+      })
 
-    if (result) {
-      // Reset form
-      setAlertPrice(currentPrice.toFixed(2))
-      setAlertMessage('')
-      onClose()
+      if (result) {
+        // Reset form
+        setAlertPrice(currentPrice.toFixed(2))
+        setAlertMessage('')
+        onClose()
+      }
+    } else {
+      const percentage = parseFloat(percentageChange)
+      if (isNaN(percentage)) {
+        alert('有効なパーセンテージを入力してください')
+        return
+      }
+
+      const result = await onCreateAlert({
+        symbol,
+        type: alertType,
+        percentageChange: percentage,
+        alertType: 'percentage',
+        message: alertMessage || undefined,
+        enabled: true,
+      })
+
+      if (result) {
+        // Reset form
+        setPercentageChange('5')
+        setAlertMessage('')
+        onClose()
+      }
     }
   }
 
@@ -128,10 +157,45 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
           {/* Alert Form */}
           <form onSubmit={handleSubmit} className='space-y-6'>
+            {/* Price Alert Type Selection */}
+            <div>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+                アラート方式
+              </label>
+              <div className='flex space-x-4'>
+                <label className='flex items-center'>
+                  <input
+                    type='radio'
+                    name='priceAlertType'
+                    value='price'
+                    checked={priceAlertType === 'price'}
+                    onChange={e => setPriceAlertType(e.target.value as 'price' | 'percentage')}
+                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+                  />
+                  <span className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
+                    価格ターゲット
+                  </span>
+                </label>
+                <label className='flex items-center'>
+                  <input
+                    type='radio'
+                    name='priceAlertType'
+                    value='percentage'
+                    checked={priceAlertType === 'percentage'}
+                    onChange={e => setPriceAlertType(e.target.value as 'price' | 'percentage')}
+                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+                  />
+                  <span className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
+                    パーセンテージ変化
+                  </span>
+                </label>
+              </div>
+            </div>
+
             {/* Alert Type */}
             <div>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
-                アラートタイプ
+                条件
               </label>
               <div className='grid grid-cols-3 gap-3'>
                 <button
@@ -173,33 +237,62 @@ const AlertModal: React.FC<AlertModalProps> = ({
               </div>
             </div>
 
-            {/* Alert Price */}
-            <div>
-              <label
-                htmlFor='alert-price'
-                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
-              >
-                アラート価格
-              </label>
-              <div className='relative'>
-                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <span className='text-gray-500 dark:text-gray-400'>$</span>
+            {/* Price Target or Percentage Change Input */}
+            {priceAlertType === 'price' ? (
+              <div>
+                <label
+                  htmlFor='alert-price'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                >
+                  ターゲット価格
+                </label>
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <span className='text-gray-500 dark:text-gray-400'>$</span>
+                  </div>
+                  <input
+                    id='alert-price'
+                    type='number'
+                    step='0.01'
+                    value={alertPrice}
+                    onChange={e => setAlertPrice(e.target.value)}
+                    className='block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                    placeholder='0.00'
+                    required
+                  />
                 </div>
-                <input
-                  id='alert-price'
-                  type='number'
-                  step='0.01'
-                  value={alertPrice}
-                  onChange={e => setAlertPrice(e.target.value)}
-                  className='block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                  placeholder='0.00'
-                  required
-                />
+                <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+                  価格が ${alertPrice || '0'} {getAlertTypeLabel(alertType)}になったら通知
+                </p>
               </div>
-              <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                価格が ${alertPrice || '0'} {getAlertTypeLabel(alertType)}になったら通知
-              </p>
-            </div>
+            ) : (
+              <div>
+                <label
+                  htmlFor='alert-percentage'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                >
+                  パーセンテージ変化 (%)
+                </label>
+                <div className='relative'>
+                  <input
+                    id='alert-percentage'
+                    type='number'
+                    step='0.1'
+                    value={percentageChange}
+                    onChange={e => setPercentageChange(e.target.value)}
+                    className='block w-full pr-8 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                    placeholder='5'
+                    required
+                  />
+                  <div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
+                    <span className='text-gray-500 dark:text-gray-400'>%</span>
+                  </div>
+                </div>
+                <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+                  現在価格から {alertType === 'above' ? '+' : '-'}{percentageChange || '0'}% 変化したら通知
+                </p>
+              </div>
+            )}
 
             {/* Alert Message (Optional) */}
             <div>
@@ -262,10 +355,16 @@ const AlertModal: React.FC<AlertModalProps> = ({
                         <div>
                           <div className='flex items-center space-x-2'>
                             <span className='font-medium text-gray-900 dark:text-white'>
-                              ${alert.price.toFixed(2)}
+                              {alert.alertType === 'price' 
+                                ? `$${alert.price?.toFixed(2) || '0.00'}`
+                                : `${(alert.percentageChange || 0) > 0 ? '+' : ''}${alert.percentageChange || 0}%`
+                              }
                             </span>
                             <span className='text-sm text-gray-500 dark:text-gray-400'>
-                              {getAlertTypeLabel(alert.type)}
+                              {alert.alertType === 'price' 
+                                ? getAlertTypeLabel(alert.type)
+                                : '変化'
+                              }
                             </span>
                           </div>
                           {alert.message && (

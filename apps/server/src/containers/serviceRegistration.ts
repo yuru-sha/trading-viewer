@@ -117,7 +117,6 @@ export function registerApplicationServices(): void {
     [SERVICE_NAMES.CONFIG]
   )
 
-
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
     config => {
@@ -268,7 +267,6 @@ export function registerApplicationServices(): void {
     },
     [SERVICE_NAMES.LOGGER]
   )
-
 }
 
 /**

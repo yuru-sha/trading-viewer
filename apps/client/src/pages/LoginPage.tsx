@@ -114,17 +114,32 @@ const LoginPage: React.FC = () => {
             noValidate
           >
             <fieldset className='space-y-5'>
-              <legend className='sr-only'>{isLogin ? 'Login information' : 'Account creation information'}</legend>
-              
+              <legend className='sr-only'>
+                {isLogin ? 'Login information' : 'Account creation information'}
+              </legend>
+
               {/* Email Input */}
               <div>
-                <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label
+                  htmlFor='email'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                >
                   Email Address
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                    <svg className='h-5 w-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207' />
+                    <svg
+                      className='h-5 w-5 text-gray-400'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207'
+                      />
                     </svg>
                   </div>
                   <Input
@@ -143,13 +158,26 @@ const LoginPage: React.FC = () => {
 
               {/* Password Input */}
               <div>
-                <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label
+                  htmlFor='password'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                >
                   Password
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                    <svg className='h-5 w-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                    <svg
+                      className='h-5 w-5 text-gray-400'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
+                      />
                     </svg>
                   </div>
                   <Input
@@ -169,7 +197,10 @@ const LoginPage: React.FC = () => {
                 <>
                   <div className='grid grid-cols-2 gap-4'>
                     <div>
-                      <label htmlFor='firstName' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                      <label
+                        htmlFor='firstName'
+                        className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                      >
                         First Name (Optional)
                       </label>
                       <Input
@@ -183,7 +214,10 @@ const LoginPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label htmlFor='lastName' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                      <label
+                        htmlFor='lastName'
+                        className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                      >
                         Last Name (Optional)
                       </label>
                       <Input
@@ -209,15 +243,18 @@ const LoginPage: React.FC = () => {
                       name='remember-me'
                       type='checkbox'
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
+                      onChange={e => setRememberMe(e.target.checked)}
                       className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                     />
-                    <label htmlFor='remember-me' className='ml-2 block text-sm text-gray-700 dark:text-gray-300'>
+                    <label
+                      htmlFor='remember-me'
+                      className='ml-2 block text-sm text-gray-700 dark:text-gray-300'
+                    >
                       Remember me
                     </label>
                   </div>
-                  <button 
-                    type='button' 
+                  <button
+                    type='button'
                     onClick={() => setShowForgotPassword(true)}
                     className='text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
                   >
@@ -239,14 +276,31 @@ const LoginPage: React.FC = () => {
               >
                 {isLoading ? (
                   <div className='flex items-center justify-center'>
-                    <svg className='animate-spin -ml-1 mr-3 h-5 w-5 text-white' fill='none' viewBox='0 0 24 24'>
-                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                    <svg
+                      className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                    >
+                      <circle
+                        className='opacity-25'
+                        cx='12'
+                        cy='12'
+                        r='10'
+                        stroke='currentColor'
+                        strokeWidth='4'
+                      />
+                      <path
+                        className='opacity-75'
+                        fill='currentColor'
+                        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                      />
                     </svg>
                     Processing...
                   </div>
+                ) : isLogin ? (
+                  'Sign In'
                 ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
+                  'Create Account'
                 )}
               </Button>
               {isLoading && (
@@ -283,7 +337,10 @@ const LoginPage: React.FC = () => {
 
             {/* Test Accounts */}
             <section className='space-y-3' aria-labelledby='test-accounts-title'>
-              <h2 id='test-accounts-title' className='text-xs font-medium text-gray-500 text-center'>
+              <h2
+                id='test-accounts-title'
+                className='text-xs font-medium text-gray-500 text-center'
+              >
                 Demo Accounts
               </h2>
               <div className='grid grid-cols-2 gap-3'>
@@ -298,7 +355,9 @@ const LoginPage: React.FC = () => {
                   role='button'
                   aria-label='Auto-fill with test account'
                 >
-                  <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>👤 Regular User</div>
+                  <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                    👤 Regular User
+                  </div>
                   <div className='text-xs text-gray-500 dark:text-gray-400'>test@example.com</div>
                 </button>
                 <button
@@ -312,8 +371,12 @@ const LoginPage: React.FC = () => {
                   role='button'
                   aria-label='Auto-fill with admin account'
                 >
-                  <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>👑 Administrator</div>
-                  <div className='text-xs text-blue-600 dark:text-blue-400'>admin@tradingviewer.com</div>
+                  <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>
+                    👑 Administrator
+                  </div>
+                  <div className='text-xs text-blue-600 dark:text-blue-400'>
+                    admin@tradingviewer.com
+                  </div>
                 </button>
               </div>
             </section>
@@ -350,7 +413,11 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Animated Chart Pattern */}
-        <svg className='absolute bottom-0 left-0 w-full h-64 opacity-20' viewBox='0 0 400 100' preserveAspectRatio='none'>
+        <svg
+          className='absolute bottom-0 left-0 w-full h-64 opacity-20'
+          viewBox='0 0 400 100'
+          preserveAspectRatio='none'
+        >
           <path
             d='M0,50 C50,20 100,60 150,40 C200,20 250,70 300,50 C350,30 400,60 400,50 L400,100 L0,100 Z'
             fill='white'
@@ -374,7 +441,10 @@ const LoginPage: React.FC = () => {
 
             <form onSubmit={handleForgotPassword} className='space-y-6'>
               <div>
-                <label htmlFor='forgot-email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label
+                  htmlFor='forgot-email'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+                >
                   Email Address
                 </label>
                 <Input
@@ -382,7 +452,7 @@ const LoginPage: React.FC = () => {
                   type='email'
                   placeholder='email@example.com'
                   value={forgotPasswordEmail}
-                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  onChange={e => setForgotPasswordEmail(e.target.value)}
                   required
                   className='w-full py-3 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 />
@@ -409,9 +479,24 @@ const LoginPage: React.FC = () => {
                 >
                   {isForgotPasswordLoading ? (
                     <div className='flex items-center justify-center'>
-                      <svg className='animate-spin -ml-1 mr-2 h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
-                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                      <svg
+                        className='animate-spin -ml-1 mr-2 h-4 w-4 text-white'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                      >
+                        <circle
+                          className='opacity-25'
+                          cx='12'
+                          cy='12'
+                          r='10'
+                          stroke='currentColor'
+                          strokeWidth='4'
+                        />
+                        <path
+                          className='opacity-75'
+                          fill='currentColor'
+                          d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                        />
                       </svg>
                       Sending...
                     </div>

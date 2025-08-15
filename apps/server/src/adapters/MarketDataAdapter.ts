@@ -101,9 +101,6 @@ export abstract class BaseMarketDataAdapter implements IMarketDataProvider {
   }
 }
 
-
-
-
 /**
  * Market Data Adapter Factory
  * Creates appropriate adapter based on provider name

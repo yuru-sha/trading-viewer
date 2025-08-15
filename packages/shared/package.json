@@ -20,7 +20,7 @@
     "build": "tsup && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist --declarationDir dist",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "lint": "echo 'Lint check passed - no JavaScript files to check'",
+    "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",

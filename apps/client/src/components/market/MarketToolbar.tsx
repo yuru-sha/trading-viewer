@@ -1,16 +1,20 @@
 import React from 'react'
 
-export type MarketSection = 'market-summary' | 'stocks' | 'crypto' | 'futures' | 'forex' | 'economic-indicators' | 'brokers'
+export type MarketSection =
+  | 'market-summary'
+  | 'stocks'
+  | 'crypto'
+  | 'futures'
+  | 'forex'
+  | 'economic-indicators'
+  | 'brokers'
 
 interface MarketToolbarProps {
   activeSection: MarketSection
   onSectionChange: (section: MarketSection) => void
 }
 
-export const MarketToolbar: React.FC<MarketToolbarProps> = ({
-  activeSection,
-  onSectionChange,
-}) => {
+export const MarketToolbar: React.FC<MarketToolbarProps> = ({ activeSection, onSectionChange }) => {
   const sections: { key: MarketSection; label: string }[] = [
     { key: 'market-summary', label: 'Market Summary' },
     { key: 'stocks', label: 'Stocks' },
@@ -34,11 +38,11 @@ export const MarketToolbar: React.FC<MarketToolbarProps> = ({
   }
 
   return (
-    <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center py-4">
-          <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1">
-            {sections.map((section) => (
+    <div className='sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-8'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='flex items-center justify-center py-4'>
+          <div className='flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1'>
+            {sections.map(section => (
               <button
                 key={section.key}
                 onClick={() => handleSectionClick(section.key)}

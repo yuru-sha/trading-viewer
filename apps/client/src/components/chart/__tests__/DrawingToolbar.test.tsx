@@ -9,7 +9,7 @@ describe('DrawingToolbar', () => {
     drawingMode: 'drawing' as DrawingMode,
     defaultStyle: {
       color: '#2563eb',
-      width: 2,
+      thickness: 2,
       opacity: 1,
       dashPattern: [],
     } as DrawingStyle,

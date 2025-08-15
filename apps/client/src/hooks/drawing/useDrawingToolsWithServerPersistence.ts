@@ -1,14 +1,23 @@
 import { useDrawingTools } from './index'
-import { useDrawingServerPersistence, type DrawingServerPersistenceOptions } from './useDrawingServerPersistence'
+import {
+  useDrawingServerPersistence,
+  type DrawingServerPersistenceOptions,
+} from './useDrawingServerPersistence'
 
 /**
  * Enhanced drawing tools hook with server API persistence
  * Automatically saves and restores drawing tools based on current symbol and authenticated user
  */
-export const useDrawingToolsWithServerPersistence = (options: DrawingServerPersistenceOptions = {}) => {
+export const useDrawingToolsWithServerPersistence = (
+  options: DrawingServerPersistenceOptions = {}
+) => {
   const drawingTools = useDrawingTools()
 
-  const serverPersistence = useDrawingServerPersistence(drawingTools.tools, drawingTools.loadTools, options)
+  const serverPersistence = useDrawingServerPersistence(
+    drawingTools.tools,
+    drawingTools.loadTools,
+    options
+  )
 
   return {
     // All original drawing tools functionality

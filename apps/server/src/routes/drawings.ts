@@ -35,6 +35,7 @@ const drawingStyleSchema = z.object({
 
 const createDrawingToolSchema = z.object({
   symbol: z.string(),
+  timeframe: z.string().optional().default('1D'),
   tool: z.object({
     type: z.enum(['trendline', 'horizontal', 'vertical', 'rectangle', 'circle', 'arrow', 'text']),
     points: z.array(drawingPointSchema),
@@ -59,11 +60,11 @@ const updateDrawingToolSchema = z.object({
   }),
 })
 
-// GET /api/drawings/:symbol - Get all drawing tools for a symbol
+// GET /api/drawings/:symbol - Get all drawing tools for a symbol and timeframe
 router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { symbol } = req.params
-    const { userId } = req.query
+    const { timeframe = '1D' } = req.query
 
     if (!symbol) {
       return res.status(400).json({
@@ -84,6 +85,7 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
     const drawingTools = await prisma.drawingTool.findMany({
       where: {
         symbol,
+        timeframe: timeframe as string,
         userId: searchUserId,
       },
       orderBy: {
@@ -131,7 +133,7 @@ router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res
       })
     }
 
-    const { symbol, tool } = validation.data
+    const { symbol, timeframe, tool } = validation.data
 
     // Use authenticated user ID
     const userId = req.user?.userId
@@ -146,6 +148,7 @@ router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res
       data: {
         userId,
         symbol,
+        timeframe: timeframe || '1D',
         type: tool.type,
         points: JSON.stringify(tool.points),
         style: JSON.stringify(tool.style),

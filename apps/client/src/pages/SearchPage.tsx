@@ -16,12 +16,7 @@ interface SearchResult {
 
 const SearchPage: React.FC = () => {
   const { state } = useApp()
-  const {
-    setSelectedSymbol,
-    setError,
-    addToWatchlist,
-    removeFromWatchlist,
-  } = useAppActions()
+  const { setSelectedSymbol, setError, addToWatchlist, removeFromWatchlist } = useAppActions()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -395,62 +390,62 @@ const SearchPage: React.FC = () => {
       {watchlistItems.length > 0 && !hasSearched && (
         <div className='mb-8'>
           <div>
-              <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
-                <svg
-                  className='w-5 h-5 text-green-500 mr-2'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
+            <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
+              <svg
+                className='w-5 h-5 text-green-500 mr-2'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
+                />
+              </svg>
+              Watchlist ({watchlistItems.length})
+            </h2>
+            <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3'>
+              {watchlistItems.map(item => (
+                <div
+                  key={item.symbol}
+                  className='bg-white dark:bg-gray-800 shadow rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-green-400'
+                  onClick={() => handleSymbolSelect(item.symbol)}
                 >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
-                  />
-                </svg>
-                Watchlist ({watchlistItems.length})
-              </h2>
-              <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3'>
-                {watchlistItems.map(item => (
-                  <div
-                    key={item.symbol}
-                    className='bg-white dark:bg-gray-800 shadow rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-green-400'
-                    onClick={() => handleSymbolSelect(item.symbol)}
-                  >
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h3 className='text-sm font-medium text-gray-900 dark:text-white'>
-                          {item.symbol}
-                        </h3>
-                      </div>
-                      <button
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleRemoveFromWatchlist(item.symbol)
-                        }}
-                        className='text-green-500 hover:text-green-600 transition-colors'
-                        title='Remove from watchlist'
-                      >
-                        <svg
-                          className='w-4 h-4'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'
-                          />
-                        </svg>
-                      </button>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <h3 className='text-sm font-medium text-gray-900 dark:text-white'>
+                        {item.symbol}
+                      </h3>
                     </div>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        handleRemoveFromWatchlist(item.symbol)
+                      }}
+                      className='text-green-500 hover:text-green-600 transition-colors'
+                      title='Remove from watchlist'
+                    >
+                      <svg
+                        className='w-4 h-4'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'
+                        />
+                      </svg>
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
         </div>
       )}
 

@@ -74,7 +74,7 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
 
     // Chart instance ref to access chart functionality
     const chartRef = React.useRef<any>(null)
-    
+
     // Drawing toolbar ref to close objects panel
     const drawingToolbarRef = React.useRef<LeftDrawingToolbarRef>(null)
 

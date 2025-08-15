@@ -8,18 +8,17 @@ import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 const router = Router()
 const prisma = new PrismaClient()
 
-const CreateAlertSchema = z.object({
-  symbol: z.string().min(1),
-  condition: z.enum(['above', 'below']),
-  targetPrice: z.number().positive().optional(),
-  percentageChange: z.number().optional(),
-  enabled: z.boolean().optional(),
-}).refine(
-  (data) => data.targetPrice !== undefined || data.percentageChange !== undefined,
-  {
-    message: "Either targetPrice or percentageChange must be provided",
-  }
-)
+const CreateAlertSchema = z
+  .object({
+    symbol: z.string().min(1),
+    condition: z.enum(['above', 'below']),
+    targetPrice: z.number().positive().optional(),
+    percentageChange: z.number().optional(),
+    enabled: z.boolean().optional(),
+  })
+  .refine(data => data.targetPrice !== undefined || data.percentageChange !== undefined, {
+    message: 'Either targetPrice or percentageChange must be provided',
+  })
 
 const UpdateAlertSchema = z.object({
   enabled: z.boolean().optional(),

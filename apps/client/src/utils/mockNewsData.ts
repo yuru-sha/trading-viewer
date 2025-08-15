@@ -9,7 +9,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Nikkei',
         link: '#',
         time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        logo: 'N'
+        logo: 'N',
       },
       {
         uuid: 'mock-jp-2',
@@ -17,7 +17,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Reuters',
         link: '#',
         time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        logo: 'R'
+        logo: 'R',
       },
       {
         uuid: 'mock-jp-3',
@@ -25,7 +25,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Bloomberg',
         link: '#',
         time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        logo: 'B'
+        logo: 'B',
       },
       {
         uuid: 'mock-jp-4',
@@ -33,7 +33,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Nikkei',
         link: '#',
         time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        logo: 'N'
+        logo: 'N',
       },
       {
         uuid: 'mock-jp-5',
@@ -41,7 +41,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Financial Times',
         link: '#',
         time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        logo: 'FT'
+        logo: 'FT',
       },
       {
         uuid: 'mock-jp-6',
@@ -49,8 +49,8 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Reuters',
         link: '#',
         time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        logo: 'R'
-      }
+        logo: 'R',
+      },
     ],
     world: [
       {
@@ -59,7 +59,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CNBC',
         link: '#',
         time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        logo: 'C'
+        logo: 'C',
       },
       {
         uuid: 'mock-world-2',
@@ -67,7 +67,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Bloomberg',
         link: '#',
         time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        logo: 'B'
+        logo: 'B',
       },
       {
         uuid: 'mock-world-3',
@@ -75,7 +75,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Reuters',
         link: '#',
         time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        logo: 'R'
+        logo: 'R',
       },
       {
         uuid: 'mock-world-4',
@@ -83,7 +83,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Financial Times',
         link: '#',
         time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        logo: 'FT'
+        logo: 'FT',
       },
       {
         uuid: 'mock-world-5',
@@ -91,7 +91,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'MarketWatch',
         link: '#',
         time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        logo: 'MW'
+        logo: 'MW',
       },
       {
         uuid: 'mock-world-6',
@@ -99,8 +99,8 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CNBC',
         link: '#',
         time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        logo: 'C'
-      }
+        logo: 'C',
+      },
     ],
     crypto: [
       {
@@ -109,7 +109,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CoinDesk',
         link: '#',
         time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        logo: 'CD'
+        logo: 'CD',
       },
       {
         uuid: 'mock-crypto-2',
@@ -117,7 +117,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CoinTelegraph',
         link: '#',
         time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        logo: 'CT'
+        logo: 'CT',
       },
       {
         uuid: 'mock-crypto-3',
@@ -125,7 +125,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Reuters',
         link: '#',
         time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        logo: 'R'
+        logo: 'R',
       },
       {
         uuid: 'mock-crypto-4',
@@ -133,7 +133,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Bloomberg',
         link: '#',
         time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        logo: 'B'
+        logo: 'B',
       },
       {
         uuid: 'mock-crypto-5',
@@ -141,7 +141,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CoinDesk',
         link: '#',
         time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        logo: 'CD'
+        logo: 'CD',
       },
       {
         uuid: 'mock-crypto-6',
@@ -149,8 +149,8 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Financial Times',
         link: '#',
         time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        logo: 'FT'
-      }
+        logo: 'FT',
+      },
     ],
     general: [
       {
@@ -159,7 +159,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Reuters',
         link: '#',
         time: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        logo: 'R'
+        logo: 'R',
       },
       {
         uuid: 'mock-general-2',
@@ -167,7 +167,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Bloomberg',
         link: '#',
         time: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        logo: 'B'
+        logo: 'B',
       },
       {
         uuid: 'mock-general-3',
@@ -175,7 +175,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CNBC',
         link: '#',
         time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        logo: 'C'
+        logo: 'C',
       },
       {
         uuid: 'mock-general-4',
@@ -183,7 +183,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'Financial Times',
         link: '#',
         time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        logo: 'FT'
+        logo: 'FT',
       },
       {
         uuid: 'mock-general-5',
@@ -191,7 +191,7 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'CoinDesk',
         link: '#',
         time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        logo: 'CD'
+        logo: 'CD',
       },
       {
         uuid: 'mock-general-6',
@@ -199,9 +199,9 @@ export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
         publisher: 'MarketWatch',
         link: '#',
         time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        logo: 'MW'
-      }
-    ]
+        logo: 'MW',
+      },
+    ],
   }
 
   return baseItems[category] || baseItems.general

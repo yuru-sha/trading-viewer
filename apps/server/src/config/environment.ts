@@ -14,13 +14,7 @@ export enum Environment {
 
 // Required environment variables for production
 const REQUIRED_ENV_VARS = {
-  production: [
-    'JWT_SECRET',
-    'JWT_REFRESH_SECRET',
-    'DATABASE_URL',
-    'CORS_ORIGIN',
-    'SESSION_SECRET',
-  ],
+  production: ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL', 'CORS_ORIGIN', 'SESSION_SECRET'],
   staging: ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL'],
   development: [],
   test: [],

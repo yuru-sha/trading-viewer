@@ -298,7 +298,6 @@ export class WebSocketService extends EventEmitter {
       const MOCK_REAL_TIME_UPDATES = process.env.MOCK_REAL_TIME_UPDATES === 'true'
       const USE_YAHOO_FINANCE = process.env.USE_YAHOO_FINANCE === 'true'
 
-
       let quote: any
 
       // Priority: Yahoo Finance > Mock Data
@@ -317,18 +316,29 @@ export class WebSocketService extends EventEmitter {
             t: Math.floor(yahooQuote.timestamp / 1000),
           }
         } catch (error) {
-          console.warn(`Failed to get Yahoo Finance quote for ${symbol}, falling back to mock:`, error)
+          console.warn(
+            `Failed to get Yahoo Finance quote for ${symbol}, falling back to mock:`,
+            error
+          )
           // Fallback to improved mock data if Yahoo Finance fails
           const basePrice =
-            symbol === 'AAPL' ? 150 : 
-            symbol === 'GOOGL' ? 2500 : 
-            symbol === 'TSLA' ? 200 : 
-            symbol === 'EC' ? 8.7 : 
-            symbol === 'MSFT' ? 400 :
-            symbol === 'NVDA' ? 130 :
-            symbol === 'AMZN' ? 180 :
-            symbol === 'KO' ? 60 :
-            100
+            symbol === 'AAPL'
+              ? 150
+              : symbol === 'GOOGL'
+                ? 2500
+                : symbol === 'TSLA'
+                  ? 200
+                  : symbol === 'EC'
+                    ? 8.7
+                    : symbol === 'MSFT'
+                      ? 400
+                      : symbol === 'NVDA'
+                        ? 130
+                        : symbol === 'AMZN'
+                          ? 180
+                          : symbol === 'KO'
+                            ? 60
+                            : 100
           const volatility = basePrice < 20 ? 0.5 : basePrice < 100 ? 2 : 5
           const change = (Math.random() - 0.5) * volatility
           const currentPrice = basePrice + change
@@ -336,8 +346,8 @@ export class WebSocketService extends EventEmitter {
             c: Number(currentPrice.toFixed(2)),
             d: Number(change.toFixed(2)),
             dp: Number(((change / basePrice) * 100).toFixed(2)),
-            h: Number((currentPrice + Math.random() * (volatility/2)).toFixed(2)),
-            l: Number((currentPrice - Math.random() * (volatility/2)).toFixed(2)),
+            h: Number((currentPrice + Math.random() * (volatility / 2)).toFixed(2)),
+            l: Number((currentPrice - Math.random() * (volatility / 2)).toFixed(2)),
             o: Number(basePrice.toFixed(2)),
             pc: Number(basePrice.toFixed(2)),
             t: Math.floor(Date.now() / 1000),
@@ -347,15 +357,23 @@ export class WebSocketService extends EventEmitter {
         // Use consistent mock data for development
         console.log(`🔄 WebSocket mock update for ${symbol}`)
         const basePrice =
-          symbol === 'AAPL' ? 150 : 
-          symbol === 'GOOGL' ? 2500 : 
-          symbol === 'TSLA' ? 200 : 
-          symbol === 'EC' ? 8.7 : 
-          symbol === 'MSFT' ? 400 :
-          symbol === 'NVDA' ? 130 :
-          symbol === 'AMZN' ? 180 :
-          symbol === 'KO' ? 60 :
-          100
+          symbol === 'AAPL'
+            ? 150
+            : symbol === 'GOOGL'
+              ? 2500
+              : symbol === 'TSLA'
+                ? 200
+                : symbol === 'EC'
+                  ? 8.7
+                  : symbol === 'MSFT'
+                    ? 400
+                    : symbol === 'NVDA'
+                      ? 130
+                      : symbol === 'AMZN'
+                        ? 180
+                        : symbol === 'KO'
+                          ? 60
+                          : 100
         // Adjust price volatility based on the base price
         const volatility = basePrice < 20 ? 0.5 : basePrice < 100 ? 2 : 5
         const change = (Math.random() - 0.5) * volatility

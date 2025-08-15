@@ -119,7 +119,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       }
 
       const elements: any[] = []
-      const visibleTools = drawingTools.visibleTools || []
+      const visibleTools = drawingTools.tools.filter(tool => tool.visible !== false)
 
       // プレビュー描画を表示（描画中の場合）
       // 描画ツールが有効で、かつ描画中の場合のみプレビューを表示
@@ -599,7 +599,13 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
               <span>H: {priceStats.high.toFixed(2)}</span>
               <span>L: {priceStats.low.toFixed(2)}</span>
               <span>C: {priceStats.close.toFixed(2)}</span>
-              <span className={priceStats.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+              <span
+                className={
+                  priceStats.change >= 0
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }
+              >
                 {priceStats.change >= 0 ? '+' : ''}
                 {priceStats.change.toFixed(2)} ({priceStats.changePercent.toFixed(2)}%)
               </span>

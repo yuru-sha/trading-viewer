@@ -206,7 +206,7 @@ const WatchlistPage: React.FC = () => {
         const watchlistData = response.data.watchlist.map((item: any) => ({
           symbol: item.symbol,
           name: item.name,
-          addedAt: item.createdAt
+          addedAt: item.createdAt,
         }))
         setWatchlistItems(watchlistData)
       } else {
@@ -227,16 +227,12 @@ const WatchlistPage: React.FC = () => {
 
       // API 経由で各シンボルを削除
       await Promise.all(
-        symbols.map(symbol => 
-          apiService.delete(`/watchlist/${encodeURIComponent(symbol)}`)
-        )
+        symbols.map(symbol => apiService.delete(`/watchlist/${encodeURIComponent(symbol)}`))
       )
 
       // ローカル状態を更新
-      const updatedWatchlistItems = watchlistItems.filter(
-        item => !symbols.includes(item.symbol)
-      )
-      
+      const updatedWatchlistItems = watchlistItems.filter(item => !symbols.includes(item.symbol))
+
       setWatchlistItems(updatedWatchlistItems)
       console.log(`削除完了: ${symbols.length} シンボルを API から削除`)
     } catch (error) {
@@ -244,7 +240,6 @@ const WatchlistPage: React.FC = () => {
       setError('ウォッチリストからの削除に失敗しました')
     }
   }
-
 
   // ウォッチリストの位置を更新（ローカル）
   const updateWatchlistPositions = async (items: Array<{ symbol: string; position: number }>) => {
@@ -283,18 +278,21 @@ const WatchlistPage: React.FC = () => {
   }
 
   // 表示中の株価データのみを取得（効率化）
-  const fetchMultipleQuotes = (symbols: Array<{ symbol: string; name: string }>): WatchlistItem[] => {
+  const fetchMultipleQuotes = (
+    symbols: Array<{ symbol: string; name: string }>
+  ): WatchlistItem[] => {
     // 表示に必要な分だけ処理（最大 10 銘柄まで）
     const visibleSymbols = symbols.slice(0, 10)
-    
+
     return visibleSymbols.map((stock, index) => {
-      const basePrice = {
-        'AAPL': 175,
-        'GOOGL': 140, 
-        'MSFT': 410,
-        'TSLA': 240,
-        'AMZN': 145
-      }[stock.symbol] || 100
+      const basePrice =
+        {
+          AAPL: 175,
+          GOOGL: 140,
+          MSFT: 410,
+          TSLA: 240,
+          AMZN: 145,
+        }[stock.symbol] || 100
 
       const change = (Math.random() - 0.5) * 10
       const currentPrice = basePrice + change
@@ -308,7 +306,9 @@ const WatchlistPage: React.FC = () => {
         change,
         changePercent,
         volume: formatVolume(Math.floor(Math.random() * 50000000) + 10000000),
-        marketCap: formatMarketCap(basePrice * Math.floor(Math.random() * 20000000000 + 500000000000)),
+        marketCap: formatMarketCap(
+          basePrice * Math.floor(Math.random() * 20000000000 + 500000000000)
+        ),
         addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
       }
     })

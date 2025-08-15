@@ -190,15 +190,15 @@ export const useChartOptions = (
                     if (time) {
                       const hour = parseInt(time.split(':')[0])
                       const minute = parseInt(time.split(':')[1])
-                      
+
                       // 時間軸に応じて日付表示の間隔を調整
                       let showDate = false
-                      
+
                       // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
                       if (minute === 0 || hour % 6 === 0) {
                         showDate = true
                       }
-                      
+
                       if (showDate) {
                         // 複数の日付形式に対応
                         let displayDate = date
@@ -210,7 +210,7 @@ export const useChartOptions = (
                             displayDate = `${month}/${day}`
                           }
                         }
-                        
+
                         return `${displayDate} ${time.substring(0, 5)}`
                       }
                       // その他の時刻は HH:MM 形式で表示
@@ -253,15 +253,15 @@ export const useChartOptions = (
                     if (time) {
                       const hour = parseInt(time.split(':')[0])
                       const minute = parseInt(time.split(':')[1])
-                      
+
                       // 時間軸に応じて日付表示の間隔を調整
                       let showDate = false
-                      
+
                       // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
                       if (minute === 0 || hour % 6 === 0) {
                         showDate = true
                       }
-                      
+
                       if (showDate) {
                         // 複数の日付形式に対応
                         let displayDate = date
@@ -273,7 +273,7 @@ export const useChartOptions = (
                             displayDate = `${month}/${day}`
                           }
                         }
-                        
+
                         return `${displayDate} ${time.substring(0, 5)}`
                       }
                       // その他の時刻は HH:MM 形式で表示

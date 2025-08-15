@@ -9,7 +9,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   res.send = function (data) {
     const duration = Date.now() - start
     // Handle Object data by stringifying it before calculating byte length
-    const dataStr = typeof data === 'object' ? JSON.stringify(data) : (data || '')
+    const dataStr = typeof data === 'object' ? JSON.stringify(data) : data || ''
     const contentLength = Buffer.byteLength(dataStr, 'utf8')
 
     console.log(

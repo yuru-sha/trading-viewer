@@ -22,7 +22,7 @@ export interface YahooCandleData {
   h: number[] // high prices
   l: number[] // low prices
   o: number[] // open prices
-  s: string   // status
+  s: string // status
   t: number[] // timestamps
   v: number[] // volumes
 }
@@ -60,7 +60,7 @@ export class YahooFinanceService {
   private rateLimitMap = new Map<string, number>()
   private readonly CACHE_TTL = 30 * 1000 // 30 seconds cache
   private readonly RATE_LIMIT_DELAY = 100 // 100ms between requests per symbol
-  
+
   static getInstance(): YahooFinanceService {
     if (!YahooFinanceService.instance) {
       YahooFinanceService.instance = new YahooFinanceService()
@@ -72,25 +72,25 @@ export class YahooFinanceService {
     const lastRequest = this.rateLimitMap.get(symbol) || 0
     const now = Date.now()
     const timeSinceLastRequest = now - lastRequest
-    
+
     if (timeSinceLastRequest < this.RATE_LIMIT_DELAY) {
       const waitTime = this.RATE_LIMIT_DELAY - timeSinceLastRequest
       await new Promise(resolve => setTimeout(resolve, waitTime))
     }
-    
+
     this.rateLimitMap.set(symbol, Date.now())
   }
 
   private getCachedQuote(symbol: string): YahooQuoteData | null {
     const cached = this.cache.get(symbol)
     if (!cached) return null
-    
+
     const now = Date.now()
     if (now - cached.timestamp > this.CACHE_TTL) {
       this.cache.delete(symbol)
       return null
     }
-    
+
     return cached.data
   }
 
@@ -112,15 +112,15 @@ export class YahooFinanceService {
     try {
       // Apply rate limiting
       await this.waitForRateLimit(symbol)
-      
+
       const result = await yahooFinance.quote(symbol)
-      
+
       if (!result) {
         throw new Error(`No data found for symbol: ${symbol}`)
       }
 
       const quote = result
-      
+
       const quoteData: YahooQuoteData = {
         symbol: quote.symbol || symbol,
         currentPrice: quote.regularMarketPrice || 0,
@@ -135,16 +135,18 @@ export class YahooFinanceService {
         currency: quote.currency || 'USD', // Default to USD if not available
         exchangeTimezoneName: quote.exchangeTimezoneName,
         exchangeName: quote.fullExchangeName || quote.exchange,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
 
       // Cache the result
       this.setCachedQuote(symbol, quoteData)
-      
+
       return quoteData
     } catch (error) {
       console.error(`Yahoo Finance API error for ${symbol}:`, error)
-      throw new Error(`Failed to fetch quote for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to fetch quote for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -161,7 +163,7 @@ export class YahooFinanceService {
       const result = await yahooFinance.chart(symbol, {
         period1,
         period2,
-        interval
+        interval,
       })
 
       if (!result || !result.quotes || result.quotes.length === 0) {
@@ -169,7 +171,7 @@ export class YahooFinanceService {
       }
 
       const quotes = result.quotes
-      
+
       return {
         c: quotes.map(q => q.close || 0),
         h: quotes.map(q => q.high || 0),
@@ -177,11 +179,13 @@ export class YahooFinanceService {
         o: quotes.map(q => q.open || 0),
         s: 'ok',
         t: quotes.map(q => Math.floor((q.date?.getTime() || 0) / 1000)),
-        v: quotes.map(q => q.volume || 0)
+        v: quotes.map(q => q.volume || 0),
       }
     } catch (error) {
       console.error(`Yahoo Finance chart API error for ${symbol}:`, error)
-      throw new Error(`Failed to fetch historical data for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to fetch historical data for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -191,24 +195,24 @@ export class YahooFinanceService {
   async searchSymbols(query: string, limit: number = 10): Promise<YahooSearchResult[]> {
     try {
       const result = await yahooFinance.search(query)
-      
+
       if (!result || !result.quotes) {
         return []
       }
 
-      return result.quotes
-        .slice(0, limit)
-        .map((quote: any) => ({
-          symbol: quote.symbol,
-          shortname: quote.shortname,
-          longname: quote.longname || quote.shortname,
-          exchange: quote.exchange,
-          quoteType: quote.quoteType,
-          typeDisp: quote.typeDisp
-        }))
+      return result.quotes.slice(0, limit).map((quote: any) => ({
+        symbol: quote.symbol,
+        shortname: quote.shortname,
+        longname: quote.longname || quote.shortname,
+        exchange: quote.exchange,
+        quoteType: quote.quoteType,
+        typeDisp: quote.typeDisp,
+      }))
     } catch (error) {
       console.error(`Yahoo Finance search API error for "${query}":`, error)
-      throw new Error(`Failed to search symbols: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to search symbols: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
@@ -218,7 +222,7 @@ export class YahooFinanceService {
   async getMultipleQuotes(symbols: string[]): Promise<YahooQuoteData[]> {
     try {
       const results = await yahooFinance.quote(symbols)
-      
+
       if (!Array.isArray(results)) {
         return [await this.getQuote(symbols[0])]
       }
@@ -237,27 +241,39 @@ export class YahooFinanceService {
         currency: quote.currency || 'USD',
         exchangeTimezoneName: quote.exchangeTimezoneName,
         exchangeName: quote.fullExchangeName || quote.exchange,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }))
     } catch (error) {
       console.error(`Yahoo Finance multiple quotes API error:`, error)
-      throw new Error(`Failed to fetch multiple quotes: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Failed to fetch multiple quotes: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
   /**
    * Convert resolution to Yahoo Finance interval
    */
-  private convertResolutionToInterval(resolution: string): '1m' | '5m' | '15m' | '1h' | '1d' | '1wk' | '1mo' {
+  private convertResolutionToInterval(
+    resolution: string
+  ): '1m' | '5m' | '15m' | '1h' | '1d' | '1wk' | '1mo' {
     switch (resolution) {
-      case '1': return '1m'
-      case '5': return '5m'  
-      case '15': return '15m'
-      case '60': return '1h'
-      case 'D': return '1d'
-      case 'W': return '1wk'
-      case 'M': return '1mo'
-      default: return '1d'
+      case '1':
+        return '1m'
+      case '5':
+        return '5m'
+      case '15':
+        return '15m'
+      case '60':
+        return '1h'
+      case 'D':
+        return '1d'
+      case 'W':
+        return '1wk'
+      case 'M':
+        return '1mo'
+      default:
+        return '1d'
     }
   }
 
@@ -265,7 +281,7 @@ export class YahooFinanceService {
    * Get candles with resolution parameter
    */
   async getCandlesWithResolution(
-    symbol: string, 
+    symbol: string,
     resolution: string,
     from: number,
     to: number
@@ -273,7 +289,7 @@ export class YahooFinanceService {
     const interval = this.convertResolutionToInterval(resolution)
     const period1 = new Date(from * 1000)
     const period2 = new Date(to * 1000)
-    
+
     return this.getCandles(symbol, period1, period2, interval)
   }
 
@@ -284,7 +300,7 @@ export class YahooFinanceService {
     try {
       // Try basic search for news
       let result: any
-      
+
       try {
         result = await yahooFinance.search(query)
       } catch (error) {
@@ -303,7 +319,7 @@ export class YahooFinanceService {
       const newsItems: YahooNewsItem[] = newsToProcess.map((item: any) => {
         // Handle timestamp - can be ISO string or Unix timestamp
         let timestamp: number
-        
+
         if (typeof item.providerPublishTime === 'string') {
           // It's an ISO string, convert to Unix timestamp
           timestamp = Math.floor(new Date(item.providerPublishTime).getTime() / 1000)
@@ -314,7 +330,7 @@ export class YahooFinanceService {
           // Fallback to current time
           timestamp = Math.floor(Date.now() / 1000)
         }
-        
+
         return {
           uuid: item.uuid || '',
           title: item.title || '',
@@ -323,12 +339,11 @@ export class YahooFinanceService {
           providerPublishTime: timestamp,
           type: item.type || 'article',
           thumbnail: item.thumbnail,
-          relatedTickers: item.relatedTickers || []
+          relatedTickers: item.relatedTickers || [],
         }
       })
 
       return newsItems
-
     } catch (error) {
       // Failed to fetch news
       return []
@@ -338,45 +353,19 @@ export class YahooFinanceService {
   /**
    * Get category-specific news
    */
-  async getCategoryNews(category: 'japan' | 'world' | 'crypto' | 'general'): Promise<YahooNewsItem[]> {
+  async getCategoryNews(
+    category: 'japan' | 'world' | 'crypto' | 'general'
+  ): Promise<YahooNewsItem[]> {
     // Try multiple query approaches for better results
     const queryStrategies = {
-      japan: [
-        'Toyota',
-        'Sony', 
-        'Nintendo',
-        'Japan',
-        'Nikkei',
-        'Tokyo'
-      ],
-      world: [
-        'Apple',
-        'Microsoft',
-        'Tesla',
-        'NASDAQ',
-        'S&P 500',
-        'stock market'
-      ],
-      crypto: [
-        'Bitcoin',
-        'Ethereum',
-        'cryptocurrency',
-        'crypto',
-        'BTC',
-        'ETH'
-      ],
-      general: [
-        'market',
-        'stocks',
-        'finance',
-        'economy',
-        'trading',
-        'investment'
-      ]
+      japan: ['Toyota', 'Sony', 'Nintendo', 'Japan', 'Nikkei', 'Tokyo'],
+      world: ['Apple', 'Microsoft', 'Tesla', 'NASDAQ', 'S&P 500', 'stock market'],
+      crypto: ['Bitcoin', 'Ethereum', 'cryptocurrency', 'crypto', 'BTC', 'ETH'],
+      general: ['market', 'stocks', 'finance', 'economy', 'trading', 'investment'],
     }
 
     const queries = queryStrategies[category] || queryStrategies.general
-    
+
     // Try each query until we get results
     for (const query of queries) {
       const newsItems = await this.getNews(query, 6)

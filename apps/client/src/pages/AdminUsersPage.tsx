@@ -43,7 +43,7 @@ interface UsersResponse {
 const AdminUsersPage: React.FC = () => {
   const { user } = useAuth()
   const { showError, showSuccess } = useError()
-  
+
   const [users, setUsers] = useState<User[]>([])
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,22 +55,22 @@ const AdminUsersPage: React.FC = () => {
     hasNext: false,
     hasPrev: false,
   })
-  
+
   const [filters, setFilters] = useState({
     search: '',
     role: '',
     status: '',
   })
-  
+
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   // Redirect if not admin
   if (user?.role !== 'admin') {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600 dark:text-gray-300">
+      <div className='container mx-auto px-4 py-8'>
+        <div className='text-center'>
+          <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
+          <p className='text-gray-600 dark:text-gray-300'>
             You need administrator privileges to access this page.
           </p>
         </div>
@@ -88,9 +88,11 @@ const AdminUsersPage: React.FC = () => {
         ...(filters.role && { role: filters.role }),
         ...(filters.status && { status: filters.status }),
       })
-      
-      const response = await apiService.get<{ success: boolean; data: UsersResponse }>(`/auth/users?${queryParams}`)
-      
+
+      const response = await apiService.get<{ success: boolean; data: UsersResponse }>(
+        `/auth/users?${queryParams}`
+      )
+
       if (response.success) {
         setUsers(response.data.users)
         setPagination(response.data.pagination)
@@ -119,14 +121,17 @@ const AdminUsersPage: React.FC = () => {
     fetchStats()
   }, [pagination.page, filters])
 
-  const handleUserAction = async (userId: string, action: 'activate' | 'deactivate' | 'makeAdmin' | 'makeUser' | 'unlock') => {
+  const handleUserAction = async (
+    userId: string,
+    action: 'activate' | 'deactivate' | 'makeAdmin' | 'makeUser' | 'unlock'
+  ) => {
     if (actionLoading) return
-    
+
     setActionLoading(userId)
     try {
       let endpoint: string
       let data: any
-      
+
       switch (action) {
         case 'activate':
           endpoint = `/auth/users/${userId}/status`
@@ -149,13 +154,13 @@ const AdminUsersPage: React.FC = () => {
           data = {}
           break
       }
-      
+
       if (action === 'unlock') {
         await apiService.post(endpoint)
       } else {
         await apiService.put(endpoint, data)
       }
-      
+
       showSuccess(`User ${action}d successfully`)
       fetchUsers()
       fetchStats()
@@ -187,253 +192,276 @@ const AdminUsersPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">User Management</h1>
-          
-          {/* Stats */}
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                <div className="text-2xl font-bold text-blue-600">{stats.totalUsers}</div>
-                <div className="text-sm text-gray-500">Total Users</div>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                <div className="text-2xl font-bold text-green-600">{stats.activeUsers}</div>
-                <div className="text-sm text-gray-500">Active Users</div>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                <div className="text-2xl font-bold text-purple-600">{stats.adminUsers}</div>
-                <div className="text-sm text-gray-500">Administrators</div>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                <div className="text-2xl font-bold text-orange-600">{stats.verifiedUsers}</div>
-                <div className="text-sm text-gray-500">Verified Email</div>
-              </div>
-            </div>
-          )}
+    <div className='container mx-auto px-4 py-8'>
+      <div className='max-w-7xl mx-auto'>
+        <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-8'>User Management</h1>
 
-          {/* Filters */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filters</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Search
-                </label>
-                <input
-                  type="text"
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  placeholder="Search by email or name..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Role
-                </label>
-                <select
-                  value={filters.role}
-                  onChange={(e) => handleFilterChange('role', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
-                </label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
+        {/* Stats */}
+        {stats && (
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-8'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md'>
+              <div className='text-2xl font-bold text-blue-600'>{stats.totalUsers}</div>
+              <div className='text-sm text-gray-500'>Total Users</div>
+            </div>
+            <div className='bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md'>
+              <div className='text-2xl font-bold text-green-600'>{stats.activeUsers}</div>
+              <div className='text-sm text-gray-500'>Active Users</div>
+            </div>
+            <div className='bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md'>
+              <div className='text-2xl font-bold text-purple-600'>{stats.adminUsers}</div>
+              <div className='text-sm text-gray-500'>Administrators</div>
+            </div>
+            <div className='bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md'>
+              <div className='text-2xl font-bold text-orange-600'>{stats.verifiedUsers}</div>
+              <div className='text-sm text-gray-500'>Verified Email</div>
             </div>
           </div>
+        )}
 
-          {/* Users Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Users ({pagination.totalCount})
-              </h2>
+        {/* Filters */}
+        <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6'>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Filters</h2>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                Search
+              </label>
+              <input
+                type='text'
+                value={filters.search}
+                onChange={e => handleFilterChange('search', e.target.value)}
+                placeholder='Search by email or name...'
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+              />
             </div>
-            
-            {loading ? (
-              <div className="p-6 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading users...</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Last Login
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {users.map((userData) => (
-                      <tr key={userData.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  {userData.email.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {userData.firstName && userData.lastName 
-                                  ? `${userData.firstName} ${userData.lastName}`
-                                  : userData.email
-                                }
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {userData.email}
-                              </div>
-                              {isUserLocked(userData) && (
-                                <div className="text-xs text-red-600 dark:text-red-400">
-                                  🔒 Locked until {formatDate(userData.lockedUntil!)}
-                                </div>
-                              )}
+            <div>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                Role
+              </label>
+              <select
+                value={filters.role}
+                onChange={e => handleFilterChange('role', e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+              >
+                <option value=''>All Roles</option>
+                <option value='admin'>Admin</option>
+                <option value='user'>User</option>
+              </select>
+            </div>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                Status
+              </label>
+              <select
+                value={filters.status}
+                onChange={e => handleFilterChange('status', e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+              >
+                <option value=''>All Status</option>
+                <option value='active'>Active</option>
+                <option value='inactive'>Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden'>
+          <div className='px-6 py-4 border-b border-gray-200 dark:border-gray-700'>
+            <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
+              Users ({pagination.totalCount})
+            </h2>
+          </div>
+
+          {loading ? (
+            <div className='p-6 text-center'>
+              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
+              <p className='text-gray-500 mt-2'>Loading users...</p>
+            </div>
+          ) : (
+            <div className='overflow-x-auto'>
+              <table className='w-full'>
+                <thead className='bg-gray-50 dark:bg-gray-700'>
+                  <tr>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      User
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      Role
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      Status
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      Last Login
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+                  {users.map(userData => (
+                    <tr key={userData.id} className='hover:bg-gray-50 dark:hover:bg-gray-700'>
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <div className='flex items-center'>
+                          <div className='flex-shrink-0 h-10 w-10'>
+                            <div className='h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center'>
+                              <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                                {userData.email.charAt(0).toUpperCase()}
+                              </span>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          <div className='ml-4'>
+                            <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>
+                              {userData.firstName && userData.lastName
+                                ? `${userData.firstName} ${userData.lastName}`
+                                : userData.email}
+                            </div>
+                            <div className='text-sm text-gray-500 dark:text-gray-400'>
+                              {userData.email}
+                            </div>
+                            {isUserLocked(userData) && (
+                              <div className='text-xs text-red-600 dark:text-red-400'>
+                                🔒 Locked until {formatDate(userData.lockedUntil!)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             userData.role === 'admin'
                               ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          }`}>
-                            {userData.role}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          }`}
+                        >
+                          {userData.role}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <div className='flex items-center space-x-2'>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               userData.isActive
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                 : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            }`}>
-                              {userData.isActive ? 'Active' : 'Inactive'}
+                            }`}
+                          >
+                            {userData.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                          {userData.isEmailVerified && (
+                            <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'>
+                              ✓ Verified
                             </span>
-                            {userData.isEmailVerified && (
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                ✓ Verified
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {userData.lastLoginAt ? formatDate(userData.lastLoginAt) : 'Never'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            {/* Status Toggle */}
-                            {userData.id !== user?.id && (
-                              <button
-                                onClick={() => handleUserAction(userData.id, userData.isActive ? 'deactivate' : 'activate')}
-                                disabled={actionLoading === userData.id}
-                                className={`px-3 py-1 rounded text-xs font-medium ${
-                                  userData.isActive
-                                    ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800'
-                                }`}
-                              >
-                                {actionLoading === userData.id ? '...' : userData.isActive ? 'Deactivate' : 'Activate'}
-                              </button>
-                            )}
+                          )}
+                        </div>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
+                        {userData.lastLoginAt ? formatDate(userData.lastLoginAt) : 'Never'}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
+                        <div className='flex space-x-2'>
+                          {/* Status Toggle */}
+                          {userData.id !== user?.id && (
+                            <button
+                              onClick={() =>
+                                handleUserAction(
+                                  userData.id,
+                                  userData.isActive ? 'deactivate' : 'activate'
+                                )
+                              }
+                              disabled={actionLoading === userData.id}
+                              className={`px-3 py-1 rounded text-xs font-medium ${
+                                userData.isActive
+                                  ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800'
+                              }`}
+                            >
+                              {actionLoading === userData.id
+                                ? '...'
+                                : userData.isActive
+                                  ? 'Deactivate'
+                                  : 'Activate'}
+                            </button>
+                          )}
 
-                            {/* Role Toggle */}
-                            {userData.id !== user?.id && (
-                              <button
-                                onClick={() => handleUserAction(userData.id, userData.role === 'admin' ? 'makeUser' : 'makeAdmin')}
-                                disabled={actionLoading === userData.id}
-                                className={`px-3 py-1 rounded text-xs font-medium ${
-                                  userData.role === 'admin'
-                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-                                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 dark:hover:bg-purple-800'
-                                }`}
-                              >
-                                {actionLoading === userData.id ? '...' : userData.role === 'admin' ? 'Make User' : 'Make Admin'}
-                              </button>
-                            )}
+                          {/* Role Toggle */}
+                          {userData.id !== user?.id && (
+                            <button
+                              onClick={() =>
+                                handleUserAction(
+                                  userData.id,
+                                  userData.role === 'admin' ? 'makeUser' : 'makeAdmin'
+                                )
+                              }
+                              disabled={actionLoading === userData.id}
+                              className={`px-3 py-1 rounded text-xs font-medium ${
+                                userData.role === 'admin'
+                                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 dark:hover:bg-purple-800'
+                              }`}
+                            >
+                              {actionLoading === userData.id
+                                ? '...'
+                                : userData.role === 'admin'
+                                  ? 'Make User'
+                                  : 'Make Admin'}
+                            </button>
+                          )}
 
-                            {/* Unlock */}
-                            {isUserLocked(userData) && (
-                              <button
-                                onClick={() => handleUserAction(userData.id, 'unlock')}
-                                disabled={actionLoading === userData.id}
-                                className="px-3 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800"
-                              >
-                                {actionLoading === userData.id ? '...' : 'Unlock'}
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          {/* Unlock */}
+                          {isUserLocked(userData) && (
+                            <button
+                              onClick={() => handleUserAction(userData.id, 'unlock')}
+                              disabled={actionLoading === userData.id}
+                              className='px-3 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800'
+                            >
+                              {actionLoading === userData.id ? '...' : 'Unlock'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className='px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between'>
+              <div className='text-sm text-gray-500 dark:text-gray-400'>
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of{' '}
+                {pagination.totalCount} users
               </div>
-            )}
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of {pagination.totalCount} users
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                    disabled={!pagination.hasPrev}
-                    className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-3 py-1 text-gray-700 dark:text-gray-300">
-                    Page {pagination.page} of {pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                    disabled={!pagination.hasNext}
-                    className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                  >
-                    Next
-                  </button>
-                </div>
+              <div className='flex space-x-2'>
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                  disabled={!pagination.hasPrev}
+                  className='px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                >
+                  Previous
+                </button>
+                <span className='px-3 py-1 text-gray-700 dark:text-gray-300'>
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                  disabled={!pagination.hasNext}
+                  className='px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                >
+                  Next
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+    </div>
   )
 }
 

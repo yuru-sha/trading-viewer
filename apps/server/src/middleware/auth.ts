@@ -450,7 +450,7 @@ export const rateLimitAuth = (identifier: string): void => {
   if (process.env.NODE_ENV === 'development') {
     return
   }
-  
+
   // More lenient production settings for legitimate users
 
   const now = new Date()
