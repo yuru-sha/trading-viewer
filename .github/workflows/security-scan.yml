@@ -125,20 +125,20 @@ jobs:
         
       - name: Build Docker images
         run: |
-          docker build -f ./docker/backend/Dockerfile -t trading-viewer-server .
-          docker build -f ./docker/frontend/Dockerfile -t trading-viewer-client .
+          docker build -f ./docker/backend/Dockerfile -t trading-viewer-backend .
+          docker build -f ./docker/frontend/Dockerfile -t trading-viewer-frontend .
           
       - name: Run Trivy container scan (Server)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'trading-viewer-server'
+          image-ref: 'trading-viewer-backend'
           format: 'sarif'
           output: 'server-trivy-results.sarif'
           
       - name: Run Trivy container scan (Client)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'trading-viewer-client'
+          image-ref: 'trading-viewer-frontend'
           format: 'sarif'
           output: 'client-trivy-results.sarif'
           

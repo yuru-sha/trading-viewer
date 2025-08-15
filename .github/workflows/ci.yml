@@ -364,8 +364,8 @@ jobs:
       - name: Deploy to staging
         run: |
           echo "Staging deployment would happen here"
-          echo "Using Docker images: ghcr.io/${{ github.repository }}-client:develop-${{ github.sha }}"
-          echo "Using Docker images: ghcr.io/${{ github.repository }}-server:develop-${{ github.sha }}"
+          echo "Using Docker images: ghcr.io/${{ github.repository }}-frontend:develop-${{ github.sha }}"
+          echo "Using Docker images: ghcr.io/${{ github.repository }}-backend:develop-${{ github.sha }}"
 
   # Create deployment package for manual production deployment
   create-deployment-package:
@@ -384,8 +384,8 @@ jobs:
           cp .env.production.example deployment-package/
           cp DEPLOYMENT.md deployment-package/
           echo "Built Docker images:" > deployment-package/IMAGES.txt
-          echo "ghcr.io/${{ github.repository }}-client:main-${{ github.sha }}" >> deployment-package/IMAGES.txt
-          echo "ghcr.io/${{ github.repository }}-server:main-${{ github.sha }}" >> deployment-package/IMAGES.txt
+          echo "ghcr.io/${{ github.repository }}-frontend:main-${{ github.sha }}" >> deployment-package/IMAGES.txt
+          echo "ghcr.io/${{ github.repository }}-backend:main-${{ github.sha }}" >> deployment-package/IMAGES.txt
           tar -czf tradingviewer-deployment-${{ github.sha }}.tar.gz deployment-package/
 
       - name: Upload deployment artifacts
