@@ -11,6 +11,9 @@ export interface YahooQuoteData {
   previousClose: number
   volume: number
   marketCap?: number
+  currency?: string
+  exchangeTimezoneName?: string
+  exchangeName?: string
   timestamp: number
 }
 
@@ -129,6 +132,9 @@ export class YahooFinanceService {
         previousClose: quote.regularMarketPreviousClose || quote.regularMarketPrice || 0,
         volume: quote.regularMarketVolume || 0,
         marketCap: quote.marketCap,
+        currency: quote.currency || 'USD', // Default to USD if not available
+        exchangeTimezoneName: quote.exchangeTimezoneName,
+        exchangeName: quote.fullExchangeName || quote.exchange,
         timestamp: Date.now()
       }
 
@@ -228,6 +234,9 @@ export class YahooFinanceService {
         previousClose: quote.regularMarketPreviousClose || quote.regularMarketPrice || 0,
         volume: quote.regularMarketVolume || 0,
         marketCap: quote.marketCap,
+        currency: quote.currency || 'USD',
+        exchangeTimezoneName: quote.exchangeTimezoneName,
+        exchangeName: quote.fullExchangeName || quote.exchange,
         timestamp: Date.now()
       }))
     } catch (error) {

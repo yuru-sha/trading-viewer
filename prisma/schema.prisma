@@ -100,17 +100,21 @@ model DrawingTool {
 }
 
 model PriceAlert {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  symbol      String
-  type        String    // 'above', 'below', 'crosses'
-  price       Float
-  message     String?
-  enabled     Boolean   @default(true)
-  triggeredAt DateTime? @map("triggered_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  symbol            String
+  type              String    // 'above', 'below', 'crosses'
+  price             Float
+  percentageChange  Float?    @map("percentage_change")
+  message           String?
+  enabled           Boolean   @default(true)
+  currency          String?   @default("USD")
+  exchange          String?
+  timezone          String?
+  triggeredAt       DateTime? @map("triggered_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, symbol])
   @@index([enabled])
@@ -133,13 +137,16 @@ model RefreshToken {
 }
 
 model Watchlist {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  symbol    String
-  name      String
-  position  Int      @default(0)
-  addedAt   DateTime @default(now()) @map("added_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  symbol       String
+  name         String
+  position     Int      @default(0)
+  currency     String?  @default("USD")
+  exchange     String?
+  timezone     String?
+  addedAt      DateTime @default(now()) @map("added_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, symbol])
   @@index([userId])

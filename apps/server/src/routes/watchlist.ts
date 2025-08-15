@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
+import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 
 const router = Router()
 const prisma = new PrismaClient()
@@ -83,6 +84,22 @@ router.post(
         })
       }
 
+      // Fetch currency and exchange information from Yahoo Finance
+      let currency = 'USD'
+      let exchange = null
+      let timezone = null
+
+      try {
+        const yahooService = getYahooFinanceService()
+        const quote = await yahooService.getQuote(symbol.toUpperCase())
+        currency = quote.currency || 'USD'
+        exchange = quote.exchangeName
+        timezone = quote.exchangeTimezoneName
+      } catch (error) {
+        console.warn(`Failed to fetch currency info for ${symbol}:`, error)
+        // Continue with default values
+      }
+
       // Get the highest position for this user and add 1
       const maxPositionItem = await prisma.watchlist.findFirst({
         where: { userId },
@@ -98,6 +115,9 @@ router.post(
           symbol: symbol.toUpperCase(),
           name,
           position: newPosition,
+          currency,
+          exchange,
+          timezone,
         },
       })
 

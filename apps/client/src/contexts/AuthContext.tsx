@@ -73,6 +73,7 @@ interface AuthContextValue extends AuthState {
   deleteAccount: () => Promise<void>
   clearAuth: () => void
   getCSRFToken: () => Promise<string>
+  requestWithAuth: (url: string, options?: RequestInit) => Promise<Response>
 }
 
 // API Configuration
@@ -471,6 +472,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getCSRFToken = useCallback(async (): Promise<string> => {
     return await apiClient.refreshCSRFToken()
   }, [apiClient])
+
+  // Request with authentication (compatible with fetch)
+  const requestWithAuth = useCallback(async (url: string, options?: RequestInit): Promise<Response> => {
+    const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
+    const response = await apiClient.request(cleanUrl, options)
+    
+    // Return a Response-like object
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      statusText: 'OK',
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }, [apiClient])
+
   const value: AuthContextValue = {
     ...authState,
     login,
@@ -482,6 +497,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteAccount,
     clearAuth,
     getCSRFToken,
+    requestWithAuth,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

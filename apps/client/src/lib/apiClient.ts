@@ -80,6 +80,13 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     ...options.headers,
   }
 
+  // Add Authorization header if user token is available in localStorage
+  const authUser = localStorage.getItem('auth_user')
+  const authToken = localStorage.getItem('access_token') || localStorage.getItem('auth_token')
+  if (authToken && authUser) {
+    defaultHeaders['Authorization'] = `Bearer ${authToken}`
+  }
+
   // Add CSRF token for state-changing operations
   if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
     const token = await getCSRFToken()
@@ -318,6 +325,42 @@ export const drawingApi = {
     return apiRequest(`/drawings/${id}`, {
       method: 'DELETE',
     })
+  },
+}
+
+// Generic API client for simple REST operations
+export const apiClient = {
+  get: async (url: string) => {
+    // Remove /api prefix if it exists since apiRequest already adds it
+    const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
+    const response = await apiRequest(cleanUrl)
+    return { data: response }
+  },
+  
+  post: async (url: string, data?: any) => {
+    const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
+    const response = await apiRequest(cleanUrl, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+    return { data: response }
+  },
+  
+  put: async (url: string, data?: any) => {
+    const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
+    const response = await apiRequest(cleanUrl, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+    return { data: response }
+  },
+  
+  delete: async (url: string) => {
+    const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
+    const response = await apiRequest(cleanUrl, {
+      method: 'DELETE',
+    })
+    return { data: response }
   },
 }
 

@@ -3,27 +3,34 @@ import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth } from '../middleware/auth.js'
+import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 
 const router = Router()
 const prisma = new PrismaClient()
 
 const CreateAlertSchema = z.object({
   symbol: z.string().min(1),
-  type: z.enum(['above', 'below', 'crosses']),
-  price: z.number().positive(),
-  message: z.string().optional(),
-})
+  condition: z.enum(['above', 'below']),
+  targetPrice: z.number().positive().optional(),
+  percentageChange: z.number().optional(),
+  enabled: z.boolean().optional(),
+}).refine(
+  (data) => data.targetPrice !== undefined || data.percentageChange !== undefined,
+  {
+    message: "Either targetPrice or percentageChange must be provided",
+  }
+)
 
 const UpdateAlertSchema = z.object({
   enabled: z.boolean().optional(),
-  price: z.number().positive().optional(),
-  message: z.string().optional(),
+  targetPrice: z.number().positive().optional(),
+  percentageChange: z.number().optional(),
 })
 
 // GET /api/alerts - Get user's alerts
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const userId = req.user?.id
+    const userId = req.user?.userId
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' })
     }
@@ -33,7 +40,22 @@ router.get('/', requireAuth, async (req, res) => {
       orderBy: { createdAt: 'desc' },
     })
 
-    res.json({ alerts })
+    // Map database fields to UI expected format
+    const mappedAlerts = alerts.map(alert => ({
+      id: alert.id,
+      symbol: alert.symbol,
+      condition: alert.type, // Map type back to condition
+      targetPrice: alert.price,
+      percentageChange: alert.percentageChange,
+      enabled: alert.enabled,
+      currency: alert.currency || 'USD',
+      exchange: alert.exchange,
+      timezone: alert.timezone,
+      triggeredAt: alert.triggeredAt?.toISOString(),
+      createdAt: alert.createdAt.toISOString(),
+    }))
+
+    res.json(mappedAlerts)
   } catch (error) {
     console.error('Error fetching alerts:', error)
     res.status(500).json({ error: 'Failed to fetch alerts' })
@@ -43,7 +65,7 @@ router.get('/', requireAuth, async (req, res) => {
 // GET /api/alerts/:symbol - Get alerts for specific symbol
 router.get('/:symbol', requireAuth, async (req, res) => {
   try {
-    const userId = req.user?.id
+    const userId = req.user?.userId
     const { symbol } = req.params
 
     if (!userId) {
@@ -58,7 +80,22 @@ router.get('/:symbol', requireAuth, async (req, res) => {
       orderBy: { createdAt: 'desc' },
     })
 
-    res.json({ alerts })
+    // Map database fields to UI expected format
+    const mappedAlerts = alerts.map(alert => ({
+      id: alert.id,
+      symbol: alert.symbol,
+      condition: alert.type,
+      targetPrice: alert.price,
+      percentageChange: alert.percentageChange,
+      enabled: alert.enabled,
+      currency: alert.currency || 'USD',
+      exchange: alert.exchange,
+      timezone: alert.timezone,
+      triggeredAt: alert.triggeredAt?.toISOString(),
+      createdAt: alert.createdAt.toISOString(),
+    }))
+
+    res.json(mappedAlerts)
   } catch (error) {
     console.error('Error fetching symbol alerts:', error)
     res.status(500).json({ error: 'Failed to fetch symbol alerts' })
@@ -68,21 +105,40 @@ router.get('/:symbol', requireAuth, async (req, res) => {
 // POST /api/alerts - Create new alert
 router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), async (req, res) => {
   try {
-    const userId = req.user?.id
+    const userId = req.user?.userId
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const { symbol, type, price, message } = req.body
+    const { symbol, condition, targetPrice, percentageChange, enabled = true } = req.body
+
+    // Fetch currency and exchange information from Yahoo Finance
+    let currency = 'USD'
+    let exchange = null
+    let timezone = null
+
+    try {
+      const yahooService = getYahooFinanceService()
+      const quote = await yahooService.getQuote(symbol.toUpperCase())
+      currency = quote.currency || 'USD'
+      exchange = quote.exchangeName
+      timezone = quote.exchangeTimezoneName
+    } catch (error) {
+      console.warn(`Failed to fetch currency info for ${symbol}:`, error)
+      // Continue with default values
+    }
 
     const alert = await prisma.priceAlert.create({
       data: {
         userId,
         symbol: symbol.toUpperCase(),
-        type,
-        price,
-        message,
-        enabled: true,
+        type: condition, // Map condition to type for database compatibility
+        price: targetPrice || 0, // Use targetPrice or default to 0 for percentage alerts
+        percentageChange,
+        enabled,
+        currency,
+        exchange,
+        timezone,
       },
     })
 
@@ -96,7 +152,7 @@ router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), asyn
 // PUT /api/alerts/:id - Update alert
 router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), async (req, res) => {
   try {
-    const userId = req.user?.id
+    const userId = req.user?.userId
     const { id } = req.params
 
     if (!userId) {
@@ -131,7 +187,7 @@ router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), as
 // DELETE /api/alerts/:id - Delete alert
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const userId = req.user?.id
+    const userId = req.user?.userId
     const { id } = req.params
 
     if (!userId) {

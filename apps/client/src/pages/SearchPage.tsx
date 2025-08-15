@@ -3,12 +3,15 @@ import { Button, Input, Loading } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
+import { formatPrice, getCurrencySymbol } from '../utils/currency'
 
 interface SearchResult {
   description: string
   displaySymbol: string
   symbol: string
   type: string
+  currency?: string
+  exchange?: string
 }
 
 const SearchPage: React.FC = () => {
@@ -248,9 +251,21 @@ const SearchPage: React.FC = () => {
                         <p className='text-sm text-gray-600 dark:text-gray-400'>
                           {result.description}
                         </p>
-                        <p className='text-xs text-gray-500 dark:text-gray-500 mt-1'>
-                          Type: {result.type}
-                        </p>
+                        <div className='flex items-center space-x-3 mt-1'>
+                          <p className='text-xs text-gray-500 dark:text-gray-500'>
+                            Type: {result.type}
+                          </p>
+                          {result.currency && (
+                            <p className='text-xs text-gray-500 dark:text-gray-500'>
+                              Currency: {getCurrencySymbol(result.currency)} ({result.currency})
+                            </p>
+                          )}
+                          {result.exchange && (
+                            <p className='text-xs text-gray-500 dark:text-gray-500'>
+                              Exchange: {result.exchange}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className='flex items-center space-x-2'>
                         {/* Watchlist button */}
