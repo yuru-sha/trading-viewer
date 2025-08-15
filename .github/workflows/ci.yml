@@ -18,16 +18,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -49,16 +49,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -102,16 +102,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -182,16 +182,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -222,16 +222,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -256,16 +256,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -342,7 +342,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./apps/${{ matrix.app }}/Dockerfile
+          file: ./docker/${{ matrix.app }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

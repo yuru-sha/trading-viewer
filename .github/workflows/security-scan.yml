@@ -22,16 +22,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -89,16 +89,16 @@ jobs:
               - '**/node_modules'
               - '**/dist'
               
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -125,8 +125,8 @@ jobs:
         
       - name: Build Docker images
         run: |
-          docker build -f ./apps/server/Dockerfile -t trading-viewer-server .
-          docker build -f ./apps/client/Dockerfile -t trading-viewer-client .
+          docker build -f ./docker/server/Dockerfile -t trading-viewer-server .
+          docker build -f ./docker/client/Dockerfile -t trading-viewer-client .
           
       - name: Run Trivy container scan (Server)
         uses: aquasecurity/trivy-action@master
@@ -174,16 +174,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
