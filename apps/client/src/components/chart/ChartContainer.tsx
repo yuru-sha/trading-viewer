@@ -4,7 +4,7 @@ import EChartsTradingChart from './EChartsTradingChart'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
-import useDrawingToolsWithPersistence from '../../hooks/drawing/useDrawingToolsWithPersistence'
+import useDrawingToolsWithServerPersistence from '../../hooks/drawing/useDrawingToolsWithServerPersistence'
 import { DrawingTool } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import { DrawingObject } from './DrawingObjectsPanel'
@@ -65,7 +65,7 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
     ref
   ) => {
     const [settings] = useState(defaultSettings)
-    const drawingTools = useDrawingToolsWithPersistence({
+    const drawingTools = useDrawingToolsWithServerPersistence({
       symbol,
       timeframe,
       autoSave: true,
