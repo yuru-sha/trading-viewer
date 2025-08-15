@@ -2,7 +2,6 @@ import React, { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { useAuth } from '../contexts/AuthContext'
-import { Button } from '@trading-viewer/ui'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
 import ErrorDisplay from './ErrorDisplay'
 import SkeletonLoader from './SkeletonLoader'
@@ -10,6 +9,7 @@ import Onboarding from './Onboarding'
 import { useOnboarding, createTradingViewerOnboarding } from '../hooks/useOnboarding'
 import Icon from './Icon'
 import UserDropdown from './UserDropdown'
+import AlertNotifications from './alerts/AlertNotifications'
 
 interface LayoutProps {
   children: ReactNode
@@ -168,6 +168,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </span>
                 </div>
               )}
+
+              {/* Alert Notifications */}
+              {user && <AlertNotifications />}
 
               {/* Theme Toggle */}
               <button
