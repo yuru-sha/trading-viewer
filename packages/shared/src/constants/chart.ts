@@ -1,4 +1,4 @@
-import { SymbolInfo, TimeframeOption, TimezoneOption } from '../types/chart'
+import { SymbolInfo, TimeframeOption, TimezoneOption } from '../types/core/chart'
 
 export const POPULAR_SYMBOLS: SymbolInfo[] = [
   { symbol: 'AAPL', name: 'Apple Inc.' },

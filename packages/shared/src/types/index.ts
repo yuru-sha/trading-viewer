@@ -1,13 +1,29 @@
-// Re-export everything from domain-organized types
-export * from './domains'
+// New organized type exports
+export * from './core'
+export * from './api'
+export * from './ui'
+export * from './business'
 
 // Legacy compatibility exports for gradual migration
-export type { ApiResponse as ApiContractResponse } from './api-contract'
+// These will be deprecated in future versions
+
+// From old api-contract.ts
+export type { ApiResponse as ApiContractResponse } from './api/contracts'
+
+// From old repository.ts
 export type {
   SymbolFilter as RepositorySymbolFilter,
   CandleFilter as RepositoryCandleFilter,
-} from './repository'
+} from './business'
 
-// Re-export specific types that server needs
-export type { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from './domains/market'
-export type { UserIndicators } from './domains/auth'
+// From old domains structure (backward compatibility)
+export type { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from './api/contracts'
+export type { UserIndicators } from './core'
+
+// Legacy re-exports from domains
+export type { User, Symbol, Quote, Candle } from './core'
+export type { DrawingObject, DrawingToolType } from './ui'
+export type { Order, Position, Portfolio } from './business'
+
+// Chart constants
+export { TIMEFRAMES as CHART_TIMEFRAMES, POPULAR_SYMBOLS, TIMEZONES } from '../constants/chart'
