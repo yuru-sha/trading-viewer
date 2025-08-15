@@ -1,5 +1,5 @@
 import React from 'react'
-import type { NewsItem, NewsCategory } from '@shared/types/api'
+import type { NewsItem, NewsCategory } from '@trading-viewer/shared'
 import { getMockNewsItems } from '../../utils/mockNewsData'
 
 interface MarketNewsProps {

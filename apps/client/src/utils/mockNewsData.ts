@@ -1,4 +1,4 @@
-import type { NewsItem, NewsCategory } from '@shared/types/api'
+import type { NewsItem, NewsCategory } from '@trading-viewer/shared'
 
 export const getMockNewsItems = (category: NewsCategory): NewsItem[] => {
   const baseItems: Record<NewsCategory, NewsItem[]> = {
