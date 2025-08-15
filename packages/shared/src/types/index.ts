@@ -1,15 +1,9 @@
-export * from './api'
-export * from './annotations'
+// Re-export everything from domain-organized types
+export * from './domains'
+
+// Legacy compatibility exports for gradual migration
 export type { ApiResponse as ApiContractResponse } from './api-contract'
-export * from './chart'
-export { TIMEZONES, POPULAR_SYMBOLS } from '../constants/chart'
-export { TIMEFRAMES as CHART_TIMEFRAMES } from '../constants/chart'
-export * from './database'
-export * from './drawing'
 export type {
   SymbolFilter as RepositorySymbolFilter,
   CandleFilter as RepositoryCandleFilter,
 } from './repository'
-export * from './trading'
-export * from './websocket'
-export * from './commands'

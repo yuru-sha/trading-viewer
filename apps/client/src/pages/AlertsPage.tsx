@@ -398,23 +398,6 @@ const AlertsPage: React.FC = () => {
         </div>
       )}
 
-      {/* View Options */}
-      {alerts.length > 0 && (
-        <div className='mb-6 flex items-center justify-end bg-gray-50 dark:bg-gray-800 rounded-lg p-4'>
-          <div className='flex items-center space-x-2'>
-            <label className='flex items-center'>
-              <input
-                type='checkbox'
-                checked={groupBySymbol}
-                onChange={e => setGroupBySymbol(e.target.checked)}
-                className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
-              />
-              <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>Group by Symbol</span>
-            </label>
-          </div>
-        </div>
-      )}
-
       {/* Statistics */}
       {alerts.length > 0 && (
         <div className='mb-8 grid grid-cols-1 md:grid-cols-4 gap-4'>
@@ -489,6 +472,19 @@ const AlertsPage: React.FC = () => {
                   {selectedAlerts.size} of {alerts.length} selected
                 </span>
               )}
+            </div>
+            <div className='flex items-center space-x-2'>
+              <label className='flex items-center'>
+                <input
+                  type='checkbox'
+                  checked={groupBySymbol}
+                  onChange={e => setGroupBySymbol(e.target.checked)}
+                  className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
+                />
+                <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>
+                  Group by Symbol
+                </span>
+              </label>
             </div>
           </div>
 
