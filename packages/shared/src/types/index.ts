@@ -7,3 +7,11 @@ export type {
   SymbolFilter as RepositorySymbolFilter,
   CandleFilter as RepositoryCandleFilter,
 } from './repository'
+
+// Re-export specific types that server needs
+export type { 
+  NormalizedSymbol, 
+  NormalizedQuote, 
+  NormalizedCandleResponse 
+} from './domains/market'
+export type { UserIndicators } from './domains/auth'
