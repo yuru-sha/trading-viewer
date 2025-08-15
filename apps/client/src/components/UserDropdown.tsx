@@ -108,7 +108,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               role='menuitem'
             >
               <Icon name='settings' className='w-4 h-4 mr-3' />
-              設定
+              Settings
             </Link>
 
             {user.role === 'admin' && (
@@ -119,7 +119,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
                 role='menuitem'
               >
                 <Icon name='users' className='w-4 h-4 mr-3' />
-                ユーザー管理
+                User Management
               </Link>
             )}
 
@@ -133,7 +133,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               role='menuitem'
             >
               <Icon name='helpCircle' className='w-4 h-4 mr-3' />
-              ヘルプ
+              Help
             </button>
           </div>
 
@@ -148,7 +148,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               role='menuitem'
             >
               <Icon name='logOut' className='w-4 h-4 mr-3' />
-              ログアウト
+              Log out
             </button>
           </div>
         </div>

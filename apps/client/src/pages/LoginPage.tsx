@@ -12,7 +12,10 @@ const LoginPage: React.FC = () => {
   const [lastName, setLastName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const { login, register, isAuthenticated } = useAuth()
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+  const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false)
+  const { login, register, forgotPassword } = useAuth()
   const { handleApiError, showSuccess } = useErrorHandlers()
 
   // Accessibility enhancement
@@ -23,7 +26,7 @@ const LoginPage: React.FC = () => {
   // Focus management and announcements
   useEffect(() => {
     // Announce page change
-    announceToScreenReader(`${isLogin ? 'ログイン' : 'アカウント作成'}ページです`)
+    announceToScreenReader(`${isLogin ? 'Login' : 'Sign up'} page`)
 
     // Focus header for screen readers
     if (headerRef.current) {
@@ -36,26 +39,42 @@ const LoginPage: React.FC = () => {
     setIsLoading(true)
 
     // Announce start of processing
-    announceToScreenReader(`${isLogin ? 'ログイン' : 'アカウント作成'}を処理中です`, 'assertive')
+    announceToScreenReader(`Processing ${isLogin ? 'login' : 'account creation'}`, 'assertive')
 
     try {
       if (isLogin) {
         await login({ email, password })
-        showSuccess('ログインしました')
-        announceToScreenReader('ログインが完了しました', 'assertive')
+        showSuccess('Successfully logged in')
+        announceToScreenReader('Login completed successfully', 'assertive')
       } else {
         await register({ email, password, firstName, lastName })
-        showSuccess('アカウントが作成されました')
-        announceToScreenReader('アカウント作成が完了しました', 'assertive')
+        showSuccess('Account created successfully')
+        announceToScreenReader('Account creation completed successfully', 'assertive')
       }
     } catch (error) {
-      handleApiError(error, isLogin ? 'ログイン' : 'アカウント作成')
+      handleApiError(error, isLogin ? 'Login' : 'Account creation')
       announceToScreenReader(
-        `${isLogin ? 'ログイン' : 'アカウント作成'}でエラーが発生しました`,
+        `An error occurred during ${isLogin ? 'login' : 'account creation'}`,
         'assertive'
       )
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsForgotPasswordLoading(true)
+
+    try {
+      await forgotPassword({ email: forgotPasswordEmail })
+      showSuccess('Password reset link has been sent to your email address.')
+      setShowForgotPassword(false)
+      setForgotPasswordEmail('')
+    } catch (error) {
+      handleApiError(error, 'Password reset request')
+    } finally {
+      setIsForgotPasswordLoading(false)
     }
   }
 
@@ -82,7 +101,7 @@ const LoginPage: React.FC = () => {
               TradingViewer
             </h1>
             <p className='mt-2 text-gray-600 dark:text-gray-400' id='page-description'>
-              {isLogin ? 'アカウントにサインイン' : '新規アカウントを作成'}
+              {isLogin ? 'Sign in to your account' : 'Create a new account'}
             </p>
           </div>
           {/* Form */}
@@ -95,12 +114,12 @@ const LoginPage: React.FC = () => {
             noValidate
           >
             <fieldset className='space-y-5'>
-              <legend className='sr-only'>{isLogin ? 'ログイン情報' : 'アカウント作成情報'}</legend>
+              <legend className='sr-only'>{isLogin ? 'Login information' : 'Account creation information'}</legend>
               
               {/* Email Input */}
               <div>
                 <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  メールアドレス
+                  Email Address
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
@@ -125,7 +144,7 @@ const LoginPage: React.FC = () => {
               {/* Password Input */}
               <div>
                 <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                  パスワード
+                  Password
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
@@ -151,12 +170,12 @@ const LoginPage: React.FC = () => {
                   <div className='grid grid-cols-2 gap-4'>
                     <div>
                       <label htmlFor='firstName' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                        名前（任意）
+                        First Name (Optional)
                       </label>
                       <Input
                         id='firstName'
                         type='text'
-                        placeholder='太郎'
+                        placeholder='John'
                         value={firstName}
                         onChange={e => setFirstName(e.target.value)}
                         autoComplete='given-name'
@@ -165,12 +184,12 @@ const LoginPage: React.FC = () => {
                     </div>
                     <div>
                       <label htmlFor='lastName' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                        姓（任意）
+                        Last Name (Optional)
                       </label>
                       <Input
                         id='lastName'
                         type='text'
-                        placeholder='山田'
+                        placeholder='Doe'
                         value={lastName}
                         onChange={e => setLastName(e.target.value)}
                         autoComplete='family-name'
@@ -194,11 +213,15 @@ const LoginPage: React.FC = () => {
                       className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                     />
                     <label htmlFor='remember-me' className='ml-2 block text-sm text-gray-700 dark:text-gray-300'>
-                      ログイン状態を保持
+                      Remember me
                     </label>
                   </div>
-                  <button type='button' className='text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'>
-                    パスワードを忘れた？
+                  <button 
+                    type='button' 
+                    onClick={() => setShowForgotPassword(true)}
+                    className='text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
+                  >
+                    Forgot your password?
                   </button>
                 </div>
               )}
@@ -220,15 +243,15 @@ const LoginPage: React.FC = () => {
                       <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
                       <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                     </svg>
-                    処理中...
+                    Processing...
                   </div>
                 ) : (
-                  isLogin ? 'サインイン' : 'アカウント作成'
+                  isLogin ? 'Sign In' : 'Create Account'
                 )}
               </Button>
               {isLoading && (
                 <div id='loading-status' className='sr-only' aria-live='polite'>
-                  {isLogin ? 'ログイン' : 'アカウント作成'}を処理中です
+                  Processing {isLogin ? 'login' : 'account creation'}
                 </div>
               )}
             </div>
@@ -239,7 +262,7 @@ const LoginPage: React.FC = () => {
                 <div className='w-full border-t border-gray-300 dark:border-gray-600' />
               </div>
               <div className='relative flex justify-center text-sm'>
-                <span className='px-2 bg-gray-50 dark:bg-gray-800 text-gray-500'>または</span>
+                <span className='px-2 bg-gray-50 dark:bg-gray-800 text-gray-500'>or</span>
               </div>
             </div>
 
@@ -251,17 +274,17 @@ const LoginPage: React.FC = () => {
                 className={`text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 ${prefersReducedMotion ? '' : 'transition-colors duration-200'}`}
                 aria-describedby='toggle-mode-description'
               >
-                {isLogin ? '新規アカウントを作成する' : 'すでにアカウントをお持ちの方'}
+                {isLogin ? 'Create new account' : 'Already have an account?'}
               </button>
               <div id='toggle-mode-description' className='sr-only'>
-                {isLogin ? 'アカウント作成フォームに切り替える' : 'ログインフォームに切り替える'}
+                {isLogin ? 'Switch to account creation form' : 'Switch to login form'}
               </div>
             </div>
 
             {/* Test Accounts */}
             <section className='space-y-3' aria-labelledby='test-accounts-title'>
               <h2 id='test-accounts-title' className='text-xs font-medium text-gray-500 text-center'>
-                デモアカウント
+                Demo Accounts
               </h2>
               <div className='grid grid-cols-2 gap-3'>
                 <button
@@ -273,9 +296,9 @@ const LoginPage: React.FC = () => {
                   }}
                   className='p-3 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-left'
                   role='button'
-                  aria-label='テストアカウントで自動入力'
+                  aria-label='Auto-fill with test account'
                 >
-                  <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>👤 一般ユーザー</div>
+                  <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>👤 Regular User</div>
                   <div className='text-xs text-gray-500 dark:text-gray-400'>test@example.com</div>
                 </button>
                 <button
@@ -287,9 +310,9 @@ const LoginPage: React.FC = () => {
                   }}
                   className='p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left border border-blue-200 dark:border-blue-800'
                   role='button'
-                  aria-label='管理者アカウントで自動入力'
+                  aria-label='Auto-fill with admin account'
                 >
-                  <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>👑 管理者</div>
+                  <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>👑 Administrator</div>
                   <div className='text-xs text-blue-600 dark:text-blue-400'>admin@tradingviewer.com</div>
                 </button>
               </div>
@@ -303,24 +326,24 @@ const LoginPage: React.FC = () => {
         <div className='absolute inset-0 bg-black opacity-20' />
         <div className='absolute inset-0 flex items-center justify-center'>
           <div className='text-white text-center px-8'>
-            <h2 className='text-4xl font-bold mb-4'>リアルタイムマーケットデータ</h2>
-            <p className='text-xl mb-8'>プロフェッショナルな取引ツールで市場を分析</p>
+            <h2 className='text-4xl font-bold mb-4'>Real-time Market Data</h2>
+            <p className='text-xl mb-8'>Analyze markets with professional trading tools</p>
             <div className='grid grid-cols-2 gap-4 max-w-md mx-auto'>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
                 <div className='text-3xl mb-2'>📊</div>
-                <div className='text-sm font-medium'>高度なチャート分析</div>
+                <div className='text-sm font-medium'>Advanced Chart Analysis</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
                 <div className='text-3xl mb-2'>⚡</div>
-                <div className='text-sm font-medium'>リアルタイム更新</div>
+                <div className='text-sm font-medium'>Real-time Updates</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
                 <div className='text-3xl mb-2'>🎯</div>
-                <div className='text-sm font-medium'>テクニカル指標</div>
+                <div className='text-sm font-medium'>Technical Indicators</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
                 <div className='text-3xl mb-2'>🔔</div>
-                <div className='text-sm font-medium'>価格アラート</div>
+                <div className='text-sm font-medium'>Price Alerts</div>
               </div>
             </div>
           </div>
@@ -335,6 +358,72 @@ const LoginPage: React.FC = () => {
           />
         </svg>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+          <div className='bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl'>
+            <div className='text-center mb-6'>
+              <h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+                Reset Password
+              </h2>
+              <p className='text-gray-600 dark:text-gray-400'>
+                Enter your email address and we'll send you a reset link
+              </p>
+            </div>
+
+            <form onSubmit={handleForgotPassword} className='space-y-6'>
+              <div>
+                <label htmlFor='forgot-email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                  Email Address
+                </label>
+                <Input
+                  id='forgot-email'
+                  type='email'
+                  placeholder='email@example.com'
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                  className='w-full py-3 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                />
+              </div>
+
+              <div className='flex space-x-4'>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  onClick={() => {
+                    setShowForgotPassword(false)
+                    setForgotPasswordEmail('')
+                  }}
+                  className='flex-1 py-3'
+                  disabled={isForgotPasswordLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type='submit'
+                  variant='primary'
+                  disabled={isForgotPasswordLoading || !forgotPasswordEmail}
+                  className='flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+                >
+                  {isForgotPasswordLoading ? (
+                    <div className='flex items-center justify-center'>
+                      <svg className='animate-spin -ml-1 mr-2 h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
+                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                      </svg>
+                      Sending...
+                    </div>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

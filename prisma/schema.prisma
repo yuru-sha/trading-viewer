@@ -64,6 +64,8 @@ model User {
   lockedUntil      DateTime?      @map("locked_until")
   lastLoginAt      DateTime?      @map("last_login_at")
   isActive         Boolean        @default(true) @map("is_active")
+  resetToken       String?        @map("reset_token")
+  resetTokenExpiry DateTime?      @map("reset_token_expiry")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
   drawingTools     DrawingTool[]
@@ -74,6 +76,8 @@ model User {
   @@index([failedLoginCount])
   @@index([lockedUntil])
   @@index([isActive])
+  @@index([resetToken])
+  @@index([resetTokenExpiry])
   @@map("users")
 }
 

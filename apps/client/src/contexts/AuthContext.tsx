@@ -63,6 +63,15 @@ export interface ChangePasswordData {
   newPassword: string
 }
 
+export interface ForgotPasswordData {
+  email: string
+}
+
+export interface ResetPasswordData {
+  token: string
+  newPassword: string
+}
+
 interface AuthContextValue extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
@@ -71,6 +80,8 @@ interface AuthContextValue extends AuthState {
   updateProfile: (data: UpdateProfileData) => Promise<void>
   changePassword: (data: ChangePasswordData) => Promise<void>
   deleteAccount: () => Promise<void>
+  forgotPassword: (data: ForgotPasswordData) => Promise<void>
+  resetPassword: (data: ResetPasswordData) => Promise<void>
   clearAuth: () => void
   getCSRFToken: () => Promise<string>
   requestWithAuth: (url: string, options?: RequestInit) => Promise<Response>
@@ -440,6 +451,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [apiClient, handleApiError, clearAuth])
 
+  // Forgot password
+  const forgotPassword = useCallback(
+    async (data: ForgotPasswordData): Promise<void> => {
+      try {
+        await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+      } catch (error) {
+        handleApiError(error, 'password reset request')
+        throw error
+      }
+    },
+    [handleApiError]
+  )
+
+  // Reset password
+  const resetPassword = useCallback(
+    async (data: ResetPasswordData): Promise<void> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw { response: { status: response.status, data: errorData } }
+        }
+      } catch (error) {
+        handleApiError(error, 'password reset')
+        throw error
+      }
+    },
+    [handleApiError]
+  )
+
   // Initialize auth state on mount
   useEffect(() => {
     const initAuth = async () => {
@@ -495,6 +547,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateProfile,
     changePassword,
     deleteAccount,
+    forgotPassword,
+    resetPassword,
     clearAuth,
     getCSRFToken,
     requestWithAuth,

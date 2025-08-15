@@ -17,12 +17,14 @@ import {
   SettingsPage,
 } from './pages'
 import LoginPage from './pages/LoginPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 const AppContent: React.FC = () => {
   const location = useLocation()
   const { isAuthenticated, isLoading } = useAuth()
   const isChartsPage = location.pathname === '/charts'
   const isLoginPage = location.pathname === '/login'
+  const isResetPasswordPage = location.pathname === '/reset-password'
 
   // 認証状態をロード中の場合は待機
   if (isLoading) {
@@ -30,16 +32,17 @@ const AppContent: React.FC = () => {
   }
 
   // 認証済みかつログインページにいる場合はホームにリダイレクト
-  if (isAuthenticated && isLoginPage) {
+  if (isAuthenticated && (isLoginPage || isResetPasswordPage)) {
     return <Navigate to='/' replace />
   }
 
-  // 未認証の場合はログインページを表示またはリダイレクト
+  // 未認証の場合はログインページまたはパスワードリセットページを表示
   if (!isAuthenticated) {
-    if (isLoginPage) {
+    if (isLoginPage || isResetPasswordPage) {
       return (
         <Routes>
           <Route path='/login' element={<LoginPage />} />
+          <Route path='/reset-password' element={<ResetPasswordPage />} />
         </Routes>
       )
     }
