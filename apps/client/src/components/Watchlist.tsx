@@ -247,28 +247,52 @@ export const Watchlist: React.FC<WatchlistProps> = ({
                         <span className='text-sm font-semibold text-gray-900 dark:text-white truncate'>
                           {item.symbol}
                         </span>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation()
-                            removeFromWatchlist(item.symbol)
-                          }}
-                          className='p-1 text-gray-400 hover:text-red-500 transition-colors'
-                          title='Remove from watchlist'
-                        >
-                          <svg
-                            className='w-3 h-3'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
+                        <div className='flex items-center space-x-1'>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation()
+                              window.open(`/charts?symbol=${item.symbol}`, '_blank')
+                            }}
+                            className='p-1 text-gray-400 hover:text-blue-500 transition-colors'
+                            title='Open in new tab'
                           >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M6 18L18 6M6 6l12 12'
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              className='w-3 h-3'
+                              fill='none'
+                              stroke='currentColor'
+                              viewBox='0 0 24 24'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14'
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation()
+                              removeFromWatchlist(item.symbol)
+                            }}
+                            className='p-1 text-gray-400 hover:text-red-500 transition-colors'
+                            title='Remove from watchlist'
+                          >
+                            <svg
+                              className='w-3 h-3'
+                              fill='none'
+                              stroke='currentColor'
+                              viewBox='0 0 24 24'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M6 18L18 6M6 6l12 12'
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
 
                       <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>

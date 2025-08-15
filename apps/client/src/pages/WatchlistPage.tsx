@@ -416,8 +416,8 @@ const WatchlistPage: React.FC = () => {
   }
 
   const handleSymbolClick = (symbol: string) => {
-    // Navigate to charts with selected symbol
-    window.location.href = `/charts?symbol=${symbol}`
+    // Open charts in new tab with selected symbol
+    window.open(`/charts?symbol=${symbol}`, '_blank')
   }
 
   if (isLoading) {
