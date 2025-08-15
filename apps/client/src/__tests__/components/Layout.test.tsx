@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { Layout } from '../Layout'
+import { Layout } from '../../components/Layout'
 import { AppProvider } from '../../contexts/AppContext'
 
 const renderLayout = (children: React.ReactNode = <div>Test Content</div>) => {
