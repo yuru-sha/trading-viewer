@@ -33,6 +33,24 @@ export interface YahooSearchResult {
   typeDisp?: string
 }
 
+export interface YahooNewsItem {
+  uuid: string
+  title: string
+  publisher: string
+  link: string
+  providerPublishTime: number
+  type: string
+  thumbnail?: {
+    resolutions: Array<{
+      url: string
+      width: number
+      height: number
+      tag: string
+    }>
+  }
+  relatedTickers?: string[]
+}
+
 export class YahooFinanceService {
   private static instance: YahooFinanceService
   private cache = new Map<string, { data: YahooQuoteData; timestamp: number }>()
@@ -248,6 +266,132 @@ export class YahooFinanceService {
     const period2 = new Date(to * 1000)
     
     return this.getCandles(symbol, period1, period2, interval)
+  }
+
+  /**
+   * Get news articles for a given category/query
+   */
+  async getNews(query: string = '', count: number = 6): Promise<YahooNewsItem[]> {
+    try {
+      console.log(`🗞️ Fetching news for query: "${query}"`)
+      
+      // Try different approaches for Yahoo Finance search API
+      let result: any
+      
+      // First, try basic search to see what we get
+      try {
+        result = await yahooFinance.search(query)
+        console.log('🔍 Search result structure:', Object.keys(result))
+        
+        if (result.news && result.news.length > 0) {
+          console.log(`✅ Found ${result.news.length} news articles via basic search`)
+        } else {
+          console.log('No news in basic search result')
+        }
+      } catch (basicError) {
+        console.error('Basic search failed:', basicError)
+        return []
+      }
+
+      // Check if we have news results
+      if (!result.news || result.news.length === 0) {
+        console.log(`No news found for query: "${query}"`)
+        return []
+      }
+
+      // Limit results to requested count
+      const newsToProcess = result.news.slice(0, count)
+
+      const newsItems: YahooNewsItem[] = newsToProcess.map((item: any) => {
+        // Handle timestamp - can be ISO string or Unix timestamp
+        let timestamp: number
+        
+        if (typeof item.providerPublishTime === 'string') {
+          // It's an ISO string, convert to Unix timestamp
+          timestamp = Math.floor(new Date(item.providerPublishTime).getTime() / 1000)
+        } else if (typeof item.providerPublishTime === 'number') {
+          // It's already a number, use as is
+          timestamp = item.providerPublishTime
+        } else {
+          // Fallback to current time
+          timestamp = Math.floor(Date.now() / 1000)
+        }
+        
+        return {
+          uuid: item.uuid || '',
+          title: item.title || '',
+          publisher: item.publisher || '',
+          link: item.link || '',
+          providerPublishTime: timestamp,
+          type: item.type || 'article',
+          thumbnail: item.thumbnail,
+          relatedTickers: item.relatedTickers || []
+        }
+      })
+
+      console.log(`✅ Found ${newsItems.length} news articles`)
+      return newsItems
+
+    } catch (error) {
+      console.error(`Failed to fetch news for query "${query}":`, error)
+      return []
+    }
+  }
+
+  /**
+   * Get category-specific news
+   */
+  async getCategoryNews(category: 'japan' | 'world' | 'crypto' | 'general'): Promise<YahooNewsItem[]> {
+    // Try multiple query approaches for better results
+    const queryStrategies = {
+      japan: [
+        'Toyota',
+        'Sony', 
+        'Nintendo',
+        'Japan',
+        'Nikkei',
+        'Tokyo'
+      ],
+      world: [
+        'Apple',
+        'Microsoft',
+        'Tesla',
+        'NASDAQ',
+        'S&P 500',
+        'stock market'
+      ],
+      crypto: [
+        'Bitcoin',
+        'Ethereum',
+        'cryptocurrency',
+        'crypto',
+        'BTC',
+        'ETH'
+      ],
+      general: [
+        'market',
+        'stocks',
+        'finance',
+        'economy',
+        'trading',
+        'investment'
+      ]
+    }
+
+    const queries = queryStrategies[category] || queryStrategies.general
+    
+    // Try each query until we get results
+    for (const query of queries) {
+      console.log(`🔍 Trying query: "${query}" for category: ${category}`)
+      const newsItems = await this.getNews(query, 6)
+      if (newsItems.length > 0) {
+        console.log(`✅ Got ${newsItems.length} news items with query: "${query}"`)
+        return newsItems
+      }
+    }
+    
+    console.log(`⚠️ No news found for any query in category: ${category}`)
+    return []
   }
 }
 
