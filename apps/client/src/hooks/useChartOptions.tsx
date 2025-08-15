@@ -184,7 +184,39 @@ export const useChartOptions = (
                 formatter: (value: string) => {
                   if (value.includes(' ')) {
                     const parts = value.split(' ')
-                    return parts[0]
+                    const date = parts[0]
+                    const time = parts[1]
+                    // 時刻がある場合の処理
+                    if (time) {
+                      const hour = parseInt(time.split(':')[0])
+                      const minute = parseInt(time.split(':')[1])
+                      
+                      // 時間軸に応じて日付表示の間隔を調整
+                      let showDate = false
+                      
+                      // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
+                      if (minute === 0 || hour % 6 === 0) {
+                        showDate = true
+                      }
+                      
+                      if (showDate) {
+                        // 複数の日付形式に対応
+                        let displayDate = date
+                        if (date.includes('-')) {
+                          const dateParts = date.split('-')
+                          if (dateParts.length >= 3) {
+                            const month = dateParts[1]
+                            const day = dateParts[2]
+                            displayDate = `${month}/${day}`
+                          }
+                        }
+                        
+                        return `${displayDate} ${time.substring(0, 5)}`
+                      }
+                      // その他の時刻は HH:MM 形式で表示
+                      return time.substring(0, 5)
+                    }
+                    return date // 日付のみ
                   }
                   return value
                 },
@@ -215,7 +247,39 @@ export const useChartOptions = (
                 formatter: (value: string) => {
                   if (value.includes(' ')) {
                     const parts = value.split(' ')
-                    return parts[0]
+                    const date = parts[0]
+                    const time = parts[1]
+                    // 時刻がある場合の処理
+                    if (time) {
+                      const hour = parseInt(time.split(':')[0])
+                      const minute = parseInt(time.split(':')[1])
+                      
+                      // 時間軸に応じて日付表示の間隔を調整
+                      let showDate = false
+                      
+                      // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
+                      if (minute === 0 || hour % 6 === 0) {
+                        showDate = true
+                      }
+                      
+                      if (showDate) {
+                        // 複数の日付形式に対応
+                        let displayDate = date
+                        if (date.includes('-')) {
+                          const dateParts = date.split('-')
+                          if (dateParts.length >= 3) {
+                            const month = dateParts[1]
+                            const day = dateParts[2]
+                            displayDate = `${month}/${day}`
+                          }
+                        }
+                        
+                        return `${displayDate} ${time.substring(0, 5)}`
+                      }
+                      // その他の時刻は HH:MM 形式で表示
+                      return time.substring(0, 5)
+                    }
+                    return date // 日付のみ
                   }
                   return value
                 },
