@@ -313,7 +313,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        app: [client, server]
+        app: [frontend, backend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
