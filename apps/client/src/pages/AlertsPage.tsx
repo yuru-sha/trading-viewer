@@ -58,23 +58,27 @@ const AlertsPage: React.FC = () => {
   const toggleAlert = async (alert: PriceAlert) => {
     const newEnabled = !alert.enabled
     setTogglingAlertId(alert.id)
-    
+
     try {
       await requestWithAuth(`/api/alerts/${alert.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: newEnabled }),
       })
-      
-      setAlerts(prev => prev.map(a => 
-        a.id === alert.id 
-          ? { ...a, enabled: newEnabled, triggeredAt: newEnabled ? undefined : a.triggeredAt }
-          : a
-      ))
-      
+
+      setAlerts(prev =>
+        prev.map(a =>
+          a.id === alert.id
+            ? { ...a, enabled: newEnabled, triggeredAt: newEnabled ? undefined : a.triggeredAt }
+            : a
+        )
+      )
+
       setError(null)
     } catch (err: any) {
-      setError(err.message || `Failed to ${newEnabled ? 'enable' : 'disable'} alert for ${alert.symbol}`)
+      setError(
+        err.message || `Failed to ${newEnabled ? 'enable' : 'disable'} alert for ${alert.symbol}`
+      )
     } finally {
       setTogglingAlertId(null)
     }
@@ -83,7 +87,7 @@ const AlertsPage: React.FC = () => {
   // Delete alert with improved UX
   const deleteAlert = async (alert: PriceAlert) => {
     const confirmMessage = `Are you sure you want to delete the alert for ${alert.symbol}?\n\nCondition: Price ${alert.condition} ${alert.targetPrice ? `$${alert.targetPrice}` : `${alert.percentageChange}%`}`
-    
+
     if (!confirm(confirmMessage)) return
 
     setDeletingAlertId(alert.id)
@@ -140,18 +144,18 @@ const AlertsPage: React.FC = () => {
   // Bulk delete selected alerts
   const bulkDeleteAlerts = async () => {
     if (selectedAlerts.size === 0) return
-    
+
     const selectedAlertsData = alerts.filter(alert => selectedAlerts.has(alert.id))
     const confirmMessage = `Are you sure you want to delete ${selectedAlerts.size} alert(s)?\n\n${selectedAlertsData.map(alert => `• ${alert.symbol} - ${alert.condition} ${alert.targetPrice ? `$${alert.targetPrice}` : `${alert.percentageChange}%`}`).join('\n')}`
-    
+
     if (!confirm(confirmMessage)) return
 
     setBulkDeleting(true)
     const failedDeletes: string[] = []
-    
+
     try {
       // Delete alerts in parallel
-      const deletePromises = Array.from(selectedAlerts).map(async (alertId) => {
+      const deletePromises = Array.from(selectedAlerts).map(async alertId => {
         try {
           await requestWithAuth(`/api/alerts/${alertId}`, {
             method: 'DELETE',
@@ -162,13 +166,15 @@ const AlertsPage: React.FC = () => {
           return { success: false, alertId }
         }
       })
-      
+
       await Promise.all(deletePromises)
-      
+
       // Remove successfully deleted alerts
-      setAlerts(prev => prev.filter(alert => !selectedAlerts.has(alert.id) || failedDeletes.includes(alert.id)))
+      setAlerts(prev =>
+        prev.filter(alert => !selectedAlerts.has(alert.id) || failedDeletes.includes(alert.id))
+      )
       setSelectedAlerts(new Set())
-      
+
       if (failedDeletes.length > 0) {
         setError(`Failed to delete ${failedDeletes.length} alert(s). Please try again.`)
       } else {
@@ -183,22 +189,27 @@ const AlertsPage: React.FC = () => {
 
   // Group alerts by symbol
   const groupedAlerts = groupBySymbol
-    ? alerts.reduce((groups, alert) => {
-        const symbol = alert.symbol
-        if (!groups[symbol]) {
-          groups[symbol] = []
-        }
-        groups[symbol].push(alert)
-        return groups
-      }, {} as Record<string, PriceAlert[]>)
+    ? alerts.reduce(
+        (groups, alert) => {
+          const symbol = alert.symbol
+          if (!groups[symbol]) {
+            groups[symbol] = []
+          }
+          groups[symbol].push(alert)
+          return groups
+        },
+        {} as Record<string, PriceAlert[]>
+      )
     : { 'All Alerts': alerts }
 
   const AlertCard: React.FC<{ alert: PriceAlert }> = ({ alert }) => (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 transition-colors ${
-      selectedAlerts.has(alert.id)
-        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-        : 'border-gray-200 dark:border-gray-700'
-    }`}>
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 transition-colors ${
+        selectedAlerts.has(alert.id)
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+          : 'border-gray-200 dark:border-gray-700'
+      }`}
+    >
       <div className='flex items-center justify-between mb-3'>
         <div className='flex items-center space-x-3'>
           <input
@@ -281,8 +292,7 @@ const AlertsPage: React.FC = () => {
           <span className='text-gray-900 dark:text-white font-medium'>
             {alert.targetPrice
               ? `Price ${alert.condition} ${formatPrice(alert.targetPrice, alert.currency)}`
-              : `${alert.percentageChange && alert.percentageChange > 0 ? '+' : ''}${alert.percentageChange}% change`
-            }
+              : `${alert.percentageChange && alert.percentageChange > 0 ? '+' : ''}${alert.percentageChange}% change`}
           </span>
         </div>
 
@@ -306,9 +316,7 @@ const AlertsPage: React.FC = () => {
         {alert.currency && alert.currency !== 'USD' && (
           <div className='flex items-center justify-between text-sm'>
             <span className='text-gray-600 dark:text-gray-400'>Currency:</span>
-            <span className='text-gray-900 dark:text-white'>
-              {alert.currency}
-            </span>
+            <span className='text-gray-900 dark:text-white'>{alert.currency}</span>
           </div>
         )}
 
@@ -398,12 +406,10 @@ const AlertsPage: React.FC = () => {
               <input
                 type='checkbox'
                 checked={groupBySymbol}
-                onChange={(e) => setGroupBySymbol(e.target.checked)}
+                onChange={e => setGroupBySymbol(e.target.checked)}
                 className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
               />
-              <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>
-                Group by Symbol
-              </span>
+              <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>Group by Symbol</span>
             </label>
           </div>
         </div>
@@ -498,16 +504,16 @@ const AlertsPage: React.FC = () => {
                   </div>
                   <div className='text-sm text-gray-500 dark:text-gray-400'>
                     Active: {symbolAlerts.filter(a => a.enabled && !a.triggeredAt).length} |
-                    Triggered: {symbolAlerts.filter(a => a.triggeredAt).length} |
-                    Disabled: {symbolAlerts.filter(a => !a.enabled && !a.triggeredAt).length}
+                    Triggered: {symbolAlerts.filter(a => a.triggeredAt).length} | Disabled:{' '}
+                    {symbolAlerts.filter(a => !a.enabled && !a.triggeredAt).length}
                   </div>
                 </div>
               )}
-              <div className={`grid gap-4 ${
-                groupBySymbol 
-                  ? 'grid-cols-1' 
-                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-              }`}>
+              <div
+                className={`grid gap-4 ${
+                  groupBySymbol ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}
+              >
                 {symbolAlerts.map(alert => (
                   <AlertCard key={alert.id} alert={alert} />
                 ))}

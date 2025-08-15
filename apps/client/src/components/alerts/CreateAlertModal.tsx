@@ -148,7 +148,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
       if (result.c !== undefined) {
         setCurrentPriceInfo({
           price: result.c,
-          currency: 'USD'
+          currency: 'USD',
         })
       } else {
         setCurrentPriceInfo(null)
@@ -437,7 +437,15 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                 {loading && (
                   <div className='animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent' />
                 )}
-                <span>{loading ? (editingAlert ? 'Updating...' : 'Creating...') : (editingAlert ? 'Update Alert' : 'Create Alert')}</span>
+                <span>
+                  {loading
+                    ? editingAlert
+                      ? 'Updating...'
+                      : 'Creating...'
+                    : editingAlert
+                      ? 'Update Alert'
+                      : 'Create Alert'}
+                </span>
               </Button>
             </div>
           </form>

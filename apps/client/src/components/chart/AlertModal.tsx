@@ -289,7 +289,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
                   </div>
                 </div>
                 <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                  現在価格から {alertType === 'above' ? '+' : '-'}{percentageChange || '0'}% 変化したら通知
+                  現在価格から {alertType === 'above' ? '+' : '-'}
+                  {percentageChange || '0'}% 変化したら通知
                 </p>
               </div>
             )}
@@ -355,16 +356,12 @@ const AlertModal: React.FC<AlertModalProps> = ({
                         <div>
                           <div className='flex items-center space-x-2'>
                             <span className='font-medium text-gray-900 dark:text-white'>
-                              {alert.alertType === 'price' 
+                              {alert.alertType === 'price'
                                 ? `$${alert.price?.toFixed(2) || '0.00'}`
-                                : `${(alert.percentageChange || 0) > 0 ? '+' : ''}${alert.percentageChange || 0}%`
-                              }
+                                : `${(alert.percentageChange || 0) > 0 ? '+' : ''}${alert.percentageChange || 0}%`}
                             </span>
                             <span className='text-sm text-gray-500 dark:text-gray-400'>
-                              {alert.alertType === 'price' 
-                                ? getAlertTypeLabel(alert.type)
-                                : '変化'
-                              }
+                              {alert.alertType === 'price' ? getAlertTypeLabel(alert.type) : '変化'}
                             </span>
                           </div>
                           {alert.message && (
