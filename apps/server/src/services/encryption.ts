@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcrypt'
 import { securityLogger, SecurityEventType, SecuritySeverity } from './securityLogger'
 
 // Encryption algorithms and configurations

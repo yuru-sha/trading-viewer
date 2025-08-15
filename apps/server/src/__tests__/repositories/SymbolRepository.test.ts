@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import {
   SymbolRepository,
@@ -8,13 +9,13 @@ import {
 // Mock PrismaClient
 const mockPrismaClient = {
   symbol: {
-    create: jest.fn(),
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    count: jest.fn(),
-    upsert: jest.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+    upsert: vi.fn(),
   },
 } as unknown as PrismaClient
 
@@ -23,7 +24,7 @@ describe('SymbolRepository', () => {
 
   beforeEach(() => {
     repository = new SymbolRepository(mockPrismaClient)
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('create', () => {
@@ -42,7 +43,7 @@ describe('SymbolRepository', () => {
         ...createData,
       }
 
-      ;(mockPrismaClient.symbol.create as jest.Mock).mockResolvedValue(expectedSymbol)
+      ;(mockPrismaClient.symbol.create as vi.Mock).mockResolvedValue(expectedSymbol)
 
       const result = await repository.create(createData)
 
@@ -58,7 +59,7 @@ describe('SymbolRepository', () => {
         message: 'Unique constraint violation',
       }
 
-      ;(mockPrismaClient.symbol.create as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.symbol.create as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.create(createData)).rejects.toThrow(DuplicateError)
     })
@@ -76,7 +77,7 @@ describe('SymbolRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.symbol.findUnique as jest.Mock).mockResolvedValue(symbol)
+      ;(mockPrismaClient.symbol.findUnique as vi.Mock).mockResolvedValue(symbol)
 
       const result = await repository.findById('1')
 
@@ -87,7 +88,7 @@ describe('SymbolRepository', () => {
     })
 
     it('should return null when symbol not found', async () => {
-      ;(mockPrismaClient.symbol.findUnique as jest.Mock).mockResolvedValue(null)
+      ;(mockPrismaClient.symbol.findUnique as vi.Mock).mockResolvedValue(null)
 
       const result = await repository.findById('non-existent')
 
@@ -107,7 +108,7 @@ describe('SymbolRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.symbol.findUnique as jest.Mock).mockResolvedValue(symbol)
+      ;(mockPrismaClient.symbol.findUnique as vi.Mock).mockResolvedValue(symbol)
 
       const result = await repository.findBySymbol('AAPL')
 
@@ -132,7 +133,7 @@ describe('SymbolRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.symbol.findMany as jest.Mock).mockResolvedValue(symbols)
+      ;(mockPrismaClient.symbol.findMany as vi.Mock).mockResolvedValue(symbols)
 
       const result = await repository.findMany({ symbol: 'AAP' }, { skip: 0, take: 10 })
 
@@ -150,7 +151,7 @@ describe('SymbolRepository', () => {
     it('should find all symbols when no filter provided', async () => {
       const symbols = []
 
-      ;(mockPrismaClient.symbol.findMany as jest.Mock).mockResolvedValue(symbols)
+      ;(mockPrismaClient.symbol.findMany as vi.Mock).mockResolvedValue(symbols)
 
       const result = await repository.findMany()
 
@@ -178,7 +179,7 @@ describe('SymbolRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.symbol.findMany as jest.Mock).mockResolvedValue(symbols)
+      ;(mockPrismaClient.symbol.findMany as vi.Mock).mockResolvedValue(symbols)
 
       const result = await repository.search('Apple', 25)
 
@@ -213,7 +214,7 @@ describe('SymbolRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.symbol.update as jest.Mock).mockResolvedValue(updatedSymbol)
+      ;(mockPrismaClient.symbol.update as vi.Mock).mockResolvedValue(updatedSymbol)
 
       const result = await repository.update('1', updateData)
 
@@ -230,7 +231,7 @@ describe('SymbolRepository', () => {
         message: 'Record not found',
       }
 
-      ;(mockPrismaClient.symbol.update as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.symbol.update as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.update('non-existent', {})).rejects.toThrow(NotFoundError)
     })
@@ -238,7 +239,7 @@ describe('SymbolRepository', () => {
 
   describe('delete', () => {
     it('should delete symbol successfully', async () => {
-      ;(mockPrismaClient.symbol.delete as jest.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.symbol.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -253,7 +254,7 @@ describe('SymbolRepository', () => {
         message: 'Record not found',
       }
 
-      ;(mockPrismaClient.symbol.delete as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.symbol.delete as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.delete('non-existent')).rejects.toThrow(NotFoundError)
     })
@@ -261,7 +262,7 @@ describe('SymbolRepository', () => {
 
   describe('count', () => {
     it('should count symbols with filter', async () => {
-      ;(mockPrismaClient.symbol.count as jest.Mock).mockResolvedValue(5)
+      ;(mockPrismaClient.symbol.count as vi.Mock).mockResolvedValue(5)
 
       const result = await repository.count({ type: 'Common Stock' })
 
@@ -290,7 +291,7 @@ describe('SymbolRepository', () => {
         ...upsertData,
       }
 
-      ;(mockPrismaClient.symbol.upsert as jest.Mock).mockResolvedValue(upsertedSymbol)
+      ;(mockPrismaClient.symbol.upsert as vi.Mock).mockResolvedValue(upsertedSymbol)
 
       const result = await repository.upsertBySymbol(upsertData)
 

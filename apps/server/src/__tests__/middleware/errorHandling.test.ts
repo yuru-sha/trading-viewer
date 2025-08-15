@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
 import {
@@ -19,33 +20,33 @@ const mockRequest = (overrides = {}): Partial<Request> => ({
   method: 'GET',
   path: '/test',
   headers: { 'x-request-id': 'test-request-id' },
-  get: jest.fn().mockReturnValue('test-user-agent'),
+  get: vi.fn().mockReturnValue('test-user-agent'),
   ip: '127.0.0.1',
   ...overrides,
 })
 
 const mockResponse = (): Partial<Response> => {
   const res: Partial<Response> = {}
-  res.status = jest.fn().mockReturnValue(res)
-  res.json = jest.fn().mockReturnValue(res)
-  res.set = jest.fn().mockReturnValue(res)
+  res.status = vi.fn().mockReturnValue(res)
+  res.json = vi.fn().mockReturnValue(res)
+  res.set = vi.fn().mockReturnValue(res)
   return res
 }
 
-const mockNext = (): NextFunction => jest.fn()
+const mockNext = (): NextFunction => vi.fn()
 
 describe('Error Handling Middleware', () => {
-  let consoleSpy: jest.SpyInstance
+  let consoleSpy: vi.SpyInstance
 
   beforeEach(() => {
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-    jest.spyOn(console, 'warn').mockImplementation()
-    jest.spyOn(console, 'log').mockImplementation()
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation()
+    vi.spyOn(console, 'warn').mockImplementation()
+    vi.spyOn(console, 'log').mockImplementation()
   })
 
   afterEach(() => {
     consoleSpy.mockRestore()
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe('AppError', () => {
@@ -280,7 +281,7 @@ describe('Error Handling Middleware', () => {
 
   describe('asyncHandler', () => {
     it('should handle successful async functions', async () => {
-      const mockFn = jest.fn().mockResolvedValue('success')
+      const mockFn = vi.fn().mockResolvedValue('success')
       const wrapped = asyncHandler(mockFn)
       const req = mockRequest() as Request
       const res = mockResponse() as Response
@@ -294,7 +295,7 @@ describe('Error Handling Middleware', () => {
 
     it('should catch and forward async errors', async () => {
       const error = new Error('Async error')
-      const mockFn = jest.fn().mockRejectedValue(error)
+      const mockFn = vi.fn().mockRejectedValue(error)
       const wrapped = asyncHandler(mockFn)
       const req = mockRequest() as Request
       const res = mockResponse() as Response
@@ -308,7 +309,7 @@ describe('Error Handling Middleware', () => {
 
   describe('wrapExternalServiceCall', () => {
     it('should return successful results', async () => {
-      const serviceCall = jest.fn().mockResolvedValue('success')
+      const serviceCall = vi.fn().mockResolvedValue('success')
 
       const result = await wrapExternalServiceCall('TestService', serviceCall)
 
@@ -318,7 +319,7 @@ describe('Error Handling Middleware', () => {
 
     it('should wrap external service errors', async () => {
       const originalError = new Error('Service unavailable')
-      const serviceCall = jest.fn().mockRejectedValue(originalError)
+      const serviceCall = vi.fn().mockRejectedValue(originalError)
 
       await expect(wrapExternalServiceCall('TestService', serviceCall)).rejects.toThrow(
         ExternalServiceError
@@ -331,7 +332,7 @@ describe('Error Handling Middleware', () => {
 
     it('should log external service errors', async () => {
       const originalError = new Error('Service unavailable')
-      const serviceCall = jest.fn().mockRejectedValue(originalError)
+      const serviceCall = vi.fn().mockRejectedValue(originalError)
 
       try {
         await wrapExternalServiceCall('TestService', serviceCall)

@@ -1,18 +1,19 @@
+import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { CandleRepository, NotFoundError } from '../../repositories/CandleRepository'
 
 // Mock PrismaClient
 const mockPrismaClient = {
   candle: {
-    create: jest.fn(),
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    count: jest.fn(),
-    createMany: jest.fn(),
-    upsert: jest.fn(),
-    deleteMany: jest.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+    createMany: vi.fn(),
+    upsert: vi.fn(),
+    deleteMany: vi.fn(),
   },
 } as unknown as PrismaClient
 
@@ -21,7 +22,7 @@ describe('CandleRepository', () => {
 
   beforeEach(() => {
     repository = new CandleRepository(mockPrismaClient)
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('create', () => {
@@ -42,7 +43,7 @@ describe('CandleRepository', () => {
         ...createData,
       }
 
-      ;(mockPrismaClient.candle.create as jest.Mock).mockResolvedValue(expectedCandle)
+      ;(mockPrismaClient.candle.create as vi.Mock).mockResolvedValue(expectedCandle)
 
       const result = await repository.create(createData)
 
@@ -58,7 +59,7 @@ describe('CandleRepository', () => {
         message: 'Unique constraint violation',
       }
 
-      ;(mockPrismaClient.candle.create as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.candle.create as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.create(createData)).rejects.toThrow(
         'Candle data for symbol AAPL at timestamp 1640995200 already exists'
@@ -80,7 +81,7 @@ describe('CandleRepository', () => {
         createdAt: new Date(),
       }
 
-      ;(mockPrismaClient.candle.findUnique as jest.Mock).mockResolvedValue(candle)
+      ;(mockPrismaClient.candle.findUnique as vi.Mock).mockResolvedValue(candle)
 
       const result = await repository.findById('1')
 
@@ -107,7 +108,7 @@ describe('CandleRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.candle.findMany as jest.Mock).mockResolvedValue(candles)
+      ;(mockPrismaClient.candle.findMany as vi.Mock).mockResolvedValue(candles)
 
       const result = await repository.findBySymbolAndTimeRange('AAPL', 1640995200, 1641081600)
 
@@ -143,7 +144,7 @@ describe('CandleRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.candle.findMany as jest.Mock).mockResolvedValue(candles)
+      ;(mockPrismaClient.candle.findMany as vi.Mock).mockResolvedValue(candles)
 
       const result = await repository.findLatestBySymbol('AAPL', 50)
 
@@ -162,7 +163,7 @@ describe('CandleRepository', () => {
     it('should find candles with filter', async () => {
       const candles = []
 
-      ;(mockPrismaClient.candle.findMany as jest.Mock).mockResolvedValue(candles)
+      ;(mockPrismaClient.candle.findMany as vi.Mock).mockResolvedValue(candles)
 
       const result = await repository.findMany(
         { symbol: 'AAPL', fromTimestamp: 1640995200 },
@@ -200,7 +201,7 @@ describe('CandleRepository', () => {
         createdAt: new Date(),
       }
 
-      ;(mockPrismaClient.candle.update as jest.Mock).mockResolvedValue(updatedCandle)
+      ;(mockPrismaClient.candle.update as vi.Mock).mockResolvedValue(updatedCandle)
 
       const result = await repository.update('1', updateData)
 
@@ -217,7 +218,7 @@ describe('CandleRepository', () => {
         message: 'Record not found',
       }
 
-      ;(mockPrismaClient.candle.update as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.candle.update as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.update('non-existent', {})).rejects.toThrow(NotFoundError)
     })
@@ -225,7 +226,7 @@ describe('CandleRepository', () => {
 
   describe('delete', () => {
     it('should delete candle successfully', async () => {
-      ;(mockPrismaClient.candle.delete as jest.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.candle.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -237,7 +238,7 @@ describe('CandleRepository', () => {
 
   describe('count', () => {
     it('should count candles with filter', async () => {
-      ;(mockPrismaClient.candle.count as jest.Mock).mockResolvedValue(100)
+      ;(mockPrismaClient.candle.count as vi.Mock).mockResolvedValue(100)
 
       const result = await repository.count({ symbol: 'AAPL' })
 
@@ -273,7 +274,7 @@ describe('CandleRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.candle.createMany as jest.Mock).mockResolvedValue({ count: 2 })
+      ;(mockPrismaClient.candle.createMany as vi.Mock).mockResolvedValue({ count: 2 })
 
       const result = await repository.bulkCreate(candlesData)
 
@@ -303,7 +304,7 @@ describe('CandleRepository', () => {
         ...upsertData,
       }
 
-      ;(mockPrismaClient.candle.upsert as jest.Mock).mockResolvedValue(upsertedCandle)
+      ;(mockPrismaClient.candle.upsert as vi.Mock).mockResolvedValue(upsertedCandle)
 
       const result = await repository.upsertCandle(upsertData)
 
@@ -329,7 +330,7 @@ describe('CandleRepository', () => {
 
   describe('deleteOldData', () => {
     it('should delete old candles', async () => {
-      ;(mockPrismaClient.candle.deleteMany as jest.Mock).mockResolvedValue({ count: 50 })
+      ;(mockPrismaClient.candle.deleteMany as vi.Mock).mockResolvedValue({ count: 50 })
 
       const result = await repository.deleteOldData('AAPL', 1640000000)
 

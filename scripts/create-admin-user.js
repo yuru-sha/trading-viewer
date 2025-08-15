@@ -22,11 +22,11 @@ async function createAdminUser() {
     const user = await prisma.user.create({
       data: {
         email: 'admin@tradingviewer.com',
-        password_hash: passwordHash,
-        first_name: 'Admin',
-        last_name: 'User',
+        passwordHash: passwordHash,
+        firstName: 'Admin',
+        lastName: 'User',
         role: 'admin',
-        is_email_verified: true,
+        isEmailVerified: true,
       },
     })
 

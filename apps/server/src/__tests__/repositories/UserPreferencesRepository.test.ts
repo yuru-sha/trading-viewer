@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import {
   UserPreferencesRepository,
@@ -7,13 +8,13 @@ import {
 // Mock PrismaClient
 const mockPrismaClient = {
   userPreferences: {
-    create: jest.fn(),
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    count: jest.fn(),
-    upsert: jest.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+    upsert: vi.fn(),
   },
 } as unknown as PrismaClient
 
@@ -22,7 +23,7 @@ describe('UserPreferencesRepository', () => {
 
   beforeEach(() => {
     repository = new UserPreferencesRepository(mockPrismaClient)
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('create', () => {
@@ -42,7 +43,7 @@ describe('UserPreferencesRepository', () => {
         ...createData,
       }
 
-      ;(mockPrismaClient.userPreferences.create as jest.Mock).mockResolvedValue(expectedPrefs)
+      ;(mockPrismaClient.userPreferences.create as vi.Mock).mockResolvedValue(expectedPrefs)
 
       const result = await repository.create(createData)
 
@@ -65,7 +66,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.create as jest.Mock).mockResolvedValue(expectedPrefs)
+      ;(mockPrismaClient.userPreferences.create as vi.Mock).mockResolvedValue(expectedPrefs)
 
       const result = await repository.create(minimalData)
 
@@ -86,7 +87,7 @@ describe('UserPreferencesRepository', () => {
         message: 'Unique constraint violation',
       }
 
-      ;(mockPrismaClient.userPreferences.create as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.userPreferences.create as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.create(createData)).rejects.toThrow(
         'User preferences for user user123 already exist'
@@ -107,7 +108,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.findUnique as jest.Mock).mockResolvedValue(prefs)
+      ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(prefs)
 
       const result = await repository.findById('1')
 
@@ -131,7 +132,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.findUnique as jest.Mock).mockResolvedValue(prefs)
+      ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(prefs)
 
       const result = await repository.findByUserId('user123')
 
@@ -157,7 +158,7 @@ describe('UserPreferencesRepository', () => {
         },
       ]
 
-      ;(mockPrismaClient.userPreferences.findMany as jest.Mock).mockResolvedValue(prefs)
+      ;(mockPrismaClient.userPreferences.findMany as vi.Mock).mockResolvedValue(prefs)
 
       const result = await repository.findMany({ theme: 'dark' }, { skip: 0, take: 10 })
 
@@ -190,7 +191,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.update as jest.Mock).mockResolvedValue(updatedPrefs)
+      ;(mockPrismaClient.userPreferences.update as vi.Mock).mockResolvedValue(updatedPrefs)
 
       const result = await repository.update('1', updateData)
 
@@ -207,7 +208,7 @@ describe('UserPreferencesRepository', () => {
         message: 'Record not found',
       }
 
-      ;(mockPrismaClient.userPreferences.update as jest.Mock).mockRejectedValue(prismaError)
+      ;(mockPrismaClient.userPreferences.update as vi.Mock).mockRejectedValue(prismaError)
 
       await expect(repository.update('non-existent', {})).rejects.toThrow(NotFoundError)
     })
@@ -230,7 +231,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.update as jest.Mock).mockResolvedValue(updatedPrefs)
+      ;(mockPrismaClient.userPreferences.update as vi.Mock).mockResolvedValue(updatedPrefs)
 
       const result = await repository.updateByUserId('user123', updateData)
 
@@ -244,7 +245,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('delete', () => {
     it('should delete user preferences successfully', async () => {
-      ;(mockPrismaClient.userPreferences.delete as jest.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -256,7 +257,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('deleteByUserId', () => {
     it('should delete user preferences by userId', async () => {
-      ;(mockPrismaClient.userPreferences.delete as jest.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
 
       await repository.deleteByUserId('user123')
 
@@ -268,7 +269,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('count', () => {
     it('should count user preferences with filter', async () => {
-      ;(mockPrismaClient.userPreferences.count as jest.Mock).mockResolvedValue(5)
+      ;(mockPrismaClient.userPreferences.count as vi.Mock).mockResolvedValue(5)
 
       const result = await repository.count({ theme: 'dark' })
 
@@ -299,7 +300,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.upsert as jest.Mock).mockResolvedValue(upsertedPrefs)
+      ;(mockPrismaClient.userPreferences.upsert as vi.Mock).mockResolvedValue(upsertedPrefs)
 
       const result = await repository.upsertByUserId('user123', upsertData)
 
@@ -331,7 +332,7 @@ describe('UserPreferencesRepository', () => {
         updatedAt: new Date(),
       }
 
-      ;(mockPrismaClient.userPreferences.findUnique as jest.Mock).mockResolvedValue(prefs)
+      ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(prefs)
     })
 
     describe('getIndicators', () => {
@@ -349,7 +350,7 @@ describe('UserPreferencesRepository', () => {
       })
 
       it('should return empty array when no preferences found', async () => {
-        ;(mockPrismaClient.userPreferences.findUnique as jest.Mock).mockResolvedValue(null)
+        ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(null)
 
         const result = await repository.getIndicators('user123')
 
@@ -365,7 +366,7 @@ describe('UserPreferencesRepository', () => {
           updatedAt: new Date(),
         }
 
-        ;(mockPrismaClient.userPreferences.findUnique as jest.Mock).mockResolvedValue(prefs)
+        ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(prefs)
 
         const result = await repository.getIndicators('user123')
 
@@ -395,7 +396,7 @@ describe('UserPreferencesRepository', () => {
           updatedAt: new Date(),
         }
 
-        ;(mockPrismaClient.userPreferences.upsert as jest.Mock).mockResolvedValue(updatedPrefs)
+        ;(mockPrismaClient.userPreferences.upsert as vi.Mock).mockResolvedValue(updatedPrefs)
 
         const result = await repository.updateIndicators('user123', indicators)
 
@@ -431,7 +432,7 @@ describe('UserPreferencesRepository', () => {
           updatedAt: new Date(),
         }
 
-        ;(mockPrismaClient.userPreferences.upsert as jest.Mock).mockResolvedValue(updatedPrefs)
+        ;(mockPrismaClient.userPreferences.upsert as vi.Mock).mockResolvedValue(updatedPrefs)
 
         const result = await repository.addIndicator('user123', newIndicator)
 
@@ -449,7 +450,7 @@ describe('UserPreferencesRepository', () => {
           updatedAt: new Date(),
         }
 
-        ;(mockPrismaClient.userPreferences.upsert as jest.Mock).mockResolvedValue(updatedPrefs)
+        ;(mockPrismaClient.userPreferences.upsert as vi.Mock).mockResolvedValue(updatedPrefs)
 
         const result = await repository.removeIndicator('user123', 'SMA')
 

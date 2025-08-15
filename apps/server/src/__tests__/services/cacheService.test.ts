@@ -1,16 +1,17 @@
 import { MemoryCacheService, ICacheService } from '../../services/cacheService'
 import { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from '@trading-viewer/shared'
+import { vi } from 'vitest'
 
 // Mock database service
-jest.mock('../../services/databaseService', () => ({
-  getDatabaseService: jest.fn(() => ({
+vi.mock('../../services/databaseService', () => ({
+  getDatabaseService: vi.fn(() => ({
     symbols: {
-      findBySymbol: jest.fn(),
-      upsertBySymbol: jest.fn(),
+      findBySymbol: vi.fn(),
+      upsertBySymbol: vi.fn(),
     },
     candles: {
-      findBySymbolAndTimeRange: jest.fn(),
-      bulkCreate: jest.fn(),
+      findBySymbolAndTimeRange: vi.fn(),
+      bulkCreate: vi.fn(),
     },
   })),
 }))
@@ -23,7 +24,7 @@ describe('MemoryCacheService', () => {
     service = new MemoryCacheService()
     const { getDatabaseService } = require('../../services/databaseService')
     mockDbService = getDatabaseService()
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('Symbol caching', () => {

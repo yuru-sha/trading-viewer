@@ -1,35 +1,36 @@
+import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { DatabaseService, IDatabaseService } from '../../services/databaseService'
 
 // Mock PrismaClient
 const mockPrismaClient = {
-  $transaction: jest.fn(),
-  $queryRaw: jest.fn(),
-  $disconnect: jest.fn(),
+  $transaction: vi.fn(),
+  $queryRaw: vi.fn(),
+  $disconnect: vi.fn(),
 } as unknown as PrismaClient
 
 // Mock repositories
-jest.mock('../../repositories/SymbolRepository', () => ({
-  SymbolRepository: jest.fn().mockImplementation(() => ({
-    create: jest.fn(),
-    findById: jest.fn(),
-    findBySymbol: jest.fn(),
+vi.mock('../../repositories/SymbolRepository', () => ({
+  SymbolRepository: vi.fn().mockImplementation(() => ({
+    create: vi.fn(),
+    findById: vi.fn(),
+    findBySymbol: vi.fn(),
   })),
 }))
 
-jest.mock('../../repositories/CandleRepository', () => ({
-  CandleRepository: jest.fn().mockImplementation(() => ({
-    create: jest.fn(),
-    findById: jest.fn(),
-    bulkCreate: jest.fn(),
+vi.mock('../../repositories/CandleRepository', () => ({
+  CandleRepository: vi.fn().mockImplementation(() => ({
+    create: vi.fn(),
+    findById: vi.fn(),
+    bulkCreate: vi.fn(),
   })),
 }))
 
-jest.mock('../../repositories/UserPreferencesRepository', () => ({
-  UserPreferencesRepository: jest.fn().mockImplementation(() => ({
-    create: jest.fn(),
-    findByUserId: jest.fn(),
-    upsertByUserId: jest.fn(),
+vi.mock('../../repositories/UserPreferencesRepository', () => ({
+  UserPreferencesRepository: vi.fn().mockImplementation(() => ({
+    create: vi.fn(),
+    findByUserId: vi.fn(),
+    upsertByUserId: vi.fn(),
   })),
 }))
 
@@ -38,7 +39,7 @@ describe('DatabaseService', () => {
 
   beforeEach(() => {
     service = new DatabaseService(mockPrismaClient)
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('constructor', () => {
@@ -70,7 +71,7 @@ describe('DatabaseService', () => {
         rollback: expect.any(Function),
       }
 
-      ;(mockPrismaClient.$transaction as jest.Mock).mockImplementation(async callback => {
+      ;(mockPrismaClient.$transaction as vi.Mock).mockImplementation(async callback => {
         return await callback(mockPrismaClient)
       })
 
@@ -81,7 +82,7 @@ describe('DatabaseService', () => {
     })
 
     it('should handle transaction rollback', async () => {
-      ;(mockPrismaClient.$transaction as jest.Mock).mockImplementation(async callback => {
+      ;(mockPrismaClient.$transaction as vi.Mock).mockImplementation(async callback => {
         return await callback(mockPrismaClient)
       })
 
@@ -93,7 +94,7 @@ describe('DatabaseService', () => {
 
   describe('isHealthy', () => {
     it('should return true when database is healthy', async () => {
-      ;(mockPrismaClient.$queryRaw as jest.Mock).mockResolvedValue([{ 1: 1 }])
+      ;(mockPrismaClient.$queryRaw as vi.Mock).mockResolvedValue([{ 1: 1 }])
 
       const result = await service.isHealthy()
 
@@ -102,8 +103,8 @@ describe('DatabaseService', () => {
     })
 
     it('should return false when database is unhealthy', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-      ;(mockPrismaClient.$queryRaw as jest.Mock).mockRejectedValue(new Error('Database error'))
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation()
+      ;(mockPrismaClient.$queryRaw as vi.Mock).mockRejectedValue(new Error('Database error'))
 
       const result = await service.isHealthy()
 
@@ -116,7 +117,7 @@ describe('DatabaseService', () => {
 
   describe('cleanup', () => {
     it('should disconnect from database', async () => {
-      ;(mockPrismaClient.$disconnect as jest.Mock).mockResolvedValue(undefined)
+      ;(mockPrismaClient.$disconnect as vi.Mock).mockResolvedValue(undefined)
 
       await service.cleanup()
 
