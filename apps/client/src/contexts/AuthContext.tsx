@@ -7,8 +7,9 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useErrorHandlers } from './ErrorContext'
-import { clearCSRFToken } from '../lib/apiClient'
+import { clearCSRFToken, setAuthErrorCallback } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
 
 // Types
@@ -494,6 +495,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Initialize auth state on mount
   useEffect(() => {
+    // Set auth error callback for apiClient
+    setAuthErrorCallback(clearAuth)
+
     const initAuth = async () => {
       // Check authentication status via server (httpOnly cookies)
       const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
@@ -518,7 +522,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     initAuth()
-  }, [])
+  }, [clearAuth])
 
   // Get CSRF token
   const getCSRFToken = useCallback(async (): Promise<string> => {

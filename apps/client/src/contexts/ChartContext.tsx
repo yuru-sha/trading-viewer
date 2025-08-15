@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef } from 'react'
+import React, { createContext, useContext, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChartType } from '@trading-viewer/shared'
 import { ChartContainerRef } from '../components/chart/ChartContainer'
@@ -68,7 +68,7 @@ interface ChartProviderProps {
 
 export const ChartProvider: React.FC<ChartProviderProps> = ({ children }) => {
   // Get symbol from URL params
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const symbolFromUrl = searchParams.get('symbol') || 'AAPL'
 
   // Chart controls hook
@@ -101,6 +101,28 @@ export const ChartProvider: React.FC<ChartProviderProps> = ({ children }) => {
 
   // Chart instance ref for accessing screenshot functionality
   const chartInstanceRef = useRef<ChartContainerRef>(null)
+
+  // Handle symbol change with URL update
+  const handleSymbolChange = useCallback(
+    (symbol: string) => {
+      console.log('🔄 ChartContext: Symbol change requested:', symbol)
+
+      // Update URL parameter
+      setSearchParams(
+        prev => {
+          const newParams = new URLSearchParams(prev)
+          newParams.set('symbol', symbol)
+          console.log('🔄 ChartContext: URL updated to:', newParams.toString())
+          return newParams
+        },
+        { replace: true }
+      )
+
+      // Call original symbol change handler
+      symbolActions.handleSymbolChange(symbol)
+    },
+    [setSearchParams, symbolActions]
+  )
 
   // Handle timeframe change (bridge between controls and symbol management)
   const handleTimeframeChange = (timeframe: string) => {
@@ -140,7 +162,10 @@ export const ChartProvider: React.FC<ChartProviderProps> = ({ children }) => {
     // URL & Symbol Management
     symbolFromUrl,
     symbolState,
-    symbolActions,
+    symbolActions: {
+      ...symbolActions,
+      handleSymbolChange, // Override with URL-updating version
+    },
 
     // Chart Controls
     controlsState,

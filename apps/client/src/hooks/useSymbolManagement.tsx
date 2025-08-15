@@ -32,7 +32,8 @@ export const useSymbolManagement = (
   const [loading, setLoading] = useState(false)
   const [selectedTimeframe, setSelectedTimeframe] = useState(initialTimeframe)
 
-  const currentSymbol = state.selectedSymbol || defaultSymbol
+  // URL からの symbol を優先し、次に AppContext、最後にデフォルト
+  const currentSymbol = defaultSymbol || state.selectedSymbol || 'AAPL'
 
   // WebSocket for real-time data
   const { isConnected, lastQuote, subscribe, unsubscribe } = useWebSocket({
@@ -42,6 +43,13 @@ export const useSymbolManagement = (
   const fetchData = useCallback(
     async (symbol: string, timeframe: string = selectedTimeframe) => {
       if (!symbol) return
+
+      console.log(
+        '🔄 useSymbolManagement: fetchData called with symbol:',
+        symbol,
+        'timeframe:',
+        timeframe
+      )
 
       try {
         setLoading(true)
@@ -86,9 +94,13 @@ export const useSymbolManagement = (
 
   const handleSymbolChange = useCallback(
     (symbol: string) => {
+      console.log('🔄 useSymbolManagement: Symbol change:', symbol, 'from current:', currentSymbol)
+
       if (currentSymbol && isConnected) {
         unsubscribe(currentSymbol)
       }
+
+      // fetchData will update AppContext state
       fetchData(symbol)
       if (isConnected) {
         subscribe(symbol)

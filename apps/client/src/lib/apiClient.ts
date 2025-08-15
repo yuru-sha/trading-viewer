@@ -71,6 +71,14 @@ export function clearCSRFToken(): void {
   csrfToken = null
 }
 
+// Auth error callback - will be set by AuthContext
+let onAuthError: (() => void) | null = null
+
+// Function to set auth error callback
+export function setAuthErrorCallback(callback: () => void): void {
+  onAuthError = callback
+}
+
 // Generic API request function
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
@@ -116,6 +124,11 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     // Clear CSRF token on authentication/authorization errors
     if (response.status === 401 || response.status === 403) {
       clearCSRFToken()
+      // Trigger auth error callback if available
+      if (onAuthError) {
+        console.log('🔒 Authentication error detected, triggering auth callback')
+        onAuthError()
+      }
     }
 
     throw new ApiError(errorMessage, response.status, errorCode)

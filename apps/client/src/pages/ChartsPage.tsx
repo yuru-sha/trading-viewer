@@ -1,11 +1,15 @@
 import React, { useEffect } from 'react'
 import { ChartProvider, useChartContext } from '../contexts/ChartContext'
+import { useAuthRedirect } from '../hooks/useAuthRedirect'
 import ChartHeader from '../components/chart/ChartHeader'
 import ChartFooter from '../components/chart/ChartFooter'
 import ChartMainContent from '../components/chart/ChartMainContent'
 import ChartModals from '../components/chart/ChartModals'
 
 const ChartsPageContent: React.FC = () => {
+  // 認証状態監視とセッション切れ時の自動リダイレクト
+  const { isAuthenticated, isLoading } = useAuthRedirect()
+
   const {
     symbolFromUrl,
     symbolState,
@@ -28,12 +32,27 @@ const ChartsPageContent: React.FC = () => {
     saveTemplate,
   } = useChartContext()
 
-  // Update symbol when URL changes
+  // Update symbol when URL changes (only direct URL access, not programmatic changes)
   useEffect(() => {
     if (symbolFromUrl !== symbolState.currentSymbol) {
-      symbolActions.handleSymbolChange(symbolFromUrl)
+      // Use the original symbol management handler to avoid URL update loop
+      symbolActions.fetchData(symbolFromUrl)
     }
   }, [symbolFromUrl, symbolState.currentSymbol, symbolActions])
+
+  // 認証ローディング中は何も表示しない
+  if (isLoading) {
+    return (
+      <div className='h-screen flex items-center justify-center bg-white dark:bg-gray-900'>
+        <div className='text-gray-500'>Loading...</div>
+      </div>
+    )
+  }
+
+  // 認証されていない場合は何も表示しない（useAuthRedirect がリダイレクトを処理）
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className='h-screen flex flex-col bg-white dark:bg-gray-900'>

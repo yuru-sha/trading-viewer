@@ -37,7 +37,7 @@ const createDrawingToolSchema = z.object({
   symbol: z.string(),
   timeframe: z.string().optional().default('1D'),
   tool: z.object({
-    type: z.enum(['trendline', 'horizontal', 'vertical', 'rectangle', 'circle', 'arrow', 'text']),
+    type: z.enum(['trendline', 'horizontal', 'vertical', 'fibonacci']),
     points: z.array(drawingPointSchema),
     style: drawingStyleSchema,
     text: z.string().optional(),
@@ -49,9 +49,7 @@ const createDrawingToolSchema = z.object({
 const updateDrawingToolSchema = z.object({
   id: z.string(),
   updates: z.object({
-    type: z
-      .enum(['trendline', 'horizontal', 'vertical', 'rectangle', 'circle', 'arrow', 'text'])
-      .optional(),
+    type: z.enum(['trendline', 'horizontal', 'vertical', 'fibonacci']).optional(),
     points: z.array(drawingPointSchema).optional(),
     style: drawingStyleSchema.optional(),
     text: z.string().optional(),
