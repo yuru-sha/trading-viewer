@@ -1,19 +1,10 @@
 import React from 'react'
-
-interface NewsItem {
-  title: string
-  source: string
-  time: string
-  logo: string
-  url?: string
-  uuid?: string
-  publisher?: string
-  link?: string
-}
+import type { NewsItem, NewsCategory } from '@shared/types/api'
+import { getMockNewsItems } from '../../utils/mockNewsData'
 
 interface MarketNewsProps {
   className?: string
-  category?: 'japan' | 'world' | 'crypto' | 'general'
+  category?: NewsCategory
 }
 
 export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category = 'general' }) => {
@@ -28,7 +19,7 @@ export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category
         setLoading(true)
         setError(null)
         
-        console.log(`🗞️ Fetching news for category: ${category}`)
+        // Fetching news for category
         const response = await fetch(`/api/news/${category}`)
         
         if (!response.ok) {
@@ -39,16 +30,16 @@ export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category
         
         if (result.success && result.data) {
           setNewsItems(result.data)
-          console.log(`✅ Loaded ${result.data.length} news articles for ${category}`)
+          // News articles loaded successfully
         } else {
           throw new Error('No news data received')
         }
         
       } catch (err) {
-        console.error('Failed to fetch news:', err)
+        // Failed to fetch news, using fallback
         setError(err instanceof Error ? err.message : 'Failed to load news')
         // Fallback to mock data
-        setNewsItems(getMockNewsItems())
+        setNewsItems(getMockNewsItems(category))
       } finally {
         setLoading(false)
       }
@@ -57,175 +48,31 @@ export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category
     fetchNews()
   }, [category])
 
-  // Mock news data as fallback
-  const getMockNewsItems = (): NewsItem[] => {
-    switch (category) {
-      case 'japan':
-        return [
-          {
-            title: 'Bank of Japan Maintains Ultra-Low Interest Rates Despite Inflation Pressures',
-            source: 'Nikkei',
-            time: '30 min ago',
-            logo: 'N'
-          },
-          {
-            title: 'Toyota Reports Record Q3 Earnings on Strong Hybrid Vehicle Sales',
-            source: 'Reuters',
-            time: '1 hour ago',
-            logo: 'R'
-          },
-          {
-            title: 'SoftBank Vision Fund Posts First Profit in Six Quarters',
-            source: 'Bloomberg',
-            time: '2 hours ago',
-            logo: 'B'
-          },
-          {
-            title: 'Japanese Semiconductor Stocks Surge on TSMC Expansion Plans',
-            source: 'Nikkei',
-            time: '3 hours ago',
-            logo: 'N'
-          },
-          {
-            title: 'Sony Raises Full-Year Forecast on PlayStation 5 Strong Sales',
-            source: 'Financial Times',
-            time: '4 hours ago',
-            logo: 'FT'
-          },
-          {
-            title: 'Yen Weakens to 150 Against Dollar as BOJ Keeps Policy Unchanged',
-            source: 'Reuters',
-            time: '5 hours ago',
-            logo: 'R'
-          }
-        ]
-      case 'world':
-        return [
-          {
-            title: 'Apple Unveils AI Strategy, Stock Jumps 5% in After-Hours Trading',
-            source: 'CNBC',
-            time: '30 min ago',
-            logo: 'C'
-          },
-          {
-            title: 'Microsoft Beats Earnings Estimates on Cloud Growth Acceleration',
-            source: 'Bloomberg',
-            time: '1 hour ago',
-            logo: 'B'
-          },
-          {
-            title: 'Tesla Announces New Gigafactory in Mexico, Production to Start 2025',
-            source: 'Reuters',
-            time: '2 hours ago',
-            logo: 'R'
-          },
-          {
-            title: 'NVIDIA Becomes First Chipmaker to Reach $1.5 Trillion Market Cap',
-            source: 'Financial Times',
-            time: '3 hours ago',
-            logo: 'FT'
-          },
-          {
-            title: 'Amazon Prime Day Sales Hit Record $12.7 Billion',
-            source: 'MarketWatch',
-            time: '4 hours ago',
-            logo: 'MW'
-          },
-          {
-            title: 'Meta Platforms Announces $40B Share Buyback Program',
-            source: 'CNBC',
-            time: '5 hours ago',
-            logo: 'C'
-          }
-        ]
-      case 'crypto':
-        return [
-          {
-            title: 'Bitcoin Surges Past $45,000 on ETF Approval Speculation',
-            source: 'CoinDesk',
-            time: '30 min ago',
-            logo: 'CD'
-          },
-          {
-            title: 'Ethereum Upgrade "Dencun" Successfully Deployed on Mainnet',
-            source: 'CoinTelegraph',
-            time: '1 hour ago',
-            logo: 'CT'
-          },
-          {
-            title: 'SEC Files Lawsuit Against Major Crypto Exchange for Securities Violations',
-            source: 'Reuters',
-            time: '2 hours ago',
-            logo: 'R'
-          },
-          {
-            title: 'MicroStrategy Purchases Additional 5,000 Bitcoin',
-            source: 'Bloomberg',
-            time: '3 hours ago',
-            logo: 'B'
-          },
-          {
-            title: 'Solana Network Outage Resolved After 5 Hours of Downtime',
-            source: 'CoinDesk',
-            time: '4 hours ago',
-            logo: 'CD'
-          },
-          {
-            title: 'Major Banks Launch Blockchain-Based Cross-Border Payment System',
-            source: 'Financial Times',
-            time: '5 hours ago',
-            logo: 'FT'
-          }
-        ]
-      default:
-        return [
-          {
-            title: 'Fed Minutes Show Officials Debated Pace of Rate Cuts Amid Economic Uncertainty',
-            source: 'Reuters',
-            time: '30 min ago',
-            logo: 'R'
-          },
-          {
-            title: 'Tech Stocks Rally as AI Earnings Beat Expectations Across Major Players',
-            source: 'Bloomberg',
-            time: '1 hour ago',
-            logo: 'B'
-          },
-          {
-            title: 'Oil Prices Surge 3% on Middle East Supply Concerns and OPEC+ Production Cuts',
-            source: 'CNBC',
-            time: '2 hours ago',
-            logo: 'C'
-          },
-          {
-            title: 'Dollar Strengthens Against Major Currencies as Bond Yields Continue to Rise',
-            source: 'Financial Times',
-            time: '3 hours ago',
-            logo: 'FT'
-          },
-          {
-            title: 'Crypto Market Sees $2B Inflow as Bitcoin ETF Approval Hopes Rise',
-            source: 'CoinDesk',
-            time: '4 hours ago',
-            logo: 'CD'
-          },
-          {
-            title: 'European Markets Open Higher on Strong Manufacturing Data from Germany',
-            source: 'MarketWatch',
-            time: '5 hours ago',
-            logo: 'MW'
-          }
-        ]
+  const handleNewsClick = (newsItem: NewsItem) => {
+    const url = newsItem.link
+    if (url && url !== '#') {
+      window.open(url, '_blank', 'noopener,noreferrer')
     }
   }
 
-  const handleNewsClick = (newsItem: NewsItem) => {
-    const url = newsItem.link || newsItem.url
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } else {
-      // In real app, navigate to full article
-      console.log('Navigate to news:', newsItem.title)
+  const formatTime = (time: string) => {
+    try {
+      const date = new Date(time)
+      const now = new Date()
+      const diff = now.getTime() - date.getTime()
+      const minutes = Math.floor(diff / (1000 * 60))
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      
+      if (minutes < 60) {
+        return `${minutes} min ago`
+      } else if (hours < 24) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`
+      } else {
+        return `${days} day${days > 1 ? 's' : ''} ago`
+      }
+    } catch {
+      return time
     }
   }
 
@@ -249,9 +96,9 @@ export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category
       )}
       
       <div className="space-y-4">
-        {newsItems.map((newsItem, index) => (
+        {newsItems.map((newsItem) => (
           <div
-            key={index}
+            key={newsItem.uuid}
             onClick={() => handleNewsClick(newsItem)}
             className="flex items-start space-x-4 p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group"
           >
@@ -268,11 +115,11 @@ export const MarketNews: React.FC<MarketNewsProps> = ({ className = '', category
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {newsItem.time}
+                  {formatTime(newsItem.time)}
                 </span>
                 <span className="text-xs text-gray-300 dark:text-gray-600">•</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {newsItem.source}
+                  {newsItem.publisher}
                 </span>
               </div>
               

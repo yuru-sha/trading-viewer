@@ -133,3 +133,24 @@ export interface DeleteDrawingToolResponse {
   status: 'success' | 'error'
   message?: string
 }
+
+// News API Types
+export interface NewsItem {
+  uuid: string
+  title: string
+  publisher: string
+  link: string
+  time: string
+  logo: string
+  thumbnail?: string
+  relatedTickers?: string[]
+}
+
+export interface NewsApiResponse {
+  success: boolean
+  data: NewsItem[]
+  category: string
+  count: number
+}
+
+export type NewsCategory = 'japan' | 'world' | 'crypto' | 'general'

@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     
     const newsCount = Math.min(parseInt(count as string) || 6, 20) // Max 20 items
     
-    console.log(`📰 Fetching ${newsCount} news articles for category: ${newsCategory}`)
+    // Fetching news articles for category
     
     const news = await yahooFinanceService.getCategoryNews(newsCategory)
     
@@ -48,7 +48,6 @@ router.get('/', async (req, res) => {
     })
     
   } catch (error) {
-    console.error('News API error:', error)
     res.status(500).json({
       success: false,
       error: 'Failed to fetch news',
@@ -77,7 +76,7 @@ router.get('/:category', async (req, res) => {
     
     const newsCount = Math.min(parseInt(count as string) || 6, 20)
     
-    console.log(`📰 Fetching ${newsCount} news articles for category: ${category}`)
+    // Fetching news articles for category
     
     const news = await yahooFinanceService.getCategoryNews(category as any)
     
@@ -105,7 +104,6 @@ router.get('/:category', async (req, res) => {
     })
     
   } catch (error) {
-    console.error(`News API error for category ${req.params.category}:`, error)
     res.status(500).json({
       success: false,
       error: 'Failed to fetch news',

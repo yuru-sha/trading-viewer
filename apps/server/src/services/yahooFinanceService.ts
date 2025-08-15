@@ -102,7 +102,7 @@ export class YahooFinanceService {
     // Check cache first
     const cached = this.getCachedQuote(symbol)
     if (cached) {
-      console.log(`📋 Using cached data for ${symbol}`)
+      // Using cached data
       return cached
     }
 
@@ -273,29 +273,18 @@ export class YahooFinanceService {
    */
   async getNews(query: string = '', count: number = 6): Promise<YahooNewsItem[]> {
     try {
-      console.log(`🗞️ Fetching news for query: "${query}"`)
-      
-      // Try different approaches for Yahoo Finance search API
+      // Try basic search for news
       let result: any
       
-      // First, try basic search to see what we get
       try {
         result = await yahooFinance.search(query)
-        console.log('🔍 Search result structure:', Object.keys(result))
-        
-        if (result.news && result.news.length > 0) {
-          console.log(`✅ Found ${result.news.length} news articles via basic search`)
-        } else {
-          console.log('No news in basic search result')
-        }
-      } catch (basicError) {
-        console.error('Basic search failed:', basicError)
+      } catch (error) {
+        // Search failed, return empty array
         return []
       }
 
       // Check if we have news results
       if (!result.news || result.news.length === 0) {
-        console.log(`No news found for query: "${query}"`)
         return []
       }
 
@@ -329,11 +318,10 @@ export class YahooFinanceService {
         }
       })
 
-      console.log(`✅ Found ${newsItems.length} news articles`)
       return newsItems
 
     } catch (error) {
-      console.error(`Failed to fetch news for query "${query}":`, error)
+      // Failed to fetch news
       return []
     }
   }
@@ -382,15 +370,11 @@ export class YahooFinanceService {
     
     // Try each query until we get results
     for (const query of queries) {
-      console.log(`🔍 Trying query: "${query}" for category: ${category}`)
       const newsItems = await this.getNews(query, 6)
       if (newsItems.length > 0) {
-        console.log(`✅ Got ${newsItems.length} news items with query: "${query}"`)
         return newsItems
       }
     }
-    
-    console.log(`⚠️ No news found for any query in category: ${category}`)
     return []
   }
 }

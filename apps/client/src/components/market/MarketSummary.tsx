@@ -100,7 +100,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
           }
         ])
       } catch (error) {
-        console.error('Failed to fetch ranking data:', error)
+        // Failed to fetch ranking data
       } finally {
         setLoading(false)
       }
@@ -116,7 +116,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
         const indicesRes = await api.market.getIndices()
         setIndices(indicesRes.data)
       } catch (error) {
-        console.error('Failed to fetch indices data:', error)
+        // Failed to fetch indices data
       } finally {
         setIndicesLoading(false)
       }
