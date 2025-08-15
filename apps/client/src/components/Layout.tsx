@@ -137,21 +137,37 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 role='navigation'
                 aria-label='Main navigation'
               >
-                {navigation.map(item => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      item.current
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-                    } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    <Icon name={item.iconName} className='w-5 h-5 mr-2' />
-                    {item.name}
-                  </Link>
-                ))}
+                {navigation.map(item =>
+                  item.name === 'Charts' ? (
+                    <button
+                      key={item.name}
+                      onClick={() => window.open(item.href, '_blank')}
+                      className={`${
+                        item.current
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                      } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
+                      aria-current={item.current ? 'page' : undefined}
+                    >
+                      <Icon name={item.iconName} className='w-5 h-5 mr-2' />
+                      {item.name}
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`${
+                        item.current
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                      } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
+                      aria-current={item.current ? 'page' : undefined}
+                    >
+                      <Icon name={item.iconName} className='w-5 h-5 mr-2' />
+                      {item.name}
+                    </Link>
+                  )
+                )}
               </nav>
             </div>
 
@@ -219,25 +235,45 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               role='navigation'
               aria-label='Mobile navigation'
             >
-              {navigation.map(item => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    announceToScreenReader(`Navigating to ${item.name}`)
-                  }}
-                  className={`${
-                    item.current
-                      ? 'bg-blue-600 text-white border-l-4 border-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                  } group flex items-center px-4 py-3 text-base font-medium transition-all duration-200`}
-                  aria-current={item.current ? 'page' : undefined}
-                >
-                  <Icon name={item.iconName} className='w-5 h-5 mr-3' />
-                  {item.name}
-                </Link>
-              ))}
+              {navigation.map(item =>
+                item.name === 'Charts' ? (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      window.open(item.href, '_blank')
+                      setIsMobileMenuOpen(false)
+                      announceToScreenReader(`Opening ${item.name} in new tab`)
+                    }}
+                    className={`${
+                      item.current
+                        ? 'bg-blue-600 text-white border-l-4 border-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                    } group flex items-center px-4 py-3 text-base font-medium transition-all duration-200 w-full text-left`}
+                    aria-current={item.current ? 'page' : undefined}
+                  >
+                    <Icon name={item.iconName} className='w-5 h-5 mr-3' />
+                    {item.name}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                      announceToScreenReader(`Navigating to ${item.name}`)
+                    }}
+                    className={`${
+                      item.current
+                        ? 'bg-blue-600 text-white border-l-4 border-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 border-l-4 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                    } group flex items-center px-4 py-3 text-base font-medium transition-all duration-200`}
+                    aria-current={item.current ? 'page' : undefined}
+                  >
+                    <Icon name={item.iconName} className='w-5 h-5 mr-3' />
+                    {item.name}
+                  </Link>
+                )
+              )}
             </nav>
           </div>
         </div>
@@ -388,22 +424,39 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         aria-label='Bottom navigation'
       >
         <div className='grid grid-cols-5 h-16'>
-          {navigation.map(item => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`${
-                item.current
-                  ? 'text-blue-600'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
-              } flex flex-col items-center justify-center space-y-1 transition-colors duration-200`}
-              aria-current={item.current ? 'page' : undefined}
-              aria-label={`${item.name} - Bottom navigation`}
-            >
-              <Icon name={item.iconName} className='w-5 h-5' />
-              <span className='text-xs font-medium truncate'>{item.name}</span>
-            </Link>
-          ))}
+          {navigation.map(item =>
+            item.name === 'Charts' ? (
+              <button
+                key={item.name}
+                onClick={() => window.open(item.href, '_blank')}
+                className={`${
+                  item.current
+                    ? 'text-blue-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+                } flex flex-col items-center justify-center space-y-1 transition-colors duration-200`}
+                aria-current={item.current ? 'page' : undefined}
+                aria-label={`${item.name} - Bottom navigation`}
+              >
+                <Icon name={item.iconName} className='w-5 h-5' />
+                <span className='text-xs font-medium truncate'>{item.name}</span>
+              </button>
+            ) : (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`${
+                  item.current
+                    ? 'text-blue-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+                } flex flex-col items-center justify-center space-y-1 transition-colors duration-200`}
+                aria-current={item.current ? 'page' : undefined}
+                aria-label={`${item.name} - Bottom navigation`}
+              >
+                <Icon name={item.iconName} className='w-5 h-5' />
+                <span className='text-xs font-medium truncate'>{item.name}</span>
+              </Link>
+            )
+          )}
         </div>
       </nav>
 

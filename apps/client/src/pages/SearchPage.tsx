@@ -127,11 +127,8 @@ const SearchPage: React.FC = () => {
   }
 
   const handleSymbolSelect = (symbol: string) => {
-    setSelectedSymbol(symbol)
-    // Optionally redirect to charts page
-    setTimeout(() => {
-      window.location.href = '/charts'
-    }, 100)
+    // Open charts in new tab with selected symbol
+    window.open(`/charts?symbol=${symbol}`, '_blank')
   }
 
   // 初期ロード時にウォッチリストを取得
@@ -208,7 +205,10 @@ const SearchPage: React.FC = () => {
                 {state.selectedSymbol} • {state.timeframe}
               </p>
             </div>
-            <Button variant='secondary' onClick={() => (window.location.href = '/charts')}>
+            <Button
+              variant='secondary'
+              onClick={() => window.open(`/charts?symbol=${state.selectedSymbol}`, '_blank')}
+            >
               View Chart
             </Button>
           </div>
