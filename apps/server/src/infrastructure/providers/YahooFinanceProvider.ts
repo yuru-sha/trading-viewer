@@ -4,22 +4,14 @@
  */
 
 import yahooFinance from 'yahoo-finance2'
-import { 
-  IMarketDataProvider, 
-  NewsItem 
-} from '../../domain/interfaces/IMarketDataService'
-import { 
-  MarketDataEntity, 
-  QuoteData, 
-  TradingSymbolEntity 
-} from '../../domain/entities/MarketData'
+import { IMarketDataProvider, NewsItem } from '../../domain/interfaces/IMarketDataService'
+import { MarketDataEntity, QuoteData, TradingSymbolEntity } from '../../domain/entities/MarketData'
 
 export class YahooFinanceProvider implements IMarketDataProvider {
-  
   async getQuote(symbol: string): Promise<QuoteData> {
     try {
       const quote = await yahooFinance.quote(symbol)
-      
+
       if (!quote || typeof quote.regularMarketPrice !== 'number') {
         throw new Error(`Invalid quote data for symbol: ${symbol}`)
       }
@@ -38,7 +30,7 @@ export class YahooFinanceProvider implements IMarketDataProvider {
         currency: quote.currency,
         exchangeTimezoneName: quote.exchangeTimezoneName,
         exchangeName: quote.fullExchangeName,
-        timestamp: Math.floor(Date.now() / 1000)
+        timestamp: Math.floor(Date.now() / 1000),
       }
     } catch (error) {
       throw new Error(`Failed to fetch quote for ${symbol}: ${error}`)
@@ -46,36 +38,39 @@ export class YahooFinanceProvider implements IMarketDataProvider {
   }
 
   async getHistoricalData(
-    symbol: string, 
-    from: Date, 
-    to: Date, 
+    symbol: string,
+    from: Date,
+    to: Date,
     interval: string
   ): Promise<MarketDataEntity[]> {
     try {
       const validInterval = this.mapToYahooInterval(interval)
-      
+
       const result = await yahooFinance.historical(symbol, {
         period1: from,
         period2: to,
-        interval: validInterval
+        interval: validInterval,
       })
 
-      return result.map(item => new MarketDataEntity(
-        symbol,
-        {
-          open: item.open,
-          high: item.high,
-          low: item.low,
-          close: item.close,
-          volume: item.volume,
-          timestamp: Math.floor(item.date.getTime() / 1000)
-        },
-        {
-          source: 'yahoo-finance',
-          reliability: 0.9,
-          updatedAt: new Date()
-        }
-      ))
+      return result.map(
+        item =>
+          new MarketDataEntity(
+            symbol,
+            {
+              open: item.open,
+              high: item.high,
+              low: item.low,
+              close: item.close,
+              volume: item.volume,
+              timestamp: Math.floor(item.date.getTime() / 1000),
+            },
+            {
+              source: 'yahoo-finance',
+              reliability: 0.9,
+              updatedAt: new Date(),
+            }
+          )
+      )
     } catch (error) {
       throw new Error(`Failed to fetch historical data for ${symbol}: ${error}`)
     }
@@ -84,17 +79,20 @@ export class YahooFinanceProvider implements IMarketDataProvider {
   async searchSymbols(query: string): Promise<TradingSymbolEntity[]> {
     try {
       const searchResults = await yahooFinance.search(query)
-      
+
       return searchResults.quotes
         .filter(quote => quote.symbol && quote.exchange)
         .slice(0, 20) // 結果を制限
-        .map(quote => new TradingSymbolEntity(
-          quote.symbol!,
-          quote.exchange!,
-          quote.shortname || quote.longname || quote.symbol!,
-          quote.sector,
-          true
-        ))
+        .map(
+          quote =>
+            new TradingSymbolEntity(
+              quote.symbol!,
+              quote.exchange!,
+              quote.shortname || quote.longname || quote.symbol!,
+              quote.sector,
+              true
+            )
+        )
     } catch (error) {
       throw new Error(`Failed to search symbols for query "${query}": ${error}`)
     }
@@ -106,12 +104,13 @@ export class YahooFinanceProvider implements IMarketDataProvider {
 
       if (symbols && symbols.length > 0) {
         // 特定シンボルのニュース
-        for (const symbol of symbols.slice(0, 5)) { // 最大 5 シンボル
+        for (const symbol of symbols.slice(0, 5)) {
+          // 最大 5 シンボル
           try {
             const symbolNews = await yahooFinance.quoteSummary(symbol, {
-              modules: ['summaryProfile']
+              modules: ['summaryProfile'],
             })
-            
+
             if (symbolNews.quoteSummary?.result?.[0]?.summaryProfile) {
               // Yahoo Finance のニュース API は制限があるため、
               // 実際の実装では別のニュースプロバイダーを使用する
@@ -122,7 +121,7 @@ export class YahooFinanceProvider implements IMarketDataProvider {
                 link: `https://finance.yahoo.com/quote/${symbol}`,
                 providerPublishTime: Math.floor(Date.now() / 1000),
                 type: 'story',
-                relatedTickers: [symbol]
+                relatedTickers: [symbol],
               })
             }
           } catch (symbolError) {
@@ -139,8 +138,8 @@ export class YahooFinanceProvider implements IMarketDataProvider {
             link: 'https://finance.yahoo.com',
             providerPublishTime: Math.floor(Date.now() / 1000),
             type: 'story',
-            relatedTickers: []
-          }
+            relatedTickers: [],
+          },
         ]
       }
 
@@ -151,7 +150,7 @@ export class YahooFinanceProvider implements IMarketDataProvider {
         source: item.publisher,
         publishedAt: new Date(item.providerPublishTime * 1000),
         symbols: item.relatedTickers || [],
-        sentiment: undefined
+        sentiment: undefined,
       }))
     } catch (error) {
       console.error('Failed to fetch news:', error)
@@ -168,7 +167,7 @@ export class YahooFinanceProvider implements IMarketDataProvider {
       '1h': '1h',
       '1d': '1d',
       '1w': '1wk',
-      '1M': '1mo'
+      '1M': '1mo',
     }
 
     return intervalMap[interval] || '1d'

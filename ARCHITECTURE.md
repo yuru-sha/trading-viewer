@@ -7,6 +7,7 @@ TradingViewer は Clean Architecture 原則に基づく多層アーキテクチ�
 ## アーキテクチャ原則
 
 ### 1. 依存関係の方向性
+
 ```
 UI → Application → Domain ← Infrastructure
 ```
@@ -57,6 +58,7 @@ apps/client/src/
 #### 1. ドメイン層
 
 **MarketDataEntity**
+
 ```typescript
 // 市場データの純粋なビジネスロジック
 export class MarketDataEntity {
@@ -74,6 +76,7 @@ export class MarketDataEntity {
 ```
 
 **MarketDataService**
+
 ```typescript
 // ビジネスロジックの中核
 export class MarketDataService implements IMarketDataService {
@@ -85,23 +88,35 @@ export class MarketDataService implements IMarketDataService {
   ) {}
 
   async getRealtimeQuote(symbol: string): Promise<QuoteData>
-  async getHistoricalData(symbol: string, from: Date, to: Date, interval: string): Promise<MarketDataEntity[]>
+  async getHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+    interval: string
+  ): Promise<MarketDataEntity[]>
 }
 ```
 
 #### 2. インフラストラクチャ層
 
 **YahooFinanceProvider**
+
 ```typescript
 // 外部 API との統合
 export class YahooFinanceProvider implements IMarketDataProvider {
   async getQuote(symbol: string): Promise<QuoteData>
-  async getHistoricalData(symbol: string, from: Date, to: Date, interval: string): Promise<MarketDataEntity[]>
+  async getHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+    interval: string
+  ): Promise<MarketDataEntity[]>
   async searchSymbols(query: string): Promise<TradingSymbolEntity[]>
 }
 ```
 
 **InMemoryMarketDataCache**
+
 ```typescript
 // キャッシュレイヤー
 export class InMemoryMarketDataCache implements IMarketDataCache {
@@ -112,6 +127,7 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
 ```
 
 **PrismaMarketDataRepository**
+
 ```typescript
 // データ永続化
 export class PrismaMarketDataRepository implements IMarketDataRepository {
@@ -148,7 +164,7 @@ export class TradingViewerApiClient implements ITradingViewerApiClient {
   public readonly market: IMarketDataClient
   public readonly watchlist: IWatchlistClient
   public readonly drawingTools: IDrawingToolsClient
-  
+
   configure(config: ClientConfig): void
   isHealthy(): Promise<boolean>
 }
@@ -171,7 +187,7 @@ sequenceDiagram
     UI->>Hook: getQuote(symbol)
     Hook->>Client: getQuote(symbol)
     Client->>Service: getRealtimeQuote(symbol)
-    
+
     Service->>Cache: get(quote:symbol)
     alt Cache Hit
         Cache->>Service: MarketDataEntity
@@ -183,7 +199,7 @@ sequenceDiagram
         Service->>Repo: saveMarketData(data)
         Service->>Client: QuoteData
     end
-    
+
     Client->>Hook: MarketQuote
     Hook->>UI: MarketQuote
 ```
@@ -207,20 +223,24 @@ flowchart TD
 ## 設計パターン
 
 ### 1. Repository Pattern
+
 - データアクセスの抽象化
 - ビジネスロジックからデータソースを分離
 - テスト時のモック化が容易
 
 ### 2. Dependency Injection
+
 - インターフェースベースの依存関係
 - 実装の差し替えが容易
 - 単体テストが簡素化
 
 ### 3. Factory Pattern
+
 - オブジェクト生成の統一
 - 設定管理の一元化
 
 ### 4. Observer Pattern
+
 - リアルタイムデータ更新
 - WebSocket 接続管理
 
@@ -229,11 +249,13 @@ flowchart TD
 ### 1. キャッシュ戦略
 
 **多層キャッシュ**
+
 ```
 Browser Cache → InMemory Cache → Database → External API
 ```
 
 **TTL 設定**
+
 - リアルタイム相場: 1 分
 - 検索結果: 30 分
 - ニュース: 5 分
@@ -288,16 +310,19 @@ Browser Cache → InMemory Cache → Database → External API
 ## 移行戦略
 
 ### Phase 1: インフラストラクチャ分離 ✅
+
 - ドメイン層の設計・実装
 - インフラストラクチャ層の分離
 - Client 側 API 抽象化
 
 ### Phase 2: レガシーコード移行
+
 - 既存サービスのドメイン層移行
 - API ルートのリファクタリング
 - テストカバレッジ向上
 
 ### Phase 3: 機能拡張
+
 - 新機能の Clean Architecture 準拠実装
 - パフォーマンス最適化
 - 監視・ログ強化
@@ -328,16 +353,19 @@ Browser Cache → InMemory Cache → Database → External API
 ## 今後の展望
 
 ### 1. マイクロサービス化
+
 - ドメイン境界での分割
 - 独立したデプロイメント
 - サービス間通信の最適化
 
 ### 2. イベント駆動アーキテクチャ
+
 - 非同期メッセージング
 - イベントソーシング
 - CQRS パターン
 
 ### 3. 分散キャッシュ
+
 - Redis クラスター
 - CDN 活用
 - エッジコンピューティング

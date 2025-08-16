@@ -17,7 +17,7 @@ import {
   WatchlistItem,
   DrawingTool,
   RequestConfig,
-  ApiResponse
+  ApiResponse,
 } from '../../domain/interfaces/IMarketDataClient'
 import { api } from '../../lib/apiClient'
 
@@ -37,17 +37,17 @@ class MarketDataClient implements IMarketDataClient {
       open: response.o,
       previousClose: response.pc,
       volume: 0, // Yahoo Finance API から取得されない場合があるため 0 を設定
-      timestamp: response.t
+      timestamp: response.t,
     }
   }
 
   async getMultipleQuotes(symbols: string[]): Promise<MarketQuote[]> {
     const promises = symbols.map(symbol => this.getQuote(symbol))
     const results = await Promise.allSettled(promises)
-    
+
     return results
-      .filter((result): result is PromiseFulfilledResult<MarketQuote> => 
-        result.status === 'fulfilled'
+      .filter(
+        (result): result is PromiseFulfilledResult<MarketQuote> => result.status === 'fulfilled'
       )
       .map(result => result.value)
   }
@@ -62,7 +62,7 @@ class MarketDataClient implements IMarketDataClient {
       symbol: params.symbol,
       resolution: params.resolution,
       from: Math.floor(params.from.getTime() / 1000),
-      to: Math.floor(params.to.getTime() / 1000)
+      to: Math.floor(params.to.getTime() / 1000),
     })
 
     if (response.s !== 'ok' || !response.t) {
@@ -75,7 +75,7 @@ class MarketDataClient implements IMarketDataClient {
       high: response.h[index],
       low: response.l[index],
       close: response.c[index],
-      volume: response.v[index] || 0
+      volume: response.v[index] || 0,
     }))
   }
 
@@ -85,7 +85,7 @@ class MarketDataClient implements IMarketDataClient {
       symbol: symbol.symbol,
       description: symbol.description,
       displaySymbol: symbol.displaySymbol,
-      type: symbol.type
+      type: symbol.type,
     }))
   }
 
@@ -105,7 +105,7 @@ class MarketDataClient implements IMarketDataClient {
       limit: response.limit,
       remaining: response.remaining,
       resetTime: new Date(response.resetTime * 1000),
-      canMakeRequest: response.canMakeRequest
+      canMakeRequest: response.canMakeRequest,
     }
   }
 }
@@ -122,7 +122,7 @@ class WatchlistClient implements IWatchlistClient {
       name: item.name,
       position: item.position,
       createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt)
+      updatedAt: new Date(item.updatedAt),
     }))
   }
 
@@ -135,7 +135,7 @@ class WatchlistClient implements IWatchlistClient {
       name: item.name,
       position: item.position,
       createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt)
+      updatedAt: new Date(item.updatedAt),
     }
   }
 
@@ -143,7 +143,9 @@ class WatchlistClient implements IWatchlistClient {
     await api.watchlist.remove(symbol)
   }
 
-  async updateWatchlistPositions(items: Array<{ symbol: string; position: number }>): Promise<void> {
+  async updateWatchlistPositions(
+    items: Array<{ symbol: string; position: number }>
+  ): Promise<void> {
     await api.watchlist.updatePositions(items)
   }
 }
@@ -161,7 +163,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
       type: item.type,
       data: item.data,
       createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt)
+      updatedAt: new Date(item.updatedAt),
     }))
   }
 
@@ -176,10 +178,10 @@ class DrawingToolsClient implements IDrawingToolsClient {
       timeframe: data.timeframe,
       tool: {
         type: data.type,
-        data: data.data
-      }
+        data: data.data,
+      },
     })
-    
+
     const item = response.data
     return {
       id: item.id,
@@ -188,7 +190,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
       type: item.type,
       data: item.data,
       createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt)
+      updatedAt: new Date(item.updatedAt),
     }
   }
 
@@ -202,7 +204,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
       type: item.type,
       data: item.data,
       createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt)
+      updatedAt: new Date(item.updatedAt),
     }
   }
 
@@ -215,7 +217,10 @@ class DrawingToolsClient implements IDrawingToolsClient {
  * 認証クライアント実装
  */
 class AuthClient implements IAuthClient {
-  async login(email: string, password: string): Promise<{
+  async login(
+    email: string,
+    password: string
+  ): Promise<{
     user: any
     token: string
   }> {
@@ -265,7 +270,7 @@ class AppInfoClient implements IAppInfoClient {
     return {
       status: response.status,
       database: response.database,
-      timestamp: new Date(response.timestamp)
+      timestamp: new Date(response.timestamp),
     }
   }
 
@@ -280,7 +285,7 @@ class AppInfoClient implements IAppInfoClient {
       name: response.name,
       version: response.version,
       timestamp: new Date(response.timestamp),
-      endpoints: response.endpoints
+      endpoints: response.endpoints,
     }
   }
 
@@ -295,7 +300,7 @@ class AppInfoClient implements IAppInfoClient {
       isMockData: response.isMockData,
       provider: response.provider,
       status: response.status,
-      description: response.description
+      description: response.description,
     }
   }
 }
@@ -313,7 +318,7 @@ export class TradingViewerApiClient implements ITradingViewerApiClient {
   private config = {
     baseUrl: 'http://localhost:8000/api',
     timeout: 10000,
-    retries: 3
+    retries: 3,
   }
 
   constructor() {
@@ -324,11 +329,7 @@ export class TradingViewerApiClient implements ITradingViewerApiClient {
     this.appInfo = new AppInfoClient()
   }
 
-  configure(config: {
-    baseUrl?: string
-    timeout?: number
-    retries?: number
-  }): void {
+  configure(config: { baseUrl?: string; timeout?: number; retries?: number }): void {
     this.config = { ...this.config, ...config }
   }
 
@@ -355,5 +356,5 @@ export const {
   watchlist: watchlistClient,
   drawingTools: drawingToolsClient,
   auth: authClient,
-  appInfo: appInfoClient
+  appInfo: appInfoClient,
 } = tradingViewerApiClient

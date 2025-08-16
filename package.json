@@ -31,7 +31,10 @@
     "db:migrate": "pnpm --filter @trading-viewer/server db:migrate",
     "db:seed": "pnpm --filter @trading-viewer/server db:seed",
     "db:reset": "pnpm --filter @trading-viewer/server db:reset",
-    "db:studio": "pnpm --filter @trading-viewer/server db:studio"
+    "db:studio": "pnpm --filter @trading-viewer/server db:studio",
+    "analyze:bundle": "node scripts/analyze-bundle.js",
+    "analyze:deps": "pnpm list --depth=1 --json",
+    "security:audit:schedule": "pnpm audit --audit-level moderate"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.39.1",

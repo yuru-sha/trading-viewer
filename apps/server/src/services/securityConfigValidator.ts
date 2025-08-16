@@ -399,7 +399,10 @@ export class SecurityConfigValidator {
           eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
           severity: SecuritySeverity.HIGH,
           message: `Security validation error for rule: ${rule.name}`,
-          metadata: { rule: rule.name, error: error instanceof Error ? error.message : String(error) },
+          metadata: {
+            rule: rule.name,
+            error: error instanceof Error ? error.message : String(error),
+          },
         })
       }
     }

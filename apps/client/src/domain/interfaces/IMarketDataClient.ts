@@ -68,7 +68,7 @@ export interface IMarketDataClient {
   // Quote data
   getQuote(symbol: string): Promise<MarketQuote>
   getMultipleQuotes(symbols: string[]): Promise<MarketQuote[]>
-  
+
   // Historical data
   getCandleData(params: {
     symbol: string
@@ -76,13 +76,13 @@ export interface IMarketDataClient {
     from: Date
     to: Date
   }): Promise<CandleData[]>
-  
+
   // Symbol search
   searchSymbols(query: string, limit?: number): Promise<SymbolSearchResult[]>
-  
+
   // Market news
   getMarketNews(symbols?: string[]): Promise<NewsItem[]>
-  
+
   // Rate limiting info
   getRateLimitInfo(): Promise<{
     limit: number
@@ -121,7 +121,10 @@ export interface IDrawingToolsClient {
  * 認証クライアントの抽象インターフェース
  */
 export interface IAuthClient {
-  login(email: string, password: string): Promise<{
+  login(
+    email: string,
+    password: string
+  ): Promise<{
     user: any
     token: string
   }>
@@ -210,14 +213,10 @@ export interface ITradingViewerApiClient {
   drawingTools: IDrawingToolsClient
   auth: IAuthClient
   appInfo: IAppInfoClient
-  
+
   // Global methods
-  configure(config: {
-    baseUrl?: string
-    timeout?: number
-    retries?: number
-  }): void
-  
+  configure(config: { baseUrl?: string; timeout?: number; retries?: number }): void
+
   isHealthy(): Promise<boolean>
   destroy(): void
 }

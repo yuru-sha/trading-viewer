@@ -19,14 +19,17 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
 
   constructor() {
     // 期限切れエントリの定期クリーンアップ（5 分間隔）
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup()
-    }, 5 * 60 * 1000)
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanup()
+      },
+      5 * 60 * 1000
+    )
   }
 
   async get(key: string): Promise<MarketDataEntity | null> {
     const entry = this.cache.get(key)
-    
+
     if (!entry) {
       return null
     }
@@ -47,11 +50,11 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
   async set(key: string, data: MarketDataEntity, ttlInSeconds?: number): Promise<void> {
     const ttl = (ttlInSeconds || this.defaultTTL) * 1000
     const now = Date.now()
-    
+
     const entry: CacheEntry = {
       data: this.isMarketDataEntity(data) ? this.serializeMarketData(data) : data,
       expiresAt: now + ttl,
-      createdAt: now
+      createdAt: now,
     }
 
     this.cache.set(key, entry)
@@ -60,7 +63,7 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
   async invalidate(pattern: string): Promise<void> {
     const keys = Array.from(this.cache.keys())
     const regex = new RegExp(pattern.replace(/\*/g, '.*'))
-    
+
     for (const key of keys) {
       if (regex.test(key)) {
         this.cache.delete(key)
@@ -77,10 +80,10 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
         { open: 100, high: 100, low: 100, close: 100, volume: 0, timestamp: Date.now() },
         { source: 'test', reliability: 1, updatedAt: new Date() }
       )
-      
+
       await this.set(testKey, testData, 1)
       const retrieved = await this.get(testKey)
-      
+
       return retrieved !== null
     } catch (error) {
       return false
@@ -96,7 +99,7 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
   } {
     const now = Date.now()
     let expiredCount = 0
-    
+
     for (const entry of this.cache.values()) {
       if (now > entry.expiresAt) {
         expiredCount++
@@ -106,7 +109,7 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
     return {
       totalEntries: this.cache.size,
       expiredEntries: expiredCount,
-      memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
+      memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
     }
   }
 
@@ -114,7 +117,7 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
   cleanup(): void {
     const now = Date.now()
     const keysToDelete: string[] = []
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.expiresAt) {
         keysToDelete.push(key)
@@ -135,18 +138,19 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
   }
 
   private isMarketDataEntity(data: any): data is MarketDataEntity {
-    return data && 
-           typeof data === 'object' && 
-           'symbol' in data && 
-           'priceData' in data && 
-           'metadata' in data
+    return (
+      data &&
+      typeof data === 'object' &&
+      'symbol' in data &&
+      'priceData' in data &&
+      'metadata' in data
+    )
   }
 
   private isMarketDataEntry(data: any): boolean {
-    return data && 
-           typeof data === 'object' && 
-           '__type' in data && 
-           data.__type === 'MarketDataEntity'
+    return (
+      data && typeof data === 'object' && '__type' in data && data.__type === 'MarketDataEntity'
+    )
   }
 
   private serializeMarketData(entity: MarketDataEntity): any {
@@ -156,20 +160,16 @@ export class InMemoryMarketDataCache implements IMarketDataCache {
       priceData: entity.priceData,
       metadata: {
         ...entity.metadata,
-        updatedAt: entity.metadata.updatedAt.toISOString()
-      }
+        updatedAt: entity.metadata.updatedAt.toISOString(),
+      },
     }
   }
 
   private deserializeMarketData(data: any): MarketDataEntity {
-    return new MarketDataEntity(
-      data.symbol,
-      data.priceData,
-      {
-        ...data.metadata,
-        updatedAt: new Date(data.metadata.updatedAt)
-      }
-    )
+    return new MarketDataEntity(data.symbol, data.priceData, {
+      ...data.metadata,
+      updatedAt: new Date(data.metadata.updatedAt),
+    })
   }
 }
 

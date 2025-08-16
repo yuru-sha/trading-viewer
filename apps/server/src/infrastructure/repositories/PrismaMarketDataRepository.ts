@@ -16,15 +16,15 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
         where: {
           symbol_timestamp: {
             symbol: data.symbol,
-            timestamp: data.priceData.timestamp
-          }
+            timestamp: data.priceData.timestamp,
+          },
         },
         update: {
           open: data.priceData.open,
           high: data.priceData.high,
           low: data.priceData.low,
           close: data.priceData.close,
-          volume: data.priceData.volume
+          volume: data.priceData.volume,
         },
         create: {
           symbol: data.symbol,
@@ -33,8 +33,8 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
           high: data.priceData.high,
           low: data.priceData.low,
           close: data.priceData.close,
-          volume: data.priceData.volume
-        }
+          volume: data.priceData.volume,
+        },
       })
     } catch (error) {
       throw new Error(`Failed to save market data for ${data.symbol}: ${error}`)
@@ -51,12 +51,12 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
           symbol,
           timestamp: {
             gte: fromTimestamp,
-            lte: toTimestamp
-          }
+            lte: toTimestamp,
+          },
         },
         orderBy: {
-          timestamp: 'asc'
-        }
+          timestamp: 'asc',
+        },
       })
 
       return candles.map(candle => this.convertToMarketDataEntity(candle))
@@ -69,7 +69,7 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
     try {
       const latestCandle = await this.prisma.candle.findFirst({
         where: { symbol },
-        orderBy: { timestamp: 'desc' }
+        orderBy: { timestamp: 'desc' },
       })
 
       if (!latestCandle) {
@@ -96,12 +96,12 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
         high: entity.priceData.high,
         low: entity.priceData.low,
         close: entity.priceData.close,
-        volume: entity.priceData.volume
+        volume: entity.priceData.volume,
       }))
 
       const result = await this.prisma.candle.createMany({
         data: candleData,
-        skipDuplicates: true // 重複は無視
+        skipDuplicates: true, // 重複は無視
       })
 
       return result.count
@@ -132,19 +132,19 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
         this.prisma.candle.count(),
         this.prisma.candle.findMany({
           select: { symbol: true },
-          distinct: ['symbol']
+          distinct: ['symbol'],
         }),
         this.prisma.candle.aggregate({
           _min: { timestamp: true },
-          _max: { timestamp: true }
-        })
+          _max: { timestamp: true },
+        }),
       ])
 
       return {
         totalCandles,
         uniqueSymbols: uniqueSymbols.length,
         oldestTimestamp: timeRange._min.timestamp,
-        newestTimestamp: timeRange._max.timestamp
+        newestTimestamp: timeRange._max.timestamp,
       }
     } catch (error) {
       throw new Error(`Failed to get repository stats: ${error}`)
@@ -158,9 +158,9 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
         where: {
           symbol,
           timestamp: {
-            lt: beforeTimestamp
-          }
-        }
+            lt: beforeTimestamp,
+          },
+        },
       })
 
       return result.count
@@ -178,17 +178,19 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
         low: candle.low,
         close: candle.close,
         volume: candle.volume,
-        timestamp: candle.timestamp
+        timestamp: candle.timestamp,
       },
       {
         source: 'database',
         reliability: 1.0, // データベースのデータは信頼性が高い
-        updatedAt: candle.updatedAt
+        updatedAt: candle.updatedAt,
       }
     )
   }
 }
 
-export const createPrismaMarketDataRepository = (prisma: PrismaClient): PrismaMarketDataRepository => {
+export const createPrismaMarketDataRepository = (
+  prisma: PrismaClient
+): PrismaMarketDataRepository => {
   return new PrismaMarketDataRepository(prisma)
 }

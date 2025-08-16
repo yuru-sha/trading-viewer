@@ -102,86 +102,96 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
 })
 
 // POST /api/alerts - Create new alert
-router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = req.user?.userId
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' })
-    }
-
-    const { symbol, condition, targetPrice, percentageChange, enabled = true } = req.body
-
-    // Fetch currency and exchange information from Yahoo Finance
-    let currency = 'USD'
-    let exchange = null
-    let timezone = null
-
+router.post(
+  '/',
+  requireAuth,
+  validateRequest({ body: CreateAlertSchema }),
+  async (req: AuthenticatedRequest, res) => {
     try {
-      const yahooService = getYahooFinanceService()
-      const quote = await yahooService.getQuote(symbol.toUpperCase())
-      currency = quote.currency || 'USD'
-      exchange = quote.exchangeName
-      timezone = quote.exchangeTimezoneName
+      const userId = req.user?.userId
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' })
+      }
+
+      const { symbol, condition, targetPrice, percentageChange, enabled = true } = req.body
+
+      // Fetch currency and exchange information from Yahoo Finance
+      let currency = 'USD'
+      let exchange = null
+      let timezone = null
+
+      try {
+        const yahooService = getYahooFinanceService()
+        const quote = await yahooService.getQuote(symbol.toUpperCase())
+        currency = quote.currency || 'USD'
+        exchange = quote.exchangeName
+        timezone = quote.exchangeTimezoneName
+      } catch (error) {
+        console.warn(`Failed to fetch currency info for ${symbol}:`, error)
+        // Continue with default values
+      }
+
+      const alert = await prisma.priceAlert.create({
+        data: {
+          userId,
+          symbol: symbol.toUpperCase(),
+          type: condition, // Map condition to type for database compatibility
+          price: targetPrice || 0, // Use targetPrice or default to 0 for percentage alerts
+          percentageChange,
+          enabled,
+          currency,
+          exchange,
+          timezone,
+        },
+      })
+
+      res.status(201).json({ alert })
     } catch (error) {
-      console.warn(`Failed to fetch currency info for ${symbol}:`, error)
-      // Continue with default values
+      console.error('Error creating alert:', error)
+      res.status(500).json({ error: 'Failed to create alert' })
     }
-
-    const alert = await prisma.priceAlert.create({
-      data: {
-        userId,
-        symbol: symbol.toUpperCase(),
-        type: condition, // Map condition to type for database compatibility
-        price: targetPrice || 0, // Use targetPrice or default to 0 for percentage alerts
-        percentageChange,
-        enabled,
-        currency,
-        exchange,
-        timezone,
-      },
-    })
-
-    res.status(201).json({ alert })
-  } catch (error) {
-    console.error('Error creating alert:', error)
-    res.status(500).json({ error: 'Failed to create alert' })
   }
-})
+)
 
 // PUT /api/alerts/:id - Update alert
-router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = req.user?.userId
-    const { id } = req.params
+router.put(
+  '/:id',
+  requireAuth,
+  validateRequest({ body: UpdateAlertSchema }),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.userId
+      const { id } = req.params
 
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' })
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' })
+      }
+
+      // Check if alert belongs to user
+      const existingAlert = await prisma.priceAlert.findFirst({
+        where: { id, userId },
+      })
+
+      if (!existingAlert) {
+        return res.status(404).json({ error: 'Alert not found' })
+      }
+
+      const updatedAlert = await prisma.priceAlert.update({
+        where: { id },
+        data: {
+          ...req.body,
+          // Reset triggeredAt when re-enabling
+          ...(req.body.enabled === true && { triggeredAt: null }),
+        },
+      })
+
+      res.json({ alert: updatedAlert })
+    } catch (error) {
+      console.error('Error updating alert:', error)
+      res.status(500).json({ error: 'Failed to update alert' })
     }
-
-    // Check if alert belongs to user
-    const existingAlert = await prisma.priceAlert.findFirst({
-      where: { id, userId },
-    })
-
-    if (!existingAlert) {
-      return res.status(404).json({ error: 'Alert not found' })
-    }
-
-    const updatedAlert = await prisma.priceAlert.update({
-      where: { id },
-      data: {
-        ...req.body,
-        // Reset triggeredAt when re-enabling
-        ...(req.body.enabled === true && { triggeredAt: null }),
-      },
-    })
-
-    res.json({ alert: updatedAlert })
-  } catch (error) {
-    console.error('Error updating alert:', error)
-    res.status(500).json({ error: 'Failed to update alert' })
   }
-})
+)
 
 // DELETE /api/alerts/:id - Delete alert
 router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {

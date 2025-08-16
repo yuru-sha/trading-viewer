@@ -1,6 +1,7 @@
 // UI types - components, styling, interactions
 export * from './components'
 export * from './drawing'
+export * from './icons'
 
 // Layout and navigation types
 export interface MenuItem {

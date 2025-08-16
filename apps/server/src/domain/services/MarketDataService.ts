@@ -9,7 +9,7 @@ import {
   IMarketDataCache,
   IMarketDataRepository,
   IDataQualityService,
-  NewsItem
+  NewsItem,
 } from '../interfaces/IMarketDataService'
 import { MarketDataEntity, QuoteData, TradingSymbolEntity } from '../entities/MarketData'
 
@@ -24,17 +24,18 @@ export class MarketDataService implements IMarketDataService {
   async getRealtimeQuote(symbol: string): Promise<QuoteData> {
     // 1. キャッシュから取得を試行
     const cachedData = await this.marketDataCache.get(`quote:${symbol}`)
-    if (cachedData && !cachedData.isStale(1)) { // 1 分以内なら有効
+    if (cachedData && !cachedData.isStale(1)) {
+      // 1 分以内なら有効
       return this.convertToQuoteData(cachedData)
     }
 
     // 2. 外部プロバイダーから取得
     const quote = await this.marketDataProvider.getQuote(symbol)
-    
+
     // 3. データ品質チェック
     const marketData = this.createMarketDataEntity(symbol, quote)
     const isValid = await this.dataQualityService.validateMarketData(marketData)
-    
+
     if (!isValid) {
       throw new Error(`Invalid market data received for symbol: ${symbol}`)
     }
@@ -47,22 +48,25 @@ export class MarketDataService implements IMarketDataService {
   }
 
   async getHistoricalData(
-    symbol: string, 
-    from: Date, 
-    to: Date, 
+    symbol: string,
+    from: Date,
+    to: Date,
     interval: string
   ): Promise<MarketDataEntity[]> {
     // 1. リポジトリから既存データを取得
     const existingData = await this.marketDataRepository.getMarketData(symbol, from, to)
-    
+
     // 2. データギャップを特定
     const gaps = this.identifyDataGaps(existingData, from, to, interval)
-    
+
     // 3. 不足データを外部から取得
     let newData: MarketDataEntity[] = []
     for (const gap of gaps) {
       const gapData = await this.marketDataProvider.getHistoricalData(
-        symbol, gap.from, gap.to, interval
+        symbol,
+        gap.from,
+        gap.to,
+        interval
       )
       newData = newData.concat(gapData)
     }
@@ -84,7 +88,7 @@ export class MarketDataService implements IMarketDataService {
 
   async searchSymbols(query: string): Promise<TradingSymbolEntity[]> {
     const cacheKey = `search:${query.toLowerCase()}`
-    
+
     // キャッシュから検索
     const cachedResult = await this.marketDataCache.get(cacheKey)
     if (cachedResult) {
@@ -93,16 +97,16 @@ export class MarketDataService implements IMarketDataService {
 
     // 外部プロバイダーから検索
     const symbols = await this.marketDataProvider.searchSymbols(query)
-    
+
     // 結果をキャッシュ（検索結果は 30 分キャッシュ）
     await this.marketDataCache.set(cacheKey, symbols as any, 1800)
-    
+
     return symbols
   }
 
   async getMarketNews(symbols?: string[]): Promise<NewsItem[]> {
     const cacheKey = symbols ? `news:${symbols.join(',')}` : 'news:general'
-    
+
     // キャッシュから取得
     const cachedNews = await this.marketDataCache.get(cacheKey)
     if (cachedNews) {
@@ -111,10 +115,10 @@ export class MarketDataService implements IMarketDataService {
 
     // 外部プロバイダーから取得
     const news = await this.marketDataProvider.getNews(symbols)
-    
+
     // ニュースは 5 分キャッシュ
     await this.marketDataCache.set(cacheKey, news as any, 300)
-    
+
     return news
   }
 
@@ -128,11 +132,11 @@ export class MarketDataService implements IMarketDataService {
   }
 
   async refreshMarketData(symbols: string[]): Promise<void> {
-    const promises = symbols.map(async (symbol) => {
+    const promises = symbols.map(async symbol => {
       try {
         // キャッシュを無効化
         await this.marketDataCache.invalidate(`quote:${symbol}`)
-        
+
         // 新しいデータを取得
         await this.getRealtimeQuote(symbol)
       } catch (error) {
@@ -155,7 +159,7 @@ export class MarketDataService implements IMarketDataService {
       open: marketData.priceData.open,
       previousClose: marketData.priceData.open, // 簡略化
       volume: marketData.priceData.volume,
-      timestamp: marketData.priceData.timestamp
+      timestamp: marketData.priceData.timestamp,
     }
   }
 
@@ -168,27 +172,27 @@ export class MarketDataService implements IMarketDataService {
         low: quote.low,
         close: quote.currentPrice,
         volume: quote.volume,
-        timestamp: quote.timestamp
+        timestamp: quote.timestamp,
       },
       {
         source: 'yahoo-finance',
         reliability: 0.9,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }
     )
   }
 
   private identifyDataGaps(
-    existingData: MarketDataEntity[], 
-    from: Date, 
-    to: Date, 
+    existingData: MarketDataEntity[],
+    from: Date,
+    to: Date,
     interval: string
   ): { from: Date; to: Date }[] {
     // データギャップ特定のロジック（簡略化）
     if (existingData.length === 0) {
       return [{ from, to }]
     }
-    
+
     // 実際の実装では、より詳細なギャップ分析が必要
     return []
   }

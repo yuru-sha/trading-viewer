@@ -7,7 +7,12 @@ import { MarketDataEntity, QuoteData, TradingSymbolEntity } from '../entities/Ma
 
 export interface IMarketDataProvider {
   getQuote(symbol: string): Promise<QuoteData>
-  getHistoricalData(symbol: string, from: Date, to: Date, interval: string): Promise<MarketDataEntity[]>
+  getHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+    interval: string
+  ): Promise<MarketDataEntity[]>
   searchSymbols(query: string): Promise<TradingSymbolEntity[]>
   getNews(symbols?: string[]): Promise<NewsItem[]>
 }
@@ -41,7 +46,12 @@ export interface IMarketDataRepository {
  */
 export interface IMarketDataService {
   getRealtimeQuote(symbol: string): Promise<QuoteData>
-  getHistoricalData(symbol: string, from: Date, to: Date, interval: string): Promise<MarketDataEntity[]>
+  getHistoricalData(
+    symbol: string,
+    from: Date,
+    to: Date,
+    interval: string
+  ): Promise<MarketDataEntity[]>
   searchSymbols(query: string): Promise<TradingSymbolEntity[]>
   getMarketNews(symbols?: string[]): Promise<NewsItem[]>
   validateSymbol(symbol: string): Promise<boolean>
