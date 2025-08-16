@@ -50,19 +50,18 @@ export abstract class BaseChart implements IChart {
   }
 }
 
-// Concrete Chart Components
+// ECharts-based Chart Components
 class CandlestickChart extends BaseChart {
   constructor(props: ChartProps) {
     super(props, CHART_TYPES.candlestick)
   }
 
   render(): React.ReactElement {
-    // Lazy load TradingView Lightweight Charts component
-    const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
+    const EChartsTradingChart = React.lazy(() => import('../components/chart/EChartsTradingChart'))
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart {...this.props} chartType='candlestick' />
+        <EChartsTradingChart {...this.props} chartType='candlestick' />
       </React.Suspense>
     )
   }
@@ -74,11 +73,11 @@ class LineChart extends BaseChart {
   }
 
   render(): React.ReactElement {
-    const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
+    const EChartsTradingChart = React.lazy(() => import('../components/chart/EChartsTradingChart'))
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart {...this.props} chartType='line' />
+        <EChartsTradingChart {...this.props} chartType='line' />
       </React.Suspense>
     )
   }
@@ -90,11 +89,11 @@ class AreaChart extends BaseChart {
   }
 
   render(): React.ReactElement {
-    const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
+    const EChartsTradingChart = React.lazy(() => import('../components/chart/EChartsTradingChart'))
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart {...this.props} chartType='area' />
+        <EChartsTradingChart {...this.props} chartType='area' />
       </React.Suspense>
     )
   }
@@ -106,11 +105,11 @@ class BarChart extends BaseChart {
   }
 
   render(): React.ReactElement {
-    const TradingChart = React.lazy(() => import('../components/chart/TradingChart'))
+    const EChartsTradingChart = React.lazy(() => import('../components/chart/EChartsTradingChart'))
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <TradingChart {...this.props} chartType='bar' />
+        <EChartsTradingChart {...this.props} chartType='bar' />
       </React.Suspense>
     )
   }
@@ -223,10 +222,10 @@ export class ChartFactoryManager {
 
   private constructor() {
     this.availableFactories = new Map([
-      ['tradingview', ChartComponentFactory.getInstance()],
-      ['echarts', EChartsFactory.getInstance()],
+      ['echarts', ChartComponentFactory.getInstance()],
+      ['echarts-alternative', EChartsFactory.getInstance()],
     ])
-    this.currentFactory = this.availableFactories.get('tradingview')!
+    this.currentFactory = this.availableFactories.get('echarts')!
   }
 
   static getInstance(): ChartFactoryManager {
@@ -287,7 +286,7 @@ export const useChartFactory = () => {
 // React Component Factory - Higher level abstraction
 export const ChartComponent: React.FC<
   ChartProps & { chartType: ChartType; factoryType?: string }
-> = ({ chartType, factoryType = 'tradingview', ...props }) => {
+> = ({ chartType, factoryType = 'echarts', ...props }) => {
   const factoryManager = ChartFactoryManager.getInstance()
 
   React.useEffect(() => {
