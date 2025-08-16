@@ -128,8 +128,14 @@ playwright-report/
 # Monorepo specific
 .turbo
 
-# Claude settings
-.claude/settings.local.json
+# Trading Viewer data (except structure)
+data/*
+!data/.gitkeep
 
-# Serena settings
+/generated/prisma
+
+# Serena directories and files
 .serena/
+
+# Kiro directories and files
+.kiro/
