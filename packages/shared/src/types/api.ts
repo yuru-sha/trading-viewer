@@ -154,3 +154,31 @@ export interface NewsApiResponse {
 }
 
 export type NewsCategory = 'japan' | 'world' | 'crypto' | 'general'
+
+// User Import/Export types
+export interface ImportResult {
+  successfulImports: number
+  failedImports: number
+  totalProcessed: number
+  totalRows: number
+  errors: Array<{
+    row: number
+    field: string
+    value: string
+    error: string
+  }>
+  warnings: string[]
+}
+
+export interface UserImportResponse {
+  success: boolean
+  data: ImportResult
+}
+
+export interface ExportOptions {
+  includePersonalInfo: boolean
+  includeWorkInfo: boolean
+  includePreferences: boolean
+  format: 'csv' | 'json'
+  userIds?: string[]
+}

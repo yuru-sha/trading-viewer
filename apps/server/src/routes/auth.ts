@@ -1,5 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
+import multer from 'multer'
+import csv from 'csv-parser'
+import createCsvWriter from 'csv-writer'
+import { Readable } from 'stream'
+import fs from 'fs'
+import path from 'path'
 import {
   generateTokens,
   verifyRefreshToken,
@@ -28,6 +34,21 @@ import { securityLogger, SecurityEventType, SecuritySeverity } from '../services
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
 const router = Router()
+
+// Multer configuration for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only CSV files are allowed'))
+    }
+  },
+})
 
 // Database integration with Prisma
 import { PrismaClient } from '@prisma/client'
@@ -1175,5 +1196,235 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
     })
   )
 }
+
+// POST /api/auth/users/import (admin only)
+router.post(
+  '/users/import',
+  requireAuth,
+  requireAdmin(),
+  upload.single('file'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.file) {
+      throw new ValidationError('No CSV file provided')
+    }
+
+    const results: any[] = []
+    const errors: Array<{
+      row: number
+      field: string
+      value: string
+      error: string
+    }> = []
+    const warnings: string[] = []
+    let successfulImports = 0
+    let failedImports = 0
+
+    // Parse CSV data
+    await new Promise<void>((resolve, reject) => {
+      const stream = Readable.from(req.file!.buffer.toString())
+      stream
+        .pipe(csv())
+        .on('data', data => results.push(data))
+        .on('end', () => resolve())
+        .on('error', error => reject(error))
+    })
+
+    // Process each row
+    for (let i = 0; i < results.length; i++) {
+      const row = results[i]
+      const lineNumber = i + 2 // +2 because CSV starts from line 2 (after header)
+
+      try {
+        // Validate required fields
+        if (!row.email || !validateEmail(row.email)) {
+          errors.push({
+            row: lineNumber,
+            field: 'email',
+            value: row.email || '',
+            error: 'Invalid or missing email',
+          })
+          failedImports++
+          continue
+        }
+
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({
+          where: { email: row.email.toLowerCase().trim() },
+        })
+
+        const userData = {
+          email: row.email.toLowerCase().trim(),
+          role: ['admin', 'user'].includes(row.role) ? row.role : 'user',
+          isActive: row.isActive === 'true' || row.isActive === true || row.isActive === '1',
+        }
+
+        if (existingUser) {
+          // Update existing user
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: userData,
+          })
+          warnings.push(`User ${row.email} already exists - updated existing record`)
+          successfulImports++
+        } else {
+          // Create new user
+          const password = row.password || `temp${Date.now()}`
+          if (!validatePassword(password)) {
+            errors.push({
+              row: lineNumber,
+              field: 'password',
+              value: password,
+              error: 'Invalid password (must be at least 8 characters)',
+            })
+            failedImports++
+            continue
+          }
+
+          await prisma.user.create({
+            data: {
+              ...userData,
+              passwordHash: await hashPassword(password),
+              isEmailVerified:
+                row.isEmailVerified === 'true' ||
+                row.isEmailVerified === true ||
+                row.isEmailVerified === '1',
+            },
+          })
+          successfulImports++
+        }
+      } catch (error) {
+        console.error(`Import error for line ${lineNumber}:`, error)
+        errors.push({
+          row: lineNumber,
+          field: 'general',
+          value: '',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
+        failedImports++
+      }
+    }
+
+    securityLogger.log({
+      eventType: SecurityEventType.USER_STATUS_CHANGE,
+      message: `User import completed by ${req.user!.email}`,
+      metadata: { successfulImports, failedImports, totalRows: results.length },
+      severity: SecuritySeverity.INFO,
+    })
+
+    res.json({
+      success: true,
+      data: {
+        successfulImports,
+        failedImports,
+        totalProcessed: results.length,
+        totalRows: results.length,
+        errors: errors.slice(0, 50), // Limit error messages
+        warnings: warnings.slice(0, 50), // Limit warning messages
+      },
+    })
+  })
+)
+
+// GET /api/auth/users/export (admin only)
+router.get(
+  '/users/export',
+  requireAuth,
+  requireAdmin(),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const includePersonalInfo = req.query.includePersonalInfo === 'true'
+    const includeWorkInfo = req.query.includeWorkInfo === 'true'
+    const includePreferences = req.query.includePreferences === 'true'
+    const includeSecurityInfo = req.query.includeSecurityInfo === 'true'
+    const includeActivityInfo = req.query.includeActivityInfo === 'true'
+    const format = req.query.format || 'csv'
+    const userIds = req.query.userIds ? (req.query.userIds as string).split(',') : undefined
+
+    // Build where clause
+    const where: any = {}
+    if (userIds && userIds.length > 0) {
+      where.id = { in: userIds }
+    }
+
+    // Fetch users
+    const users = await prisma.user.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+        isEmailVerified: true,
+        failedLoginCount: true,
+        lockedUntil: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvData = users.map(user => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        isEmailVerified: user.isEmailVerified,
+        ...(includeSecurityInfo && {
+          failedLoginCount: user.failedLoginCount,
+          isLocked: user.lockedUntil ? new Date(user.lockedUntil) > new Date() : false,
+        }),
+        ...(includeActivityInfo && {
+          lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : '',
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        }),
+      }))
+
+      // Convert to CSV string
+      const headers = Object.keys(csvData[0] || {})
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row =>
+          headers
+            .map(header => {
+              const value = row[header as keyof typeof row]
+              return typeof value === 'string' && value.includes(',')
+                ? `"${value.replace(/"/g, '""')}"`
+                : value
+            })
+            .join(',')
+        ),
+      ].join('\n')
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+      const filename = `users-export-${timestamp}.csv`
+
+      res.setHeader('Content-Type', 'text/csv')
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+      res.send(csvContent)
+    } else {
+      // Return JSON
+      res.json({
+        success: true,
+        data: users,
+      })
+    }
+
+    securityLogger.log({
+      eventType: SecurityEventType.USER_STATUS_CHANGE,
+      message: `User data exported by ${req.user!.email}`,
+      metadata: {
+        userCount: users.length,
+        format,
+        includePersonalInfo,
+        includeWorkInfo,
+        includePreferences,
+      },
+      severity: SecuritySeverity.INFO,
+    })
+  })
+)
 
 export default router

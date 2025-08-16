@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import { Modal, Button, Input } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import type { ImportResult, ExportOptions } from '@shared'
 
 interface CSVImportExportModalProps {
   isOpen: boolean
@@ -9,30 +10,12 @@ interface CSVImportExportModalProps {
   onImportComplete: () => void
 }
 
-interface ImportResult {
-  totalRows: number
-  successfulImports: number
-  failedImports: number
-  errors: ImportError[]
-  warnings: string[]
-}
-
-interface ImportError {
-  row: number
-  field: string
-  value: string
-  error: string
-}
-
-interface ExportOptions {
-  includePersonalInfo: boolean
-  includeWorkInfo: boolean
+interface LocalExportOptions extends ExportOptions {
   includeSecurityInfo: boolean
   includeActivityInfo: boolean
   dateRange: 'all' | 'last30' | 'last90' | 'custom'
   customStartDate?: string
   customEndDate?: string
-  format: 'csv' | 'xlsx'
 }
 
 const CSVImportExportModal: React.FC<CSVImportExportModalProps> = ({
@@ -45,21 +28,22 @@ const CSVImportExportModal: React.FC<CSVImportExportModalProps> = ({
   const [importing, setImporting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
-  const [exportOptions, setExportOptions] = useState<ExportOptions>({
-    includePersonalInfo: true,
-    includeWorkInfo: true,
+  const [exportOptions, setExportOptions] = useState<LocalExportOptions>({
+    includePersonalInfo: false,
+    includeWorkInfo: false,
+    includePreferences: false,
     includeSecurityInfo: false,
-    includeActivityInfo: false,
+    includeActivityInfo: true,
     dateRange: 'all',
     format: 'csv',
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { showError, showSuccess } = useError()
 
-  const csvTemplate = `email,firstName,lastName,phoneNumber,department,jobTitle,role,isActive
-john.doe@example.com,John,Doe,+1-555-123-4567,Engineering,Software Engineer,user,true
-jane.smith@example.com,Jane,Smith,+1-555-234-5678,Marketing,Marketing Manager,user,true
-admin@example.com,Admin,User,,IT,System Administrator,admin,true`
+  const csvTemplate = `email,role,isActive,password
+user1@example.com,user,true,SecurePass123@
+user2@example.com,user,true,SecurePass123@
+admin@example.com,admin,true,AdminPass123@`
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -197,7 +181,10 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
     onClose()
   }
 
-  const updateExportOption = <K extends keyof ExportOptions>(key: K, value: ExportOptions[K]) => {
+  const updateExportOption = <K extends keyof LocalExportOptions>(
+    key: K,
+    value: LocalExportOptions[K]
+  ) => {
     setExportOptions(prev => ({ ...prev, [key]: value }))
   }
 
@@ -252,11 +239,11 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
         <ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
           <li>• File must be in CSV format with headers</li>
           <li>• Email addresses must be unique and valid</li>
-          <li>• Required fields: email, firstName, lastName, role</li>
+          <li>• Required fields: email, role</li>
           <li>• Role must be either 'admin' or 'user'</li>
           <li>• isActive must be 'true' or 'false'</li>
           <li>• Maximum file size: 10MB</li>
-          <li>• Duplicate emails will be skipped</li>
+          <li>• Existing users will be updated</li>
         </ul>
       </div>
 
@@ -350,19 +337,9 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
           <div className='space-y-2'>
             {[
               {
-                key: 'includePersonalInfo',
-                label: 'Personal Information',
-                description: 'Name, email, phone',
-              },
-              {
-                key: 'includeWorkInfo',
-                label: 'Work Information',
-                description: 'Department, job title',
-              },
-              {
                 key: 'includeSecurityInfo',
                 label: 'Security Information',
-                description: 'Login attempts, locks',
+                description: 'Login attempts, account locks',
               },
               {
                 key: 'includeActivityInfo',
@@ -373,9 +350,9 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
               <label key={option.key} className='flex items-start space-x-3'>
                 <input
                   type='checkbox'
-                  checked={exportOptions[option.key as keyof ExportOptions] as boolean}
+                  checked={exportOptions[option.key as keyof LocalExportOptions] as boolean}
                   onChange={e =>
-                    updateExportOption(option.key as keyof ExportOptions, e.target.checked)
+                    updateExportOption(option.key as keyof LocalExportOptions, e.target.checked)
                   }
                   className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                 />
