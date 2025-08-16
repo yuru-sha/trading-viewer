@@ -4,17 +4,14 @@
     "target": "ES2020",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "composite": true,
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["dist", "**/__tests__/**/*"],
-  "references": [{ "path": "../shared" }]
+  "exclude": ["dist", "**/__tests__/**/*"]
 }

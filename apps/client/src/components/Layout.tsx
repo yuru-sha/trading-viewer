@@ -58,13 +58,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       name: 'Market',
       href: '/market',
       current: location.pathname === '/market',
-      iconName: 'trendingUp' as const,
+      iconName: 'trending' as const,
     },
     {
       name: 'Charts',
       href: '/charts',
       current: location.pathname === '/charts',
-      iconName: 'barChart3' as const,
+      iconName: 'chart' as const,
     },
     {
       name: 'Search',

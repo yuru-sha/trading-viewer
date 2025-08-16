@@ -69,7 +69,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
 
         {/* Dropdown Arrow */}
         <Icon
-          name='chevronDown'
+          name='down'
           className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
@@ -132,7 +132,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
               role='menuitem'
             >
-              <Icon name='helpCircle' className='w-4 h-4 mr-3' />
+              <Icon name='help' className='w-4 h-4 mr-3' />
               Help
             </button>
           </div>
@@ -147,7 +147,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               className='flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150'
               role='menuitem'
             >
-              <Icon name='logOut' className='w-4 h-4 mr-3' />
+              <Icon name='logout' className='w-4 h-4 mr-3' />
               Log out
             </button>
           </div>

@@ -873,6 +873,45 @@ router.get(
   })
 )
 
+// GET /api/auth/users/:userId (admin only)
+router.get(
+  '/users/:userId',
+  requireAuth,
+  requireAdmin(),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { userId } = req.params
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        name: true,
+        avatar: true,
+        role: true,
+        isEmailVerified: true,
+        isActive: true,
+        failedLoginCount: true,
+        lockedUntil: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    if (!user) {
+      throw new ValidationError('User not found')
+    }
+
+    res.json({
+      success: true,
+      data: user,
+    })
+  })
+)
+
 // PUT /api/auth/users/:userId/status (admin only)
 router.put(
   '/users/:userId/status',

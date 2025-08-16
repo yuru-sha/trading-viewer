@@ -376,7 +376,7 @@ const AlertsPage: React.FC = () => {
             </Button>
           )}
           <Button onClick={() => setShowCreateModal(true)} className='flex items-center space-x-2'>
-            <Icon name='plus' className='w-4 h-4' />
+            <Icon name='add' className='w-4 h-4' />
             <span>Create Alert</span>
           </Button>
         </div>
@@ -444,7 +444,7 @@ const AlertsPage: React.FC = () => {
             Create your first price alert to get notified when symbols reach your target prices.
           </p>
           <Button onClick={() => setShowCreateModal(true)}>
-            <Icon name='plus' className='w-4 h-4 mr-2' />
+            <Icon name='add' className='w-4 h-4 mr-2' />
             Create Your First Alert
           </Button>
         </div>

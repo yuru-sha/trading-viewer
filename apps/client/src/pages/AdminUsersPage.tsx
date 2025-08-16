@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useError } from '../contexts/ErrorContext'
 import { apiService } from '../services/base/ApiService'
+import { Button } from '@trading-viewer/ui'
+import Icon from '../components/Icon'
+import UserDetailModal from '../components/admin/UserDetailModal'
+import CreateUserModal from '../components/admin/CreateUserModal'
+import DeleteUserModal from '../components/admin/DeleteUserModal'
+import BulkUserActions from '../components/admin/BulkUserActions'
+import UserActivityModal from '../components/admin/UserActivityModal'
+import SecurityManagementModal from '../components/admin/SecurityManagementModal'
+import CSVImportExportModal from '../components/admin/CSVImportExportModal'
+import UserPermissionsModal from '../components/admin/UserPermissionsModal'
+import AdvancedUserFilters, { UserFilters } from '../components/admin/AdvancedUserFilters'
 
 interface User {
   id: string
@@ -63,6 +74,33 @@ const AdminUsersPage: React.FC = () => {
   })
 
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
+  const [advancedFilters, setAdvancedFilters] = useState<UserFilters | null>(null)
+
+  // Modal states
+  const [userDetailModal, setUserDetailModal] = useState<{ isOpen: boolean; userId: string | null }>({
+    isOpen: false,
+    userId: null,
+  })
+  const [createUserModal, setCreateUserModal] = useState(false)
+  const [deleteUserModal, setDeleteUserModal] = useState<{ isOpen: boolean; user: any | null }>({
+    isOpen: false,
+    user: null,
+  })
+  const [userActivityModal, setUserActivityModal] = useState<{ isOpen: boolean; userId: string | null }>({
+    isOpen: false,
+    userId: null,
+  })
+  const [securityModal, setSecurityModal] = useState<{ isOpen: boolean; userId: string | null }>({
+    isOpen: false,
+    userId: null,
+  })
+  const [csvModal, setCsvModal] = useState(false)
+  const [permissionsModal, setPermissionsModal] = useState<{ isOpen: boolean; userId: string | null }>({
+    isOpen: false,
+    userId: null,
+  })
 
   // Redirect if not admin
   if (user?.role !== 'admin') {
@@ -88,6 +126,19 @@ const AdminUsersPage: React.FC = () => {
         ...(filters.role && { role: filters.role }),
         ...(filters.status && { status: filters.status }),
       })
+
+      // Add advanced filters if they exist
+      if (advancedFilters) {
+        Object.entries(advancedFilters).forEach(([key, value]) => {
+          if (value && value !== '') {
+            if (key === 'failedLoginCount' && value.value !== null) {
+              queryParams.append('failedLoginCount', `${value.operator}:${value.value}`)
+            } else if (typeof value === 'string') {
+              queryParams.append(key, value)
+            }
+          }
+        })
+      }
 
       const response = await apiService.get<{ success: boolean; data: UsersResponse }>(
         `/auth/users?${queryParams}`
@@ -119,7 +170,7 @@ const AdminUsersPage: React.FC = () => {
   useEffect(() => {
     fetchUsers()
     fetchStats()
-  }, [pagination.page, filters])
+  }, [pagination.page, filters, advancedFilters])
 
   const handleUserAction = async (
     userId: string,
@@ -191,10 +242,62 @@ const AdminUsersPage: React.FC = () => {
     return user.lockedUntil && new Date(user.lockedUntil) > new Date()
   }
 
+  const handleUserSelect = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === users.length) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(users.map(u => u.id))
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedUsers([])
+  }
+
+  const handleApplyAdvancedFilters = (filters: UserFilters) => {
+    setAdvancedFilters(filters)
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleClearAdvancedFilters = () => {
+    setAdvancedFilters(null)
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const refreshData = () => {
+    fetchUsers()
+    fetchStats()
+  }
+
   return (
     <div className='container mx-auto px-4 py-8'>
       <div className='max-w-7xl mx-auto'>
-        <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-8'>User Management</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>User Management</h1>
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setCreateUserModal(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Icon name='add' className='w-4 h-4 mr-2' />
+              Create User
+            </Button>
+            <Button
+              onClick={() => setCsvModal(true)}
+              variant="secondary"
+            >
+              Import/Export
+            </Button>
+          </div>
+        </div>
 
         {/* Stats */}
         {stats && (
@@ -218,9 +321,24 @@ const AdminUsersPage: React.FC = () => {
           </div>
         )}
 
-        {/* Filters */}
+        {/* Bulk Actions */}
+        <BulkUserActions
+          selectedUsers={selectedUsers}
+          onClearSelection={handleClearSelection}
+          onRefresh={refreshData}
+        />
+
+        {/* Advanced Filters */}
+        <AdvancedUserFilters
+          onApplyFilters={handleApplyAdvancedFilters}
+          onClearFilters={handleClearAdvancedFilters}
+          isOpen={advancedFiltersOpen}
+          onToggle={() => setAdvancedFiltersOpen(!advancedFiltersOpen)}
+        />
+
+        {/* Basic Filters */}
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6'>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Filters</h2>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Basic Filters</h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <div>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
@@ -284,6 +402,14 @@ const AdminUsersPage: React.FC = () => {
                 <thead className='bg-gray-50 dark:bg-gray-700'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.length === users.length && users.length > 0}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                       User
                     </th>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
@@ -303,6 +429,14 @@ const AdminUsersPage: React.FC = () => {
                 <tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
                   {users.map(userData => (
                     <tr key={userData.id} className='hover:bg-gray-50 dark:hover:bg-gray-700'>
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(userData.id)}
+                          onChange={() => handleUserSelect(userData.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <div className='flex items-center'>
                           <div className='flex-shrink-0 h-10 w-10'>
@@ -362,7 +496,39 @@ const AdminUsersPage: React.FC = () => {
                         {userData.lastLoginAt ? formatDate(userData.lastLoginAt) : 'Never'}
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                        <div className='flex space-x-2'>
+                        <div className='flex flex-wrap gap-1'>
+                          {/* View Details */}
+                          <button
+                            onClick={() => setUserDetailModal({ isOpen: true, userId: userData.id })}
+                            className='px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800'
+                          >
+                            View
+                          </button>
+
+                          {/* Activity */}
+                          <button
+                            onClick={() => setUserActivityModal({ isOpen: true, userId: userData.id })}
+                            className='px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-200 dark:hover:bg-indigo-800'
+                          >
+                            Activity
+                          </button>
+
+                          {/* Security */}
+                          <button
+                            onClick={() => setSecurityModal({ isOpen: true, userId: userData.id })}
+                            className='px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:hover:bg-orange-800'
+                          >
+                            Security
+                          </button>
+
+                          {/* Permissions */}
+                          <button
+                            onClick={() => setPermissionsModal({ isOpen: true, userId: userData.id })}
+                            className='px-2 py-1 rounded text-xs font-medium bg-teal-100 text-teal-700 hover:bg-teal-200 dark:bg-teal-900 dark:text-teal-200 dark:hover:bg-teal-800'
+                          >
+                            Permissions
+                          </button>
+
                           {/* Status Toggle */}
                           {userData.id !== user?.id && (
                             <button
@@ -373,7 +539,7 @@ const AdminUsersPage: React.FC = () => {
                                 )
                               }
                               disabled={actionLoading === userData.id}
-                              className={`px-3 py-1 rounded text-xs font-medium ${
+                              className={`px-2 py-1 rounded text-xs font-medium ${
                                 userData.isActive
                                   ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
                                   : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800'
@@ -387,27 +553,13 @@ const AdminUsersPage: React.FC = () => {
                             </button>
                           )}
 
-                          {/* Role Toggle */}
+                          {/* Delete */}
                           {userData.id !== user?.id && (
                             <button
-                              onClick={() =>
-                                handleUserAction(
-                                  userData.id,
-                                  userData.role === 'admin' ? 'makeUser' : 'makeAdmin'
-                                )
-                              }
-                              disabled={actionLoading === userData.id}
-                              className={`px-3 py-1 rounded text-xs font-medium ${
-                                userData.role === 'admin'
-                                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-                                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200 dark:hover:bg-purple-800'
-                              }`}
+                              onClick={() => setDeleteUserModal({ isOpen: true, user: userData })}
+                              className='px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
                             >
-                              {actionLoading === userData.id
-                                ? '...'
-                                : userData.role === 'admin'
-                                  ? 'Make User'
-                                  : 'Make Admin'}
+                              Delete
                             </button>
                           )}
 
@@ -416,7 +568,7 @@ const AdminUsersPage: React.FC = () => {
                             <button
                               onClick={() => handleUserAction(userData.id, 'unlock')}
                               disabled={actionLoading === userData.id}
-                              className='px-3 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800'
+                              className='px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800'
                             >
                               {actionLoading === userData.id ? '...' : 'Unlock'}
                             </button>
@@ -460,6 +612,52 @@ const AdminUsersPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* All Modals */}
+        <UserDetailModal
+          isOpen={userDetailModal.isOpen}
+          onClose={() => setUserDetailModal({ isOpen: false, userId: null })}
+          userId={userDetailModal.userId}
+          onUserUpdate={refreshData}
+        />
+
+        <CreateUserModal
+          isOpen={createUserModal}
+          onClose={() => setCreateUserModal(false)}
+          onUserCreated={refreshData}
+        />
+
+        <DeleteUserModal
+          isOpen={deleteUserModal.isOpen}
+          onClose={() => setDeleteUserModal({ isOpen: false, user: null })}
+          user={deleteUserModal.user}
+          onUserDeleted={refreshData}
+        />
+
+        <UserActivityModal
+          isOpen={userActivityModal.isOpen}
+          onClose={() => setUserActivityModal({ isOpen: false, userId: null })}
+          userId={userActivityModal.userId}
+        />
+
+        <SecurityManagementModal
+          isOpen={securityModal.isOpen}
+          onClose={() => setSecurityModal({ isOpen: false, userId: null })}
+          userId={securityModal.userId}
+        />
+
+        <CSVImportExportModal
+          isOpen={csvModal}
+          onClose={() => setCsvModal(false)}
+          onImportComplete={refreshData}
+        />
+
+        <UserPermissionsModal
+          isOpen={permissionsModal.isOpen}
+          onClose={() => setPermissionsModal({ isOpen: false, userId: null })}
+          userId={permissionsModal.userId}
+        />
+
       </div>
     </div>
   )
