@@ -179,6 +179,6 @@ export interface ExportOptions {
   includePersonalInfo: boolean
   includeWorkInfo: boolean
   includePreferences: boolean
-  format: 'csv' | 'json'
+  format: 'json'
   userIds?: string[]
 }

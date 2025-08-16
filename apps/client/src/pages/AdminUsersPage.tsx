@@ -10,7 +10,7 @@ import DeleteUserModal from '../components/admin/DeleteUserModal'
 import BulkUserActions from '../components/admin/BulkUserActions'
 import UserActivityModal from '../components/admin/UserActivityModal'
 import SecurityManagementModal from '../components/admin/SecurityManagementModal'
-import CSVImportExportModal from '../components/admin/CSVImportExportModal'
+import JSONImportExportModal from '../components/admin/JSONImportExportModal'
 import UserPermissionsModal from '../components/admin/UserPermissionsModal'
 import AdvancedUserFilters, { UserFilters } from '../components/admin/AdvancedUserFilters'
 
@@ -102,7 +102,7 @@ const AdminUsersPage: React.FC = () => {
     isOpen: false,
     userId: null,
   })
-  const [csvModal, setCsvModal] = useState(false)
+  const [jsonModal, setJsonModal] = useState(false)
   const [permissionsModal, setPermissionsModal] = useState<{
     isOpen: boolean
     userId: string | null
@@ -297,7 +297,7 @@ const AdminUsersPage: React.FC = () => {
               <Icon name='add' className='w-4 h-4 mr-2' />
               Create User
             </Button>
-            <Button onClick={() => setCsvModal(true)} variant='secondary'>
+            <Button onClick={() => setJsonModal(true)} variant='secondary'>
               Import/Export
             </Button>
           </div>
@@ -658,9 +658,9 @@ const AdminUsersPage: React.FC = () => {
           userId={securityModal.userId}
         />
 
-        <CSVImportExportModal
-          isOpen={csvModal}
-          onClose={() => setCsvModal(false)}
+        <JSONImportExportModal
+          isOpen={jsonModal}
+          onClose={() => setJsonModal(false)}
           onImportComplete={refreshData}
         />
 

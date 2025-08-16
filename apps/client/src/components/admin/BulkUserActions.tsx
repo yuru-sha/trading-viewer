@@ -83,7 +83,7 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
         '/auth/users/export',
         {
           userIds: selectedUsers,
-          format: 'csv',
+          format: 'json',
         },
         {
           responseType: 'blob',
@@ -91,17 +91,17 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
       )
 
       // Create download link
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'application/json' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `users_export_${new Date().toISOString().split('T')[0]}.csv`
+      link.download = `users_export_${new Date().toISOString().split('T')[0]}.json`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      showSuccess(`Exported ${selectedUsers.length} users to CSV`)
+      showSuccess(`Exported ${selectedUsers.length} users to JSON`)
     } catch (error) {
       console.error('Failed to export users:', error)
       showError('Failed to export users')
@@ -255,7 +255,7 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
 
           {/* Export Action */}
           <Button onClick={handleExportUsers} disabled={loading} variant='secondary' size='sm'>
-            {isLoading('export') ? 'Exporting...' : 'Export CSV'}
+            {isLoading('export') ? 'Exporting...' : 'Export JSON'}
           </Button>
 
           {/* Delete Action */}

@@ -1,11 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import multer from 'multer'
-import csv from 'csv-parser'
-import createCsvWriter from 'csv-writer'
-import { Readable } from 'stream'
-import fs from 'fs'
-import path from 'path'
 import {
   generateTokens,
   verifyRefreshToken,
@@ -42,10 +37,10 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    if (file.mimetype === 'application/json' || file.originalname.endsWith('.json')) {
       cb(null, true)
     } else {
-      cb(new Error('Only CSV files are allowed'))
+      cb(new Error('Only JSON files are allowed'))
     }
   },
 })
@@ -55,13 +50,11 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 // Mock user database (in production, use proper database)
-interface User {
+export interface User {
   id: string
   email: string
   passwordHash: string
   name?: string
-  firstName?: string
-  lastName?: string
   avatar?: string
   role: 'user' | 'admin'
   isEmailVerified: boolean
@@ -69,6 +62,8 @@ interface User {
   lockedUntil?: Date
   lastLoginAt?: Date
   isActive: boolean
+  resetToken?: string
+  resetTokenExpiry?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -81,8 +76,6 @@ const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email format').toLowerCase(),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    firstName: z.string().min(1, 'First name is required').max(50).optional(),
-    lastName: z.string().min(1, 'Last name is required').max(50).optional(),
   }),
 })
 
@@ -121,8 +114,6 @@ const resetPasswordSchema = z.object({
 
 const updateProfileSchema = z.object({
   body: z.object({
-    firstName: z.string().min(1).max(50).optional(),
-    lastName: z.string().min(1).max(50).optional(),
     avatar: z.string().url().optional(),
   }),
 })
@@ -186,8 +177,6 @@ const createUserResponse = (user: any) => ({
   id: user.id,
   email: user.email,
   name: user.name,
-  firstName: user.firstName,
-  lastName: user.lastName,
   avatar: user.avatar,
   role: user.role as 'user' | 'admin',
   isEmailVerified: user.isEmailVerified,
@@ -200,7 +189,7 @@ router.post(
   '/register',
   validateRequest(registerSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName } = req.body
+    const { email, password } = req.body
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -231,8 +220,6 @@ router.post(
       data: {
         email,
         passwordHash,
-        firstName,
-        lastName,
         role: 'user',
         isEmailVerified: false, // In production, implement email verification
         failedLoginCount: 0,
@@ -435,8 +422,6 @@ router.post(
           role: user.role as 'user' | 'admin',
           isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
-          firstName: user.firstName,
-          lastName: user.lastName,
         },
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
         refreshTokenExpiresAt: tokens.refreshTokenExpiresAt,
@@ -494,8 +479,6 @@ router.get(
           role: user.role as 'user' | 'admin',
           isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
-          firstName: user.firstName,
-          lastName: user.lastName,
         },
       },
     })
@@ -530,7 +513,7 @@ router.put(
   requirePermission(ResourceType.USER_PROFILE, Action.UPDATE, req => req.user!.userId),
   validateRequest(updateProfileSchema),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { firstName, lastName, avatar } = req.body
+    const { avatar } = req.body
 
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
@@ -544,8 +527,6 @@ router.put(
     const updatedUser = await prisma.user.update({
       where: { id: req.user!.userId },
       data: {
-        ...(firstName !== undefined && { firstName }),
-        ...(lastName !== undefined && { lastName }),
         // Note: avatar field doesn't exist in current schema, would need migration
       },
     })
@@ -557,8 +538,6 @@ router.put(
         user: {
           id: updatedUser.id,
           email: updatedUser.email,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
           role: updatedUser.role,
           isEmailVerified: updatedUser.isEmailVerified,
           createdAt: updatedUser.createdAt,
@@ -834,11 +813,7 @@ router.get(
     const where: any = {}
 
     if (search) {
-      where.OR = [
-        { email: { contains: search, mode: 'insensitive' } },
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-      ]
+      where.OR = [{ email: { contains: search, mode: 'insensitive' } }]
     }
 
     if (role && ['admin', 'user'].includes(role)) {
@@ -860,8 +835,6 @@ router.get(
         select: {
           id: true,
           email: true,
-          firstName: true,
-          lastName: true,
           role: true,
           isEmailVerified: true,
           isActive: true,
@@ -907,8 +880,6 @@ router.get(
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
         name: true,
         avatar: true,
         role: true,
@@ -1111,8 +1082,6 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
           data: {
             email: 'admin@tradingviewer.com',
             passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
-            firstName: 'Admin',
-            lastName: 'User',
             role: 'admin',
             isEmailVerified: true,
             isActive: true,
@@ -1132,8 +1101,6 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
           data: {
             email: 'test@example.com',
             passwordHash: await hashPassword('password123'),
-            firstName: 'Test',
-            lastName: 'User',
             role: 'user',
             isEmailVerified: true,
             isActive: true,
@@ -1164,9 +1131,9 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
     '/dev/seed',
     asyncHandler(async (req: Request, res: Response) => {
       const testUsers = [
-        { email: 'user1@test.com', password: 'Test123!', firstName: 'John', lastName: 'Doe' },
-        { email: 'user2@test.com', password: 'Test123!', firstName: 'Jane', lastName: 'Smith' },
-        { email: 'trader@test.com', password: 'Trade123!', firstName: 'Alex', lastName: 'Trader' },
+        { email: 'user1@test.com', password: 'Test123!' },
+        { email: 'user2@test.com', password: 'Test123!' },
+        { email: 'trader@test.com', password: 'Trade123!' },
       ]
 
       for (const testUser of testUsers) {
@@ -1180,8 +1147,6 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
             isEmailVerified: true,
             createdAt: new Date(),
             updatedAt: new Date(),
-            firstName: testUser.firstName,
-            lastName: testUser.lastName,
           }
           users.set(userId, user)
           usersByEmail.set(testUser.email, user)
@@ -1205,7 +1170,7 @@ router.post(
   upload.single('file'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     if (!req.file) {
-      throw new ValidationError('No CSV file provided')
+      throw new ValidationError('No file provided')
     }
 
     const results: any[] = []
@@ -1219,20 +1184,22 @@ router.post(
     let successfulImports = 0
     let failedImports = 0
 
-    // Parse CSV data
-    await new Promise<void>((resolve, reject) => {
-      const stream = Readable.from(req.file!.buffer.toString())
-      stream
-        .pipe(csv())
-        .on('data', data => results.push(data))
-        .on('end', () => resolve())
-        .on('error', error => reject(error))
-    })
+    // Parse JSON data
+    try {
+      const jsonData = JSON.parse(req.file.buffer.toString())
+      if (Array.isArray(jsonData)) {
+        results.push(...jsonData)
+      } else {
+        throw new ValidationError('JSON file must contain an array of user objects')
+      }
+    } catch (error) {
+      throw new ValidationError('Invalid JSON format')
+    }
 
     // Process each row
     for (let i = 0; i < results.length; i++) {
       const row = results[i]
-      const lineNumber = i + 2 // +2 because CSV starts from line 2 (after header)
+      const lineNumber = i + 1 // Line number in JSON array
 
       try {
         // Validate required fields
@@ -1336,7 +1303,7 @@ router.get(
     const includePreferences = req.query.includePreferences === 'true'
     const includeSecurityInfo = req.query.includeSecurityInfo === 'true'
     const includeActivityInfo = req.query.includeActivityInfo === 'true'
-    const format = req.query.format || 'csv'
+    const format = req.query.format || 'json'
     const userIds = req.query.userIds ? (req.query.userIds as string).split(',') : undefined
 
     // Build where clause
@@ -1363,54 +1330,30 @@ router.get(
       },
     })
 
-    if (format === 'csv') {
-      // Generate CSV
-      const csvData = users.map(user => ({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        isEmailVerified: user.isEmailVerified,
-        ...(includeSecurityInfo && {
-          failedLoginCount: user.failedLoginCount,
-          isLocked: user.lockedUntil ? new Date(user.lockedUntil) > new Date() : false,
-        }),
-        ...(includeActivityInfo && {
-          lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : '',
-          createdAt: user.createdAt.toISOString(),
-          updatedAt: user.updatedAt.toISOString(),
-        }),
-      }))
+    // Generate JSON file download
+    const jsonData = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      isEmailVerified: user.isEmailVerified,
+      ...(includeSecurityInfo && {
+        failedLoginCount: user.failedLoginCount,
+        isLocked: user.lockedUntil ? new Date(user.lockedUntil) > new Date() : false,
+      }),
+      ...(includeActivityInfo && {
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : '',
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      }),
+    }))
 
-      // Convert to CSV string
-      const headers = Object.keys(csvData[0] || {})
-      const csvContent = [
-        headers.join(','),
-        ...csvData.map(row =>
-          headers
-            .map(header => {
-              const value = row[header as keyof typeof row]
-              return typeof value === 'string' && value.includes(',')
-                ? `"${value.replace(/"/g, '""')}"`
-                : value
-            })
-            .join(',')
-        ),
-      ].join('\n')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `users-export-${timestamp}.json`
 
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
-      const filename = `users-export-${timestamp}.csv`
-
-      res.setHeader('Content-Type', 'text/csv')
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-      res.send(csvContent)
-    } else {
-      // Return JSON
-      res.json({
-        success: true,
-        data: users,
-      })
-    }
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.send(JSON.stringify(jsonData, null, 2))
 
     securityLogger.log({
       eventType: SecurityEventType.USER_STATUS_CHANGE,

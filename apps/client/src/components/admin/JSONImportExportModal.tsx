@@ -4,7 +4,7 @@ import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
 import type { ImportResult, ExportOptions } from '@shared'
 
-interface CSVImportExportModalProps {
+interface JSONImportExportModalProps {
   isOpen: boolean
   onClose: () => void
   onImportComplete: () => void
@@ -18,7 +18,7 @@ interface LocalExportOptions extends ExportOptions {
   customEndDate?: string
 }
 
-const CSVImportExportModal: React.FC<CSVImportExportModalProps> = ({
+const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
   isOpen,
   onClose,
   onImportComplete,
@@ -35,21 +35,39 @@ const CSVImportExportModal: React.FC<CSVImportExportModalProps> = ({
     includeSecurityInfo: false,
     includeActivityInfo: true,
     dateRange: 'all',
-    format: 'csv',
+    format: 'json',
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { showError, showSuccess } = useError()
 
-  const csvTemplate = `email,role,isActive,password
-user1@example.com,user,true,SecurePass123@
-user2@example.com,user,true,SecurePass123@
-admin@example.com,admin,true,AdminPass123@`
+  const jsonTemplate = [
+    {
+      email: 'user1@example.com',
+      role: 'user',
+      isActive: true,
+      password: 'SecurePass123@',
+    },
+    {
+      email: 'user2@example.com',
+      role: 'user',
+      isActive: true,
+      password: 'SecurePass123@',
+    },
+    {
+      email: 'admin@example.com',
+      role: 'admin',
+      isActive: true,
+      password: 'AdminPass123@',
+    },
+  ]
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-        showError('Please select a CSV file')
+      const isJSON = file.type === 'application/json' || file.name.endsWith('.json')
+
+      if (!isJSON) {
+        showError('Please select a JSON file')
         return
       }
       if (file.size > 10 * 1024 * 1024) {
@@ -63,7 +81,7 @@ admin@example.com,admin,true,AdminPass123@`
 
   const handleImport = async () => {
     if (!importFile) {
-      showError('Please select a CSV file to import')
+      showError('Please select a file to import')
       return
     }
 
@@ -133,10 +151,7 @@ admin@example.com,admin,true,AdminPass123@`
 
       // Create download link
       const blob = new Blob([response.data], {
-        type:
-          exportOptions.format === 'csv'
-            ? 'text/csv'
-            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        type: 'application/json',
       })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -157,11 +172,11 @@ admin@example.com,admin,true,AdminPass123@`
   }
 
   const handleDownloadTemplate = () => {
-    const blob = new Blob([csvTemplate], { type: 'text/csv' })
+    const blob = new Blob([JSON.stringify(jsonTemplate, null, 2)], { type: 'application/json' })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'user_import_template.csv'
+    link.download = 'user_import_template.json'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -194,7 +209,7 @@ admin@example.com,admin,true,AdminPass123@`
       <div className='p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
         <div className='flex items-start justify-between'>
           <div>
-            <h4 className='text-sm font-medium text-blue-800 dark:text-blue-200'>CSV Template</h4>
+            <h4 className='text-sm font-medium text-blue-800 dark:text-blue-200'>JSON Template</h4>
             <p className='text-sm text-blue-700 dark:text-blue-300 mt-1'>
               Download the template file to see the required format for user imports.
             </p>
@@ -208,13 +223,13 @@ admin@example.com,admin,true,AdminPass123@`
       {/* File Upload */}
       <div>
         <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-          Select CSV File
+          Select JSON File
         </label>
         <div className='flex items-center space-x-3'>
           <input
             ref={fileInputRef}
             type='file'
-            accept='.csv'
+            accept='.json'
             onChange={handleFileSelect}
             className='block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
           />
@@ -237,11 +252,11 @@ admin@example.com,admin,true,AdminPass123@`
           Import Instructions
         </h4>
         <ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
-          <li>• File must be in CSV format with headers</li>
+          <li>• File must be in JSON format with array of objects</li>
           <li>• Email addresses must be unique and valid</li>
           <li>• Required fields: email, role</li>
           <li>• Role must be either 'admin' or 'user'</li>
-          <li>• isActive must be 'true' or 'false'</li>
+          <li>• isActive must be boolean (true/false)</li>
           <li>• Maximum file size: 10MB</li>
           <li>• Existing users will be updated</li>
         </ul>
@@ -427,14 +442,9 @@ admin@example.com,admin,true,AdminPass123@`
           <div className='space-y-2'>
             {[
               {
-                value: 'csv',
-                label: 'CSV (Comma Separated Values)',
-                description: 'Compatible with Excel, Google Sheets',
-              },
-              {
-                value: 'xlsx',
-                label: 'Excel (XLSX)',
-                description: 'Native Excel format with formatting',
+                value: 'json',
+                label: 'JSON (JavaScript Object Notation)',
+                description: 'Structured data format for APIs and development',
               },
             ].map(option => (
               <label key={option.value} className='flex items-start space-x-2'>
@@ -470,7 +480,7 @@ admin@example.com,admin,true,AdminPass123@`
   )
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='CSV Import/Export'>
+    <Modal isOpen={isOpen} onClose={handleClose} title='JSON Import/Export'>
       <div className='max-w-2xl'>
         {/* Tabs */}
         <div className='border-b border-gray-200 dark:border-gray-700 mb-6'>
@@ -505,4 +515,4 @@ admin@example.com,admin,true,AdminPass123@`
   )
 }
 
-export default CSVImportExportModal
+export default JSONImportExportModal
