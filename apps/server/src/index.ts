@@ -13,6 +13,7 @@ import alertRoutes from './routes/alerts'
 import watchlistRoutes from './routes/watchlist'
 import newsRoutes from './routes/news'
 import drawingRoutes from './routes/drawings'
+import indicatorRoutes from './routes/indicators'
 import { requestLogger, errorLogger } from './middleware/logging'
 import { getWebSocketService } from './services/websocketService'
 import { securityHeaders } from './middleware/auth'
@@ -122,6 +123,7 @@ app.use('/api/alerts', sensitiveLimiter, alertRoutes) // Strict rate limiting fo
 app.use('/api/watchlist', watchlistRoutes) // Use general rate limiting for watchlist
 app.use('/api/news', marketDataLimiter, newsRoutes) // Moderate rate limiting for news data
 app.use('/api/drawings', drawingRoutes) // Drawing tools with general rate limiting
+app.use('/api/indicators', indicatorRoutes) // Indicators with general rate limiting
 
 app.get('/api', (_req, res) => {
   res.json({

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import * as echarts from 'echarts'
 import type { ChartData, PriceStats } from './useChartData'
+import { UserIndicator } from '@trading-viewer/shared'
 
 interface ChartOptionsConfig {
   chartType: 'candle' | 'line' | 'area'
@@ -14,6 +15,7 @@ interface ChartOptionsConfig {
   graphicElements: any[]
   showPeriodHigh?: boolean
   showPeriodLow?: boolean
+  indicators?: UserIndicator[]
 }
 
 /**
@@ -349,6 +351,10 @@ export const useChartOptions = (
       })
     }
 
+    // Add indicator series
+    const indicatorSeries = createIndicatorSeries(chartData, config.indicators || [])
+    baseOption.series.push(...indicatorSeries)
+
     return baseOption
   }, [
     chartData.dates.length,
@@ -371,6 +377,9 @@ export const useChartOptions = (
     priceStats?.changePercent,
     priceStats?.periodHigh,
     priceStats?.periodLow,
+    // indicators の監視
+    config.indicators?.length,
+    config.indicators?.map(i => `${i.id}:${i.visible}:${JSON.stringify(i.parameters)}`).join(','),
   ])
 
   return { option }
@@ -807,6 +816,182 @@ function createMarkLine(
       },
     ],
   }
+}
+
+// Indicator series creation
+function createIndicatorSeries(chartData: ChartData, indicators: UserIndicator[]) {
+  const series: any[] = []
+
+  indicators.forEach((indicator) => {
+    if (!indicator.visible) return
+
+    // インジケーターの計算データがある場合のみシリーズを作成
+    // 実際のデータ計算は別途 API から取得することを想定
+    const indicatorData = calculateIndicatorFromData(chartData, indicator)
+    
+    if (!indicatorData || indicatorData.length === 0) return
+
+    // インジケーターのタイプに応じてシリーズを作成
+    switch (indicator.type) {
+      case 'sma':
+      case 'ema':
+        series.push({
+          name: indicator.name,
+          type: 'line',
+          data: indicatorData,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: {
+            color: indicator.style?.color || '#ff9500',
+            width: indicator.style?.lineWidth || 2,
+          },
+          z: 50, // インジケーターは価格チャートより前面に表示
+        })
+        break
+      
+      case 'bollinger':
+        // ボリンジャーバンドは 3 本の線（上限、中央、下限）
+        if (indicatorData.length === 3) {
+          const [upper, middle, lower] = indicatorData
+          
+          // 上限線
+          series.push({
+            name: `${indicator.name} Upper`,
+            type: 'line',
+            data: upper,
+            lineStyle: {
+              color: indicator.style?.color || '#8e44ad',
+              width: 1,
+              type: 'dashed',
+            },
+            symbol: 'none',
+            z: 50,
+          })
+          
+          // 中央線
+          series.push({
+            name: `${indicator.name} Middle`,
+            type: 'line',
+            data: middle,
+            lineStyle: {
+              color: indicator.style?.color || '#8e44ad',
+              width: 2,
+            },
+            symbol: 'none',
+            z: 50,
+          })
+          
+          // 下限線
+          series.push({
+            name: `${indicator.name} Lower`,
+            type: 'line',
+            data: lower,
+            lineStyle: {
+              color: indicator.style?.color || '#8e44ad',
+              width: 1,
+              type: 'dashed',
+            },
+            symbol: 'none',
+            z: 50,
+          })
+          
+          // 帯域の塗りつぶし
+          series.push({
+            name: `${indicator.name} Band`,
+            type: 'line',
+            data: upper,
+            areaStyle: {
+              color: 'rgba(142, 68, 173, 0.1)',
+            },
+            lineStyle: {
+              opacity: 0,
+            },
+            stack: 'bollinger',
+            symbol: 'none',
+            z: 10,
+          })
+        }
+        break
+        
+      default:
+        // その他のインジケーター（RSI、MACD など）は基本的にライン表示
+        series.push({
+          name: indicator.name,
+          type: 'line',
+          data: indicatorData,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: {
+            color: indicator.style?.color || '#e74c3c',
+            width: indicator.style?.lineWidth || 2,
+          },
+          z: 50,
+        })
+        break
+    }
+  })
+
+  return series
+}
+
+// 簡易インジケーター計算関数（本来は API から取得すべき）
+function calculateIndicatorFromData(chartData: ChartData, indicator: UserIndicator): number[] | number[][] {
+  try {
+    const prices = chartData.values.map((candle: any) => {
+      if (Array.isArray(candle) && candle.length >= 4) {
+        return candle[1] // close price
+      }
+      return typeof candle === 'number' ? candle : 0
+    })
+
+    if (prices.length === 0) return []
+
+    const period = indicator.parameters.period || indicator.parameters.length || 20
+
+    switch (indicator.type) {
+      case 'sma':
+        return calculateSMA(prices, period)
+      case 'ema':
+        return calculateEMA(prices, period)
+      default:
+        return []
+    }
+  } catch (error) {
+    console.error('Error calculating indicator:', indicator.type, error)
+    return []
+  }
+}
+
+// SMA 計算
+function calculateSMA(prices: number[], period: number): number[] {
+  const sma: number[] = []
+  
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period - 1) {
+      sma.push(NaN) // 期間未満は NaN
+    } else {
+      const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0)
+      sma.push(sum / period)
+    }
+  }
+  
+  return sma
+}
+
+// EMA 計算
+function calculateEMA(prices: number[], period: number): number[] {
+  const ema: number[] = []
+  const multiplier = 2 / (period + 1)
+  
+  for (let i = 0; i < prices.length; i++) {
+    if (i === 0) {
+      ema.push(prices[i])
+    } else {
+      ema.push((prices[i] - ema[i - 1]) * multiplier + ema[i - 1])
+    }
+  }
+  
+  return ema
 }
 
 export default useChartOptions

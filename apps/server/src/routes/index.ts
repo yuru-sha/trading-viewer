@@ -2,6 +2,7 @@ import { Router } from 'express'
 import authRoutes from './auth'
 import marketRoutes from './market'
 import drawingRoutes from './drawings'
+import indicatorRoutes from './indicators'
 import { securityHeaders } from '../middleware/auth'
 
 const router = Router()
@@ -13,6 +14,7 @@ router.use(securityHeaders)
 router.use('/auth', authRoutes)
 router.use('/market', marketRoutes)
 router.use('/drawings', drawingRoutes)
+router.use('/indicators', indicatorRoutes)
 
 // Health check endpoint
 router.get('/health', (req, res) => {

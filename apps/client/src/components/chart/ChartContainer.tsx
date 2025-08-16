@@ -8,6 +8,7 @@ import { DrawingToolType } from '@trading-viewer/shared'
 import { useChartDataManager } from '../../hooks/chart/useChartDataManager'
 import { useChartRendering } from '../../hooks/chart/useChartRendering'
 import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
+import { useIndicators } from '../../hooks/useIndicators'
 
 interface TechnicalIndicators {
   sma?: { enabled: boolean; periods: number[] }
@@ -83,6 +84,9 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
       autoSave: true,
       autoSaveInterval: 1000,
     })
+
+    // Get indicators for the current symbol
+    const { data: indicators = [] } = useIndicators(symbol)
 
     // Drawing toolbar ref to close objects panel
     const drawingToolbarRef = React.useRef<LeftDrawingToolbarRef>(null)
@@ -211,6 +215,7 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
             showPeriodLow={showPeriodLow}
             periodWeeks={periodWeeks}
             onCrosshairMove={handleCrosshairMove}
+            indicators={indicators}
           />
         </div>
 
