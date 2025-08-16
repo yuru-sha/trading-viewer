@@ -176,7 +176,10 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
 
   return (
     <>
-      <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-[250px]">
+      <div 
+        className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-[250px]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-medium text-gray-900 dark:text-white">
