@@ -1,4 +1,4 @@
-import { PrismaClient, UserPreferences, Prisma } from '@prisma/client/default'
+import { PrismaClient, UserPreferences, Prisma } from '@prisma/client'
 import { BaseRepository, NotFoundError, FindManyOptions } from './BaseRepository'
 
 export interface IUserPreferencesRepository {

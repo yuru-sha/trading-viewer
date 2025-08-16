@@ -1,4 +1,4 @@
-import { PrismaClient, Candle, Prisma } from '@prisma/client/default'
+import { PrismaClient, Candle, Prisma } from '@prisma/client'
 import { BaseRepository, NotFoundError, FindManyOptions } from './BaseRepository'
 
 export interface ICandleRepository {
