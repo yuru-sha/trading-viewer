@@ -8,7 +8,7 @@ import {
   TradingQuote,
   Position,
   validateOrder,
-} from '@shared'
+} from '@trading-viewer/shared'
 
 interface OrderFormProps {
   simulation: TradingSimulation

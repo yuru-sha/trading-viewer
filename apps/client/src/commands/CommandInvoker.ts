@@ -1,5 +1,10 @@
-import type { ICommand, ICommandInvoker, CommandResult, CommandHistoryEntry } from '@shared'
-import { UI_TIMEOUTS } from '@shared'
+import type {
+  ICommand,
+  ICommandInvoker,
+  CommandResult,
+  CommandHistoryEntry,
+} from '@trading-viewer/shared'
+import { UI_TIMEOUTS } from '@trading-viewer/shared'
 
 /**
  * Command Invoker Implementation

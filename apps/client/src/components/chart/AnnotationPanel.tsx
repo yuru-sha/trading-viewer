@@ -6,7 +6,7 @@ import {
   AnnotationFilter,
   AnnotationTemplate,
   ANNOTATION_PRESETS,
-} from '@shared'
+} from '@trading-viewer/shared'
 
 interface AnnotationPanelProps {
   annotations: ChartAnnotation[]

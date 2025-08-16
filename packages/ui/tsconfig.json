@@ -8,11 +8,13 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
+    "composite": true,
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["dist", "**/__tests__/**/*"]
+  "exclude": ["dist", "**/__tests__/**/*"],
+  "references": [{ "path": "../shared" }]
 }

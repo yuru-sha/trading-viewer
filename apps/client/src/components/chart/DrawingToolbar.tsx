@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@trading-viewer/ui'
-import { DrawingToolType, DrawingMode, DrawingStyle } from '@shared'
+import { DrawingToolType, DrawingMode, DrawingStyle } from '@trading-viewer/shared'
 
 interface DrawingToolbarProps {
   activeToolType: DrawingToolType | null

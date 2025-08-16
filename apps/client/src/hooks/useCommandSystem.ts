@@ -1,5 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { ICommand, ICommandInvoker, CommandResult, CommandHistoryEntry } from '@shared'
+import type {
+  ICommand,
+  ICommandInvoker,
+  CommandResult,
+  CommandHistoryEntry,
+} from '@trading-viewer/shared'
 import { CommandInvoker } from '../commands/CommandInvoker'
 import { commandFactory } from '../commands/CommandFactory'
 import { useError } from '../contexts/ErrorContext'

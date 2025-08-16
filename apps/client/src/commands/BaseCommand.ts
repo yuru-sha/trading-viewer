@@ -1,4 +1,4 @@
-import type { ICommand, CommandResult } from '@shared'
+import type { ICommand, CommandResult } from '@trading-viewer/shared'
 
 /**
  * Abstract Base Command

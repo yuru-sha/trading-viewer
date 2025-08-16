@@ -5,7 +5,7 @@ import type {
   UpdateDrawingCommand,
   DeleteDrawingCommand,
   DrawingToolType,
-} from '@shared'
+} from '@trading-viewer/shared'
 
 /**
  * Drawing Tool State Interface

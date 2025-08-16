@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { DrawingTool, ChartBounds } from '@shared'
+import { DrawingTool, ChartBounds } from '@trading-viewer/shared'
 
 interface DrawingLayerProps {
   tools: DrawingTool[]

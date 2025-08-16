@@ -1,5 +1,5 @@
 import React from 'react'
-import { CHART_TYPES } from '@shared'
+import { CHART_TYPES } from '@trading-viewer/shared'
 
 // Chart component interfaces
 export interface ChartProps {

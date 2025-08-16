@@ -1,5 +1,11 @@
 import { useCallback, useRef, useEffect } from 'react'
-import type { DrawingTool, DrawingToolType, DrawingMode, DrawingStyle, DrawingPoint } from '@shared'
+import type {
+  DrawingTool,
+  DrawingToolType,
+  DrawingMode,
+  DrawingStyle,
+  DrawingPoint,
+} from '@trading-viewer/shared'
 import type { DrawingAction, DrawingState } from './useDrawingState'
 
 /**

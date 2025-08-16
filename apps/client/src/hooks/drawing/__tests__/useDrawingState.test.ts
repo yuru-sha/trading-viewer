@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { useDrawingState } from '../useDrawingState'
-import type { DrawingTool, DrawingToolType } from '@shared'
+import type { DrawingTool, DrawingToolType } from '@trading-viewer/shared'
 
 describe('useDrawingState', () => {
   it('should initialize with default state', () => {

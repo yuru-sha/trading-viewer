@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '@trading-viewer/ui'
-import { Order, Position, TradingSimulation, TradingQuote } from '@shared'
+import { Order, Position, TradingSimulation, TradingQuote } from '@trading-viewer/shared'
 import OrderForm from './OrderForm'
 // import PositionsTable from './PositionsTable'
 // import OrdersTable from './OrdersTable'

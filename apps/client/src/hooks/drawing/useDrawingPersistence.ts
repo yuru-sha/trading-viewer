@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react'
-import type { DrawingTool } from '@shared'
+import type { DrawingTool } from '@trading-viewer/shared'
 
 export interface DrawingPersistenceOptions {
   symbol?: string

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { DrawingTool } from '@shared'
+import type { DrawingTool } from '@trading-viewer/shared'
 import { api } from '../../lib/apiClient'
 import { useAuth } from '../../contexts/AuthContext'
 

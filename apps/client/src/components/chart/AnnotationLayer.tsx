@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { ChartAnnotation, AnnotationType, ChartBounds } from '@shared'
+import { ChartAnnotation, AnnotationType, ChartBounds } from '@trading-viewer/shared'
 import { Button } from '@trading-viewer/ui'
 
 interface AnnotationLayerProps {

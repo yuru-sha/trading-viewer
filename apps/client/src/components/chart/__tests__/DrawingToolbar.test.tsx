@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 import { DrawingToolbar } from '../DrawingToolbar'
-import type { DrawingToolType, DrawingMode, DrawingStyle } from '@shared'
+import type { DrawingToolType, DrawingMode, DrawingStyle } from '@trading-viewer/shared'
 
 describe('DrawingToolbar', () => {
   const mockProps = {

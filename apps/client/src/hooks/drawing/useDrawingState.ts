@@ -1,5 +1,11 @@
 import { useReducer, useRef } from 'react'
-import type { DrawingTool, DrawingToolType, DrawingMode, DrawingStyle, DrawingPoint } from '@shared'
+import type {
+  DrawingTool,
+  DrawingToolType,
+  DrawingMode,
+  DrawingStyle,
+  DrawingPoint,
+} from '@trading-viewer/shared'
 
 // Drawing state types
 export interface DrawingState {

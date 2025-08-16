@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import { useDrawingPersistence } from '../useDrawingPersistence'
-import type { DrawingTool } from '@shared'
+import type { DrawingTool } from '@trading-viewer/shared'
 
 // Mock localStorage
 const localStorageMock = (() => {

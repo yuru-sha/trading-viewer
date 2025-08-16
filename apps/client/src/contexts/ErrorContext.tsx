@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
-import { ERROR_TIMEOUTS } from '@shared'
+import { ERROR_TIMEOUTS } from '@trading-viewer/shared'
 import {
   classifyError,
   errorRecoveryManager,

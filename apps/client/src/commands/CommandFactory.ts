@@ -1,4 +1,4 @@
-import type { ICommand, ICommandFactory, AppCommand } from '@shared'
+import type { ICommand, ICommandFactory, AppCommand } from '@trading-viewer/shared'
 import { BaseCommand } from './BaseCommand'
 import {
   CreateDrawingToolCommand,
