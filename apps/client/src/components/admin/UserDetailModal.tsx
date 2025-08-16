@@ -6,8 +6,7 @@ import { apiService } from '../../services/base/ApiService'
 interface User {
   id: string
   email: string
-  firstName?: string
-  lastName?: string
+  name?: string
   role: 'admin' | 'user'
   isEmailVerified: boolean
   isActive: boolean
@@ -16,9 +15,6 @@ interface User {
   lastLoginAt?: string
   createdAt: string
   updatedAt: string
-  phoneNumber?: string
-  department?: string
-  jobTitle?: string
   timezone?: string
   language?: string
   profileImageUrl?: string
@@ -32,11 +28,7 @@ interface UserDetailModalProps {
 }
 
 interface UserUpdateData {
-  firstName?: string
-  lastName?: string
-  phoneNumber?: string
-  department?: string
-  jobTitle?: string
+  name?: string
   timezone?: string
   language?: string
   role?: 'admin' | 'user'
@@ -97,11 +89,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       if (response.success) {
         setUser(response.data)
         setFormData({
-          firstName: response.data.firstName || '',
-          lastName: response.data.lastName || '',
-          phoneNumber: response.data.phoneNumber || '',
-          department: response.data.department || '',
-          jobTitle: response.data.jobTitle || '',
+          name: response.data.name || '',
           timezone: response.data.timezone || 'UTC',
           language: response.data.language || 'en',
           role: response.data.role,
@@ -182,9 +170,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </div>
               <div className='flex-1'>
                 <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
-                  {user.firstName && user.lastName
-                    ? `${user.firstName} ${user.lastName}`
-                    : user.email}
+                  {user.name || user.email}
                 </h3>
                 <p className='text-sm text-gray-500 dark:text-gray-400'>{user.email}</p>
                 <div className='flex items-center space-x-2 mt-1'>
@@ -235,49 +221,17 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    First Name
+                    Display Name
                   </label>
                   {isEditing ? (
                     <Input
-                      value={formData.firstName || ''}
-                      onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                      placeholder='Enter first name'
+                      value={formData.name || ''}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      placeholder='Enter display name (optional)'
                     />
                   ) : (
                     <p className='text-sm text-gray-900 dark:text-gray-100'>
-                      {user.firstName || 'Not provided'}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    Last Name
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.lastName || ''}
-                      onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                      placeholder='Enter last name'
-                    />
-                  ) : (
-                    <p className='text-sm text-gray-900 dark:text-gray-100'>
-                      {user.lastName || 'Not provided'}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    Phone Number
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.phoneNumber || ''}
-                      onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      placeholder='Enter phone number'
-                    />
-                  ) : (
-                    <p className='text-sm text-gray-900 dark:text-gray-100'>
-                      {user.phoneNumber || 'Not provided'}
+                      {user.name || 'Not provided'}
                     </p>
                   )}
                 </div>
@@ -290,46 +244,6 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Work Information */}
-            <div>
-              <h4 className='text-md font-semibold text-gray-900 dark:text-white mb-3'>
-                Work Information
-              </h4>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    Department
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.department || ''}
-                      onChange={e => setFormData({ ...formData, department: e.target.value })}
-                      placeholder='Enter department'
-                    />
-                  ) : (
-                    <p className='text-sm text-gray-900 dark:text-gray-100'>
-                      {user.department || 'Not provided'}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    Job Title
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.jobTitle || ''}
-                      onChange={e => setFormData({ ...formData, jobTitle: e.target.value })}
-                      placeholder='Enter job title'
-                    />
-                  ) : (
-                    <p className='text-sm text-gray-900 dark:text-gray-100'>
-                      {user.jobTitle || 'Not provided'}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
 
             {/* Preferences */}
             <div>

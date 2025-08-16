@@ -132,8 +132,6 @@ export interface IAuthClient {
   register(userData: {
     email: string
     password: string
-    firstName: string
-    lastName: string
   }): Promise<{
     user: any
     token: string

@@ -55,8 +55,6 @@ model User {
   email            String         @unique
   passwordHash     String         @default("") @map("password_hash")
   name             String?
-  firstName        String?        @map("first_name")
-  lastName         String?        @map("last_name")
   avatar           String?
   role             String         @default("user")
   isEmailVerified  Boolean        @default(false) @map("is_email_verified")

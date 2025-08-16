@@ -8,8 +8,6 @@ const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -47,7 +45,7 @@ const LoginPage: React.FC = () => {
         showSuccess('Successfully logged in')
         announceToScreenReader('Login completed successfully', 'assertive')
       } else {
-        await register({ email, password, firstName, lastName })
+        await register({ email, password })
         showSuccess('Account created successfully')
         announceToScreenReader('Account creation completed successfully', 'assertive')
       }
@@ -193,46 +191,6 @@ const LoginPage: React.FC = () => {
                   />
                 </div>
               </div>
-              {!isLogin && (
-                <>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div>
-                      <label
-                        htmlFor='firstName'
-                        className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
-                      >
-                        First Name (Optional)
-                      </label>
-                      <Input
-                        id='firstName'
-                        type='text'
-                        placeholder='John'
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        autoComplete='given-name'
-                        className='w-full py-3 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor='lastName'
-                        className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
-                      >
-                        Last Name (Optional)
-                      </label>
-                      <Input
-                        id='lastName'
-                        type='text'
-                        placeholder='Doe'
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        autoComplete='family-name'
-                        className='w-full py-3 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
 
               {/* Remember Me & Forgot Password */}
               {isLogin && (

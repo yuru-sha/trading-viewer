@@ -82,19 +82,11 @@ export class UserManager {
   validateProfileData(data: UpdateProfileData): UserValidationResult {
     const errors: string[] = []
 
-    if (data.firstName !== undefined) {
-      if (data.firstName.length === 0) {
+    if (data.name !== undefined) {
+      if (data.name.length === 0) {
         errors.push('名前を入力してください')
-      } else if (data.firstName.length > 50) {
-        errors.push('名前は 50 文字以下で入力してください')
-      }
-    }
-
-    if (data.lastName !== undefined) {
-      if (data.lastName.length === 0) {
-        errors.push('姓を入力してください')
-      } else if (data.lastName.length > 50) {
-        errors.push('姓は 50 文字以下で入力してください')
+      } else if (data.name.length > 100) {
+        errors.push('名前は 100 文字以下で入力してください')
       }
     }
 
@@ -131,8 +123,7 @@ export class UserManager {
 
     // Data transformation/sanitization
     const sanitizedData: UpdateProfileData = {
-      firstName: data.firstName?.trim(),
-      lastName: data.lastName?.trim(),
+      name: data.name?.trim(),
       avatar: data.avatar?.trim(),
     }
 
@@ -248,18 +239,17 @@ export class UserManager {
 
     // Calculate profile completeness
     let completeness = 0
-    const fields = ['email', 'profile.firstName', 'profile.lastName', 'profile.avatar']
+    const fields = ['email', 'name', 'avatar']
     const weight = 100 / fields.length
 
     if (user.email) completeness += weight
-    if (user.profile?.firstName) completeness += weight
-    if (user.profile?.lastName) completeness += weight
-    if (user.profile?.avatar) completeness += weight
+    if (user.name) completeness += weight
+    if (user.avatar) completeness += weight
 
     // Calculate security score (simplified)
     let securityScore = 0
     if (user.isEmailVerified) securityScore += 40
-    if (user.profile?.firstName && user.profile?.lastName) securityScore += 20 // Real name provided
+    if (user.name) securityScore += 20 // Display name provided
     securityScore += 40 // Base score for having an account
 
     // Generate recommendations

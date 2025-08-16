@@ -12,9 +12,8 @@ const UserProfile: React.FC = () => {
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
-    firstName: user?.profile.firstName || '',
-    lastName: user?.profile.lastName || '',
-    avatar: user?.profile.avatar || '',
+    name: user?.name || '',
+    avatar: user?.avatar || '',
   })
 
   // Password form state
@@ -171,25 +170,14 @@ const UserProfile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>名前</label>
+                    <label className='block text-sm font-medium text-gray-700'>表示名</label>
                     <input
                       type='text'
-                      value={profileForm.firstName}
+                      value={profileForm.name}
                       onChange={e =>
-                        setProfileForm(prev => ({ ...prev, firstName: e.target.value }))
+                        setProfileForm(prev => ({ ...prev, name: e.target.value }))
                       }
-                      className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'
-                    />
-                  </div>
-
-                  <div>
-                    <label className='block text-sm font-medium text-gray-700'>苗字</label>
-                    <input
-                      type='text'
-                      value={profileForm.lastName}
-                      onChange={e =>
-                        setProfileForm(prev => ({ ...prev, lastName: e.target.value }))
-                      }
+                      placeholder='表示名（任意）'
                       className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'
                     />
                   </div>

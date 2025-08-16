@@ -101,8 +101,7 @@ describe('Authentication Security Tests', () => {
       const response = await request(app).post('/auth/register').send({
         email: 'test@example.com',
         password: 'ValidPassword123!',
-        firstName: '<script>alert("XSS")</script>',
-        lastName: 'User',
+        name: '<script>alert("XSS")</script>',
       })
 
       expect(response.status).toBe(400)
@@ -113,8 +112,7 @@ describe('Authentication Security Tests', () => {
     it('should require CSRF token for state-changing operations', async () => {
       // Attempt to change profile without CSRF token
       const response = await request(app).put('/auth/profile').send({
-        firstName: 'NewName',
-        lastName: 'NewLastName',
+        name: 'NewName',
       })
 
       expect(response.status).toBe(403)
@@ -132,8 +130,7 @@ describe('Authentication Security Tests', () => {
           .send({
             email: `test${Math.random()}@example.com`,
             password: weakPassword,
-            firstName: 'Test',
-            lastName: 'User',
+            name: 'Test User',
           })
 
         expect(response.status).toBe(400)
@@ -149,8 +146,7 @@ describe('Authentication Security Tests', () => {
         .send({
           email: `strong${Date.now()}@example.com`,
           password: strongPassword,
-          firstName: 'Test',
-          lastName: 'User',
+          name: 'Test User',
         })
 
       expect([200, 201, 409]).toContain(response.status) // 409 if user exists

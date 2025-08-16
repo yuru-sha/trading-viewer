@@ -38,7 +38,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
 
   if (!user) return null
 
-  const displayName = user.name || user.profile?.firstName || user.email.split('@')[0]
+  const displayName = user.name || user.email.split('@')[0]
 
   return (
     <div className='relative' ref={dropdownRef} id={onboardingId}>
@@ -87,9 +87,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
           {/* User Info */}
           <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
             <p className='text-sm font-medium text-gray-900 dark:text-white'>
-              {user.profile?.firstName && user.profile?.lastName
-                ? `${user.profile.firstName} ${user.profile.lastName}`
-                : displayName}
+              {displayName}
             </p>
             <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>{user.email}</p>
             {user.role === 'admin' && (

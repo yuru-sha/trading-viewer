@@ -20,11 +20,7 @@ export interface User {
   role: 'user' | 'admin'
   isEmailVerified: boolean
   createdAt: string
-  profile: {
-    firstName?: string
-    lastName?: string
-    avatar?: string
-  }
+  avatar?: string
 }
 
 export interface AuthTokens {
@@ -49,13 +45,10 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string
   password: string
-  firstName?: string
-  lastName?: string
 }
 
 export interface UpdateProfileData {
-  firstName?: string
-  lastName?: string
+  name?: string
   avatar?: string
 }
 

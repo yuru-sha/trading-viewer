@@ -23,8 +23,7 @@ async function createAdminUser() {
       data: {
         email: 'admin@tradingviewer.com',
         passwordHash: passwordHash,
-        firstName: 'Admin',
-        lastName: 'User',
+        name: 'Admin User',
         role: 'admin',
         isEmailVerified: true,
       },

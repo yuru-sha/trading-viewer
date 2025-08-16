@@ -17,8 +17,7 @@ import AdvancedUserFilters, { UserFilters } from '../components/admin/AdvancedUs
 interface User {
   id: string
   email: string
-  firstName?: string
-  lastName?: string
+  name?: string
   role: 'admin' | 'user'
   isEmailVerified: boolean
   isActive: boolean
@@ -454,9 +453,7 @@ const AdminUsersPage: React.FC = () => {
                           </div>
                           <div className='ml-4'>
                             <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>
-                              {userData.firstName && userData.lastName
-                                ? `${userData.firstName} ${userData.lastName}`
-                                : userData.email}
+                              {userData.name || userData.email}
                             </div>
                             <div className='text-sm text-gray-500 dark:text-gray-400'>
                               {userData.email}

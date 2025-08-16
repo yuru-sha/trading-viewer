@@ -9,8 +9,7 @@ interface PasswordChangeForm {
 }
 
 interface ProfileForm {
-  firstName: string
-  lastName: string
+  name: string
 }
 
 const SettingsPage: React.FC = () => {
@@ -24,8 +23,7 @@ const SettingsPage: React.FC = () => {
   })
 
   const [profileForm, setProfileForm] = useState<ProfileForm>({
-    firstName: user?.profile?.firstName || '',
-    lastName: user?.profile?.lastName || '',
+    name: user?.name || '',
   })
 
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -70,8 +68,7 @@ const SettingsPage: React.FC = () => {
     setIsUpdatingProfile(true)
     try {
       await updateProfile({
-        firstName: profileForm.firstName,
-        lastName: profileForm.lastName,
+        name: profileForm.name,
       })
       showSuccess('Profile updated successfully')
     } catch (error) {
@@ -115,36 +112,22 @@ const SettingsPage: React.FC = () => {
 
               <div>
                 <label
-                  htmlFor='firstName'
+                  htmlFor='name'
                   className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
                 >
-                  First Name
+                  Display Name
                 </label>
                 <input
                   type='text'
-                  id='firstName'
-                  value={profileForm.firstName}
-                  onChange={e => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
+                  id='name'
+                  value={profileForm.name}
+                  onChange={e => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                  placeholder='Enter your first name'
+                  placeholder='Enter your display name (optional)'
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor='lastName'
-                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
-                >
-                  Last Name
-                </label>
-                <input
-                  type='text'
-                  id='lastName'
-                  value={profileForm.lastName}
-                  onChange={e => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                  placeholder='Enter your last name'
-                />
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                  This name will be displayed in the application
+                </p>
               </div>
 
               <div className='pt-4'>

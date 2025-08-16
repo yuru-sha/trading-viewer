@@ -9,8 +9,7 @@ interface DeleteUserModalProps {
   user: {
     id: string
     email: string
-    firstName?: string
-    lastName?: string
+    name?: string
     isActive: boolean
   } | null
   onUserDeleted: () => void
@@ -123,7 +122,7 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
 
   const getUserDisplayName = () => {
     if (!user) return ''
-    return user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email
+    return user.name || user.email
   }
 
   const getSeverityColor = (type: 'soft' | 'hard') => {

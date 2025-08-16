@@ -13,8 +13,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -66,19 +64,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
       newErrors.confirmPassword = 'パスワードが一致しません'
     }
 
-    // First name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = '名前は必須です'
-    } else if (formData.firstName.length > 50) {
-      newErrors.firstName = '名前は 50 文字以内で入力してください'
-    }
-
-    // Last name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = '苗字は必須です'
-    } else if (formData.lastName.length > 50) {
-      newErrors.lastName = '苗字は 50 文字以内で入力してください'
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -105,51 +90,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
   return (
     <div className='w-full max-w-md mx-auto'>
       <form onSubmit={handleSubmit} className='space-y-6'>
-        <div className='grid grid-cols-2 gap-4'>
-          <div>
-            <label htmlFor='firstName' className='block text-sm font-medium text-gray-700'>
-              名前
-            </label>
-            <input
-              id='firstName'
-              name='firstName'
-              type='text'
-              autoComplete='given-name'
-              required
-              value={formData.firstName}
-              onChange={handleInputChange}
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.firstName
-                  ? 'border-red-300 focus:border-red-500'
-                  : 'border-gray-300 focus:border-blue-500'
-              }`}
-              placeholder='太郎'
-            />
-            {errors.firstName && <p className='mt-1 text-sm text-red-600'>{errors.firstName}</p>}
-          </div>
-
-          <div>
-            <label htmlFor='lastName' className='block text-sm font-medium text-gray-700'>
-              苗字
-            </label>
-            <input
-              id='lastName'
-              name='lastName'
-              type='text'
-              autoComplete='family-name'
-              required
-              value={formData.lastName}
-              onChange={handleInputChange}
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.lastName
-                  ? 'border-red-300 focus:border-red-500'
-                  : 'border-gray-300 focus:border-blue-500'
-              }`}
-              placeholder='田中'
-            />
-            {errors.lastName && <p className='mt-1 text-sm text-red-600'>{errors.lastName}</p>}
-          </div>
-        </div>
 
         <div>
           <label htmlFor='email' className='block text-sm font-medium text-gray-700'>

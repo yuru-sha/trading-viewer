@@ -11,11 +11,6 @@ interface CreateUserModalProps {
 
 interface CreateUserData {
   email: string
-  firstName: string
-  lastName: string
-  phoneNumber?: string
-  department?: string
-  jobTitle?: string
   role: 'admin' | 'user'
   sendWelcomeEmail: boolean
   temporaryPassword?: string
@@ -25,11 +20,6 @@ interface CreateUserData {
 const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUserCreated }) => {
   const [formData, setFormData] = useState<CreateUserData>({
     email: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    department: '',
-    jobTitle: '',
     role: 'user',
     sendWelcomeEmail: true,
     temporaryPassword: '',
@@ -39,18 +29,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
   const { showError, showSuccess } = useError()
 
-  const departments = [
-    'Engineering',
-    'Marketing',
-    'Sales',
-    'Finance',
-    'Human Resources',
-    'Operations',
-    'Customer Support',
-    'Design',
-    'Product',
-    'Legal',
-  ]
 
   const handleInputChange = (field: keyof CreateUserData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -74,8 +52,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
 
   const validateForm = (): string | null => {
     if (!formData.email.trim()) return 'Email is required'
-    if (!formData.firstName.trim()) return 'First name is required'
-    if (!formData.lastName.trim()) return 'Last name is required'
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) return 'Please enter a valid email address'
@@ -136,11 +112,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
   const handleClose = () => {
     setFormData({
       email: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      department: '',
-      jobTitle: '',
       role: 'user',
       sendWelcomeEmail: true,
       temporaryPassword: '',
@@ -176,78 +147,9 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
                 required
               />
             </div>
-            <div className='grid grid-cols-2 gap-3'>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  First Name *
-                </label>
-                <Input
-                  value={formData.firstName}
-                  onChange={e => handleInputChange('firstName', e.target.value)}
-                  placeholder='John'
-                  required
-                />
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  Last Name *
-                </label>
-                <Input
-                  value={formData.lastName}
-                  onChange={e => handleInputChange('lastName', e.target.value)}
-                  placeholder='Doe'
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Phone Number
-              </label>
-              <Input
-                value={formData.phoneNumber || ''}
-                onChange={e => handleInputChange('phoneNumber', e.target.value)}
-                placeholder='+1 (555) 123-4567'
-              />
-            </div>
           </div>
         </div>
 
-        {/* Work Information */}
-        <div>
-          <h4 className='text-md font-semibold text-gray-900 dark:text-white mb-3'>
-            Work Information
-          </h4>
-          <div className='space-y-4'>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Department
-              </label>
-              <select
-                value={formData.department || ''}
-                onChange={e => handleInputChange('department', e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-              >
-                <option value=''>Select Department</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                Job Title
-              </label>
-              <Input
-                value={formData.jobTitle || ''}
-                onChange={e => handleInputChange('jobTitle', e.target.value)}
-                placeholder='Software Engineer'
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Account Settings */}
         <div>

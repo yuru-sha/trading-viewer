@@ -236,8 +236,6 @@ class AuthClient implements IAuthClient {
   async register(userData: {
     email: string
     password: string
-    firstName: string
-    lastName: string
   }): Promise<{
     user: any
     token: string

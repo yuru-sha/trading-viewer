@@ -36,8 +36,6 @@ export interface User {
   id: string
   email: string
   name: string | null
-  firstName: string | null
-  lastName: string | null
   avatar: string | null
   role: string
   isEmailVerified: boolean
