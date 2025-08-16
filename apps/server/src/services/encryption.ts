@@ -177,7 +177,7 @@ export class SymmetricEncryption {
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         severity: SecuritySeverity.WARNING,
         message: 'Decryption failed - possible tampering or wrong key',
-        metadata: { error: error.message },
+        metadata: { error: error instanceof Error ? error.message : String(error) },
       })
       throw new Error('Decryption failed')
     }
@@ -290,7 +290,7 @@ export class PasswordSecurity {
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         severity: SecuritySeverity.WARNING,
         message: 'Password verification error',
-        metadata: { error: error.message },
+        metadata: { error: error instanceof Error ? error.message : String(error) },
       })
       return false
     }

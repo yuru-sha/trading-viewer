@@ -388,7 +388,7 @@ export class SecurityConfigValidator {
           category: rule.category,
           description: rule.description,
           valid: false,
-          message: `Validation error: ${error.message}`,
+          message: `Validation error: ${error instanceof Error ? error.message : String(error)}`,
           remediation: rule.remediation,
         }
 
@@ -399,7 +399,7 @@ export class SecurityConfigValidator {
           eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
           severity: SecuritySeverity.HIGH,
           message: `Security validation error for rule: ${rule.name}`,
-          metadata: { rule: rule.name, error: error.message },
+          metadata: { rule: rule.name, error: error instanceof Error ? error.message : String(error) },
         })
       }
     }
@@ -474,7 +474,7 @@ export class SecurityConfigValidator {
             category: rule.category,
             description: rule.description,
             valid: false,
-            message: `Validation error: ${error.message}`,
+            message: `Validation error: ${error instanceof Error ? error.message : String(error)}`,
             remediation: rule.remediation,
           })
         }

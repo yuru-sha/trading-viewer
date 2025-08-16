@@ -18,6 +18,7 @@ export interface AuthenticatedWebSocket extends WebSocket {
   isAuthenticated?: boolean
   authTimestamp?: number
   subscriptionCount?: number
+  isAlive?: boolean
 }
 
 export interface SubscriptionData {
@@ -49,7 +50,7 @@ export class WebSocketService extends EventEmitter {
       maxPayload: 16 * 1024, // 16KB
       perMessageDeflate: false,
       clientTracking: true,
-      verifyClient: info => this.verifyClient(info),
+      verifyClient: (info: any) => this.verifyClient(info),
     })
 
     this.wss.on('connection', (ws: AuthenticatedWebSocket, req) => {

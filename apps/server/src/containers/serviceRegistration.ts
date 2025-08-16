@@ -3,8 +3,6 @@ import type {
   ISymbolService,
   IQuoteService,
   ICandleDataService,
-  IUserPreferencesService,
-  IDataManagementService,
 } from '../services/interfaces'
 
 /**
@@ -110,7 +108,7 @@ export function registerApplicationServices(): void {
   // Cache services (Singleton)
   registerService.singleton(
     SERVICE_NAMES.CACHE_SERVICE,
-    config => {
+    _config => {
       const { getCacheService } = require('../services/cacheService')
       return getCacheService()
     },
@@ -119,7 +117,7 @@ export function registerApplicationServices(): void {
 
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
-    config => {
+    _config => {
       const { getYahooFinanceService } = require('../services/yahooFinanceService')
       return getYahooFinanceService()
     },
@@ -168,7 +166,7 @@ export function registerApplicationServices(): void {
 
   registerService.scoped(
     SERVICE_NAMES.QUOTE_SERVICE,
-    (marketDataAdapter, cacheService, logger) => {
+    (marketDataAdapter, cacheService, _logger) => {
       return {
         getQuote: async (symbol: string, useCache: boolean = true) => {
           if (useCache) {
@@ -185,14 +183,14 @@ export function registerApplicationServices(): void {
           await cacheService.setQuote(symbol, quote)
           return quote
         },
-        getMultipleQuotes: async (symbols: string[], useCache: boolean = true) => {
+        getMultipleQuotes: async (symbols: string[], _useCache: boolean = true) => {
           return Promise.all(symbols.map(s => marketDataAdapter.getQuote(s)))
         },
-        subscribeToQuote: (symbol: string, callback: (quote: any) => void) => {
+        subscribeToQuote: (_symbol: string, _callback: (quote: any) => void) => {
           // WebSocket subscription logic
           return () => {} // Unsubscribe function
         },
-        isQuoteStale: async (symbol: string) => {
+        isQuoteStale: async (_symbol: string) => {
           // Check if cached quote is older than threshold
           return false // Simplified implementation
         },
@@ -203,7 +201,7 @@ export function registerApplicationServices(): void {
 
   registerService.scoped(
     SERVICE_NAMES.CANDLE_DATA_SERVICE,
-    (candleRepo, marketDataAdapter, cacheService, logger) => {
+    (candleRepo, marketDataAdapter, cacheService, _logger) => {
       return {
         getCandleData: async (
           symbol: string,
@@ -261,7 +259,7 @@ export function registerApplicationServices(): void {
   // WebSocket services (Singleton - maintain connections)
   registerService.singleton(
     SERVICE_NAMES.WEBSOCKET_SERVICE,
-    logger => {
+    _logger => {
       const { getWebSocketService } = require('../services/websocketService')
       return getWebSocketService()
     },

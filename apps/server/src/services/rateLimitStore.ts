@@ -123,7 +123,7 @@ export class RedisRateLimitStore implements RateLimitStore {
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         severity: SecuritySeverity.WARNING,
         message: 'Redis rate limit increment failed',
-        metadata: { error: error.message, key },
+        metadata: { error: error instanceof Error ? error.message : String(error), key },
       })
       throw error
     }
@@ -164,7 +164,7 @@ export class RedisRateLimitStore implements RateLimitStore {
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         severity: SecuritySeverity.WARNING,
         message: 'Redis rate limit get failed',
-        metadata: { error: error.message, key },
+        metadata: { error: error instanceof Error ? error.message : String(error), key },
       })
       return null
     }

@@ -47,21 +47,7 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// Strict rate limiter for authentication endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX_ATTEMPTS || '200'), // More reasonable limit for legitimate use
-  message: {
-    code: 'AUTH_RATE_LIMIT_EXCEEDED',
-    message: 'Too many authentication attempts. Please try again later.',
-    statusCode: 429,
-  },
-  skip: () => !isRateLimitingEnabled,
-  standardHeaders: true,
-  legacyHeaders: false,
-  // Skip successful requests - only count failed attempts would be ideal
-  // but express-rate-limit doesn't support this directly
-})
+// Rate limiting is configured per-route as needed
 
 // Moderate rate limiter for market data endpoints
 const marketDataLimiter = rateLimit({

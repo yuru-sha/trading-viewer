@@ -383,7 +383,7 @@ export function Injectable(name?: string, lifetime: ServiceLifetime = ServiceLif
  * Decorator for dependency injection
  */
 export function Inject(serviceName: string) {
-  return function (target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
+  return function (target: any, _propertyKey: string | symbol | undefined, parameterIndex: number) {
     // Store dependency information for later use
     const existingDeps = Reflect.getMetadata('dependencies', target) || []
     existingDeps[parameterIndex] = serviceName
@@ -405,7 +405,7 @@ export class ServiceLocator {
     return this.container.isRegistered(name)
   }
 
-  static setContainer(newContainer: ServiceContainer): void {
+  static setContainer(_newContainer: ServiceContainer): void {
     // Only allow in development/test environments
     if (process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION) {
       throw new Error('Cannot replace container in production environment')

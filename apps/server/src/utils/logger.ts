@@ -8,9 +8,9 @@ if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
-    integrations: [new Sentry.Integrations.Http({ tracing: true })],
+    integrations: [Sentry.httpIntegration({ tracing: true })],
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // Filter out sensitive data
       if (event.request?.cookies) {
         delete event.request.cookies
@@ -231,7 +231,7 @@ export const logPerformance = (operation: string, duration: number, meta?: any) 
   })
 
   if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
-    const transaction = Sentry.getCurrentHub().getScope()?.getTransaction()
+    const transaction = Sentry.getActiveTransaction()
     if (transaction) {
       const span = transaction.startChild({
         op: operation,
