@@ -1,4 +1,4 @@
-import { PrismaClient, Symbol, Prisma } from '@prisma/client'
+import { PrismaClient, Symbol, Prisma } from '@prisma/client/default'
 import { BaseRepository, NotFoundError, DuplicateError, FindManyOptions } from './BaseRepository'
 
 export interface ISymbolRepository {

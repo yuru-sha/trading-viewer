@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client/default'
 
 // Base repository interface for common CRUD operations
 export interface IBaseRepository<T, TCreate, TUpdate, TFilter = any> {

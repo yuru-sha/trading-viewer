@@ -106,7 +106,7 @@ export const generateTokens = async (
 
   // Store refresh token in database
   try {
-    const { PrismaClient } = await import('@prisma/client')
+    const { PrismaClient } = await import('@prisma/client/default')
     const prisma = new PrismaClient()
 
     await prisma.refreshToken.create({
@@ -153,7 +153,7 @@ export const verifyRefreshToken = async (token: string): Promise<{ userId: strin
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as { userId: string }
 
     // Check if token exists in database and is not revoked
-    const { PrismaClient } = await import('@prisma/client')
+    const { PrismaClient } = await import('@prisma/client/default')
     const prisma = new PrismaClient()
 
     const storedToken = await prisma.refreshToken.findUnique({
@@ -200,7 +200,7 @@ export const revokeToken = (token: string): void => {
 
 export const revokeRefreshToken = async (token: string): Promise<void> => {
   try {
-    const { PrismaClient } = await import('@prisma/client')
+    const { PrismaClient } = await import('@prisma/client/default')
     const prisma = new PrismaClient()
 
     await prisma.refreshToken.update({
@@ -214,7 +214,7 @@ export const revokeRefreshToken = async (token: string): Promise<void> => {
 
 export const revokeAllUserTokens = async (userId: string): Promise<void> => {
   try {
-    const { PrismaClient } = await import('@prisma/client')
+    const { PrismaClient } = await import('@prisma/client/default')
     const prisma = new PrismaClient()
 
     await prisma.refreshToken.updateMany({

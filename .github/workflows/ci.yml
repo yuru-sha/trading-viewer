@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared packages
+        run: pnpm --filter @trading-viewer/shared build
+
       - name: Lint check
         run: pnpm lint
 

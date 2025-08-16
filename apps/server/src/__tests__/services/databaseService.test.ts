@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client/default'
 import { DatabaseService, IDatabaseService } from '../../services/databaseService'
 
 // Mock PrismaClient
