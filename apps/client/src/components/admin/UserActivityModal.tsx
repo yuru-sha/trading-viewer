@@ -39,7 +39,12 @@ interface ActiveSession {
 interface SecurityEvent {
   id: string
   userId: string
-  eventType: 'login_failure' | 'password_change' | 'email_change' | 'account_locked' | 'suspicious_activity'
+  eventType:
+    | 'login_failure'
+    | 'password_change'
+    | 'email_change'
+    | 'account_locked'
+    | 'suspicious_activity'
   description: string
   ipAddress: string
   userAgent: string
@@ -53,11 +58,7 @@ interface UserActivityModalProps {
   userId: string | null
 }
 
-const UserActivityModal: React.FC<UserActivityModalProps> = ({
-  isOpen,
-  onClose,
-  userId,
-}) => {
+const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, userId }) => {
   const [activeTab, setActiveTab] = useState<'history' | 'sessions' | 'security'>('history')
   const [loginHistory, setLoginHistory] = useState<LoginHistory[]>([])
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([])
@@ -83,7 +84,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
 
     try {
       setLoading(true)
-      
+
       switch (activeTab) {
         case 'history':
           await fetchLoginHistory()
@@ -204,11 +205,11 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
   }
 
   const renderLoginHistory = () => (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {loginHistory.length === 0 ? (
-        <p className="text-center text-gray-500 py-8">No login history found</p>
+        <p className='text-center text-gray-500 py-8'>No login history found</p>
       ) : (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {loginHistory.map(entry => (
             <div
               key={entry.id}
@@ -218,9 +219,9 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
                   : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
+              <div className='flex items-start justify-between'>
+                <div className='flex-1'>
+                  <div className='flex items-center space-x-2'>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         entry.isSuccessful
@@ -230,19 +231,20 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
                     >
                       {entry.isSuccessful ? 'Success' : 'Failed'}
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className='text-sm text-gray-600 dark:text-gray-400'>
                       {formatDate(entry.loginAt)}
                     </span>
                   </div>
-                  <div className="mt-2 text-sm text-gray-800 dark:text-gray-200">
+                  <div className='mt-2 text-sm text-gray-800 dark:text-gray-200'>
                     <p>
-                      <strong>Location:</strong> {getLocationDisplay(entry.ipAddress, entry.location)}
+                      <strong>Location:</strong>{' '}
+                      {getLocationDisplay(entry.ipAddress, entry.location)}
                     </p>
                     <p>
                       <strong>Device:</strong> {getDeviceInfo(entry.userAgent, entry.deviceInfo)}
                     </p>
                     {!entry.isSuccessful && entry.failureReason && (
-                      <p className="text-red-600 dark:text-red-400">
+                      <p className='text-red-600 dark:text-red-400'>
                         <strong>Reason:</strong> {entry.failureReason}
                       </p>
                     )}
@@ -262,46 +264,47 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
   )
 
   const renderActiveSessions = () => (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {activeSessions.length > 0 && (
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button
             onClick={handleTerminateAllSessions}
             disabled={actionLoading === 'all'}
-            variant="secondary"
-            size="sm"
-            className="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200"
+            variant='secondary'
+            size='sm'
+            className='bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200'
           >
             {actionLoading === 'all' ? 'Terminating...' : 'Terminate All Sessions'}
           </Button>
         </div>
       )}
-      
+
       {activeSessions.length === 0 ? (
-        <p className="text-center text-gray-500 py-8">No active sessions found</p>
+        <p className='text-center text-gray-500 py-8'>No active sessions found</p>
       ) : (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {activeSessions.map(session => (
             <div
               key={session.id}
-              className="p-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+              className='p-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              <div className='flex items-start justify-between'>
+                <div className='flex-1'>
+                  <div className='flex items-center space-x-2 mb-2'>
+                    <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
                       Active
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className='text-sm text-gray-600 dark:text-gray-400'>
                       Created: {formatDate(session.createdAt)}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                  <div className='text-sm text-gray-800 dark:text-gray-200 space-y-1'>
                     <p>
                       <strong>IP Address:</strong> {session.ipAddress}
                     </p>
                     <p>
-                      <strong>Device:</strong> {getDeviceInfo(session.userAgent, session.deviceInfo)}
+                      <strong>Device:</strong>{' '}
+                      {getDeviceInfo(session.userAgent, session.deviceInfo)}
                     </p>
                     <p>
                       <strong>Last Activity:</strong> {formatDate(session.lastActivity)}
@@ -314,9 +317,9 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
                 <Button
                   onClick={() => handleTerminateSession(session.id)}
                   disabled={actionLoading === session.id}
-                  variant="secondary"
-                  size="sm"
-                  className="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200"
+                  variant='secondary'
+                  size='sm'
+                  className='bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200'
                 >
                   {actionLoading === session.id ? 'Terminating...' : 'Terminate'}
                 </Button>
@@ -329,35 +332,37 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
   )
 
   const renderSecurityEvents = () => (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {securityEvents.length === 0 ? (
-        <p className="text-center text-gray-500 py-8">No security events found</p>
+        <p className='text-center text-gray-500 py-8'>No security events found</p>
       ) : (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {securityEvents.map(event => (
             <div
               key={event.id}
-              className="p-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+              className='p-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(event.severity)}`}>
+              <div className='flex items-start justify-between'>
+                <div className='flex-1'>
+                  <div className='flex items-center space-x-2 mb-2'>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(event.severity)}`}
+                    >
                       {event.severity.toUpperCase()}
                     </span>
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    <span className='text-sm font-medium text-gray-800 dark:text-gray-200'>
                       {event.eventType.replace('_', ' ').toUpperCase()}
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className='text-sm text-gray-600 dark:text-gray-400'>
                       {formatDate(event.createdAt)}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                  <div className='text-sm text-gray-800 dark:text-gray-200 space-y-1'>
                     <p>{event.description}</p>
                     <p>
                       <strong>IP Address:</strong> {event.ipAddress}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>
                       User Agent: {event.userAgent.substring(0, 100)}
                       {event.userAgent.length > 100 ? '...' : ''}
                     </p>
@@ -372,11 +377,11 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
   )
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="User Activity & Security">
-      <div className="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose} title='User Activity & Security'>
+      <div className='max-w-4xl'>
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className='border-b border-gray-200 dark:border-gray-700 mb-6'>
+          <nav className='-mb-px flex space-x-8'>
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -389,7 +394,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 py-0.5 px-2 rounded-full text-xs">
+                  <span className='ml-2 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 py-0.5 px-2 rounded-full text-xs'>
                     {tab.count}
                   </span>
                 )}
@@ -399,11 +404,11 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="max-h-96 overflow-y-auto">
+        <div className='max-h-96 overflow-y-auto'>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className='flex items-center justify-center py-8'>
               <Loading />
-              <span className="ml-2">Loading {activeTab}...</span>
+              <span className='ml-2'>Loading {activeTab}...</span>
             </div>
           ) : (
             <div>

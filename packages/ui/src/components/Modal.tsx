@@ -69,7 +69,12 @@ export const Modal: React.FC<ModalProps> = ({
       className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 overflow-y-auto'
       onClick={handleOverlayClick}
     >
-      <div className={clsx('w-full bg-white dark:bg-gray-800 rounded-lg shadow-xl my-8', sizeClasses[size])}>
+      <div
+        className={clsx(
+          'w-full bg-white dark:bg-gray-800 rounded-lg shadow-xl my-8',
+          sizeClasses[size]
+        )}
+      >
         {title && (
           <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
             <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>{title}</h3>

@@ -40,12 +40,10 @@ interface NewGroupData {
   permissions: string[]
 }
 
-const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
-  isOpen,
-  onClose,
-  userId,
-}) => {
-  const [activeTab, setActiveTab] = useState<'permissions' | 'groups' | 'create-group'>('permissions')
+const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onClose, userId }) => {
+  const [activeTab, setActiveTab] = useState<'permissions' | 'groups' | 'create-group'>(
+    'permissions'
+  )
   const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null)
   const [allPermissions, setAllPermissions] = useState<Permission[]>([])
   const [allGroups, setAllGroups] = useState<UserGroup[]>([])
@@ -107,7 +105,9 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
 
   const fetchAllPermissions = async () => {
     try {
-      const response = await apiService.get<{ success: boolean; data: Permission[] }>('/auth/permissions')
+      const response = await apiService.get<{ success: boolean; data: Permission[] }>(
+        '/auth/permissions'
+      )
       if (response.success) {
         setAllPermissions(response.data)
       }
@@ -207,7 +207,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
       ...prev,
       permissions: prev.permissions.includes(permissionId)
         ? prev.permissions.filter(id => id !== permissionId)
-        : [...prev.permissions, permissionId]
+        : [...prev.permissions, permissionId],
     }))
   }
 
@@ -222,7 +222,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   const getPermissionSource = (permissionId: string) => {
     const isDirect = userPermissions?.directPermissions.some(p => p.id === permissionId)
     const fromGroups = userPermissions?.groupPermissions.filter(p => p.id === permissionId)
-    
+
     if (isDirect && fromGroups?.length) {
       return 'Direct + Groups'
     } else if (isDirect) {
@@ -234,71 +234,66 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   }
 
   const renderPermissionsTab = () => (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Direct Permissions */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-md font-medium text-gray-900 dark:text-white">
-            Direct Permissions
-          </h4>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+        <div className='flex items-center justify-between mb-4'>
+          <h4 className='text-md font-medium text-gray-900 dark:text-white'>Direct Permissions</h4>
+          <div className='flex items-center space-x-2'>
+            <span className='text-sm text-gray-600 dark:text-gray-400'>
               {selectedPermissions.size} selected
             </span>
-            <Button
-              onClick={handleSavePermissions}
-              disabled={saving}
-              size="sm"
-            >
+            <Button onClick={handleSavePermissions} disabled={saving} size='sm'>
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {permissionCategories.map(category => {
             const categoryPermissions = getPermissionsByCategory(allPermissions, category)
             if (categoryPermissions.length === 0) return null
 
             return (
-              <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg">
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <h5 className="text-sm font-medium text-gray-900 dark:text-white">
-                    {category}
-                  </h5>
+              <div
+                key={category}
+                className='border border-gray-200 dark:border-gray-700 rounded-lg'
+              >
+                <div className='px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700'>
+                  <h5 className='text-sm font-medium text-gray-900 dark:text-white'>{category}</h5>
                 </div>
-                <div className="p-4 space-y-3">
+                <div className='p-4 space-y-3'>
                   {categoryPermissions.map(permission => (
-                    <div key={permission.id} className="flex items-start space-x-3">
+                    <div key={permission.id} className='flex items-start space-x-3'>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         id={`perm-${permission.id}`}
                         checked={selectedPermissions.has(permission.id)}
                         onChange={() => handlePermissionToggle(permission.id)}
                         disabled={permission.isSystem}
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                       />
-                      <div className="flex-1 min-w-0">
+                      <div className='flex-1 min-w-0'>
                         <label
                           htmlFor={`perm-${permission.id}`}
-                          className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                          className='text-sm font-medium text-gray-900 dark:text-white cursor-pointer'
                         >
                           {permission.name}
                           {permission.isSystem && (
-                            <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            <span className='ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'>
                               System
                             </span>
                           )}
                         </label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
                           {permission.description}
                         </p>
                         {isPermissionEffective(permission.id) && (
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          <div className='flex items-center space-x-2 mt-1'>
+                            <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
                               Active
                             </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className='text-xs text-gray-500 dark:text-gray-400'>
                               Source: {getPermissionSource(permission.id)}
                             </span>
                           </div>
@@ -316,73 +311,70 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   )
 
   const renderGroupsTab = () => (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* User Groups */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-md font-medium text-gray-900 dark:text-white">
-            User Groups
-          </h4>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+        <div className='flex items-center justify-between mb-4'>
+          <h4 className='text-md font-medium text-gray-900 dark:text-white'>User Groups</h4>
+          <div className='flex items-center space-x-2'>
+            <span className='text-sm text-gray-600 dark:text-gray-400'>
               {selectedGroups.size} groups assigned
             </span>
-            <Button
-              onClick={handleSavePermissions}
-              disabled={saving}
-              size="sm"
-            >
+            <Button onClick={handleSavePermissions} disabled={saving} size='sm'>
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {allGroups.map(group => (
-            <div key={group.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
+            <div
+              key={group.id}
+              className='border border-gray-200 dark:border-gray-700 rounded-lg p-4'
+            >
+              <div className='flex items-start space-x-3'>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   id={`group-${group.id}`}
                   checked={selectedGroups.has(group.id)}
                   onChange={() => handleGroupToggle(group.id)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
+                <div className='flex-1 min-w-0'>
+                  <div className='flex items-center space-x-2'>
                     <label
                       htmlFor={`group-${group.id}`}
-                      className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                      className='text-sm font-medium text-gray-900 dark:text-white cursor-pointer'
                     >
                       {group.name}
                     </label>
                     {group.isDefault && (
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'>
                         Default
                       </span>
                     )}
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className='text-xs text-gray-500 dark:text-gray-400'>
                       {group.userCount} users
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
                     {group.description}
                   </p>
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <div className='mt-2'>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1'>
                       Permissions ({group.permissions.length}):
                     </p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className='flex flex-wrap gap-1'>
                       {group.permissions.slice(0, 5).map(permission => (
                         <span
                           key={permission.id}
-                          className="inline-flex px-2 py-1 text-xs rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                          className='inline-flex px-2 py-1 text-xs rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                         >
                           {permission.name}
                         </span>
                       ))}
                       {group.permissions.length > 5 && (
-                        <span className="inline-flex px-2 py-1 text-xs rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                        <span className='inline-flex px-2 py-1 text-xs rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'>
                           +{group.permissions.length - 5} more
                         </span>
                       )}
@@ -398,31 +390,29 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   )
 
   const renderCreateGroupTab = () => (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Group Details */}
       <div>
-        <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-          Create New Group
-        </h4>
-        <div className="space-y-4">
+        <h4 className='text-md font-medium text-gray-900 dark:text-white mb-4'>Create New Group</h4>
+        <div className='space-y-4'>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
               Group Name *
             </label>
             <Input
               value={newGroup.name}
               onChange={e => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter group name"
+              placeholder='Enter group name'
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
               Description
             </label>
             <Input
               value={newGroup.description}
               onChange={e => setNewGroup(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter group description"
+              placeholder='Enter group description'
             />
           </div>
         </div>
@@ -430,45 +420,46 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
 
       {/* Group Permissions */}
       <div>
-        <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+        <h4 className='text-md font-medium text-gray-900 dark:text-white mb-4'>
           Group Permissions ({newGroup.permissions.length} selected)
         </h4>
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {permissionCategories.map(category => {
             const categoryPermissions = getPermissionsByCategory(allPermissions, category)
             if (categoryPermissions.length === 0) return null
 
             return (
-              <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-lg">
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <h5 className="text-sm font-medium text-gray-900 dark:text-white">
-                    {category}
-                  </h5>
+              <div
+                key={category}
+                className='border border-gray-200 dark:border-gray-700 rounded-lg'
+              >
+                <div className='px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700'>
+                  <h5 className='text-sm font-medium text-gray-900 dark:text-white'>{category}</h5>
                 </div>
-                <div className="p-4 space-y-3">
+                <div className='p-4 space-y-3'>
                   {categoryPermissions.map(permission => (
-                    <div key={permission.id} className="flex items-start space-x-3">
+                    <div key={permission.id} className='flex items-start space-x-3'>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         id={`new-perm-${permission.id}`}
                         checked={newGroup.permissions.includes(permission.id)}
                         onChange={() => handleNewGroupPermissionToggle(permission.id)}
                         disabled={permission.isSystem}
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                       />
-                      <div className="flex-1 min-w-0">
+                      <div className='flex-1 min-w-0'>
                         <label
                           htmlFor={`new-perm-${permission.id}`}
-                          className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                          className='text-sm font-medium text-gray-900 dark:text-white cursor-pointer'
                         >
                           {permission.name}
                           {permission.isSystem && (
-                            <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            <span className='ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'>
                               System
                             </span>
                           )}
                         </label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
                           {permission.description}
                         </p>
                       </div>
@@ -482,11 +473,8 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
       </div>
 
       {/* Create Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleCreateGroup}
-          disabled={saving || !newGroup.name.trim()}
-        >
+      <div className='flex justify-end'>
+        <Button onClick={handleCreateGroup} disabled={saving || !newGroup.name.trim()}>
           {saving ? 'Creating...' : 'Create Group'}
         </Button>
       </div>
@@ -494,11 +482,11 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   )
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="User Permissions & Groups">
-      <div className="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose} title='User Permissions & Groups'>
+      <div className='max-w-4xl'>
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className='border-b border-gray-200 dark:border-gray-700 mb-6'>
+          <nav className='-mb-px flex space-x-8'>
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -517,11 +505,11 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="max-h-96 overflow-y-auto">
+        <div className='max-h-96 overflow-y-auto'>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className='flex items-center justify-center py-8'>
               <Loading />
-              <span className="ml-2">Loading permissions...</span>
+              <span className='ml-2'>Loading permissions...</span>
             </div>
           ) : (
             <div>

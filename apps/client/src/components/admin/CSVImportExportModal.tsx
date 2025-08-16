@@ -68,7 +68,8 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
         showError('Please select a CSV file')
         return
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
+        // 10MB limit
         showError('File size must be less than 10MB')
         return
       }
@@ -142,16 +143,16 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
         }
       }
 
-      const response = await apiService.get(
-        `/auth/users/export?${params.toString()}`,
-        {
-          responseType: 'blob',
-        }
-      )
+      const response = await apiService.get(`/auth/users/export?${params.toString()}`, {
+        responseType: 'blob',
+      })
 
       // Create download link
-      const blob = new Blob([response.data], { 
-        type: exportOptions.format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      const blob = new Blob([response.data], {
+        type:
+          exportOptions.format === 'csv'
+            ? 'text/csv'
+            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -201,19 +202,17 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
   }
 
   const renderImportTab = () => (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Template Download */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <div className="flex items-start justify-between">
+      <div className='p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
+        <div className='flex items-start justify-between'>
           <div>
-            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-              CSV Template
-            </h4>
-            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+            <h4 className='text-sm font-medium text-blue-800 dark:text-blue-200'>CSV Template</h4>
+            <p className='text-sm text-blue-700 dark:text-blue-300 mt-1'>
               Download the template file to see the required format for user imports.
             </p>
           </div>
-          <Button onClick={handleDownloadTemplate} variant="secondary" size="sm">
+          <Button onClick={handleDownloadTemplate} variant='secondary' size='sm'>
             Download Template
           </Button>
         </div>
@@ -221,36 +220,36 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
 
       {/* File Upload */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
           Select CSV File
         </label>
-        <div className="flex items-center space-x-3">
+        <div className='flex items-center space-x-3'>
           <input
             ref={fileInputRef}
-            type="file"
-            accept=".csv"
+            type='file'
+            accept='.csv'
             onChange={handleFileSelect}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className='block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
           />
           {importFile && (
-            <Button onClick={handleClearFile} variant="secondary" size="sm">
+            <Button onClick={handleClearFile} variant='secondary' size='sm'>
               Clear
             </Button>
           )}
         </div>
         {importFile && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+          <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
             Selected: {importFile.name} ({(importFile.size / 1024).toFixed(1)} KB)
           </p>
         )}
       </div>
 
       {/* Import Instructions */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+      <div className='p-4 bg-gray-50 dark:bg-gray-800 rounded-lg'>
+        <h4 className='text-sm font-medium text-gray-900 dark:text-white mb-2'>
           Import Instructions
         </h4>
-        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+        <ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
           <li>• File must be in CSV format with headers</li>
           <li>• Email addresses must be unique and valid</li>
           <li>• Required fields: email, firstName, lastName, role</li>
@@ -263,48 +262,48 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
 
       {/* Import Results */}
       {importResult && (
-        <div className="space-y-4">
-          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+        <div className='space-y-4'>
+          <div className='p-4 border border-gray-200 dark:border-gray-700 rounded-lg'>
+            <h4 className='text-md font-medium text-gray-900 dark:text-white mb-3'>
               Import Results
             </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-gray-900 dark:text-white'>
                   {importResult.totalRows}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Rows</div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>Total Rows</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-green-600 dark:text-green-400'>
                   {importResult.successfulImports}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Successful</div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>Successful</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-red-600 dark:text-red-400'>
                   {importResult.failedImports}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Failed</div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>Failed</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-yellow-600 dark:text-yellow-400'>
                   {importResult.warnings.length}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Warnings</div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>Warnings</div>
               </div>
             </div>
           </div>
 
           {/* Errors */}
           {importResult.errors.length > 0 && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <h5 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+            <div className='p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+              <h5 className='text-sm font-medium text-red-800 dark:text-red-200 mb-2'>
                 Import Errors ({importResult.errors.length})
               </h5>
-              <div className="max-h-40 overflow-y-auto space-y-2">
+              <div className='max-h-40 overflow-y-auto space-y-2'>
                 {importResult.errors.map((error, index) => (
-                  <div key={index} className="text-sm text-red-700 dark:text-red-300">
+                  <div key={index} className='text-sm text-red-700 dark:text-red-300'>
                     Row {error.row}: {error.field} = "{error.value}" - {error.error}
                   </div>
                 ))}
@@ -314,13 +313,13 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
 
           {/* Warnings */}
           {importResult.warnings.length > 0 && (
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <h5 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+            <div className='p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg'>
+              <h5 className='text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2'>
                 Warnings ({importResult.warnings.length})
               </h5>
-              <div className="max-h-40 overflow-y-auto space-y-1">
+              <div className='max-h-40 overflow-y-auto space-y-1'>
                 {importResult.warnings.map((warning, index) => (
-                  <div key={index} className="text-sm text-yellow-700 dark:text-yellow-300">
+                  <div key={index} className='text-sm text-yellow-700 dark:text-yellow-300'>
                     {warning}
                   </div>
                 ))}
@@ -331,11 +330,8 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
       )}
 
       {/* Import Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleImport}
-          disabled={!importFile || importing}
-        >
+      <div className='flex justify-end'>
+        <Button onClick={handleImport} disabled={!importFile || importing}>
           {importing ? 'Importing...' : 'Import Users'}
         </Button>
       </div>
@@ -343,37 +339,51 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
   )
 
   const renderExportTab = () => (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Export Options */}
       <div>
-        <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
-          Export Options
-        </h4>
-        
+        <h4 className='text-md font-medium text-gray-900 dark:text-white mb-3'>Export Options</h4>
+
         {/* Data Inclusion */}
-        <div className="space-y-3 mb-4">
-          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Include Data
-          </h5>
-          <div className="space-y-2">
+        <div className='space-y-3 mb-4'>
+          <h5 className='text-sm font-medium text-gray-700 dark:text-gray-300'>Include Data</h5>
+          <div className='space-y-2'>
             {[
-              { key: 'includePersonalInfo', label: 'Personal Information', description: 'Name, email, phone' },
-              { key: 'includeWorkInfo', label: 'Work Information', description: 'Department, job title' },
-              { key: 'includeSecurityInfo', label: 'Security Information', description: 'Login attempts, locks' },
-              { key: 'includeActivityInfo', label: 'Activity Information', description: 'Last login, creation date' },
+              {
+                key: 'includePersonalInfo',
+                label: 'Personal Information',
+                description: 'Name, email, phone',
+              },
+              {
+                key: 'includeWorkInfo',
+                label: 'Work Information',
+                description: 'Department, job title',
+              },
+              {
+                key: 'includeSecurityInfo',
+                label: 'Security Information',
+                description: 'Login attempts, locks',
+              },
+              {
+                key: 'includeActivityInfo',
+                label: 'Activity Information',
+                description: 'Last login, creation date',
+              },
             ].map(option => (
-              <label key={option.key} className="flex items-start space-x-3">
+              <label key={option.key} className='flex items-start space-x-3'>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   checked={exportOptions[option.key as keyof ExportOptions] as boolean}
-                  onChange={e => updateExportOption(option.key as keyof ExportOptions, e.target.checked)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  onChange={e =>
+                    updateExportOption(option.key as keyof ExportOptions, e.target.checked)
+                  }
+                  className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                 />
                 <div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className='text-xs text-gray-600 dark:text-gray-400'>
                     {option.description}
                   </div>
                 </div>
@@ -383,51 +393,49 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
         </div>
 
         {/* Date Range */}
-        <div className="space-y-3 mb-4">
-          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div className='space-y-3 mb-4'>
+          <h5 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
             Date Range (for activity data)
           </h5>
-          <div className="space-y-2">
+          <div className='space-y-2'>
             {[
               { value: 'all', label: 'All time' },
               { value: 'last30', label: 'Last 30 days' },
               { value: 'last90', label: 'Last 90 days' },
               { value: 'custom', label: 'Custom range' },
             ].map(option => (
-              <label key={option.value} className="flex items-center space-x-2">
+              <label key={option.value} className='flex items-center space-x-2'>
                 <input
-                  type="radio"
-                  name="dateRange"
+                  type='radio'
+                  name='dateRange'
                   value={option.value}
                   checked={exportOptions.dateRange === option.value}
                   onChange={e => updateExportOption('dateRange', e.target.value as any)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
                 />
-                <span className="text-sm text-gray-900 dark:text-white">
-                  {option.label}
-                </span>
+                <span className='text-sm text-gray-900 dark:text-white'>{option.label}</span>
               </label>
             ))}
           </div>
 
           {exportOptions.dateRange === 'custom' && (
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className='grid grid-cols-2 gap-3 mt-3'>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
                   Start Date
                 </label>
                 <Input
-                  type="date"
+                  type='date'
                   value={exportOptions.customStartDate || ''}
                   onChange={e => updateExportOption('customStartDate', e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
                   End Date
                 </label>
                 <Input
-                  type="date"
+                  type='date'
                   value={exportOptions.customEndDate || ''}
                   onChange={e => updateExportOption('customEndDate', e.target.value)}
                 />
@@ -437,29 +445,35 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
         </div>
 
         {/* Format */}
-        <div className="space-y-3">
-          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Export Format
-          </h5>
-          <div className="space-y-2">
+        <div className='space-y-3'>
+          <h5 className='text-sm font-medium text-gray-700 dark:text-gray-300'>Export Format</h5>
+          <div className='space-y-2'>
             {[
-              { value: 'csv', label: 'CSV (Comma Separated Values)', description: 'Compatible with Excel, Google Sheets' },
-              { value: 'xlsx', label: 'Excel (XLSX)', description: 'Native Excel format with formatting' },
+              {
+                value: 'csv',
+                label: 'CSV (Comma Separated Values)',
+                description: 'Compatible with Excel, Google Sheets',
+              },
+              {
+                value: 'xlsx',
+                label: 'Excel (XLSX)',
+                description: 'Native Excel format with formatting',
+              },
             ].map(option => (
-              <label key={option.value} className="flex items-start space-x-2">
+              <label key={option.value} className='flex items-start space-x-2'>
                 <input
-                  type="radio"
-                  name="format"
+                  type='radio'
+                  name='format'
                   value={option.value}
                   checked={exportOptions.format === option.value}
                   onChange={e => updateExportOption('format', e.target.value as any)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
                 />
                 <div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className='text-xs text-gray-600 dark:text-gray-400'>
                     {option.description}
                   </div>
                 </div>
@@ -470,11 +484,8 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
       </div>
 
       {/* Export Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleExport}
-          disabled={exporting}
-        >
+      <div className='flex justify-end'>
+        <Button onClick={handleExport} disabled={exporting}>
           {exporting ? 'Exporting...' : 'Export Users'}
         </Button>
       </div>
@@ -482,11 +493,11 @@ admin@example.com,Admin,User,,IT,System Administrator,admin,true`
   )
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="CSV Import/Export">
-      <div className="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={handleClose} title='CSV Import/Export'>
+      <div className='max-w-2xl'>
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className='border-b border-gray-200 dark:border-gray-700 mb-6'>
+          <nav className='-mb-px flex space-x-8'>
             {[
               { id: 'import', label: 'Import Users', icon: '📥' },
               { id: 'export', label: 'Export Users', icon: '📤' },

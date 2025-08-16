@@ -102,7 +102,7 @@ const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) =>
       {/* Notification Bell */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className='relative p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded-md'
+        className='relative p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800'
         aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
       >
         <Icon name='bell' className='w-6 h-6' />
@@ -158,10 +158,7 @@ const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) =>
                           <p className='text-sm font-medium text-gray-900 dark:text-white truncate'>
                             {notification.title}
                           </p>
-                          <Icon
-                            name='trendingUp'
-                            className='w-4 h-4 text-orange-500 flex-shrink-0 ml-2'
-                          />
+                          <Icon name='trending' className='w-4 h-4 flex-shrink-0 ml-2' />
                         </div>
 
                         <p className='text-sm text-gray-600 dark:text-gray-300 mt-1'>

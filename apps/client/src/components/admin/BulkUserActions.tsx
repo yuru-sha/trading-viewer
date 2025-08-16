@@ -79,12 +79,16 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
       setLoading(true)
       setActionType('export')
 
-      const response = await apiService.post('/auth/users/export', {
-        userIds: selectedUsers,
-        format: 'csv',
-      }, {
-        responseType: 'blob',
-      })
+      const response = await apiService.post(
+        '/auth/users/export',
+        {
+          userIds: selectedUsers,
+          format: 'csv',
+        },
+        {
+          responseType: 'blob',
+        }
+      )
 
       // Create download link
       const blob = new Blob([response.data], { type: 'text/csv' })
@@ -160,79 +164,79 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
   }
 
   return (
-    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+    <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center space-x-3'>
+          <span className='text-sm font-medium text-blue-800 dark:text-blue-200'>
             {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
           </span>
-          <Button onClick={onClearSelection} variant="secondary" size="sm">
+          <Button onClick={onClearSelection} variant='secondary' size='sm'>
             Clear Selection
           </Button>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className='flex items-center space-x-2'>
           {/* Status Actions */}
-          <div className="flex items-center space-x-1">
+          <div className='flex items-center space-x-1'>
             <Button
               onClick={() => handleBulkAction('activate')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200"
+              variant='secondary'
+              size='sm'
+              className='bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200'
             >
               {isLoading('activate') ? 'Activating...' : 'Activate'}
             </Button>
             <Button
               onClick={() => handleBulkAction('deactivate')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200"
+              variant='secondary'
+              size='sm'
+              className='bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200'
             >
               {isLoading('deactivate') ? 'Deactivating...' : 'Deactivate'}
             </Button>
           </div>
 
           {/* Role Actions */}
-          <div className="flex items-center space-x-1">
+          <div className='flex items-center space-x-1'>
             <Button
               onClick={() => handleBulkAction('makeAdmin')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200"
+              variant='secondary'
+              size='sm'
+              className='bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200'
             >
               {isLoading('makeAdmin') ? 'Processing...' : 'Make Admin'}
             </Button>
             <Button
               onClick={() => handleBulkAction('makeUser')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200"
+              variant='secondary'
+              size='sm'
+              className='bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200'
             >
               {isLoading('makeUser') ? 'Processing...' : 'Make User'}
             </Button>
           </div>
 
           {/* Security Actions */}
-          <div className="flex items-center space-x-1">
+          <div className='flex items-center space-x-1'>
             <Button
               onClick={() => handleBulkAction('unlock')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200"
+              variant='secondary'
+              size='sm'
+              className='bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200'
             >
               {isLoading('unlock') ? 'Unlocking...' : 'Unlock'}
             </Button>
             <Button
               onClick={() => handleBulkAction('resetPassword')}
               disabled={loading}
-              variant="secondary"
-              size="sm"
-              className="bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-200"
+              variant='secondary'
+              size='sm'
+              className='bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-200'
             >
               {isLoading('resetPassword') ? 'Sending...' : 'Reset Password'}
             </Button>
@@ -242,20 +246,15 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
           <Button
             onClick={() => handleBulkAction('resendVerification')}
             disabled={loading}
-            variant="secondary"
-            size="sm"
-            className="bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
+            variant='secondary'
+            size='sm'
+            className='bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200'
           >
             {isLoading('resendVerification') ? 'Sending...' : 'Resend Verification'}
           </Button>
 
           {/* Export Action */}
-          <Button
-            onClick={handleExportUsers}
-            disabled={loading}
-            variant="secondary"
-            size="sm"
-          >
+          <Button onClick={handleExportUsers} disabled={loading} variant='secondary' size='sm'>
             {isLoading('export') ? 'Exporting...' : 'Export CSV'}
           </Button>
 
@@ -263,9 +262,9 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
           <Button
             onClick={() => handleBulkAction('delete')}
             disabled={loading}
-            variant="secondary"
-            size="sm"
-            className="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200"
+            variant='secondary'
+            size='sm'
+            className='bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200'
           >
             {isLoading('delete') ? 'Deleting...' : 'Delete'}
           </Button>
@@ -273,8 +272,8 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
       </div>
 
       {loading && (
-        <div className="mt-3 flex items-center text-sm text-blue-600 dark:text-blue-400">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+        <div className='mt-3 flex items-center text-sm text-blue-600 dark:text-blue-400'>
+          <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2'></div>
           Processing {actionType} action for {selectedUsers.length} users...
         </div>
       )}

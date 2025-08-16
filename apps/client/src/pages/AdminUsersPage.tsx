@@ -79,7 +79,10 @@ const AdminUsersPage: React.FC = () => {
   const [advancedFilters, setAdvancedFilters] = useState<UserFilters | null>(null)
 
   // Modal states
-  const [userDetailModal, setUserDetailModal] = useState<{ isOpen: boolean; userId: string | null }>({
+  const [userDetailModal, setUserDetailModal] = useState<{
+    isOpen: boolean
+    userId: string | null
+  }>({
     isOpen: false,
     userId: null,
   })
@@ -88,7 +91,10 @@ const AdminUsersPage: React.FC = () => {
     isOpen: false,
     user: null,
   })
-  const [userActivityModal, setUserActivityModal] = useState<{ isOpen: boolean; userId: string | null }>({
+  const [userActivityModal, setUserActivityModal] = useState<{
+    isOpen: boolean
+    userId: string | null
+  }>({
     isOpen: false,
     userId: null,
   })
@@ -97,7 +103,10 @@ const AdminUsersPage: React.FC = () => {
     userId: null,
   })
   const [csvModal, setCsvModal] = useState(false)
-  const [permissionsModal, setPermissionsModal] = useState<{ isOpen: boolean; userId: string | null }>({
+  const [permissionsModal, setPermissionsModal] = useState<{
+    isOpen: boolean
+    userId: string | null
+  }>({
     isOpen: false,
     userId: null,
   })
@@ -243,10 +252,8 @@ const AdminUsersPage: React.FC = () => {
   }
 
   const handleUserSelect = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     )
   }
 
@@ -280,20 +287,17 @@ const AdminUsersPage: React.FC = () => {
   return (
     <div className='container mx-auto px-4 py-8'>
       <div className='max-w-7xl mx-auto'>
-        <div className="flex items-center justify-between mb-8">
+        <div className='flex items-center justify-between mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>User Management</h1>
-          <div className="flex items-center space-x-3">
+          <div className='flex items-center space-x-3'>
             <Button
               onClick={() => setCreateUserModal(true)}
-              className="bg-green-600 hover:bg-green-700"
+              className='bg-green-600 hover:bg-green-700'
             >
               <Icon name='add' className='w-4 h-4 mr-2' />
               Create User
             </Button>
-            <Button
-              onClick={() => setCsvModal(true)}
-              variant="secondary"
-            >
+            <Button onClick={() => setCsvModal(true)} variant='secondary'>
               Import/Export
             </Button>
           </div>
@@ -338,7 +342,9 @@ const AdminUsersPage: React.FC = () => {
 
         {/* Basic Filters */}
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6'>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Basic Filters</h2>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
+            Basic Filters
+          </h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <div>
               <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
@@ -403,10 +409,10 @@ const AdminUsersPage: React.FC = () => {
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         checked={selectedUsers.length === users.length && users.length > 0}
                         onChange={handleSelectAll}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                       />
                     </th>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
@@ -431,10 +437,10 @@ const AdminUsersPage: React.FC = () => {
                     <tr key={userData.id} className='hover:bg-gray-50 dark:hover:bg-gray-700'>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={selectedUsers.includes(userData.id)}
                           onChange={() => handleUserSelect(userData.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                         />
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
@@ -499,7 +505,9 @@ const AdminUsersPage: React.FC = () => {
                         <div className='flex flex-wrap gap-1'>
                           {/* View Details */}
                           <button
-                            onClick={() => setUserDetailModal({ isOpen: true, userId: userData.id })}
+                            onClick={() =>
+                              setUserDetailModal({ isOpen: true, userId: userData.id })
+                            }
                             className='px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800'
                           >
                             View
@@ -507,7 +515,9 @@ const AdminUsersPage: React.FC = () => {
 
                           {/* Activity */}
                           <button
-                            onClick={() => setUserActivityModal({ isOpen: true, userId: userData.id })}
+                            onClick={() =>
+                              setUserActivityModal({ isOpen: true, userId: userData.id })
+                            }
                             className='px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-200 dark:hover:bg-indigo-800'
                           >
                             Activity
@@ -523,7 +533,9 @@ const AdminUsersPage: React.FC = () => {
 
                           {/* Permissions */}
                           <button
-                            onClick={() => setPermissionsModal({ isOpen: true, userId: userData.id })}
+                            onClick={() =>
+                              setPermissionsModal({ isOpen: true, userId: userData.id })
+                            }
                             className='px-2 py-1 rounded text-xs font-medium bg-teal-100 text-teal-700 hover:bg-teal-200 dark:bg-teal-900 dark:text-teal-200 dark:hover:bg-teal-800'
                           >
                             Permissions
@@ -657,7 +669,6 @@ const AdminUsersPage: React.FC = () => {
           onClose={() => setPermissionsModal({ isOpen: false, userId: null })}
           userId={permissionsModal.userId}
         />
-
       </div>
     </div>
   )

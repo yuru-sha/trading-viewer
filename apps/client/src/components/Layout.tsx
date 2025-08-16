@@ -197,7 +197,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <Icon
                   name={state.theme === 'dark' ? 'sun' : 'moon'}
-                  className={`w-5 h-5 ${state.theme === 'dark' ? 'text-yellow-500' : 'text-blue-600'}`}
+                  className='w-5 h-5 text-gray-600 dark:text-gray-400'
                 />
               </button>
 
