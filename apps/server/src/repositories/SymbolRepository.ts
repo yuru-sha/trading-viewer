@@ -79,13 +79,13 @@ export class SymbolRepository
 
     if (filter) {
       if (filter.symbol) {
-        where.symbol = { contains: filter.symbol, mode: 'insensitive' }
+        where.symbol = { contains: filter.symbol }
       }
       if (filter.type) {
         where.type = filter.type
       }
       if (filter.description) {
-        where.description = { contains: filter.description, mode: 'insensitive' }
+        where.description = { contains: filter.description }
       }
     }
 
@@ -101,9 +101,9 @@ export class SymbolRepository
     return await this.prisma.symbol.findMany({
       where: {
         OR: [
-          { symbol: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-          { displaySymbol: { contains: query, mode: 'insensitive' } },
+          { symbol: { contains: query } },
+          { description: { contains: query } },
+          { displaySymbol: { contains: query } },
         ],
       },
       take: limit,
@@ -147,13 +147,13 @@ export class SymbolRepository
 
     if (filter) {
       if (filter.symbol) {
-        where.symbol = { contains: filter.symbol, mode: 'insensitive' }
+        where.symbol = { contains: filter.symbol }
       }
       if (filter.type) {
         where.type = filter.type
       }
       if (filter.description) {
-        where.description = { contains: filter.description, mode: 'insensitive' }
+        where.description = { contains: filter.description }
       }
     }
 

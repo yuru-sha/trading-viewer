@@ -186,7 +186,6 @@ export class CandleRepository
   async bulkCreate(data: CandleCreateInput[]): Promise<number> {
     const result = await this.prisma.candle.createMany({
       data,
-      skipDuplicates: true,
     })
     return result.count
   }

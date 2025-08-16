@@ -37,9 +37,10 @@ export interface NormalizedCandleResponse {
 }
 
 export interface ApiError {
-  error: string
-  message?: string
-  code?: string
+  error?: string
+  message: string
+  code: string
+  statusCode?: number
 }
 
 export interface RateLimitInfo {

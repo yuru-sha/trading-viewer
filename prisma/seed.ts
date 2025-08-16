@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -103,21 +104,78 @@ async function main() {
 
   console.log(`✅ Created ${aaplCandles.length} candle records for AAPL`)
 
-  // Sample user preferences
-  const sampleUser = await prisma.user.upsert({
-    where: { email: 'demo@tradingviewer.com' },
-    update: {},
+  // Sample users with passwords
+  const adminPasswordHash = await bcrypt.hash('Admin123!', 12)
+  const userPasswordHash = await bcrypt.hash('user123', 12)
+
+  // Create admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@tradingviewer.com' },
+    update: {
+      passwordHash: adminPasswordHash,
+      role: 'admin',
+      name: 'Admin User',
+      isEmailVerified: true,
+    },
     create: {
-      email: 'demo@tradingviewer.com',
-      name: 'Demo User',
+      email: 'admin@tradingviewer.com',
+      passwordHash: adminPasswordHash,
+      name: 'Admin User',
+      role: 'admin',
+      isEmailVerified: true,
     },
   })
 
+  // Create test user (matching login screen demo)
+  const testPasswordHash = await bcrypt.hash('password123', 12)
+  const testUser = await prisma.user.upsert({
+    where: { email: 'test@example.com' },
+    update: {
+      passwordHash: testPasswordHash,
+      name: 'Test User',
+      role: 'user',
+      isEmailVerified: true,
+    },
+    create: {
+      email: 'test@example.com',
+      passwordHash: testPasswordHash,
+      name: 'Test User',
+      role: 'user',
+      isEmailVerified: true,
+    },
+  })
+
+  // Create default watchlist for demo user
+  const defaultWatchlist = [
+    { symbol: 'AAPL', name: 'Apple Inc.' },
+    { symbol: 'MSFT', name: 'Microsoft Corporation' },
+    { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+    { symbol: 'TSLA', name: 'Tesla, Inc.' },
+    { symbol: 'NVDA', name: 'NVIDIA Corporation' },
+  ]
+
+  for (const item of defaultWatchlist) {
+    await prisma.watchlist.upsert({
+      where: {
+        userId_symbol: {
+          userId: testUser.id,
+          symbol: item.symbol,
+        },
+      },
+      update: {},
+      create: {
+        userId: testUser.id,
+        symbol: item.symbol,
+        name: item.name,
+      },
+    })
+  }
+
   await prisma.userPreferences.upsert({
-    where: { userId: sampleUser.id },
+    where: { userId: testUser.id },
     update: {},
     create: {
-      userId: sampleUser.id,
+      userId: testUser.id,
       theme: 'dark',
       chartType: 'candlestick',
       timeframe: '1D',
@@ -128,7 +186,9 @@ async function main() {
     },
   })
 
-  console.log('✅ Created sample user and preferences')
+  console.log('✅ Created admin and test users with preferences')
+  console.log('📧 Admin: admin@tradingviewer.com / Admin123!')
+  console.log('📧 Test User: test@example.com / password123')
   console.log('🎉 Database seeding completed successfully!')
 }
 

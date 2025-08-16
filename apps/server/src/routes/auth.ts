@@ -161,14 +161,14 @@ const resetFailedLogin = async (userId: string): Promise<void> => {
 }
 
 // Helper function to create user response (without password)
-const createUserResponse = (user: User) => ({
+const createUserResponse = (user: any) => ({
   id: user.id,
   email: user.email,
   name: user.name,
   firstName: user.firstName,
   lastName: user.lastName,
   avatar: user.avatar,
-  role: user.role,
+  role: user.role as 'user' | 'admin',
   isEmailVerified: user.isEmailVerified,
   lastLoginAt: user.lastLoginAt,
   createdAt: user.createdAt,
@@ -249,7 +249,7 @@ router.post(
     const tokens = await generateTokens({
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as 'user' | 'admin',
     })
 
     // Set cookies
@@ -323,7 +323,7 @@ router.post(
       const tokens = await generateTokens({
         userId: user.id,
         email: user.email,
-        role: user.role,
+        role: user.role as 'user' | 'admin',
       })
 
       // Set cookies
@@ -397,7 +397,7 @@ router.post(
     const tokens = await generateTokens({
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role as 'user' | 'admin',
     })
 
     // Set new cookies
@@ -411,13 +411,11 @@ router.post(
         user: {
           id: user.id,
           email: user.email,
-          role: user.role,
+          role: user.role as 'user' | 'admin',
           isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
-          profile: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
+          firstName: user.firstName,
+          lastName: user.lastName,
         },
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
         refreshTokenExpiresAt: tokens.refreshTokenExpiresAt,
@@ -472,13 +470,11 @@ router.get(
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: user.role as 'user' | 'admin',
           isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
-          profile: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
+          firstName: user.firstName,
+          lastName: user.lastName,
         },
       },
     })
@@ -1025,7 +1021,7 @@ router.post(
     // Log the action
     securityLogger.logRequest(
       req,
-      SecurityEventType.ACCOUNT_UNLOCK,
+      SecurityEventType.ACCOUNT_UNLOCKED,
       `User ${user.email} unlocked by admin ${req.user!.email}`,
       SecuritySeverity.INFO,
       { targetUserId: userId, targetEmail: user.email }
@@ -1124,10 +1120,8 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
             isEmailVerified: true,
             createdAt: new Date(),
             updatedAt: new Date(),
-            profile: {
-              firstName: testUser.firstName,
-              lastName: testUser.lastName,
-            },
+            firstName: testUser.firstName,
+            lastName: testUser.lastName,
           }
           users.set(userId, user)
           usersByEmail.set(testUser.email, user)

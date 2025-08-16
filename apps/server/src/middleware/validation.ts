@@ -41,7 +41,7 @@ export function validateRequest<T extends z.ZodTypeAny>(
         const errorDetails = result.error.issues.map(issue => ({
           field: issue.path.join('.'),
           message: issue.message,
-          received: issue.received,
+          code: issue.code,
         }))
 
         return res.status(400).json({
@@ -75,7 +75,7 @@ export function validateCombined(paramsSchema: z.ZodTypeAny, querySchema: z.ZodT
         const errorDetails = paramsResult.error.issues.map(issue => ({
           field: `params.${issue.path.join('.')}`,
           message: issue.message,
-          received: issue.received,
+          code: issue.code,
         }))
 
         return res.status(400).json({
@@ -92,7 +92,7 @@ export function validateCombined(paramsSchema: z.ZodTypeAny, querySchema: z.ZodT
         const errorDetails = queryResult.error.issues.map(issue => ({
           field: `query.${issue.path.join('.')}`,
           message: issue.message,
-          received: issue.received,
+          code: issue.code,
         }))
 
         return res.status(400).json({

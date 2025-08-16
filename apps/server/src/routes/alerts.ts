@@ -1,12 +1,12 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 import { validateRequest } from '../middleware/errorHandling.js'
-import { requireAuth } from '../middleware/auth.js'
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 const CreateAlertSchema = z
   .object({
@@ -27,7 +27,7 @@ const UpdateAlertSchema = z.object({
 })
 
 // GET /api/alerts - Get user's alerts
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {
@@ -62,7 +62,7 @@ router.get('/', requireAuth, async (req, res) => {
 })
 
 // GET /api/alerts/:symbol - Get alerts for specific symbol
-router.get('/:symbol', requireAuth, async (req, res) => {
+router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     const { symbol } = req.params
@@ -102,7 +102,7 @@ router.get('/:symbol', requireAuth, async (req, res) => {
 })
 
 // POST /api/alerts - Create new alert
-router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), async (req, res) => {
+router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     if (!userId) {
@@ -149,7 +149,7 @@ router.post('/', requireAuth, validateRequest({ body: CreateAlertSchema }), asyn
 })
 
 // PUT /api/alerts/:id - Update alert
-router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), async (req, res) => {
+router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     const { id } = req.params
@@ -184,7 +184,7 @@ router.put('/:id', requireAuth, validateRequest({ body: UpdateAlertSchema }), as
 })
 
 // DELETE /api/alerts/:id - Delete alert
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.userId
     const { id } = req.params
@@ -214,7 +214,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
 })
 
 // POST /api/alerts/:id/trigger - Mark alert as triggered (internal use)
-router.post('/:id/trigger', requireAuth, async (req, res) => {
+router.post('/:id/trigger', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params
 

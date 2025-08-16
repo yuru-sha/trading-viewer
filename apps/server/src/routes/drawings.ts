@@ -12,7 +12,17 @@ import type {
   DeleteDrawingToolRequest,
   DeleteDrawingToolResponse,
 } from '@trading-viewer/shared'
-import { DrawingTool, DrawingPoint, DrawingStyle } from '@trading-viewer/shared'
+import { DrawingObject, DrawingToolType, DrawingPoint, DrawingStyle } from '@trading-viewer/shared'
+
+// Define DrawingTool interface locally since it's not in shared types
+interface DrawingTool {
+  id: string
+  type: DrawingToolType
+  points: DrawingPoint[]
+  style: DrawingStyle
+  createdAt: Date
+  updatedAt: Date
+}
 
 const router = Router()
 
