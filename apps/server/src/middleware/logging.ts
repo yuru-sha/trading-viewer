@@ -23,7 +23,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
 }
 
 // Error logging middleware
-export function errorLogger(error: any, req: Request, res: Response, next: NextFunction) {
+export function errorLogger(error: any, req: Request, _res: Response, next: NextFunction) {
   console.error('Request Error:', {
     method: req.method,
     url: req.originalUrl,

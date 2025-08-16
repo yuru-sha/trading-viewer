@@ -37,7 +37,7 @@ class PerformanceMonitor {
   private readonly maxMetrics = 1000
   private readonly slowQueryThreshold = 1000 // 1 second
   private readonly memoryThresholdMB = 500
-  private cpuUsageHistory: Array<{ user: number; system: number; timestamp: number }> = []
+  private _cpuUsageHistory: Array<{ user: number; system: number; timestamp: number }> = []
   private startTime = Date.now()
 
   public recordMetric(metric: PerformanceMetrics): void {
@@ -153,7 +153,7 @@ class PerformanceMonitor {
 
   public clearMetrics(): void {
     this.metrics = []
-    this.cpuUsageHistory = []
+    this._cpuUsageHistory = []
   }
 
   public getHealthScore(): {
@@ -245,7 +245,7 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
 }
 
 // Route handlers for performance data
-export const getPerformanceStats = (req: Request, res: Response): void => {
+export const getPerformanceStats = (_req: Request, res: Response): void => {
   try {
     const stats = performanceMonitor.getStats()
     res.json({
@@ -262,7 +262,7 @@ export const getPerformanceStats = (req: Request, res: Response): void => {
   }
 }
 
-export const getSystemMetrics = (req: Request, res: Response): void => {
+export const getSystemMetrics = (_req: Request, res: Response): void => {
   try {
     const metrics = performanceMonitor.getSystemMetrics()
     res.json({
@@ -279,7 +279,7 @@ export const getSystemMetrics = (req: Request, res: Response): void => {
   }
 }
 
-export const getHealthScore = (req: Request, res: Response): void => {
+export const getHealthScore = (_req: Request, res: Response): void => {
   try {
     const health = performanceMonitor.getHealthScore()
     const status = health.score >= 80 ? 'healthy' : health.score >= 60 ? 'degraded' : 'unhealthy'
@@ -301,7 +301,7 @@ export const getHealthScore = (req: Request, res: Response): void => {
   }
 }
 
-export const clearPerformanceData = (req: Request, res: Response): void => {
+export const clearPerformanceData = (_req: Request, res: Response): void => {
   try {
     performanceMonitor.clearMetrics()
     res.json({

@@ -151,11 +151,12 @@ export class AuthorizationService {
     try {
       return await checker.checkOwnership(userId, resourceId)
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown ownership check error'
       securityLogger.log({
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         severity: SecuritySeverity.WARNING,
         message: 'Ownership check failed',
-        metadata: { resourceType, userId, resourceId, error: error.message },
+        metadata: { resourceType, userId, resourceId, error: errorMessage },
       })
       return false
     }
@@ -201,7 +202,7 @@ export const requirePermission = (
   action: Action,
   getResourceId?: (req: AuthenticatedRequest) => string | undefined
 ) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required')
@@ -277,7 +278,7 @@ export const requireOwnership = (
 }
 
 export const requireAdmin = () => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required')

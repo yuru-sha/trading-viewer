@@ -11,6 +11,7 @@ WORKDIR /app
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY package.json ./
+COPY tsconfig.json ./
 
 # Copy Prisma files
 COPY prisma ./prisma

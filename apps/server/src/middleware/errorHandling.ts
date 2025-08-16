@@ -195,7 +195,7 @@ export const globalErrorHandler = (
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   const { category, severity } = classifyError(error)
   const requestId = req.headers['x-request-id'] as string
@@ -261,14 +261,14 @@ export const asyncHandler = (fn: Function) => {
 }
 
 // 404 handler
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction): void => {
+export const notFoundHandler = (req: Request, _res: Response, next: NextFunction): void => {
   const error = new NotFoundError(`Route ${req.method} ${req.path}`)
   next(error)
 }
 
 // Request validation middleware
 export const validateRequest = (schema: any) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (schema.body) {
         req.body = schema.body.parse(req.body)

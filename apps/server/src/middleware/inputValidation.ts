@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { z, ZodSchema, ZodError } from 'zod'
+import { ZodSchema, ZodError } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 import { AuthenticatedRequest } from './auth'
 import { ValidationError } from './errorHandling'
@@ -9,7 +9,7 @@ import { securityLogger, SecurityEventType, SecuritySeverity } from '../services
 const INJECTION_PATTERNS = {
   // SQL Injection patterns
   SQL_INJECTION: [
-    /('|(\\')|(;)|(\|\|)|(\*)|(%27)|(%3D)|(sp_executesql)/i,
+    /('|'|;|\|\||\*|%27|%3D|sp_executesql)/i,
     /(union\s+select|insert\s+into|delete\s+from|update\s+set|drop\s+table|create\s+table)/i,
     /(\bselect\b.*\bfrom\b|\binsert\b|\bupdate\b|\bdelete\b|\bdrop\b|\bcreate\b|\balter\b)/i,
     /(exec(\s|\+)+(s|x) p\w+|execute(\s|\+)+(s|x) p\w+)/i,
@@ -347,12 +347,13 @@ export const validateAndSanitizeInput = (
 
       next()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown validation error'
       securityLogger.logRequest(
         req as AuthenticatedRequest,
         SecurityEventType.SUSPICIOUS_ACTIVITY,
-        `Input validation failed: ${error.message}`,
+        `Input validation failed: ${errorMessage}`,
         SecuritySeverity.HIGH,
-        { error: error.message }
+        { error: errorMessage }
       )
 
       res.status(400).json({
@@ -370,7 +371,7 @@ export const validateRequest = (schemas: {
   query?: ZodSchema
   params?: ZodSchema
 }) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       const errors: any = {}
 
