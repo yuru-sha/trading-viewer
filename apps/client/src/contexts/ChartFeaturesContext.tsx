@@ -5,6 +5,7 @@ import { useChartSettings } from '../hooks/useChartSettings'
 import { useIndicators } from '../hooks/useIndicators'
 import { useChartWatchlist } from '../hooks/useChartWatchlist'
 import { useChartAlerts } from '../hooks/useChartAlerts'
+import { useChartControlsContext } from './ChartControlsContext'
 
 interface ChartFeaturesContextType {
   // Chart Settings
@@ -18,7 +19,7 @@ interface ChartFeaturesContextType {
   setShowFooter: (show: boolean) => void
 
   // Indicators
-  indicatorsManager: ReturnType<typeof useIndicators>
+  indicatorsQuery: ReturnType<typeof useIndicators>
 
   // Watchlist
   watchlistState: ReturnType<typeof useChartWatchlist>[0]
@@ -53,6 +54,10 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
   children,
   currentSymbol,
 }) => {
+  // Get timeframe from chart controls context
+  const { controlsState } = useChartControlsContext()
+  const selectedTimeframe = controlsState.selectedTimeframe
+
   // Chart settings hook
   const {
     chartSettings,
@@ -63,8 +68,8 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
     setShowFooter,
   } = useChartSettings()
 
-  // Indicators management hook
-  const indicatorsManager = useIndicators()
+  // Indicators management hook (API integrated) - now with timeframe
+  const indicatorsQuery = useIndicators(currentSymbol, selectedTimeframe)
 
   // Watchlist management hook
   const [watchlistState, watchlistActions] = useChartWatchlist(currentSymbol)
@@ -102,7 +107,7 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
     setShowFooter,
 
     // Indicators
-    indicatorsManager,
+    indicatorsQuery,
 
     // Watchlist
     watchlistState,

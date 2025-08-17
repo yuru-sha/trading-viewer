@@ -131,11 +131,23 @@ export class YahooFinanceService {
         open: quote.regularMarketOpen || quote.regularMarketPrice || 0,
         previousClose: quote.regularMarketPreviousClose || quote.regularMarketPrice || 0,
         volume: quote.regularMarketVolume || 0,
-        marketCap: quote.marketCap,
-        currency: quote.currency || 'USD', // Default to USD if not available
-        exchangeTimezoneName: quote.exchangeTimezoneName,
-        exchangeName: quote.fullExchangeName || quote.exchange,
         timestamp: Date.now(),
+      }
+
+      // Optional プロパティは値が存在する場合のみ設定
+      if (quote.marketCap !== undefined) {
+        quoteData.marketCap = quote.marketCap
+      }
+      if (quote.currency !== undefined) {
+        quoteData.currency = quote.currency
+      }
+      if (quote.exchangeTimezoneName !== undefined) {
+        quoteData.exchangeTimezoneName = quote.exchangeTimezoneName
+      }
+      if (quote.fullExchangeName !== undefined) {
+        quoteData.exchangeName = quote.fullExchangeName
+      } else if (quote.exchange !== undefined) {
+        quoteData.exchangeName = quote.exchange
       }
 
       // Cache the result
@@ -227,22 +239,38 @@ export class YahooFinanceService {
         return [await this.getQuote(symbols[0])]
       }
 
-      return results.map(quote => ({
-        symbol: quote.symbol || '',
-        currentPrice: quote.regularMarketPrice || 0,
-        change: quote.regularMarketChange || 0,
-        changePercent: quote.regularMarketChangePercent || 0,
-        high: quote.regularMarketDayHigh || quote.regularMarketPrice || 0,
-        low: quote.regularMarketDayLow || quote.regularMarketPrice || 0,
-        open: quote.regularMarketOpen || quote.regularMarketPrice || 0,
-        previousClose: quote.regularMarketPreviousClose || quote.regularMarketPrice || 0,
-        volume: quote.regularMarketVolume || 0,
-        marketCap: quote.marketCap,
-        currency: quote.currency || 'USD',
-        exchangeTimezoneName: quote.exchangeTimezoneName,
-        exchangeName: quote.fullExchangeName || quote.exchange,
-        timestamp: Date.now(),
-      }))
+      return results.map(quote => {
+        const quoteData: YahooQuoteData = {
+          symbol: quote.symbol || '',
+          currentPrice: quote.regularMarketPrice || 0,
+          change: quote.regularMarketChange || 0,
+          changePercent: quote.regularMarketChangePercent || 0,
+          high: quote.regularMarketDayHigh || quote.regularMarketPrice || 0,
+          low: quote.regularMarketDayLow || quote.regularMarketPrice || 0,
+          open: quote.regularMarketOpen || quote.regularMarketPrice || 0,
+          previousClose: quote.regularMarketPreviousClose || quote.regularMarketPrice || 0,
+          volume: quote.regularMarketVolume || 0,
+          timestamp: Date.now(),
+        }
+
+        // Optional プロパティは値が存在する場合のみ設定
+        if (quote.marketCap !== undefined) {
+          quoteData.marketCap = quote.marketCap
+        }
+        if (quote.currency !== undefined) {
+          quoteData.currency = quote.currency
+        }
+        if (quote.exchangeTimezoneName !== undefined) {
+          quoteData.exchangeTimezoneName = quote.exchangeTimezoneName
+        }
+        if (quote.fullExchangeName !== undefined) {
+          quoteData.exchangeName = quote.fullExchangeName
+        } else if (quote.exchange !== undefined) {
+          quoteData.exchangeName = quote.exchange
+        }
+
+        return quoteData
+      })
     } catch (error) {
       console.error(`Yahoo Finance multiple quotes API error:`, error)
       throw new Error(

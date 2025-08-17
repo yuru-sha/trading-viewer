@@ -86,6 +86,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       activeDrawingTool: drawingTools?.activeToolType,
       theme: state.theme,
       symbol,
+      timeframe,
       currentPrice,
       graphicElements: generateGraphicElements(),
       showPeriodHigh,

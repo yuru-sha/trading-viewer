@@ -86,9 +86,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
         >
           {/* User Info */}
           <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
-            <p className='text-sm font-medium text-gray-900 dark:text-white'>
-              {displayName}
-            </p>
+            <p className='text-sm font-medium text-gray-900 dark:text-white'>{displayName}</p>
             <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>{user.email}</p>
             {user.role === 'admin' && (
               <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mt-2'>

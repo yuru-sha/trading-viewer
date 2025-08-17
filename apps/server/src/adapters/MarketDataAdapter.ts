@@ -53,7 +53,9 @@ export abstract class BaseMarketDataAdapter implements IMarketDataProvider {
   constructor(name: string, baseUrl: string, apiKey?: string) {
     this.name = name
     this.baseUrl = baseUrl
-    this.apiKey = apiKey
+    if (apiKey !== undefined) {
+      this.apiKey = apiKey
+    }
   }
 
   abstract searchSymbols(query: string, limit?: number): Promise<NormalizedSymbol[]>

@@ -174,9 +174,7 @@ const UserProfile: React.FC = () => {
                     <input
                       type='text'
                       value={profileForm.name}
-                      onChange={e =>
-                        setProfileForm(prev => ({ ...prev, name: e.target.value }))
-                      }
+                      onChange={e => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder='表示名（任意）'
                       className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'
                     />

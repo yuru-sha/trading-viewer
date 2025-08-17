@@ -194,6 +194,7 @@ export interface UserIndicator {
   id: string
   userId: string
   symbol: string
+  timeframe: string
   type: IndicatorType
   name: string
   parameters: Record<string, any>
@@ -207,6 +208,7 @@ export interface UserIndicator {
 // API Request/Response Types
 export interface CreateIndicatorRequest {
   symbol: string
+  timeframe?: string
   type: IndicatorType
   name: string
   parameters: Record<string, any>

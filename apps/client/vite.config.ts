@@ -80,10 +80,20 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['echarts', 'echarts-for-react'],
+          charts: ['echarts/core', 'echarts-for-react'],
+          'charts-components': [
+            'echarts/charts',
+            'echarts/components',
+            'echarts/renderers',
+            'echarts/features',
+          ],
           query: ['@tanstack/react-query'],
+          ui: ['@trading-viewer/ui'],
+          shared: ['@trading-viewer/shared'],
         },
       },
     },
+    // チャンク分割の最適化
+    chunkSizeWarningLimit: 1000,
   },
 })

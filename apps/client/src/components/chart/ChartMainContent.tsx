@@ -1,18 +1,15 @@
 import React from 'react'
-import { useChartContext } from '../../contexts/ChartContext'
+import { useChartSymbol } from '../../contexts/ChartSymbolContext'
+import { useChartControlsContext } from '../../contexts/ChartControlsContext'
+import { useChartFeatures } from '../../contexts/ChartFeaturesContext'
 import ChartContainer from './ChartContainer'
 import ChartLoadingState from './ChartLoadingState'
 import ChartErrorState from './ChartErrorState'
 
 const ChartMainContent: React.FC = () => {
-  const {
-    symbolState,
-    symbolActions,
-    controlsState,
-    chartSettings,
-    showDrawingTools,
-    chartInstanceRef,
-  } = useChartContext()
+  const { symbolState, symbolActions } = useChartSymbol()
+  const { controlsState } = useChartControlsContext()
+  const { chartSettings, showDrawingTools, chartInstanceRef } = useChartFeatures()
 
   if (symbolState.loading) {
     return <ChartLoadingState symbol={symbolState.currentSymbol} />

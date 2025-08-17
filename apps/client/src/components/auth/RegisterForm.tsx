@@ -64,7 +64,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
       newErrors.confirmPassword = 'パスワードが一致しません'
     }
 
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -90,7 +89,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
   return (
     <div className='w-full max-w-md mx-auto'>
       <form onSubmit={handleSubmit} className='space-y-6'>
-
         <div>
           <label htmlFor='email' className='block text-sm font-medium text-gray-700'>
             メールアドレス

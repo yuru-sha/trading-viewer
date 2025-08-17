@@ -244,7 +244,6 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </div>
             </div>
 
-
             {/* Preferences */}
             <div>
               <h4 className='text-md font-semibold text-gray-900 dark:text-white mb-3'>

@@ -202,7 +202,11 @@ export class WebSocketService extends EventEmitter {
       symbol,
       clientId,
       ws,
-      userId: ws.userId,
+    }
+
+    // Optional プロパティは値が存在する場合のみ設定
+    if (ws.userId) {
+      subscriptionData.userId = ws.userId
     }
 
     const symbolSubscriptions = this.subscriptions.get(symbol)!

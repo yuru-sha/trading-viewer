@@ -108,7 +108,7 @@ app.get('/health', async (_req, res) => {
   }
 
   const dbHealthy = await checkDatabaseHealth()
-  res.json({
+  return res.json({
     status: dbHealthy ? 'ok' : 'error',
     database: dbHealthy ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
@@ -173,7 +173,7 @@ app.get('/api/ws/stats', (_req, res) => {
 
 // 404 handler
 app.use('*', (_req, res) => {
-  res.status(404).json({ error: 'Route not found' })
+  return res.status(404).json({ error: 'Route not found' })
 })
 
 // Error handling middleware
@@ -185,7 +185,7 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
   }
 
   // Default error response
-  res.status(500).json({
+  return res.status(500).json({
     code: 'INTERNAL_SERVER_ERROR',
     message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
     statusCode: 500,

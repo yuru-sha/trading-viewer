@@ -73,7 +73,7 @@ export class MarketDataService implements IMarketDataService {
 
     // 4. データ品質チェックと保存
     if (newData.length > 0) {
-      const validData = []
+      const validData: MarketDataEntity[] = []
       for (const data of newData) {
         if (await this.dataQualityService.validateMarketData(data)) {
           validData.push(data)

@@ -233,10 +233,7 @@ class AuthClient implements IAuthClient {
     throw new Error('Not implemented - integrate with existing auth system')
   }
 
-  async register(userData: {
-    email: string
-    password: string
-  }): Promise<{
+  async register(userData: { email: string; password: string }): Promise<{
     user: any
     token: string
   }> {

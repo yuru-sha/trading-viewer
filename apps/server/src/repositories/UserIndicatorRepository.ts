@@ -3,6 +3,7 @@ import { PrismaClient, UserIndicator, Prisma } from '@prisma/client'
 export interface CreateUserIndicatorData {
   userId: string
   symbol: string
+  timeframe?: string
   type: string
   name: string
   parameters: Record<string, any>
@@ -27,6 +28,7 @@ export class UserIndicatorRepository {
       data: {
         userId: data.userId,
         symbol: data.symbol,
+        timeframe: data.timeframe ?? 'D',
         type: data.type,
         name: data.name,
         parameters: JSON.stringify(data.parameters),
@@ -57,16 +59,25 @@ export class UserIndicatorRepository {
     })
   }
 
-  async findByUserIdSymbolAndName(
+  async findByUserIdSymbolAndTimeframe(userId: string, symbol: string, timeframe: string): Promise<UserIndicator[]> {
+    return await this.prisma.userIndicator.findMany({
+      where: { userId, symbol, timeframe },
+      orderBy: { position: 'asc' },
+    })
+  }
+
+  async findByUserIdSymbolTimeframeAndName(
     userId: string,
     symbol: string,
+    timeframe: string,
     name: string
   ): Promise<UserIndicator | null> {
     return await this.prisma.userIndicator.findUnique({
       where: {
-        userId_symbol_name: {
+        userId_symbol_timeframe_name: {
           userId,
           symbol,
+          timeframe,
           name,
         },
       },
@@ -96,16 +107,18 @@ export class UserIndicatorRepository {
     })
   }
 
-  async deleteByUserIdSymbolAndName(
+  async deleteByUserIdSymbolTimeframeAndName(
     userId: string,
     symbol: string,
+    timeframe: string,
     name: string
   ): Promise<UserIndicator> {
     return await this.prisma.userIndicator.delete({
       where: {
-        userId_symbol_name: {
+        userId_symbol_timeframe_name: {
           userId,
           symbol,
+          timeframe,
           name,
         },
       },
@@ -121,6 +134,7 @@ export class UserIndicatorRepository {
   async updatePositions(
     userId: string,
     symbol: string,
+    timeframe: string,
     positions: Array<{ id: string; position: number }>
   ): Promise<void> {
     await this.prisma.$transaction(
@@ -148,6 +162,7 @@ export class UserIndicatorRepository {
       data: data.map(item => ({
         userId: item.userId,
         symbol: item.symbol,
+        timeframe: item.timeframe ?? 'D',
         type: item.type,
         name: item.name,
         parameters: JSON.stringify(item.parameters),

@@ -85,8 +85,8 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
       autoSaveInterval: 1000,
     })
 
-    // Get indicators for the current symbol
-    const { data: indicators = [] } = useIndicators(symbol)
+    // Get indicators for the current symbol and timeframe
+    const { data: indicators = [] } = useIndicators(symbol, timeframe)
 
     // Drawing toolbar ref to close objects panel
     const drawingToolbarRef = React.useRef<LeftDrawingToolbarRef>(null)

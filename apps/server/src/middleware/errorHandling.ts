@@ -24,9 +24,13 @@ export class AppError extends Error implements ApiError {
     super(message)
     this.name = 'AppError'
     this.statusCode = statusCode
-    this.code = code
     this.details = details
     this.isOperational = isOperational
+
+    // Optional プロパティは値が存在する場合のみ設定
+    if (code !== undefined) {
+      this.code = code
+    }
 
     Error.captureStackTrace(this, this.constructor)
   }

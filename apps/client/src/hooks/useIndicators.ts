@@ -13,11 +13,15 @@ import { useAuth } from '../contexts/AuthContext'
 const API_BASE = '/api'
 
 // API functions
-const createFetchIndicators = (getCSRFToken: () => Promise<string>) => 
-  async (symbol?: string): Promise<UserIndicator[]> => {
+const createFetchIndicators =
+  (getCSRFToken: () => Promise<string>) =>
+  async (symbol?: string, timeframe?: string): Promise<UserIndicator[]> => {
     let url = `${API_BASE}/indicators`
-    if (symbol) {
-      url += `?symbol=${encodeURIComponent(symbol)}`
+    const params = new URLSearchParams()
+    if (symbol) params.append('symbol', symbol)
+    if (timeframe) params.append('timeframe', timeframe)
+    if (params.toString()) {
+      url += `?${params.toString()}`
     }
 
     const headers: Record<string, string> = {
@@ -29,7 +33,7 @@ const createFetchIndicators = (getCSRFToken: () => Promise<string>) =>
       const csrfToken = await getCSRFToken()
       headers['x-csrf-token'] = csrfToken
     } catch (error) {
-      console.warn('Failed to get CSRF token:', error)
+      console.warn('⚠️ createFetchIndicators: Failed to get CSRF token:', error)
     }
 
     const response = await fetch(url, {
@@ -39,10 +43,15 @@ const createFetchIndicators = (getCSRFToken: () => Promise<string>) =>
     })
 
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ createFetchIndicators: Error response:', response.status, errorText)
       throw new Error('Failed to fetch indicators')
     }
 
     const data = await response.json()
+    if (data.data && data.data.length > 0) {
+      console.log('✅ createFetchIndicators: Found', data.data.length, 'indicators for', symbol)
+    }
     return data.data || []
   }
 
@@ -60,6 +69,12 @@ const fetchIndicator = async (id: string): Promise<UserIndicator> => {
 }
 
 const createIndicator = async (indicator: CreateIndicatorRequest): Promise<UserIndicator> => {
+  console.log('🔍 createIndicator: Making API request:', {
+    url: `${API_BASE}/indicators`,
+    method: 'POST',
+    body: indicator,
+  })
+
   const response = await fetch(`${API_BASE}/indicators`, {
     method: 'POST',
     headers: {
@@ -69,12 +84,20 @@ const createIndicator = async (indicator: CreateIndicatorRequest): Promise<UserI
     body: JSON.stringify(indicator),
   })
 
+  console.log('🔍 createIndicator: Response received:', {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok,
+  })
+
   if (!response.ok) {
     const error = await response.json()
+    console.error('❌ createIndicator: API error:', error)
     throw new Error(error.error || 'Failed to create indicator')
   }
 
   const data = await response.json()
+  console.log('✅ createIndicator: Success:', data)
   return data.data
 }
 
@@ -116,6 +139,12 @@ const deleteIndicator = async (id: string): Promise<void> => {
 }
 
 const calculateIndicator = async (request: CalculateIndicatorRequest): Promise<IndicatorResult> => {
+  console.log('🔍 calculateIndicator: Making API request:', {
+    url: `${API_BASE}/indicators/calculate`,
+    method: 'POST',
+    body: request,
+  })
+
   const response = await fetch(`${API_BASE}/indicators/calculate`, {
     method: 'POST',
     headers: {
@@ -125,24 +154,35 @@ const calculateIndicator = async (request: CalculateIndicatorRequest): Promise<I
     body: JSON.stringify(request),
   })
 
+  console.log('🔍 calculateIndicator: Response received:', {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok,
+  })
+
   if (!response.ok) {
     const error = await response.json()
+    console.error('❌ calculateIndicator: API error:', error)
     throw new Error(error.error || 'Failed to calculate indicator')
   }
 
   const data = await response.json()
+  console.log('✅ calculateIndicator: Success:', data)
   return data.data
 }
 
 const updateIndicatorPositions = async ({
   symbol,
+  timeframe = 'D',
   positions,
 }: {
   symbol: string
+  timeframe?: string
   positions: UpdatePositionsRequest['positions']
 }): Promise<void> => {
   const url = new URL(`${API_BASE}/indicators/positions`, window.location.origin)
   url.searchParams.set('symbol', symbol)
+  url.searchParams.set('timeframe', timeframe)
 
   const response = await fetch(url.toString(), {
     method: 'PUT',
@@ -160,14 +200,23 @@ const updateIndicatorPositions = async ({
 }
 
 // Custom hooks
-export const useIndicators = (symbol?: string) => {
+export const useIndicators = (symbol?: string, timeframe?: string) => {
   const { getCSRFToken } = useAuth()
-  
-  return useQuery({
-    queryKey: ['indicators', symbol],
-    queryFn: () => createFetchIndicators(getCSRFToken)(symbol),
+
+  const query = useQuery({
+    queryKey: ['indicators', symbol, timeframe],
+    queryFn: () => createFetchIndicators(getCSRFToken)(symbol, timeframe),
     staleTime: 30000, // 30 seconds
   })
+
+  // Only log when there's actual data or errors
+  if (query.data && query.data.length > 0) {
+    console.log('📊 useIndicators found indicators:', query.data.length, 'for symbol:', symbol, 'timeframe:', timeframe)
+  } else if (query.isError) {
+    console.error('❌ useIndicators error for symbol:', symbol, 'timeframe:', timeframe, query.error)
+  }
+
+  return query
 }
 
 export const useIndicator = (id: string) => {
@@ -183,12 +232,18 @@ export const useCreateIndicator = () => {
 
   return useMutation({
     mutationFn: createIndicator,
-    onSuccess: (data) => {
-      // Invalidate both general and symbol-specific indicator queries
+    onSuccess: data => {
+      console.log('✅ useCreateIndicator: Indicator created successfully:', data)
+      console.log('🔍 useCreateIndicator: Invalidating queries for symbol:', data.symbol)
+      
+      // Invalidate all indicator queries to ensure proper cache invalidation across timeframes
       queryClient.invalidateQueries({ queryKey: ['indicators'] })
-      // Also invalidate the specific symbol query
-      queryClient.invalidateQueries({ queryKey: ['indicators', data.symbol] })
+      
+      console.log('🔍 useCreateIndicator: Queries invalidated')
     },
+    onError: error => {
+      console.error('❌ useCreateIndicator: Error creating indicator:', error)
+    }
   })
 }
 
@@ -197,12 +252,11 @@ export const useUpdateIndicator = () => {
 
   return useMutation({
     mutationFn: updateIndicator,
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Update the specific indicator in cache
       queryClient.setQueryData(['indicators', data.id], data)
-      // Invalidate lists
+      // Invalidate all indicator lists to ensure proper cache invalidation across timeframes
       queryClient.invalidateQueries({ queryKey: ['indicators'] })
-      queryClient.invalidateQueries({ queryKey: ['indicators', data.symbol] })
     },
   })
 }
@@ -231,8 +285,8 @@ export const useUpdateIndicatorPositions = () => {
   return useMutation({
     mutationFn: updateIndicatorPositions,
     onSuccess: (_, variables) => {
-      // Invalidate symbol-specific indicators
-      queryClient.invalidateQueries({ queryKey: ['indicators', variables.symbol] })
+      // Invalidate symbol and timeframe-specific indicators
+      queryClient.invalidateQueries({ queryKey: ['indicators', variables.symbol, variables.timeframe] })
     },
   })
 }
@@ -245,6 +299,7 @@ export const useAddIndicator = () => {
   const addIndicator = async (
     type: IndicatorType,
     symbol: string,
+    timeframe: string = 'D',
     parameters: Record<string, any>,
     options?: {
       name?: string
@@ -252,24 +307,41 @@ export const useAddIndicator = () => {
       style?: Record<string, any>
     }
   ) => {
-    // First calculate to validate parameters
-    const calculation = await calculateMutation.mutateAsync({
-      symbol,
+    console.log('🔍 useAddIndicator: Starting to add indicator:', {
       type,
+      symbol,
       parameters,
+      options,
     })
 
-    // If calculation succeeds, create the indicator
-    const indicator = await createMutation.mutateAsync({
-      symbol,
-      type,
-      name: options?.name || `${type.toUpperCase()}_${Date.now()}`,
-      parameters,
-      visible: options?.visible ?? true,
-      style: options?.style,
-    })
+    try {
+      // First calculate to validate parameters
+      console.log('🔍 useAddIndicator: Calculating indicator...')
+      const calculation = await calculateMutation.mutateAsync({
+        symbol,
+        type,
+        parameters,
+      })
+      console.log('✅ useAddIndicator: Calculation successful:', calculation)
 
-    return { indicator, calculation }
+      // If calculation succeeds, create the indicator
+      console.log('🔍 useAddIndicator: Creating indicator...')
+      const indicator = await createMutation.mutateAsync({
+        symbol,
+        timeframe,
+        type,
+        name: options?.name || `${type.toUpperCase()}_${Date.now()}`,
+        parameters,
+        visible: options?.visible ?? true,
+        style: options?.style,
+      })
+      console.log('✅ useAddIndicator: Creation successful:', indicator)
+
+      return { indicator, calculation }
+    } catch (error) {
+      console.error('❌ useAddIndicator: Error occurred:', error)
+      throw error
+    }
   }
 
   return {
