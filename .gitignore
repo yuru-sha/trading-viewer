@@ -144,3 +144,4 @@ data/*
 
 # Kiro directories and files
 .kiro/
+.playwright-mcp/

@@ -29,7 +29,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
   const { showError, showSuccess } = useError()
 
-
   const handleInputChange = (field: keyof CreateUserData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
@@ -149,7 +148,6 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
             </div>
           </div>
         </div>
-
 
         {/* Account Settings */}
         <div>

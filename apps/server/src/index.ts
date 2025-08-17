@@ -13,6 +13,7 @@ import alertRoutes from './routes/alerts'
 import watchlistRoutes from './routes/watchlist'
 import newsRoutes from './routes/news'
 import drawingRoutes from './routes/drawings'
+import indicatorRoutes from './routes/indicators'
 import { requestLogger, errorLogger } from './middleware/logging'
 import { getWebSocketService } from './services/websocketService'
 import { securityHeaders } from './middleware/auth'
@@ -107,7 +108,7 @@ app.get('/health', async (_req, res) => {
   }
 
   const dbHealthy = await checkDatabaseHealth()
-  res.json({
+  return res.json({
     status: dbHealthy ? 'ok' : 'error',
     database: dbHealthy ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
@@ -122,6 +123,7 @@ app.use('/api/alerts', sensitiveLimiter, alertRoutes) // Strict rate limiting fo
 app.use('/api/watchlist', watchlistRoutes) // Use general rate limiting for watchlist
 app.use('/api/news', marketDataLimiter, newsRoutes) // Moderate rate limiting for news data
 app.use('/api/drawings', drawingRoutes) // Drawing tools with general rate limiting
+app.use('/api/indicators', indicatorRoutes) // Indicators with general rate limiting
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -171,7 +173,7 @@ app.get('/api/ws/stats', (_req, res) => {
 
 // 404 handler
 app.use('*', (_req, res) => {
-  res.status(404).json({ error: 'Route not found' })
+  return res.status(404).json({ error: 'Route not found' })
 })
 
 // Error handling middleware
@@ -183,7 +185,7 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
   }
 
   // Default error response
-  res.status(500).json({
+  return res.status(500).json({
     code: 'INTERNAL_SERVER_ERROR',
     message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
     statusCode: 500,

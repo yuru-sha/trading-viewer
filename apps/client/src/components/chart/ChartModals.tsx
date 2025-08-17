@@ -1,9 +1,11 @@
 import React from 'react'
-import { useChartContext } from '../../contexts/ChartContext'
+import { useChartSymbol } from '../../contexts/ChartSymbolContext'
+import { useChartFeatures } from '../../contexts/ChartFeaturesContext'
 import CreateAlertModal from '../alerts/CreateAlertModal'
 
 const ChartModals: React.FC = () => {
-  const { symbolState, alertState, alertActions } = useChartContext()
+  const { symbolState } = useChartSymbol()
+  const { alertState, alertActions } = useChartFeatures()
 
   return (
     <>

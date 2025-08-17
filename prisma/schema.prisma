@@ -70,6 +70,7 @@ model User {
   refreshTokens    RefreshToken[]
   priceAlerts      PriceAlert[]
   watchlists       Watchlist[]
+  userIndicators   UserIndicator[]
 
   @@index([failedLoginCount])
   @@index([lockedUntil])
@@ -156,4 +157,25 @@ model Watchlist {
   @@index([symbol])
   @@index([userId, position])
   @@map("watchlists")
+}
+
+model UserIndicator {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  symbol      String
+  timeframe   String   @default("D")  // D, W, M, 1, 5, 15, 30, 60, 240 etc.
+  type        String   // 'sma', 'ema', 'rsi', 'macd', etc.
+  name        String   // User-defined name for the indicator
+  parameters  String   // JSON string of indicator parameters
+  visible     Boolean  @default(true)
+  style       String?  // JSON string of style configuration (color, line width, etc.)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, timeframe, name])
+  @@index([userId, symbol, timeframe])
+  @@index([type])
+  @@map("user_indicators")
 }

@@ -8,6 +8,7 @@ import { useChartInstance } from '../../hooks/useChartInstance'
 import { useChartData } from '../../hooks/useChartData'
 import { useChartEvents } from '../../hooks/useChartEvents'
 import { useChartOptions } from '../../hooks/useChartOptions'
+import { UserIndicator } from '@trading-viewer/shared'
 
 interface EChartsTradingChartProps {
   data: PriceData[]
@@ -27,6 +28,7 @@ interface EChartsTradingChartProps {
   showPeriodLow?: boolean
   periodWeeks?: number
   onChartClick?: () => void
+  indicators?: UserIndicator[]
 }
 
 export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
@@ -49,6 +51,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       showPeriodLow = true,
       periodWeeks = 52,
       onChartClick,
+      indicators = [],
     },
     ref
   ) => {
@@ -83,10 +86,12 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       activeDrawingTool: drawingTools?.activeToolType,
       theme: state.theme,
       symbol,
+      timeframe,
       currentPrice,
       graphicElements: generateGraphicElements(),
       showPeriodHigh,
       showPeriodLow,
+      indicators,
     })
 
     // Helper function to find closest data index by timestamp

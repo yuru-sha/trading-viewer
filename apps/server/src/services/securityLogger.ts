@@ -99,14 +99,22 @@ class SecurityLogger {
   private alertTimer: NodeJS.Timeout | null = null
 
   constructor(config?: Partial<SecurityLoggerConfig>) {
-    this.config = {
+    const baseConfig: SecurityLoggerConfig = {
       logDir: process.env.SECURITY_LOG_DIR || path.join(process.cwd(), 'logs', 'security'),
       logFile: process.env.SECURITY_LOG_FILE || 'security.log',
       enableConsole: process.env.NODE_ENV === 'development',
       enableFile: true,
       minSeverity: (process.env.SECURITY_MIN_SEVERITY as SecuritySeverity) || SecuritySeverity.INFO,
       enableAlerts: process.env.SECURITY_ALERTS_ENABLED === 'true',
-      alertWebhook: process.env.SECURITY_ALERT_WEBHOOK,
+    }
+
+    // Optional プロパティは値が存在する場合のみ設定
+    if (process.env.SECURITY_ALERT_WEBHOOK) {
+      baseConfig.alertWebhook = process.env.SECURITY_ALERT_WEBHOOK
+    }
+
+    this.config = {
+      ...baseConfig,
       ...config,
     }
 
@@ -249,19 +257,40 @@ class SecurityLogger {
     severity: SecuritySeverity = SecuritySeverity.INFO,
     metadata?: Record<string, any>
   ): void {
-    this.log({
+    const event: SecurityEvent = {
       eventType,
       severity,
       message,
-      userId: req.user?.userId,
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      ipAddress: req.ip || req.connection?.remoteAddress,
-      userAgent: req.headers['user-agent'],
-      endpoint: req.originalUrl,
-      method: req.method,
-      metadata,
-    })
+      timestamp: new Date().toISOString(),
+    }
+
+    // Optional プロパティは値が存在する場合のみ設定
+    if (req.user?.userId) {
+      event.userId = req.user.userId
+    }
+    if (req.user?.email) {
+      event.userEmail = req.user.email
+    }
+    if (req.user?.role) {
+      event.userRole = req.user.role
+    }
+    if (req.ip || req.connection?.remoteAddress) {
+      event.ipAddress = req.ip || req.connection?.remoteAddress
+    }
+    if (req.headers['user-agent']) {
+      event.userAgent = req.headers['user-agent']
+    }
+    if (req.originalUrl) {
+      event.endpoint = req.originalUrl
+    }
+    if (req.method) {
+      event.method = req.method
+    }
+    if (metadata) {
+      event.metadata = metadata
+    }
+
+    this.log(event)
   }
 
   public logAuthSuccess(req: AuthenticatedRequest, userId: string, email: string): void {

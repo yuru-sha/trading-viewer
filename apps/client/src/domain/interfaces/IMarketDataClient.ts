@@ -129,10 +129,7 @@ export interface IAuthClient {
     token: string
   }>
   logout(): Promise<void>
-  register(userData: {
-    email: string
-    password: string
-  }): Promise<{
+  register(userData: { email: string; password: string }): Promise<{
     user: any
     token: string
   }>

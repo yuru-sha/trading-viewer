@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react'
-import { ChartProvider, useChartContext } from '../contexts/ChartContext'
+import { ChartProviders } from '../contexts/ChartProviders'
+import { useChartSymbol } from '../contexts/ChartSymbolContext'
+import { useChartControlsContext } from '../contexts/ChartControlsContext'
+import { useChartFeatures } from '../contexts/ChartFeaturesContext'
 import { useAuthRedirect } from '../hooks/useAuthRedirect'
 import ChartHeader from '../components/chart/ChartHeader'
 import ChartFooter from '../components/chart/ChartFooter'
@@ -10,12 +13,10 @@ const ChartsPageContent: React.FC = () => {
   // 認証状態監視とセッション切れ時の自動リダイレクト
   const { isAuthenticated, isLoading } = useAuthRedirect()
 
+  // New provider hooks
+  const { symbolFromUrl, symbolState, symbolActions } = useChartSymbol()
+  const { controlsState, controlsActions, handleTimeframeChange, handleChartTypeChange, handleTimezoneChange } = useChartControlsContext()
   const {
-    symbolFromUrl,
-    symbolState,
-    symbolActions,
-    controlsState,
-    controlsActions,
     chartSettings,
     handleSettingsChange,
     showDrawingTools,
@@ -24,13 +25,11 @@ const ChartsPageContent: React.FC = () => {
     setShowFooter,
     watchlistState,
     watchlistActions,
+    alertState,
     alertActions,
-    handleTimeframeChange,
-    handleChartTypeChange,
-    handleTimezoneChange,
     takeScreenshot,
     saveTemplate,
-  } = useChartContext()
+  } = useChartFeatures()
 
   // Update symbol when URL changes (only direct URL access, not programmatic changes)
   useEffect(() => {
@@ -114,9 +113,9 @@ const ChartsPageContent: React.FC = () => {
 
 const ChartsPage: React.FC = () => {
   return (
-    <ChartProvider>
+    <ChartProviders>
       <ChartsPageContent />
-    </ChartProvider>
+    </ChartProviders>
   )
 }
 

@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
@@ -8,16 +8,14 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": false,
-    "declaration": true,
-    "declarationMap": true,
-    "composite": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
+
+    // Server-specific overrides
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "skipLibCheck": true
+
+    // Node.js specific
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "**/__tests__/**/*"],

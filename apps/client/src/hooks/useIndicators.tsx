@@ -59,13 +59,19 @@ export const useIndicators = (initialIndicators: IndicatorInstance[] = []) => {
   const [indicators, setIndicators] = useState<IndicatorInstance[]>(initialIndicators)
 
   const addIndicator = useCallback((type: IndicatorInstance['type']) => {
+    console.log('📊 useIndicators: Adding indicator of type:', type)
     const config = defaultIndicatorConfigs[type]
     const newIndicator: IndicatorInstance = {
       ...config,
       id: `${type}_${Date.now()}`,
     }
+    console.log('📊 useIndicators: New indicator created:', newIndicator)
 
-    setIndicators(prev => [...prev, newIndicator])
+    setIndicators(prev => {
+      const updated = [...prev, newIndicator]
+      console.log('📊 useIndicators: Updated indicators array:', updated)
+      return updated
+    })
   }, [])
 
   const updateIndicator = useCallback((id: string, updates: Partial<IndicatorInstance>) => {

@@ -131,14 +131,21 @@ export const generateTokens = async (
 }
 
 export const verifyAccessToken = (token: string): JWTPayload => {
+  console.log('🔍 verifyAccessToken called with token:', token ? 'exists' : 'missing')
+
   if (tokenBlacklist.has(token)) {
     throw new UnauthorizedError('Token has been revoked')
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
+    console.log('🔍 Token decoded successfully:', { userId: decoded.userId, email: decoded.email })
     return decoded
   } catch (error) {
+    console.log(
+      '🔍 Token verification failed:',
+      error instanceof Error ? error.message : 'unknown error'
+    )
     if (error instanceof jwt.TokenExpiredError) {
       throw new UnauthorizedError('Access token has expired')
     } else if (error instanceof jwt.JsonWebTokenError) {

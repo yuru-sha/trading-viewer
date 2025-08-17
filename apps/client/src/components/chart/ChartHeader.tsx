@@ -27,6 +27,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import SymbolSearch from '../SymbolSearch'
 import ChartSettings, { ChartSettings as ChartSettingsType } from './ChartSettings'
 import UserDropdown from '../UserDropdown'
+import IndicatorsDropdown from './IndicatorsDropdown'
 import { api } from '../../lib/apiClient'
 
 interface ChartHeaderProps {
@@ -318,25 +319,17 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                   />
                 </svg>
               </button>
-              {showIndicatorsDropdown && (
-                <div className='absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-[150px]'>
-                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-                    SMA
-                  </button>
-                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-                    EMA
-                  </button>
-                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-                    RSI
-                  </button>
-                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-                    MACD
-                  </button>
-                  <button className='block w-full text-left px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-                    Bollinger Bands
-                  </button>
-                </div>
-              )}
+              {console.log('🔍 ChartHeader: IndicatorsDropdown props:', { 
+                symbol: currentSymbol, 
+                timeframe: selectedTimeframe, 
+                isOpen: showIndicatorsDropdown 
+              })}
+              <IndicatorsDropdown
+                symbol={currentSymbol}
+                timeframe={selectedTimeframe}
+                isOpen={showIndicatorsDropdown}
+                onClose={onIndicatorsDropdownToggle}
+              />
             </div>
           </div>
 
