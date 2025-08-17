@@ -247,10 +247,6 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
   }
 
   const handleDeleteIndicator = async (indicatorId: string) => {
-    if (!confirm('このインジケーターを削除しますか？')) {
-      return
-    }
-    
     try {
       await deleteIndicator.mutateAsync(indicatorId)
       setEditingIndicator(null)
