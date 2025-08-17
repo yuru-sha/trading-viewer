@@ -15,7 +15,13 @@ const ChartsPageContent: React.FC = () => {
 
   // New provider hooks
   const { symbolFromUrl, symbolState, symbolActions } = useChartSymbol()
-  const { controlsState, controlsActions, handleTimeframeChange, handleChartTypeChange, handleTimezoneChange } = useChartControlsContext()
+  const {
+    controlsState,
+    controlsActions,
+    handleTimeframeChange,
+    handleChartTypeChange,
+    handleTimezoneChange,
+  } = useChartControlsContext()
   const {
     chartSettings,
     handleSettingsChange,

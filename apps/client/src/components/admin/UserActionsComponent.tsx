@@ -29,10 +29,7 @@ const UserActionsComponent: React.FC<UserActionsComponentProps> = ({
       <div className='flex items-center justify-between mb-8'>
         <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>User Management</h1>
         <div className='flex items-center space-x-3'>
-          <Button
-            onClick={onCreateUser}
-            className='bg-green-600 hover:bg-green-700'
-          >
+          <Button onClick={onCreateUser} className='bg-green-600 hover:bg-green-700'>
             <Icon name='add' className='w-4 h-4 mr-2' />
             Create User
           </Button>

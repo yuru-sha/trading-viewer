@@ -32,7 +32,10 @@ interface UserListComponentProps {
   currentUserId: string | undefined
   onUserSelect: (userId: string) => void
   onSelectAll: () => void
-  onUserAction: (userId: string, action: 'activate' | 'deactivate' | 'makeAdmin' | 'makeUser' | 'unlock') => void
+  onUserAction: (
+    userId: string,
+    action: 'activate' | 'deactivate' | 'makeAdmin' | 'makeUser' | 'unlock'
+  ) => void
   onViewDetails: (userId: string) => void
   onViewActivity: (userId: string) => void
   onViewSecurity: (userId: string) => void
@@ -210,10 +213,7 @@ const UserListComponent: React.FC<UserListComponentProps> = ({
                       {userData.id !== currentUserId && (
                         <button
                           onClick={() =>
-                            onUserAction(
-                              userData.id,
-                              userData.isActive ? 'deactivate' : 'activate'
-                            )
+                            onUserAction(userData.id, userData.isActive ? 'deactivate' : 'activate')
                           }
                           disabled={actionLoading === userData.id}
                           className={`px-2 py-1 rounded text-xs font-medium ${

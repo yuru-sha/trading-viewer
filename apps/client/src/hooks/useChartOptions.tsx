@@ -31,12 +31,15 @@ export const useChartOptions = (
   config: ChartOptionsConfig
 ) => {
   // Get indicators data from API with timeframe filtering
-  const { data: indicators = [], isLoading: indicatorsLoading } = useIndicators(config.symbol, config.timeframe)
-  
+  const { data: indicators = [], isLoading: indicatorsLoading } = useIndicators(
+    config.symbol,
+    config.timeframe
+  )
+
   // Get indicator calculations with error handling
   let indicatorCalculations = {}
   let calculationsLoading = false
-  
+
   try {
     const calculationsResult = useIndicatorCalculations(config.symbol || '', indicators)
     indicatorCalculations = calculationsResult.data
@@ -46,30 +49,54 @@ export const useChartOptions = (
     indicatorCalculations = {}
     calculationsLoading = false
   }
-  
+
   // Always log indicators state for debugging
   console.log('📊 useChartOptions: ALL indicators received:', indicators)
   console.log('📊 useChartOptions: Indicators count:', indicators.length)
-  
+
   // Only log when there are indicators
   if (indicators.length > 0) {
     console.log('📊 useChartOptions: Found', indicators.length, 'indicators for', config.symbol)
-    console.log('📊 useChartOptions: Calculations:', Object.keys(indicatorCalculations).length, 'ready')
-    console.log('📊 useChartOptions: Available calculation keys:', Object.keys(indicatorCalculations))
-    console.log('📊 useChartOptions: RSI calculations available:', Object.keys(indicatorCalculations).filter(key => key.includes('rsi')))
+    console.log(
+      '📊 useChartOptions: Calculations:',
+      Object.keys(indicatorCalculations).length,
+      'ready'
+    )
+    console.log(
+      '📊 useChartOptions: Available calculation keys:',
+      Object.keys(indicatorCalculations)
+    )
+    console.log(
+      '📊 useChartOptions: RSI calculations available:',
+      Object.keys(indicatorCalculations).filter(key => key.includes('rsi'))
+    )
   }
-  
+
   // Generate chart options
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
-    
+
     // RSI インジケーターが有効かつ表示中かどうかをチェック
-    const hasRSI = indicators.some(indicator => indicator.type === 'rsi' && indicator.visible === true)
-    console.log('📊 RSI Check: hasRSI =', hasRSI, 'indicators:', indicators.map(i => ({type: i.type, visible: i.visible})))
-    
+    const hasRSI = indicators.some(
+      indicator => indicator.type === 'rsi' && indicator.visible === true
+    )
+    console.log(
+      '📊 RSI Check: hasRSI =',
+      hasRSI,
+      'indicators:',
+      indicators.map(i => ({ type: i.type, visible: i.visible }))
+    )
+
     // MACD インジケーターが有効かつ表示中かどうかをチェック
-    const hasMACD = indicators.some(indicator => indicator.type === 'macd' && indicator.visible === true)
-    console.log('📊 MACD Check: hasMACD =', hasMACD, 'indicators:', indicators.map(i => ({type: i.type, visible: i.visible})))
+    const hasMACD = indicators.some(
+      indicator => indicator.type === 'macd' && indicator.visible === true
+    )
+    console.log(
+      '📊 MACD Check: hasMACD =',
+      hasMACD,
+      'indicators:',
+      indicators.map(i => ({ type: i.type, visible: i.visible }))
+    )
 
     const baseOption: any = {
       backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
@@ -147,86 +174,16 @@ export const useChartOptions = (
                 },
               },
             },
-      grid: (hasRSI && hasMACD)
-        ? config.showVolume
-          ? [
-              // メインチャート + ボリューム + RSI + MACD
-              {
-                left: '3%',
-                right: '6%',
-                top: '2%',
-                height: '50%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-              {
-                left: '3%',
-                right: '6%',
-                top: '55%',
-                height: '12%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-              {
-                left: '3%',
-                right: '6%',
-                top: '70%',
-                height: '13%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-              {
-                left: '3%',
-                right: '6%',
-                top: '86%',
-                height: '12%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-            ]
-          : [
-              // メインチャート + RSI + MACD
-              {
-                left: '3%',
-                right: '6%',
-                top: '2%',
-                height: '64%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-              {
-                left: '3%',
-                right: '6%',
-                top: '69%',
-                height: '14%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-              {
-                left: '3%',
-                right: '6%',
-                top: '86%',
-                height: '12%',
-                show: true,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              },
-            ]
-        : hasRSI
+      grid:
+        hasRSI && hasMACD
           ? config.showVolume
             ? [
-                // メインチャート + ボリューム + RSI
+                // メインチャート + ボリューム + RSI + MACD
                 {
                   left: '3%',
                   right: '6%',
                   top: '2%',
-                  height: '60%',
+                  height: '50%',
                   show: true,
                   borderWidth: 0,
                   backgroundColor: 'transparent',
@@ -234,8 +191,8 @@ export const useChartOptions = (
                 {
                   left: '3%',
                   right: '6%',
-                  top: '65%',
-                  height: '15%',
+                  top: '55%',
+                  height: '12%',
                   show: true,
                   borderWidth: 0,
                   backgroundColor: 'transparent',
@@ -243,20 +200,29 @@ export const useChartOptions = (
                 {
                   left: '3%',
                   right: '6%',
-                  top: '83%',
-                  height: '15%',
+                  top: '70%',
+                  height: '13%',
+                  show: true,
+                  borderWidth: 0,
+                  backgroundColor: 'transparent',
+                },
+                {
+                  left: '3%',
+                  right: '6%',
+                  top: '86%',
+                  height: '12%',
                   show: true,
                   borderWidth: 0,
                   backgroundColor: 'transparent',
                 },
               ]
             : [
-                // メインチャート + RSI
+                // メインチャート + RSI + MACD
                 {
                   left: '3%',
                   right: '6%',
                   top: '2%',
-                  height: '75%',
+                  height: '64%',
                   show: true,
                   borderWidth: 0,
                   backgroundColor: 'transparent',
@@ -264,17 +230,26 @@ export const useChartOptions = (
                 {
                   left: '3%',
                   right: '6%',
-                  top: '80%',
-                  height: '18%',
+                  top: '69%',
+                  height: '14%',
+                  show: true,
+                  borderWidth: 0,
+                  backgroundColor: 'transparent',
+                },
+                {
+                  left: '3%',
+                  right: '6%',
+                  top: '86%',
+                  height: '12%',
                   show: true,
                   borderWidth: 0,
                   backgroundColor: 'transparent',
                 },
               ]
-          : hasMACD
+          : hasRSI
             ? config.showVolume
               ? [
-                  // メインチャート + ボリューム + MACD
+                  // メインチャート + ボリューム + RSI
                   {
                     left: '3%',
                     right: '6%',
@@ -304,7 +279,7 @@ export const useChartOptions = (
                   },
                 ]
               : [
-                  // メインチャート + MACD
+                  // メインチャート + RSI
                   {
                     left: '3%',
                     right: '6%',
@@ -324,38 +299,91 @@ export const useChartOptions = (
                     backgroundColor: 'transparent',
                   },
                 ]
-            : config.showVolume
-              ? [
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '2%',
-                    height: '70%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '75%',
-                    height: '18%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                ]
-              : [
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '2%',
-                    height: '93%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                ],
+            : hasMACD
+              ? config.showVolume
+                ? [
+                    // メインチャート + ボリューム + MACD
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '2%',
+                      height: '60%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '65%',
+                      height: '15%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '83%',
+                      height: '15%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                  ]
+                : [
+                    // メインチャート + MACD
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '2%',
+                      height: '75%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '80%',
+                      height: '18%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                  ]
+              : config.showVolume
+                ? [
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '2%',
+                      height: '70%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '75%',
+                      height: '18%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                  ]
+                : [
+                    {
+                      left: '3%',
+                      right: '6%',
+                      top: '2%',
+                      height: '93%',
+                      show: true,
+                      borderWidth: 0,
+                      backgroundColor: 'transparent',
+                    },
+                  ],
       xAxis: config.showVolume
         ? [
             {
@@ -454,7 +482,10 @@ export const useChartOptions = (
                     data: chartData.dates,
                     boundaryGap: false,
                     axisTick: { alignWithLabel: true },
-                    axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                    axisLine: {
+                      onZero: false,
+                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                    },
                     splitLine: {
                       show: config.showGridlines !== false,
                       lineStyle: {
@@ -475,7 +506,10 @@ export const useChartOptions = (
                     data: chartData.dates,
                     boundaryGap: false,
                     axisTick: { alignWithLabel: true },
-                    axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                    axisLine: {
+                      onZero: false,
+                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                    },
                     splitLine: {
                       show: config.showGridlines !== false,
                       lineStyle: {
@@ -501,7 +535,10 @@ export const useChartOptions = (
                       data: chartData.dates,
                       boundaryGap: false,
                       axisTick: { alignWithLabel: true },
-                      axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                      axisLine: {
+                        onZero: false,
+                        lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                      },
                       splitLine: {
                         show: config.showGridlines !== false,
                         lineStyle: {
@@ -527,7 +564,10 @@ export const useChartOptions = (
                         data: chartData.dates,
                         boundaryGap: false,
                         axisTick: { alignWithLabel: true },
-                        axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                        axisLine: {
+                          onZero: false,
+                          lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                        },
                         splitLine: {
                           show: config.showGridlines !== false,
                           lineStyle: {
@@ -554,7 +594,10 @@ export const useChartOptions = (
                 data: chartData.dates,
                 boundaryGap: ['0%', '20%'],
                 axisTick: { alignWithLabel: true },
-                axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                axisLine: {
+                  onZero: false,
+                  lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                },
                 splitLine: {
                   show: config.showGridlines !== false,
                   lineStyle: {
@@ -578,7 +621,10 @@ export const useChartOptions = (
                 data: chartData.dates,
                 boundaryGap: false,
                 axisTick: { alignWithLabel: true },
-                axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                axisLine: {
+                  onZero: false,
+                  lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
+                },
                 splitLine: {
                   show: config.showGridlines !== false,
                   lineStyle: {
@@ -597,68 +643,68 @@ export const useChartOptions = (
               },
             ]
           : [
-            {
-              type: 'category',
-              data: chartData.dates,
-              boundaryGap: ['0%', '20%'],
-              axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-              axisTick: { alignWithLabel: true },
-              splitLine: {
-                show: config.showGridlines !== false,
-                lineStyle: {
-                  color: isDarkMode ? '#374151' : '#e5e7eb',
-                  width: 1,
-                  type: 'solid' as const,
-                  opacity: 0.6,
+              {
+                type: 'category',
+                data: chartData.dates,
+                boundaryGap: ['0%', '20%'],
+                axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                axisTick: { alignWithLabel: true },
+                splitLine: {
+                  show: config.showGridlines !== false,
+                  lineStyle: {
+                    color: isDarkMode ? '#374151' : '#e5e7eb',
+                    width: 1,
+                    type: 'solid' as const,
+                    opacity: 0.6,
+                  },
                 },
-              },
-              axisLabel: {
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
-                formatter: (value: string) => {
-                  if (value.includes(' ')) {
-                    const parts = value.split(' ')
-                    const date = parts[0]
-                    const time = parts[1]
-                    // 時刻がある場合の処理
-                    if (time) {
-                      const hour = parseInt(time?.split(':')[0] || '0')
-                      const minute = parseInt(time?.split(':')[1] || '0')
+                axisLabel: {
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  formatter: (value: string) => {
+                    if (value.includes(' ')) {
+                      const parts = value.split(' ')
+                      const date = parts[0]
+                      const time = parts[1]
+                      // 時刻がある場合の処理
+                      if (time) {
+                        const hour = parseInt(time?.split(':')[0] || '0')
+                        const minute = parseInt(time?.split(':')[1] || '0')
 
-                      // 時間軸に応じて日付表示の間隔を調整
-                      let showDate = false
+                        // 時間軸に応じて日付表示の間隔を調整
+                        let showDate = false
 
-                      // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
-                      if (minute === 0 || hour % 6 === 0) {
-                        showDate = true
-                      }
-
-                      if (showDate) {
-                        // 複数の日付形式に対応
-                        let displayDate = date || ''
-                        if (date?.includes('-')) {
-                          const dateParts = date.split('-')
-                          if (dateParts.length >= 3) {
-                            const month = dateParts[1]
-                            const day = dateParts[2]
-                            displayDate = `${month}/${day}`
-                          }
+                        // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
+                        if (minute === 0 || hour % 6 === 0) {
+                          showDate = true
                         }
 
-                        return `${displayDate} ${time.substring(0, 5)}`
+                        if (showDate) {
+                          // 複数の日付形式に対応
+                          let displayDate = date || ''
+                          if (date?.includes('-')) {
+                            const dateParts = date.split('-')
+                            if (dateParts.length >= 3) {
+                              const month = dateParts[1]
+                              const day = dateParts[2]
+                              displayDate = `${month}/${day}`
+                            }
+                          }
+
+                          return `${displayDate} ${time.substring(0, 5)}`
+                        }
+                        // その他の時刻は HH:MM 形式で表示
+                        return time.substring(0, 5)
                       }
-                      // その他の時刻は HH:MM 形式で表示
-                      return time.substring(0, 5)
+                      return date // 日付のみ
                     }
-                    return date // 日付のみ
-                  }
-                  return value
+                    return value
+                  },
                 },
+                min: 'dataMin',
+                max: 'dataMax',
+                splitNumber: 8, // X 軸のグリッド線数を調整
               },
-              min: 'dataMin',
-              max: 'dataMax',
-              splitNumber: 8, // X 軸のグリッド線数を調整
-            },
-          ],
+            ],
       yAxis: [
         ...generateYAxisConfig(config, isDarkMode, priceStats, config.currentPrice),
         // インジケーター用 Y 軸
@@ -713,8 +759,8 @@ export const useChartOptions = (
                 axisLine: {
                   show: true,
                   lineStyle: {
-                    color: isDarkMode ? '#4b5563' : '#d1d5db'
-                  }
+                    color: isDarkMode ? '#4b5563' : '#d1d5db',
+                  },
                 },
                 splitNumber: 4,
               },
@@ -771,8 +817,8 @@ export const useChartOptions = (
                     axisLine: {
                       show: true,
                       lineStyle: {
-                        color: isDarkMode ? '#4b5563' : '#d1d5db'
-                      }
+                        color: isDarkMode ? '#4b5563' : '#d1d5db',
+                      },
                     },
                     splitNumber: 4,
                   },
@@ -782,21 +828,22 @@ export const useChartOptions = (
       dataZoom: [
         {
           type: 'inside',
-          xAxisIndex: (hasRSI && hasMACD)
-            ? config.showVolume
-              ? [0, 1, 2, 3]
-              : [0, 1, 2]
-            : hasRSI
+          xAxisIndex:
+            hasRSI && hasMACD
               ? config.showVolume
-                ? [0, 1, 2]
-                : [0, 1]
-              : hasMACD
+                ? [0, 1, 2, 3]
+                : [0, 1, 2]
+              : hasRSI
                 ? config.showVolume
                   ? [0, 1, 2]
                   : [0, 1]
-                : config.showVolume
-                  ? [0, 1]
-                  : [0],
+                : hasMACD
+                  ? config.showVolume
+                    ? [0, 1, 2]
+                    : [0, 1]
+                  : config.showVolume
+                    ? [0, 1]
+                    : [0],
           start: 0,
           end: 100,
           filterMode: 'filter',
@@ -853,18 +900,29 @@ export const useChartOptions = (
     }
 
     // Add indicator series from API data
-    const indicatorSeries = createIndicatorSeries(chartData, indicators, indicatorCalculations, config)
+    const indicatorSeries = createIndicatorSeries(
+      chartData,
+      indicators,
+      indicatorCalculations,
+      config
+    )
     console.log('🔍 Generated indicator series:', indicatorSeries.length, 'series')
-    console.log('📊 Indicator series details:', indicatorSeries.map(s => ({
-      name: s.name,
-      type: s.type,
-      dataLength: s.data?.length || 0,
-      color: s.lineStyle?.color
-    })))
+    console.log(
+      '📊 Indicator series details:',
+      indicatorSeries.map(s => ({
+        name: s.name,
+        type: s.type,
+        dataLength: s.data?.length || 0,
+        color: s.lineStyle?.color,
+      }))
+    )
     baseOption.series.push(...indicatorSeries)
-    
+
     console.log('📊 Final baseOption.series count:', baseOption.series.length)
-    console.log('📊 All series names:', baseOption.series.map(s => s.name || s.type))
+    console.log(
+      '📊 All series names:',
+      baseOption.series.map(s => s.name || s.type)
+    )
 
     return baseOption
   }, [
@@ -1316,8 +1374,8 @@ function createMarkLine(
 
 // Indicator series creation
 function createIndicatorSeries(
-  chartData: ChartData, 
-  indicators: UserIndicator[], 
+  chartData: ChartData,
+  indicators: UserIndicator[],
   calculations: Record<string, any> = {},
   config: ChartOptionsConfig
 ) {
@@ -1325,14 +1383,20 @@ function createIndicatorSeries(
     chartDataLength: chartData?.values?.length || 0,
     indicatorsCount: indicators?.length || 0,
     calculationsCount: Object.keys(calculations || {}).length,
-    indicators: indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || []
+    indicators:
+      indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || [],
   })
 
   const series: any[] = []
 
   indicators.forEach(indicator => {
-    console.log('🔍 Processing indicator:', { id: indicator.id, name: indicator.name, visible: indicator.visible, type: indicator.type })
-    
+    console.log('🔍 Processing indicator:', {
+      id: indicator.id,
+      name: indicator.name,
+      visible: indicator.visible,
+      type: indicator.type,
+    })
+
     if (!indicator.visible) {
       console.log('⚠️ Indicator not visible, skipping:', indicator.name)
       return
@@ -1344,9 +1408,9 @@ function createIndicatorSeries(
       hasCalculationResult: !!calculationResult,
       calculationKeys: calculationResult ? Object.keys(calculationResult) : [],
       hasValues: calculationResult?.values ? true : false,
-      valuesLength: calculationResult?.values?.length || 0
+      valuesLength: calculationResult?.values?.length || 0,
     })
-    
+
     let indicatorData: number[] | number[][]
 
     if (calculationResult && calculationResult.values) {
@@ -1362,7 +1426,7 @@ function createIndicatorSeries(
 
     console.log('🔍 Final indicator data for', indicator.name, ':', {
       dataLength: indicatorData?.length || 0,
-      firstFewValues: indicatorData?.slice(0, 5) || []
+      firstFewValues: indicatorData?.slice(0, 5) || [],
     })
 
     if (!indicatorData || indicatorData.length === 0) {
@@ -1391,7 +1455,7 @@ function createIndicatorSeries(
           type: lineSeriesConfig.type,
           dataLength: lineSeriesConfig.data.length,
           color: lineSeriesConfig.lineStyle.color,
-          firstFewDataPoints: lineSeriesConfig.data.slice(0, 5)
+          firstFewDataPoints: lineSeriesConfig.data.slice(0, 5),
         })
         series.push(lineSeriesConfig)
         break
@@ -1521,17 +1585,21 @@ function createIndicatorSeries(
           },
           z: 50,
         }
-        
+
         // RSI の場合はサブチャートに表示
         if (indicator.type === 'rsi') {
-          console.log('📊 RSI Series: Setting up RSI in subchart with data:', indicatorData.length, 'points')
+          console.log(
+            '📊 RSI Series: Setting up RSI in subchart with data:',
+            indicatorData.length,
+            'points'
+          )
           console.log('📊 RSI Series: Sample data values:', indicatorData.slice(-10))
           const rsiGridIndex = config.showVolume ? 2 : 1
           const rsiAxisIndex = config.showVolume ? 2 : 1
           console.log('📊 RSI Series: Using grid index:', rsiGridIndex, 'axis index:', rsiAxisIndex)
           seriesConfig.yAxisIndex = rsiAxisIndex
           seriesConfig.xAxisIndex = rsiGridIndex
-          
+
           // RSI 用の参考線も追加
           // 30 レベル線（売られすぎ）
           const oversoldLine = indicatorData.map(() => 30)
@@ -1550,7 +1618,7 @@ function createIndicatorSeries(
             xAxisIndex: rsiGridIndex,
             z: 30,
           })
-          
+
           // 70 レベル線（買われすぎ）
           const overboughtLine = indicatorData.map(() => 70)
           series.push({
@@ -1568,7 +1636,7 @@ function createIndicatorSeries(
             xAxisIndex: rsiGridIndex,
             z: 30,
           })
-          
+
           // 50 レベル線（中央線）
           const midLine = indicatorData.map(() => 50)
           series.push({
@@ -1587,23 +1655,46 @@ function createIndicatorSeries(
             z: 20,
           })
         }
-        
+
         // MACD の場合はサブチャートに表示
         if (indicator.type === 'macd') {
-          console.log('📊 MACD Series: Setting up MACD in subchart with data:', indicatorData.length, 'points')
+          console.log(
+            '📊 MACD Series: Setting up MACD in subchart with data:',
+            indicatorData.length,
+            'points'
+          )
           console.log('📊 MACD Series: Sample data values:', indicatorData.slice(-5))
-          
+
           // グリッドインデックスの計算（実際に RSI が表示されているかを確認）
           const hasRSIDisplayed = indicators.some(ind => ind.type === 'rsi' && ind.visible === true)
-          const macdGridIndex = (hasRSIDisplayed && config.showVolume) ? 3 : hasRSIDisplayed ? 2 : config.showVolume ? 2 : 1
-          const macdAxisIndex = (hasRSIDisplayed && config.showVolume) ? 3 : hasRSIDisplayed ? 2 : config.showVolume ? 2 : 1
-          
-          console.log('📊 MACD Series: Using grid index:', macdGridIndex, 'axis index:', macdAxisIndex)
-          
+          const macdGridIndex =
+            hasRSIDisplayed && config.showVolume
+              ? 3
+              : hasRSIDisplayed
+                ? 2
+                : config.showVolume
+                  ? 2
+                  : 1
+          const macdAxisIndex =
+            hasRSIDisplayed && config.showVolume
+              ? 3
+              : hasRSIDisplayed
+                ? 2
+                : config.showVolume
+                  ? 2
+                  : 1
+
+          console.log(
+            '📊 MACD Series: Using grid index:',
+            macdGridIndex,
+            'axis index:',
+            macdAxisIndex
+          )
+
           // MACD データが配列の配列形式の場合、3 つのシリーズに分離
           if (Array.isArray(indicatorData[0])) {
             const macdData = indicatorData as number[][]
-            
+
             // MACD ライン
             const macdLine = macdData.map((item: number[]) => item[0])
             const macdSeries = {
@@ -1621,7 +1712,7 @@ function createIndicatorSeries(
               z: 50,
             }
             series.push(macdSeries)
-            
+
             // シグナルライン
             const signalLine = macdData.map((item: number[]) => item[1])
             const signalSeries = {
@@ -1639,7 +1730,7 @@ function createIndicatorSeries(
               z: 50,
             }
             series.push(signalSeries)
-            
+
             // ヒストグラム
             const histogram = macdData.map((item: number[]) => item[2])
             const histogramSeries = {
@@ -1656,7 +1747,7 @@ function createIndicatorSeries(
               z: 30,
             }
             series.push(histogramSeries)
-            
+
             // ゼロライン
             const zeroLine = macdData.map(() => 0)
             const zeroLineSeries = {
@@ -1675,14 +1766,14 @@ function createIndicatorSeries(
               z: 20,
             }
             series.push(zeroLineSeries)
-            
+
             console.log('📊 MACD Series: Added 4 series (MACD line, Signal, Histogram, Zero line)')
-            
+
             // seriesConfig は使用しない（個別に追加済み）
             return
           }
         }
-        
+
         series.push(seriesConfig)
         break
     }
@@ -1707,9 +1798,9 @@ function calculateIndicatorFromData(
       chartDataLength: chartData.values?.length || 0,
       firstCandle,
       isArray: Array.isArray(firstCandle),
-      candleLength: Array.isArray(firstCandle) ? firstCandle.length : 'not array'
+      candleLength: Array.isArray(firstCandle) ? firstCandle.length : 'not array',
     }
-    
+
     // Log debug info to console instead of downloading
     console.log('🔍 SMA Debug Info:', debugInfo)
 
@@ -1736,14 +1827,14 @@ function calculateIndicatorFromData(
       case 'bollinger':
         // ボリンジャーバンドの実装（±1σ, ±2σの 4 本線 + 中央線）
         const sma = calculateSMA(prices, period)
-        
+
         // 5 つの配列を準備: upper2σ, upper1σ, middle, lower1σ, lower2σ
         const upper2 = []
         const upper1 = []
         const middle = []
         const lower1 = []
         const lower2 = []
-        
+
         // 標準偏差を計算して 5 つの配列に分けて格納（SMA と同じ長さにする）
         for (let i = 0; i < sma.length; i++) {
           if (isNaN(sma[i])) {
@@ -1760,24 +1851,29 @@ function calculateIndicatorFromData(
               sum += diff * diff
             }
             const stdDev = Math.sqrt(sum / period)
-            
-            upper2.push(sma[i] + 2 * stdDev)  // +2σ
-            upper1.push(sma[i] + 1 * stdDev)  // +1σ
-            middle.push(sma[i])               // SMA
-            lower1.push(sma[i] - 1 * stdDev)  // -1σ
-            lower2.push(sma[i] - 2 * stdDev)  // -2σ
+
+            upper2.push(sma[i] + 2 * stdDev) // +2σ
+            upper1.push(sma[i] + 1 * stdDev) // +1σ
+            middle.push(sma[i]) // SMA
+            lower1.push(sma[i] - 1 * stdDev) // -1σ
+            lower2.push(sma[i] - 2 * stdDev) // -2σ
           }
         }
-        
+
         // createIndicatorSeries が期待する形式で返す: [upper2σ, upper1σ, middle, lower1σ, lower2σ]
         return [upper2, upper1, middle, lower1, lower2]
       case 'rsi':
         // RSI の実装（0-100 の範囲）
-        console.log('🔍 RSI Calculation: Starting with prices length:', prices.length, 'period:', period)
+        console.log(
+          '🔍 RSI Calculation: Starting with prices length:',
+          prices.length,
+          'period:',
+          period
+        )
         const rsiData = calculateRSI(prices, period)
         console.log('🔍 RSI Calculation: calculateRSI returned:', rsiData.length, 'values')
         console.log('🔍 RSI Sample values:', rsiData.slice(0, 5))
-        
+
         // RSI 値を配列として返す（NaN パディングでデータ長を統一）
         const rsiValues = []
         for (let i = 0; i < prices.length; i++) {
@@ -1794,7 +1890,7 @@ function calculateIndicatorFromData(
             }
           }
         }
-        
+
         console.log('🔍 RSI Final values length:', rsiValues.length)
         console.log('🔍 RSI Sample final values:', rsiValues.slice(-10))
         return rsiValues
@@ -1805,13 +1901,13 @@ function calculateIndicatorFromData(
         console.log('🔍 MACD Calculation: calculateMACD returned:', {
           macd: macdData.macd.length,
           signal: macdData.signal.length,
-          histogram: macdData.histogram.length
+          histogram: macdData.histogram.length,
         })
-        
+
         // MACD データを配列として返す（NaN パディングでデータ長を統一）
         const macdValues = []
         const macdStartIndex = 25 // 26 日 EMA - 1
-        
+
         for (let i = 0; i < prices.length; i++) {
           if (i < macdStartIndex) {
             // 期間未満の場合は NaN で埋める
@@ -1823,14 +1919,14 @@ function calculateIndicatorFromData(
               macdValues.push([
                 macdData.macd[macdIndex],
                 macdData.signal[macdIndex],
-                macdData.histogram[macdIndex]
+                macdData.histogram[macdIndex],
               ])
             } else {
               macdValues.push([NaN, NaN, NaN])
             }
           }
         }
-        
+
         console.log('🔍 MACD Final values length:', macdValues.length)
         console.log('🔍 MACD Sample final values:', macdValues.slice(-5))
         return macdValues
@@ -1900,12 +1996,12 @@ function calculateRSI(prices: number[], period: number): number[] {
   // 初期 RSI 値
   let avgGain = gains.reduce((sum, gain) => sum + gain, 0) / period
   let avgLoss = losses.reduce((sum, loss) => sum + loss, 0) / period
-  
+
   if (avgLoss === 0) {
     rsi.push(100)
   } else {
     const rs = avgGain / avgLoss
-    rsi.push(100 - (100 / (1 + rs)))
+    rsi.push(100 - 100 / (1 + rs))
   }
 
   // 残りの RSI 値を計算
@@ -1915,14 +2011,14 @@ function calculateRSI(prices: number[], period: number): number[] {
     const loss = change < 0 ? -change : 0
 
     // EMA スタイルの平滑化
-    avgGain = ((avgGain * (period - 1)) + gain) / period
-    avgLoss = ((avgLoss * (period - 1)) + loss) / period
+    avgGain = (avgGain * (period - 1) + gain) / period
+    avgLoss = (avgLoss * (period - 1) + loss) / period
 
     if (avgLoss === 0) {
       rsi.push(100)
     } else {
       const rs = avgGain / avgLoss
-      rsi.push(100 - (100 / (1 + rs)))
+      rsi.push(100 - 100 / (1 + rs))
     }
   }
 
@@ -1930,40 +2026,45 @@ function calculateRSI(prices: number[], period: number): number[] {
 }
 
 // MACD 計算
-function calculateMACD(prices: number[], fastPeriod: number = 12, slowPeriod: number = 26, signalPeriod: number = 9) {
+function calculateMACD(
+  prices: number[],
+  fastPeriod: number = 12,
+  slowPeriod: number = 26,
+  signalPeriod: number = 9
+) {
   if (prices.length < slowPeriod) {
     return { macd: [], signal: [], histogram: [] }
   }
 
   console.log('🔍 MACD: Calculating EMAs with periods:', { fastPeriod, slowPeriod, signalPeriod })
-  
+
   // 12 日 EMA と 26 日 EMA を計算
   const fastEMA = calculateEMA(prices, fastPeriod)
   const slowEMA = calculateEMA(prices, slowPeriod)
-  
+
   console.log('🔍 MACD: EMA lengths:', { fast: fastEMA.length, slow: slowEMA.length })
-  
+
   // MACD ライン = 12 日 EMA - 26 日 EMA
   const macdLine: number[] = []
   const startIndex = slowPeriod - 1 // 26 日 EMA が有効になるインデックス
-  
+
   for (let i = startIndex; i < fastEMA.length; i++) {
     if (!isNaN(fastEMA[i]) && !isNaN(slowEMA[i])) {
       macdLine.push(fastEMA[i] - slowEMA[i])
     }
   }
-  
+
   console.log('🔍 MACD: MACD line length:', macdLine.length)
-  
+
   // シグナルライン = MACD ラインの 9 日 EMA
   const signalLine = calculateEMA(macdLine, signalPeriod)
-  
+
   console.log('🔍 MACD: Signal line length:', signalLine.length)
-  
+
   // ヒストグラム = MACD ライン - シグナルライン
   const histogram: number[] = []
   const signalStartIndex = signalPeriod - 1
-  
+
   for (let i = 0; i < macdLine.length; i++) {
     if (i >= signalStartIndex && i < signalLine.length + signalStartIndex) {
       const signalIndex = i - signalStartIndex
@@ -1976,18 +2077,18 @@ function calculateMACD(prices: number[], fastPeriod: number = 12, slowPeriod: nu
       histogram.push(NaN)
     }
   }
-  
+
   console.log('🔍 MACD: Histogram length:', histogram.length)
   console.log('🔍 MACD: Sample values:', {
     macd: macdLine.slice(-3),
     signal: signalLine.slice(-3),
-    histogram: histogram.slice(-3)
+    histogram: histogram.slice(-3),
   })
 
   return {
     macd: macdLine,
     signal: signalLine,
-    histogram: histogram
+    histogram: histogram,
   }
 }
 

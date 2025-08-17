@@ -277,41 +277,94 @@ const WatchlistPage: React.FC = () => {
     await updateWatchlistPositions(positionUpdates)
   }
 
-  // 表示中の株価データのみを取得（効率化）
-  const fetchMultipleQuotes = (
+  // バッチ API を使用して複数銘柄の株価データを効率的に取得（N+1 クエリ解決）
+  const fetchMultipleQuotes = async (
+    symbols: Array<{ symbol: string; name: string }>
+  ): Promise<WatchlistItem[]> => {
+    try {
+      // 表示に必要な分だけ処理（最大 10 銘柄まで）
+      const visibleSymbols = symbols.slice(0, 10)
+
+      if (visibleSymbols.length === 0) {
+        return []
+      }
+
+      // バッチ API でまとめて取得（N+1 クエリ問題を解決）
+      const symbolList = visibleSymbols.map(s => s.symbol).join(',')
+      const response = await apiService.get(`/api/market/quotes?symbols=${symbolList}`)
+
+      if (!response?.quotes) {
+        console.warn('Batch quotes API returned no data, falling back to mock data')
+        return generateMockQuotes(visibleSymbols)
+      }
+
+      return visibleSymbols.map((stock, index) => {
+        const quoteData = response.quotes[stock.symbol]
+
+        if (quoteData?.error) {
+          console.warn(`Quote error for ${stock.symbol}:`, quoteData.error)
+          // エラーの場合はモックデータを使用
+          return generateMockQuote(stock, index)
+        }
+
+        return {
+          id: `watchlist-${index + 1}`,
+          symbol: stock.symbol,
+          name: stock.name,
+          price: quoteData?.c || 0,
+          change: quoteData?.d || 0,
+          changePercent: quoteData?.dp || 0,
+          volume: formatVolume(Math.floor(Math.random() * 50000000) + 10000000),
+          marketCap: formatMarketCap(
+            (quoteData?.c || 100) * Math.floor(Math.random() * 20000000000 + 500000000000)
+          ),
+          addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
+        }
+      })
+    } catch (error) {
+      console.error('Batch quotes fetch error:', error)
+      // エラーの場合はモックデータを使用
+      return generateMockQuotes(symbols.slice(0, 10))
+    }
+  }
+
+  // モックデータ生成関数（フォールバック用）
+  const generateMockQuotes = (
     symbols: Array<{ symbol: string; name: string }>
   ): WatchlistItem[] => {
-    // 表示に必要な分だけ処理（最大 10 銘柄まで）
-    const visibleSymbols = symbols.slice(0, 10)
+    return symbols.map((stock, index) => generateMockQuote(stock, index))
+  }
 
-    return visibleSymbols.map((stock, index) => {
-      const basePrice =
-        {
-          AAPL: 175,
-          GOOGL: 140,
-          MSFT: 410,
-          TSLA: 240,
-          AMZN: 145,
-        }[stock.symbol] || 100
+  const generateMockQuote = (
+    stock: { symbol: string; name: string },
+    index: number
+  ): WatchlistItem => {
+    const basePrice =
+      {
+        AAPL: 175,
+        GOOGL: 140,
+        MSFT: 410,
+        TSLA: 240,
+        AMZN: 145,
+      }[stock.symbol] || 100
 
-      const change = (Math.random() - 0.5) * 10
-      const currentPrice = basePrice + change
-      const changePercent = (change / basePrice) * 100
+    const change = (Math.random() - 0.5) * 10
+    const currentPrice = basePrice + change
+    const changePercent = (change / basePrice) * 100
 
-      return {
-        id: `watchlist-${index + 1}`,
-        symbol: stock.symbol,
-        name: stock.name,
-        price: currentPrice,
-        change,
-        changePercent,
-        volume: formatVolume(Math.floor(Math.random() * 50000000) + 10000000),
-        marketCap: formatMarketCap(
-          basePrice * Math.floor(Math.random() * 20000000000 + 500000000000)
-        ),
-        addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
-      }
-    })
+    return {
+      id: `watchlist-${index + 1}`,
+      symbol: stock.symbol,
+      name: stock.name,
+      price: currentPrice,
+      change,
+      changePercent,
+      volume: formatVolume(Math.floor(Math.random() * 50000000) + 10000000),
+      marketCap: formatMarketCap(
+        basePrice * Math.floor(Math.random() * 20000000000 + 500000000000)
+      ),
+      addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
+    }
   }
 
   // ボリュームをフォーマット
@@ -349,16 +402,18 @@ const WatchlistPage: React.FC = () => {
     loadWatchlist()
   }, [])
 
-  // watchlistItems が変更されたら株価データを取得
+  // watchlistItems が変更されたら株価データを取得（バッチ API 使用）
   useEffect(() => {
-    const loadQuotes = () => {
+    const loadQuotes = async () => {
       if (watchlistItems.length > 0) {
         try {
-          // 同期的にモックデータを生成（非同期処理を排除）
-          const watchlistData = fetchMultipleQuotes(watchlistItems)
+          // バッチ API を使用して効率的に取得（N+1 クエリ解決）
+          const watchlistData = await fetchMultipleQuotes(watchlistItems)
           setWatchlist(watchlistData)
         } catch (err) {
           console.error('Error loading quotes:', err)
+          // エラー時はモックデータを表示
+          setWatchlist([])
         }
       } else {
         // ウォッチリストが空の場合は UI も空にする

@@ -319,16 +319,18 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                   />
                 </svg>
               </button>
-              {console.log('🔍 ChartHeader: IndicatorsDropdown props:', { 
-                symbol: currentSymbol, 
-                timeframe: selectedTimeframe, 
-                isOpen: showIndicatorsDropdown 
+              {console.log('🔍 ChartHeader: IndicatorsDropdown props:', {
+                symbol: currentSymbol,
+                timeframe: selectedTimeframe,
+                isOpen: showIndicatorsDropdown,
               })}
               <IndicatorsDropdown
                 symbol={currentSymbol}
                 timeframe={selectedTimeframe}
                 isOpen={showIndicatorsDropdown}
                 onClose={onIndicatorsDropdownToggle}
+                showVolume={chartSettings?.showVolume}
+                onToggleVolume={show => onSettingsChange?.({ ...chartSettings!, showVolume: show })}
               />
             </div>
           </div>

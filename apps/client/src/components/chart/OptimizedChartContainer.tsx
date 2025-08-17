@@ -8,7 +8,7 @@ import React, {
   useEffect,
 } from 'react'
 import { Loading } from '@trading-viewer/ui'
-import EChartsTradingChart from './EChartsTradingChart'
+import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
@@ -304,7 +304,7 @@ export const OptimizedChartContainer = memo(
 
           {/* Main Chart Area */}
           <div className={`${showDrawingTools ? 'ml-12' : ''} h-full`}>
-            <EChartsTradingChart
+            <LazyEChartsTradingChart
               ref={chartRef}
               data={processedData}
               {...chartOptions}

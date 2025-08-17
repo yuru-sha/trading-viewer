@@ -42,6 +42,7 @@ const ChartMainContent: React.FC = () => {
         showPeriodHigh={chartSettings.showPeriodHigh}
         showPeriodLow={chartSettings.showPeriodLow}
         periodWeeks={chartSettings.periodWeeks}
+        showVolume={chartSettings.showVolume}
       />
     </div>
   )

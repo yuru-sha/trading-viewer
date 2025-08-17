@@ -84,21 +84,18 @@ export const DRAWING_PRESETS = {
     color: '#3b82f6',
     thickness: 2,
     opacity: 1,
-    dashPattern: undefined,
   } as DrawingStyle,
 
   horizontal: {
     color: '#ef4444',
     thickness: 2,
     opacity: 0.8,
-    dashPattern: undefined,
   } as DrawingStyle,
 
   vertical: {
     color: '#10b981',
     thickness: 2,
     opacity: 0.8,
-    dashPattern: undefined,
   } as DrawingStyle,
 
   fibonacci: {

@@ -59,7 +59,11 @@ export class UserIndicatorRepository {
     })
   }
 
-  async findByUserIdSymbolAndTimeframe(userId: string, symbol: string, timeframe: string): Promise<UserIndicator[]> {
+  async findByUserIdSymbolAndTimeframe(
+    userId: string,
+    symbol: string,
+    timeframe: string
+  ): Promise<UserIndicator[]> {
     return await this.prisma.userIndicator.findMany({
       where: { userId, symbol, timeframe },
       orderBy: { position: 'asc' },

@@ -2,7 +2,7 @@ import React from 'react'
 import { IChartComponent, IChartFactory, ChartType, ChartConfig, ChartState } from '@shared'
 import { MarketData } from '@shared'
 import OptimizedChartContainer from './OptimizedChartContainer'
-import EChartsTradingChart from './EChartsTradingChart'
+import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import { PriceData } from '../../utils/indicators'
 
 /**
@@ -30,13 +30,13 @@ class OptimizedChartAdapter implements IChartComponent {
     return (
       <OptimizedChartContainer
         ref={this.containerRef}
-        symbol="AAPL" // TODO: 設定から取得
+        symbol='AAPL' // TODO: 設定から取得
         data={this.data}
         isLoading={this.state.isLoading}
         chartType={this.config.theme === 'dark' ? 'candle' : 'candle'}
         timeframe={this.config.timeframe || '1D'}
         showDrawingTools={this.config.drawingTools}
-        className="w-full h-full"
+        className='w-full h-full'
       />
     )
   }
@@ -51,7 +51,7 @@ class OptimizedChartAdapter implements IChartComponent {
       close: data.close,
       volume: data.volume || 0,
     }
-    
+
     this.data = [...this.data, priceData]
     this.state = {
       ...this.state,
@@ -104,25 +104,18 @@ class EChartsAdapter implements IChartComponent {
 
   render(): JSX.Element {
     return (
-      <EChartsTradingChart
+      <LazyEChartsTradingChart
         data={this.data}
         isLoading={this.state.isLoading}
-        symbol="AAPL" // TODO: 設定から取得
+        symbol='AAPL' // TODO: 設定から取得
         timeframe={this.config.timeframe || '1D'}
       />
     )
   }
 
   updateData(data: MarketData): void {
-    this.data.push([
-      data.timestamp,
-      data.open,
-      data.close,
-      data.low,
-      data.high,
-      data.volume || 0,
-    ])
-    
+    this.data.push([data.timestamp, data.open, data.close, data.low, data.high, data.volume || 0])
+
     this.state = {
       ...this.state,
       hasData: true,
@@ -165,13 +158,7 @@ export class ChartFactory implements IChartFactory {
   }
 
   getSupportedTypes(): ChartType[] {
-    return [
-      'tradingview-lightweight',
-      'echarts',
-      'candlestick',
-      'line',
-      'area',
-    ]
+    return ['tradingview-lightweight', 'echarts', 'candlestick', 'line', 'area']
   }
 }
 
@@ -193,13 +180,19 @@ export function useChart(type: ChartType, config: ChartConfig) {
     }
   }, [type, config])
 
-  const updateData = React.useCallback((data: MarketData) => {
-    chart?.updateData(data)
-  }, [chart])
+  const updateData = React.useCallback(
+    (data: MarketData) => {
+      chart?.updateData(data)
+    },
+    [chart]
+  )
 
-  const updateConfig = React.useCallback((newConfig: Partial<ChartConfig>) => {
-    chart?.updateConfig?.({ ...config, ...newConfig })
-  }, [chart, config])
+  const updateConfig = React.useCallback(
+    (newConfig: Partial<ChartConfig>) => {
+      chart?.updateConfig?.({ ...config, ...newConfig })
+    },
+    [chart, config]
+  )
 
   return {
     chart,

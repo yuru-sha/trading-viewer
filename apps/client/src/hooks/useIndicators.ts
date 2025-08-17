@@ -211,9 +211,22 @@ export const useIndicators = (symbol?: string, timeframe?: string) => {
 
   // Only log when there's actual data or errors
   if (query.data && query.data.length > 0) {
-    console.log('📊 useIndicators found indicators:', query.data.length, 'for symbol:', symbol, 'timeframe:', timeframe)
+    console.log(
+      '📊 useIndicators found indicators:',
+      query.data.length,
+      'for symbol:',
+      symbol,
+      'timeframe:',
+      timeframe
+    )
   } else if (query.isError) {
-    console.error('❌ useIndicators error for symbol:', symbol, 'timeframe:', timeframe, query.error)
+    console.error(
+      '❌ useIndicators error for symbol:',
+      symbol,
+      'timeframe:',
+      timeframe,
+      query.error
+    )
   }
 
   return query
@@ -235,15 +248,15 @@ export const useCreateIndicator = () => {
     onSuccess: data => {
       console.log('✅ useCreateIndicator: Indicator created successfully:', data)
       console.log('🔍 useCreateIndicator: Invalidating queries for symbol:', data.symbol)
-      
+
       // Invalidate all indicator queries to ensure proper cache invalidation across timeframes
       queryClient.invalidateQueries({ queryKey: ['indicators'] })
-      
+
       console.log('🔍 useCreateIndicator: Queries invalidated')
     },
     onError: error => {
       console.error('❌ useCreateIndicator: Error creating indicator:', error)
-    }
+    },
   })
 }
 
@@ -286,7 +299,9 @@ export const useUpdateIndicatorPositions = () => {
     mutationFn: updateIndicatorPositions,
     onSuccess: (_, variables) => {
       // Invalidate symbol and timeframe-specific indicators
-      queryClient.invalidateQueries({ queryKey: ['indicators', variables.symbol, variables.timeframe] })
+      queryClient.invalidateQueries({
+        queryKey: ['indicators', variables.symbol, variables.timeframe],
+      })
     },
   })
 }

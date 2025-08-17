@@ -192,7 +192,6 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
             </div>
           )}
 
-
           {/* Style Tab */}
           {activeTab === 'style' && (
             <div className='space-y-4'>

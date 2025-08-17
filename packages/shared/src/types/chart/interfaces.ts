@@ -1,4 +1,11 @@
-import { MarketData } from '../core/market'
+import { MarketDataResponse } from '../api'
+
+// 基本的な React 要素型の定義
+export interface ReactElement {
+  type: any
+  props: any
+  key?: string | number | null
+}
 
 /**
  * 共通チャートコンポーネントインターフェース
@@ -9,13 +16,13 @@ export interface IChartComponent {
    * チャートをレンダリングする
    * @returns JSX.Element
    */
-  render(): JSX.Element
+  render(): ReactElement
 
   /**
    * 市場データを更新する
    * @param data 新しい市場データ
    */
-  updateData(data: MarketData): void
+  updateData(data: MarketDataResponse): void
 
   /**
    * チャートのクリーンアップを実行
@@ -93,18 +100,13 @@ export interface IChartFactory {
 /**
  * チャートタイプ定義
  */
-export type ChartType = 
-  | 'tradingview-lightweight'
-  | 'echarts'
-  | 'candlestick'
-  | 'line'
-  | 'area'
+export type ChartType = 'tradingview-lightweight' | 'echarts' | 'candlestick' | 'line' | 'area'
 
 /**
  * チャートイベントインターフェース
  */
 export interface ChartEvents {
-  onDataUpdate?: (data: MarketData) => void
+  onDataUpdate?: (data: MarketDataResponse) => void
   onTimeRangeChange?: (from: Date, to: Date) => void
   onIndicatorChange?: (indicators: string[]) => void
   onError?: (error: string) => void

@@ -6,7 +6,13 @@ import {
   DEFAULT_INDICATOR_STYLES,
 } from '@trading-viewer/shared'
 import { Icon } from '@ui'
-import { useAddIndicator, useIndicators, useToggleIndicator, useUpdateIndicator, useDeleteIndicator } from '../../hooks/useIndicators'
+import {
+  useAddIndicator,
+  useIndicators,
+  useToggleIndicator,
+  useUpdateIndicator,
+  useDeleteIndicator,
+} from '../../hooks/useIndicators'
 import { useAuth } from '../../contexts/AuthContext'
 
 interface IndicatorsDropdownProps {
@@ -14,6 +20,8 @@ interface IndicatorsDropdownProps {
   timeframe?: string
   isOpen: boolean
   onClose: () => void
+  showVolume?: boolean
+  onToggleVolume?: (show: boolean) => void
 }
 
 interface IndicatorConfigModalProps {
@@ -48,8 +56,14 @@ const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
   }
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50' onClick={onClose}>
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md' onClick={(e) => e.stopPropagation()}>
+    <div
+      className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+      onClick={onClose}
+    >
+      <div
+        className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md'
+        onClick={e => e.stopPropagation()}
+      >
         <div className='flex justify-between items-center mb-4'>
           <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
             {initialParameters ? 'Edit' : 'Configure'} {metadata.name}
@@ -132,7 +146,14 @@ const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
   )
 }
 
-const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timeframe = 'D', isOpen, onClose }) => {
+const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
+  symbol,
+  timeframe = 'D',
+  isOpen,
+  onClose,
+  showVolume = true,
+  onToggleVolume,
+}) => {
   console.log('🔍 IndicatorsDropdown COMPONENT INSTANTIATED:', { symbol, timeframe, isOpen })
   const { isAuthenticated } = useAuth()
   const { data: indicators = [], isLoading } = useIndicators(symbol, timeframe)
@@ -168,7 +189,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
 
   const handleAddIndicator = (type: IndicatorType) => {
     console.log('🔍 handleAddIndicator called:', { type, symbol, isAuthenticated })
-    
+
     if (!isAuthenticated) {
       alert('Please log in to add indicators')
       return
@@ -198,13 +219,19 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
         options: {
           name: `${configModal.type.toUpperCase()}_${Date.now()}`,
           style: defaultStyle,
-        }
+        },
       })
 
-      const result = await addIndicator(configModal.type, configModal.symbol, timeframe, parameters, {
-        name: `${configModal.type.toUpperCase()}_${Date.now()}`,
-        style: defaultStyle,
-      })
+      const result = await addIndicator(
+        configModal.type,
+        configModal.symbol,
+        timeframe,
+        parameters,
+        {
+          name: `${configModal.type.toUpperCase()}_${Date.now()}`,
+          style: defaultStyle,
+        }
+      )
 
       console.log('✅ Indicator added successfully:', result)
 
@@ -235,7 +262,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
     try {
       const result = await updateIndicator.mutateAsync({
         id: indicatorId,
-        updates: { style: { color } }
+        updates: { style: { color } },
       })
       console.log('🎨 Color update successful:', result)
       setColorPickerIndicator(null)
@@ -260,22 +287,22 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
     setEditingParametersIndicator({
       id: indicator.id,
       type: indicator.type,
-      currentParameters: indicator.parameters || {}
+      currentParameters: indicator.parameters || {},
     })
   }
 
   const handleUpdateParameters = async (parameters: Record<string, any>) => {
     if (!editingParametersIndicator) return
 
-    console.log('📊 handleUpdateParameters called:', { 
-      id: editingParametersIndicator.id, 
-      parameters 
+    console.log('📊 handleUpdateParameters called:', {
+      id: editingParametersIndicator.id,
+      parameters,
     })
     console.log('📊 updateIndicator object:', updateIndicator)
     try {
       const result = await updateIndicator.mutateAsync({
         id: editingParametersIndicator.id,
-        updates: { parameters }
+        updates: { parameters },
       })
       console.log('📊 Parameter update successful:', result)
       setEditingParametersIndicator(null)
@@ -287,13 +314,13 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
   }
 
   const availableTypes: IndicatorType[] = ['sma', 'ema', 'rsi', 'macd', 'bollinger']
-  
-  console.log('🔍 IndicatorsDropdown render:', { 
-    isOpen, 
-    isAdding, 
-    availableTypes, 
+
+  console.log('🔍 IndicatorsDropdown render:', {
+    isOpen,
+    isAdding,
+    availableTypes,
     isAuthenticated,
-    indicatorsCount: indicators.length 
+    indicatorsCount: indicators.length,
   })
 
   return (
@@ -307,6 +334,47 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
           <h3 className='text-sm font-medium text-gray-900 dark:text-white'>
             Technical Indicators
           </h3>
+        </div>
+
+        {/* Volume Toggle */}
+        <div className='px-3 py-2 border-b border-gray-200 dark:border-gray-700'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
+              <button
+                onClick={() => onToggleVolume?.(!showVolume)}
+                className={`w-3 h-3 rounded-sm border ${
+                  showVolume
+                    ? 'bg-indigo-600 border-indigo-600'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}
+              >
+                {showVolume && (
+                  <svg className='w-2 h-2 text-white' fill='currentColor' viewBox='0 0 20 20'>
+                    <path
+                      fillRule='evenodd'
+                      d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                )}
+              </button>
+              <span className='text-sm text-gray-700 dark:text-gray-300'>Volume (出来高)</span>
+            </div>
+            <div className='flex items-center space-x-1'>
+              <div className='flex space-x-1'>
+                <div
+                  className='w-2 h-3 rounded'
+                  style={{ backgroundColor: '#10b981' }}
+                  title='上昇色（緑）'
+                />
+                <div
+                  className='w-2 h-3 rounded'
+                  style={{ backgroundColor: '#ef4444' }}
+                  title='下降色（赤）'
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Current Indicators */}
@@ -329,7 +397,11 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
                         }`}
                       >
                         {indicator.visible && (
-                          <svg className='w-2 h-2 text-white' fill='currentColor' viewBox='0 0 20 20'>
+                          <svg
+                            className='w-2 h-2 text-white'
+                            fill='currentColor'
+                            viewBox='0 0 20 20'
+                          >
                             <path
                               fillRule='evenodd'
                               d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
@@ -348,20 +420,30 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
                         style={{ backgroundColor: indicator.style?.color || '#2196F3' }}
                       />
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation()
-                          setEditingIndicator(editingIndicator === indicator.id ? null : indicator.id)
+                          setEditingIndicator(
+                            editingIndicator === indicator.id ? null : indicator.id
+                          )
                         }}
                         className='opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-opacity'
                         title='設定'
                       >
-                        <svg className='w-3 h-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300' fill='currentColor' viewBox='0 0 20 20'>
-                          <path fillRule='evenodd' d='M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z' clipRule='evenodd' />
+                        <svg
+                          className='w-3 h-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
+                          fill='currentColor'
+                          viewBox='0 0 20 20'
+                        >
+                          <path
+                            fillRule='evenodd'
+                            d='M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z'
+                            clipRule='evenodd'
+                          />
                         </svg>
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* 編集メニュー */}
                   {editingIndicator === indicator.id && (
                     <div className='ml-5 mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs space-y-1'>
@@ -369,29 +451,38 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
                         onClick={() => setColorPickerIndicator(indicator.id)}
                         className='flex items-center space-x-2 w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded'
                       >
-                        <Icon name="Palette" size={12} />
+                        <Icon name='Palette' size={12} />
                         <span>色を変更</span>
                       </button>
                       <button
                         onClick={() => handleEditParameters(indicator)}
                         className='flex items-center space-x-2 w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded'
                       >
-                        <Icon name="settings" size={12} />
+                        <Icon name='settings' size={12} />
                         <span>パラメーター変更</span>
                       </button>
                       <button
                         onClick={() => handleDeleteIndicator(indicator.id)}
                         className='flex items-center space-x-2 w-full text-left px-2 py-1 hover:bg-red-100 dark:hover:bg-red-900 rounded text-red-600 dark:text-red-400'
                       >
-                        <Icon name="delete" size={12} />
+                        <Icon name='delete' size={12} />
                         <span>削除</span>
                       </button>
-                      
+
                       {/* 色選択 */}
                       {colorPickerIndicator === indicator.id && (
                         <div className='mt-2 p-2 border-t border-gray-200 dark:border-gray-600'>
                           <div className='grid grid-cols-4 gap-1'>
-                            {['#2196F3', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'].map(color => (
+                            {[
+                              '#2196F3',
+                              '#ef4444',
+                              '#10b981',
+                              '#f59e0b',
+                              '#8b5cf6',
+                              '#06b6d4',
+                              '#ec4899',
+                              '#84cc16',
+                            ].map(color => (
                               <button
                                 key={color}
                                 onClick={() => handleColorChange(indicator.id, color)}
@@ -423,9 +514,12 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({ symbol, timefra
               return (
                 <button
                   key={type}
-                  onClick={(e) => {
+                  onClick={e => {
                     console.log('🔍 BUTTON CLICKED - ANY BUTTON!')
-                    console.log(`🔍 ${type.toUpperCase()} button clicked:`, { type, metadata: metadata.name })
+                    console.log(`🔍 ${type.toUpperCase()} button clicked:`, {
+                      type,
+                      metadata: metadata.name,
+                    })
                     e.preventDefault()
                     e.stopPropagation()
                     handleAddIndicator(type)

@@ -1,4 +1,0 @@
-email,role,isActive,password
-test1@example.com,user,true,SecurePass123@
-test2@example.com,user,true,SecurePass123@
-admin@test.com,admin,true,AdminPass123@

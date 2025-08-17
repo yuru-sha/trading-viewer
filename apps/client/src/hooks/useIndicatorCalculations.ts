@@ -42,20 +42,24 @@ export const useIndicatorCalculation = (
   const indicatorType = indicator?.type || 'unknown'
   const safeSymbol = symbol || 'unknown'
   const isValidIndicator = indicator && indicator.type && symbol
-  
+
   console.log('🔍 useIndicatorCalculation - useQuery setup:', {
     safeSymbol,
     indicatorType,
     enabled: enabled && !!symbol && isValidIndicator,
     hasSymbol: !!symbol,
     isValidIndicator,
-    parameters
+    parameters,
   })
 
   return useQuery({
     queryKey: ['indicator-calculation', safeSymbol, indicatorType, JSON.stringify(parameters)],
     queryFn: () => {
-      console.log('🔍 fetchIndicatorCalculation called:', { symbol, type: indicator.type, parameters })
+      console.log('🔍 fetchIndicatorCalculation called:', {
+        symbol,
+        type: indicator.type,
+        parameters,
+      })
       return fetchIndicatorCalculation(symbol, indicator.type, parameters)
     },
     enabled: enabled && !!symbol && isValidIndicator,
@@ -68,7 +72,7 @@ export const useIndicatorCalculation = (
 export const useIndicatorCalculations = (symbol: string, indicators: UserIndicator[]) => {
   // Safe indicators array access
   const safeIndicators = Array.isArray(indicators) ? indicators : []
-  
+
   console.log('🔍 useIndicatorCalculations called:', {
     symbol,
     indicatorsCount: indicators?.length || 0,
@@ -78,10 +82,10 @@ export const useIndicatorCalculations = (symbol: string, indicators: UserIndicat
       type: i?.type,
       name: i?.name,
       visible: i?.visible,
-      parameters: i?.parameters
-    }))
+      parameters: i?.parameters,
+    })),
   })
-  
+
   // React Hook rules: 常に同じ数の Hook を呼び出す必要がある
   // 最大 10 個のインジケーターをサポート（必要に応じて調整可能）
   const MAX_INDICATORS = 10
@@ -94,20 +98,26 @@ export const useIndicatorCalculations = (symbol: string, indicators: UserIndicat
   const allCalculations = paddedIndicators.slice(0, MAX_INDICATORS).map((indicator, index) => {
     const isValidIndicator = indicator && indicator.type && indicator.id
     const enabled = isValidIndicator && (indicator?.visible ?? false)
-    
+
     if (isValidIndicator) {
       console.log('🔍 Creating calculation for indicator:', {
         id: indicator.id,
         type: indicator.type,
         name: indicator.name,
         visible: indicator.visible,
-        enabled
+        enabled,
       })
     }
-    
+
     return useIndicatorCalculation(
-      symbol, 
-      indicator || { id: `placeholder-${index}`, type: 'sma', name: '', parameters: {}, visible: false },
+      symbol,
+      indicator || {
+        id: `placeholder-${index}`,
+        type: 'sma',
+        name: '',
+        parameters: {},
+        visible: false,
+      },
       enabled
     )
   })
@@ -117,14 +127,18 @@ export const useIndicatorCalculations = (symbol: string, indicators: UserIndicat
 
   return {
     calculations: validCalculations,
-    isLoading: validCalculations.length > 0 ? validCalculations.some(calc => calc.isLoading) : false,
+    isLoading:
+      validCalculations.length > 0 ? validCalculations.some(calc => calc.isLoading) : false,
     hasError: validCalculations.length > 0 ? validCalculations.some(calc => calc.error) : false,
-    data: validCalculations.reduce((acc, calc, index) => {
-      const indicator = safeIndicators[index]
-      if (calc.data && indicator?.id) {
-        acc[indicator.id] = calc.data
-      }
-      return acc
-    }, {} as Record<string, IndicatorResult>)
+    data: validCalculations.reduce(
+      (acc, calc, index) => {
+        const indicator = safeIndicators[index]
+        if (calc.data && indicator?.id) {
+          acc[indicator.id] = calc.data
+        }
+        return acc
+      },
+      {} as Record<string, IndicatorResult>
+    ),
   }
 }

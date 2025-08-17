@@ -1,6 +1,6 @@
 import React, { useCallback, forwardRef, useImperativeHandle } from 'react'
 import { Loading } from '@trading-viewer/ui'
-import EChartsTradingChart from './EChartsTradingChart'
+import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
@@ -33,6 +33,7 @@ interface ChartContainerProps {
   showPeriodHigh?: boolean
   showPeriodLow?: boolean
   periodWeeks?: number
+  showVolume?: boolean
 }
 
 const defaultSettings = {
@@ -62,6 +63,7 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
       showPeriodHigh = true,
       showPeriodLow = true,
       periodWeeks = 52,
+      showVolume = true,
     },
     ref
   ) => {
@@ -195,15 +197,12 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
 
         {/* Main Chart Area - Full height */}
         <div className='flex-1 min-w-0'>
-          <EChartsTradingChart
+          <LazyEChartsTradingChart
             ref={renderingManager.chartRef}
             onChartClick={handleChartClick}
             data={dataManager.data}
             currentPrice={dataManager.latestPrice}
-            showVolume={
-              renderingManager.chartObjects.find(obj => obj.id === 'volume')?.visible ??
-              renderingManager.settings.showVolume
-            }
+            showVolume={showVolume}
             className='h-full'
             enableDrawingTools={showDrawingTools ?? renderingManager.settings.showDrawingTools}
             drawingTools={drawingManager.drawingTools}

@@ -109,7 +109,11 @@ router.get(
       let indicators
       if (symbol && timeframe) {
         console.log('🔍 Querying by userId, symbol and timeframe...')
-        indicators = await userIndicatorRepository.findByUserIdSymbolAndTimeframe(userId, symbol as string, timeframe as string)
+        indicators = await userIndicatorRepository.findByUserIdSymbolAndTimeframe(
+          userId,
+          symbol as string,
+          timeframe as string
+        )
       } else if (symbol) {
         console.log('🔍 Querying by userId and symbol...')
         indicators = await userIndicatorRepository.findByUserIdAndSymbol(userId, symbol as string)
@@ -178,50 +182,45 @@ router.get('/:id', requireAuth, validateRequest(paramsSchema, 'params'), async (
 })
 
 // POST /api/indicators - Create new indicator
-router.post(
-  '/',
-  requireAuth,
-  validateRequest(createIndicatorSchema, 'body'),
-  async (req, res) => {
-    try {
-      const userId = req.user!.userId
-      const indicatorData = req.body
+router.post('/', requireAuth, validateRequest(createIndicatorSchema, 'body'), async (req, res) => {
+  try {
+    const userId = req.user!.userId
+    const indicatorData = req.body
 
-      // Check if indicator with same name already exists for this user/symbol/timeframe
-      const existing = await userIndicatorRepository.findByUserIdSymbolTimeframeAndName(
-        userId,
-        indicatorData.symbol,
-        indicatorData.timeframe || 'D',
-        indicatorData.name
-      )
+    // Check if indicator with same name already exists for this user/symbol/timeframe
+    const existing = await userIndicatorRepository.findByUserIdSymbolTimeframeAndName(
+      userId,
+      indicatorData.symbol,
+      indicatorData.timeframe || 'D',
+      indicatorData.name
+    )
 
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          error: 'Indicator with this name already exists for this symbol and timeframe',
-        })
-      }
-
-      const indicator = await userIndicatorRepository.create({
-        userId,
-        ...indicatorData,
-      })
-
-      const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
-
-      res.status(201).json({
-        success: true,
-        data: parsedIndicator,
-      })
-    } catch (error) {
-      console.error('Error creating indicator:', error)
-      res.status(500).json({
+    if (existing) {
+      return res.status(400).json({
         success: false,
-        error: 'Failed to create indicator',
+        error: 'Indicator with this name already exists for this symbol and timeframe',
       })
     }
+
+    const indicator = await userIndicatorRepository.create({
+      userId,
+      ...indicatorData,
+    })
+
+    const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
+
+    res.status(201).json({
+      success: true,
+      data: parsedIndicator,
+    })
+  } catch (error) {
+    console.error('Error creating indicator:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create indicator',
+    })
   }
-)
+})
 
 // PUT /api/indicators/:id - Update indicator
 router.put(
@@ -311,7 +310,10 @@ router.delete('/:id', requireAuth, validateRequest(paramsSchema, 'params'), asyn
 router.put(
   '/positions',
   requireAuth,
-  validateRequest(z.object({ symbol: z.string(), timeframe: z.string().optional().default('D') }), 'query'),
+  validateRequest(
+    z.object({ symbol: z.string(), timeframe: z.string().optional().default('D') }),
+    'query'
+  ),
   validateRequest(updatePositionsSchema, 'body'),
   async (req, res) => {
     try {
@@ -337,7 +339,12 @@ router.put(
         })
       }
 
-      await userIndicatorRepository.updatePositions(userId, symbol as string, timeframe as string, positions)
+      await userIndicatorRepository.updatePositions(
+        userId,
+        symbol as string,
+        timeframe as string,
+        positions
+      )
 
       res.json({
         success: true,

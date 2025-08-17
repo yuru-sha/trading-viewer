@@ -368,7 +368,114 @@ router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res
   }
 })
 
-// Real-time quote endpoint
+// Batch quotes endpoint (NEW - for N+1 query optimization)
+router.get('/quotes', async (req, res: Response) => {
+  try {
+    const symbolsParam = req.query.symbols as string
+
+    if (!symbolsParam) {
+      return res.status(400).json({
+        code: 'MISSING_SYMBOLS',
+        message: 'symbols query parameter is required',
+        statusCode: 400,
+      } as ApiError)
+    }
+
+    const symbols = symbolsParam
+      .split(',')
+      .map(s => s.trim().toUpperCase())
+      .filter(Boolean)
+
+    if (symbols.length === 0) {
+      return res.status(400).json({
+        code: 'INVALID_SYMBOLS',
+        message: 'At least one valid symbol is required',
+        statusCode: 400,
+      } as ApiError)
+    }
+
+    // Limit batch size to prevent overload
+    if (symbols.length > 50) {
+      return res.status(400).json({
+        code: 'TOO_MANY_SYMBOLS',
+        message: 'Maximum 50 symbols allowed per request',
+        statusCode: 400,
+      } as ApiError)
+    }
+
+    const quotes: Record<string, any> = {}
+
+    if (USE_MOCK_DATA) {
+      // Generate mock quotes for all symbols
+      for (const symbol of symbols) {
+        quotes[symbol] = generateMockQuote(symbol)
+      }
+    } else {
+      // Use Yahoo Finance API for batch fetching
+      const yahooService = getYahooFinanceService()
+
+      // Fetch quotes in parallel for better performance
+      const quotePromises = symbols.map(async symbol => {
+        try {
+          const quote = await yahooService.getQuote(symbol)
+          return {
+            symbol,
+            data: {
+              c: quote.currentPrice,
+              d: quote.change,
+              dp: quote.changePercent,
+              h: quote.high,
+              l: quote.low,
+              o: quote.open,
+              pc: quote.previousClose,
+              t: Math.floor(quote.timestamp / 1000),
+            },
+          }
+        } catch (error) {
+          console.error(`Quote fetch error for ${symbol}:`, error)
+          return {
+            symbol,
+            error: 'Failed to fetch quote',
+          }
+        }
+      })
+
+      const results = await Promise.allSettled(quotePromises)
+
+      results.forEach((result, index) => {
+        const symbol = symbols[index]
+        if (result.status === 'fulfilled' && result.value.data) {
+          quotes[symbol] = result.value.data
+        } else {
+          quotes[symbol] = {
+            error: result.status === 'rejected' ? 'Failed to fetch quote' : result.value.error,
+          }
+        }
+      })
+    }
+
+    res.json({
+      quotes,
+      count: Object.keys(quotes).length,
+      timestamp: Math.floor(Date.now() / 1000),
+    })
+  } catch (error) {
+    console.error('Batch quotes error:', error)
+
+    if ((error as ApiError).code) {
+      const apiError = error as ApiError
+      return res.status(apiError.statusCode).json(apiError)
+    }
+
+    res.status(500).json({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal server error',
+      statusCode: 500,
+    } as ApiError)
+  }
+})
+
+// Real-time quote endpoint (single symbol)
 router.get(
   '/quote/:symbol',
   validateQuoteParams,

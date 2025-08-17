@@ -279,49 +279,49 @@ const AdminUsersPage: React.FC = () => {
   const handleViewDetails = (userId: string) => {
     setModalStates(prev => ({
       ...prev,
-      userDetailModal: { isOpen: true, userId }
+      userDetailModal: { isOpen: true, userId },
     }))
   }
 
   const handleViewActivity = (userId: string) => {
     setModalStates(prev => ({
       ...prev,
-      userActivityModal: { isOpen: true, userId }
+      userActivityModal: { isOpen: true, userId },
     }))
   }
 
   const handleViewSecurity = (userId: string) => {
     setModalStates(prev => ({
       ...prev,
-      securityModal: { isOpen: true, userId }
+      securityModal: { isOpen: true, userId },
     }))
   }
 
   const handleViewPermissions = (userId: string) => {
     setModalStates(prev => ({
       ...prev,
-      permissionsModal: { isOpen: true, userId }
+      permissionsModal: { isOpen: true, userId },
     }))
   }
 
   const handleDeleteUser = (user: User) => {
     setModalStates(prev => ({
       ...prev,
-      deleteUserModal: { isOpen: true, user }
+      deleteUserModal: { isOpen: true, user },
     }))
   }
 
   const handleCreateUser = () => {
     setModalStates(prev => ({
       ...prev,
-      createUserModal: true
+      createUserModal: true,
     }))
   }
 
   const handleImportExport = () => {
     setModalStates(prev => ({
       ...prev,
-      jsonModal: true
+      jsonModal: true,
     }))
   }
 
@@ -371,34 +371,48 @@ const AdminUsersPage: React.FC = () => {
 
         <UserModalComponent
           modalStates={modalStates}
-          onCloseUserDetail={() => setModalStates(prev => ({
-            ...prev,
-            userDetailModal: { isOpen: false, userId: null }
-          }))}
-          onCloseCreateUser={() => setModalStates(prev => ({
-            ...prev,
-            createUserModal: false
-          }))}
-          onCloseDeleteUser={() => setModalStates(prev => ({
-            ...prev,
-            deleteUserModal: { isOpen: false, user: null }
-          }))}
-          onCloseUserActivity={() => setModalStates(prev => ({
-            ...prev,
-            userActivityModal: { isOpen: false, userId: null }
-          }))}
-          onCloseSecurity={() => setModalStates(prev => ({
-            ...prev,
-            securityModal: { isOpen: false, userId: null }
-          }))}
-          onCloseJson={() => setModalStates(prev => ({
-            ...prev,
-            jsonModal: false
-          }))}
-          onClosePermissions={() => setModalStates(prev => ({
-            ...prev,
-            permissionsModal: { isOpen: false, userId: null }
-          }))}
+          onCloseUserDetail={() =>
+            setModalStates(prev => ({
+              ...prev,
+              userDetailModal: { isOpen: false, userId: null },
+            }))
+          }
+          onCloseCreateUser={() =>
+            setModalStates(prev => ({
+              ...prev,
+              createUserModal: false,
+            }))
+          }
+          onCloseDeleteUser={() =>
+            setModalStates(prev => ({
+              ...prev,
+              deleteUserModal: { isOpen: false, user: null },
+            }))
+          }
+          onCloseUserActivity={() =>
+            setModalStates(prev => ({
+              ...prev,
+              userActivityModal: { isOpen: false, userId: null },
+            }))
+          }
+          onCloseSecurity={() =>
+            setModalStates(prev => ({
+              ...prev,
+              securityModal: { isOpen: false, userId: null },
+            }))
+          }
+          onCloseJson={() =>
+            setModalStates(prev => ({
+              ...prev,
+              jsonModal: false,
+            }))
+          }
+          onClosePermissions={() =>
+            setModalStates(prev => ({
+              ...prev,
+              permissionsModal: { isOpen: false, userId: null },
+            }))
+          }
           onRefreshData={refreshData}
         />
       </div>

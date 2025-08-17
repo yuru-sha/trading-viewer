@@ -111,15 +111,13 @@ export const getLineChartOptimizations = (dataSize: number) => ({
 })
 
 // WebGL Renderer を使用する場合の設定（パフォーマンス重視）
+// NOTE: echarts-gl is not installed, so WebGL renderer is disabled
 export const enableWebGLRenderer = async () => {
-  // 動的インポートで WebGLRenderer を読み込み
-  const { WebGLRenderer } = await import('echarts-gl/renderers')
-  echarts.use([WebGLRenderer])
+  console.warn('WebGL renderer is not available (echarts-gl not installed)')
 
   return {
-    renderer: 'webgl' as const,
-    // WebGL 固有の設定
-    enableOptimization: true,
+    renderer: 'canvas' as const,
+    enableOptimization: false,
   }
 }
 
