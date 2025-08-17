@@ -1,0 +1,138 @@
+name: 依存関係監視
+
+on:
+  schedule:
+    # 毎日午前 9 時 (JST) に実行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 手動実行可能
+
+jobs:
+  dependency-report:
+    name: 📋 依存関係レポート
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: 📋 Generate comprehensive report
+        run: |
+          echo "# 📊 依存関係監視レポート" > dependency-monitor-report.md
+          echo "**生成日時**: $(date)" >> dependency-monitor-report.md
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 🔄 循環依存チェック" >> dependency-monitor-report.md
+          if pnpm deps:check > /dev/null 2>&1; then
+            echo "✅ 循環依存なし" >> dependency-monitor-report.md
+          else
+            echo "❌ 循環依存あり" >> dependency-monitor-report.md
+            echo '```' >> dependency-monitor-report.md
+            pnpm deps:check >> dependency-monitor-report.md 2>&1 || true
+            echo '```' >> dependency-monitor-report.md
+          fi
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 🕸️ 依存関係検証" >> dependency-monitor-report.md
+          if pnpm deps:cruise > /dev/null 2>&1; then
+            echo "✅ 依存関係検証完了" >> dependency-monitor-report.md
+          else
+            echo "⚠️ 依存関係に問題あり" >> dependency-monitor-report.md
+          fi
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 📊 重複依存" >> dependency-monitor-report.md
+          duplicates=$(pnpm analyze:deps:duplicates)
+          if [ -z "$duplicates" ]; then
+            echo "✅ 重複依存なし" >> dependency-monitor-report.md
+          else
+            echo "⚠️ 重複依存あり:" >> dependency-monitor-report.md
+            echo '```' >> dependency-monitor-report.md
+            echo "$duplicates" >> dependency-monitor-report.md
+            echo '```' >> dependency-monitor-report.md
+          fi
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 🔒 セキュリティ監査" >> dependency-monitor-report.md
+          if pnpm security:audit > /dev/null 2>&1; then
+            echo "✅ セキュリティ脆弱性なし" >> dependency-monitor-report.md
+          else
+            echo "⚠️ セキュリティ脆弱性あり" >> dependency-monitor-report.md
+            echo '```' >> dependency-monitor-report.md
+            pnpm security:audit >> dependency-monitor-report.md 2>&1 || true
+            echo '```' >> dependency-monitor-report.md
+          fi
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 📦 パッケージ情報" >> dependency-monitor-report.md
+          echo '```' >> dependency-monitor-report.md
+          pnpm list --depth=0 >> dependency-monitor-report.md
+          echo '```' >> dependency-monitor-report.md
+          echo "" >> dependency-monitor-report.md
+          
+          echo "## 📊 プロジェクトメトリクス" >> dependency-monitor-report.md
+          echo "- **総ファイル数**: $(find apps packages -name "*.ts" -o -name "*.tsx" | grep -v node_modules | wc -l | xargs)" >> dependency-monitor-report.md
+          echo "- **パッケージ数**: 4 (client, server, shared, ui)" >> dependency-monitor-report.md
+          echo "- **アーキテクチャ**: モノレポ (pnpm workspace)" >> dependency-monitor-report.md
+          echo "- **技術スタック**: TypeScript, React, Express, Prisma" >> dependency-monitor-report.md
+          
+        continue-on-error: true
+        
+      - name: 📤 Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-monitor-report-$(date +%Y%m%d)
+          path: dependency-monitor-report.md
+          retention-days: 30
+        continue-on-error: true
+        
+      - name: 🚨 Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 依存関係監視: 問題を検出';
+            const body = `
+            ## 🚨 依存関係監視で問題が検出されました
+            
+            **検出日時**: ${new Date().toISOString()}
+            **ワークフロー**: [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            ### 🔍 確認が必要な項目
+            - 循環依存の発生
+            - セキュリティ脆弱性の検出
+            - 依存関係の整合性問題
+            
+            ### 🛠️ 対処方法
+            1. [ワークフローログ](${context.payload.repository.html_url}/actions/runs/${context.runId}) を確認
+            2. 問題のある依存関係を特定
+            3. 必要に応じて依存関係を更新または修正
+            
+            ### 📋 関連ドキュメント
+            - [依存関係分析レポート](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            - [CLAUDE.md](${context.payload.repository.html_url}/blob/main/CLAUDE.md)
+            
+            この Issue は依存関係監視ワークフローによって自動作成されました。
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'monitoring', 'automated']
+            });
+        continue-on-error: true

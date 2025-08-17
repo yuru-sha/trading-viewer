@@ -16,7 +16,7 @@
     "lint:fix": "pnpm --recursive --filter=!@trading-viewer/root run lint:fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "pnpm --recursive --filter=!@trading-viewer/root run type-check",
-    "quality-check": "pnpm lint && pnpm type-check && pnpm test:unit",
+    "quality-check": "pnpm deps:analyze && pnpm lint && pnpm type-check && pnpm test:unit",
     "security:audit": "pnpm audit --audit-level moderate",
     "security:scan": "pnpm security:audit && pnpm security:test",
     "security:test": "pnpm --recursive --filter=!@trading-viewer/root run security:test",
@@ -33,16 +33,28 @@
     "db:reset": "pnpm --filter @trading-viewer/server db:reset",
     "db:studio": "pnpm --filter @trading-viewer/server db:studio",
     "analyze:bundle": "node scripts/analyze-bundle.js",
+    "analyze:bundle:client": "pnpm --filter @trading-viewer/client analyze:bundle",
+    "analyze:bundle:size": "pnpm --filter @trading-viewer/client build && npx vite-bundle-analyzer apps/client/dist",
     "analyze:deps": "pnpm list --depth=1 --json",
+    "analyze:deps:duplicates": "pnpm list --depth=0 | grep -E '^[├└]─' | sort | uniq -d",
+    "deps:check": "madge --circular --extensions ts,tsx apps/*/src packages/*/src",
+    "deps:graph": "madge --image deps.svg --extensions ts,tsx apps/*/src packages/*/src",
+    "deps:analyze": "pnpm deps:check && echo '✅ No circular dependencies found'",
+    "deps:cruise": "dependency-cruiser --no-config --validate apps packages",
+    "deps:cruise:graph": "dependency-cruiser --no-config --include-only '^(apps|packages)' --output-type dot apps packages | dot -T svg > dependency-graph.svg",
     "security:audit:schedule": "pnpm audit --audit-level moderate"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "concurrently": "^8.2.0",
+    "dependency-cruiser": "^17.0.1",
     "eslint": "^8.54.0",
+    "madge": "^8.0.0",
     "prettier": "^3.1.0",
-    "prisma": "^5.6.0"
+    "prisma": "^5.6.0",
+    "vite-bundle-analyzer": "^1.2.1",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "engines": {
     "node": ">=18.0.0",

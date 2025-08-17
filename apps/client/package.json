@@ -18,6 +18,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
+    "analyze:bundle": "vite build --mode analyze && npx vite-bundle-analyzer dist",
+    "analyze:size": "vite build && ls -lah dist/assets/",
     "clean": "rm -rf dist"
   },
   "dependencies": {
