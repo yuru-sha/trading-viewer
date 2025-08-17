@@ -40,8 +40,13 @@
     "deps:check": "madge --circular --extensions ts,tsx apps/*/src packages/*/src",
     "deps:graph": "madge --image deps.svg --extensions ts,tsx apps/*/src packages/*/src",
     "deps:analyze": "pnpm deps:check && echo '✅ No circular dependencies found'",
-    "deps:cruise": "dependency-cruiser --no-config --validate apps packages",
-    "deps:cruise:graph": "dependency-cruiser --no-config --include-only '^(apps|packages)' --output-type dot apps packages | dot -T svg > dependency-graph.svg",
+    "deps:cruise": "dependency-cruiser --validate apps packages",
+    "deps:cruise:graph": "dependency-cruiser --output-type dot apps packages | dot -T svg > dependency-graph.svg",
+    "deps:monitor": "pnpm deps:check && pnpm deps:complexity && pnpm deps:security",
+    "deps:complexity": "madge --summary --extensions ts,tsx apps/*/src packages/*/src",
+    "deps:security": "pnpm audit --audit-level moderate --json | jq '.vulnerabilities | length' || echo '0'",
+    "deps:metrics": "echo '📊 Dependency Metrics:' && pnpm deps:complexity && pnpm analyze:deps:duplicates",
+    "deps:watch": "nodemon --watch 'apps/**/*.ts' --watch 'packages/**/*.ts' --exec 'pnpm deps:check'",
     "security:audit:schedule": "pnpm audit --audit-level moderate"
   },
   "devDependencies": {
