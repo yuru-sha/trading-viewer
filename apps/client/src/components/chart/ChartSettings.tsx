@@ -48,7 +48,7 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
   className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'general' | 'indicators' | 'style'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'style'>('general')
 
   const updateSettings = (updates: Partial<ChartSettings>) => {
     onSettingsChange({ ...settings, ...updates })
@@ -103,7 +103,6 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
         <div className='flex border-b border-gray-200 dark:border-gray-700'>
           {[
             { id: 'general', label: 'General' },
-            { id: 'indicators', label: 'Indicators' },
             { id: 'style', label: 'Style' },
           ].map(tab => (
             <button
@@ -193,16 +192,6 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
             </div>
           )}
 
-          {/* Indicators Tab - Removed */}
-          {activeTab === 'indicators' && (
-            <div className='space-y-4'>
-              <div className='text-center py-8'>
-                <p className='text-gray-500 dark:text-gray-400'>
-                  インジケーター管理は別画面で実装予定です
-                </p>
-              </div>
-            </div>
-          )}
 
           {/* Style Tab */}
           {activeTab === 'style' && (

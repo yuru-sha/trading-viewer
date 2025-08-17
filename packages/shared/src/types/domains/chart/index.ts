@@ -87,3 +87,6 @@ export interface MarketDataResponse {
   status: 'success' | 'error'
   message?: string
 }
+
+// Chart Component Interfaces
+export * from '../../chart/interfaces'
