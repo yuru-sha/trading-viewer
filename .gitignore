@@ -130,6 +130,9 @@ playwright-report/
 # Monorepo specific
 .turbo
 
+# Vite cache
+.vite/
+
 # Claude Code settings
 .claude/settings.local.json
 
