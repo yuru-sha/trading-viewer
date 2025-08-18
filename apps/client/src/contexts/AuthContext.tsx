@@ -234,13 +234,13 @@ class AuthApiClient {
       if (response.status === 204 || response.headers.get('content-length') === '0') {
         return {} as any
       }
-      
+
       // Parse JSON response
       const contentType = response.headers.get('content-type')
       if (contentType && contentType.includes('application/json')) {
         return await response.json()
       }
-      
+
       // Return empty object for non-JSON responses
       return {} as any
     } catch (error) {

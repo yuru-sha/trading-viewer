@@ -6,6 +6,7 @@ import { apiClient } from '../lib/apiClient'
 import CreateAlertModal from '../components/alerts/CreateAlertModal'
 import { formatPrice } from '../utils/currency'
 import ConfirmDialog from '../components/common/ConfirmDialog'
+import SelectAllButton from '../components/common/SelectAllButton'
 
 interface PriceAlert {
   id: string
@@ -32,7 +33,6 @@ const AlertsPage: React.FC = () => {
   const [togglingAlertId, setTogglingAlertId] = useState<string | null>(null)
   const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
-  const [groupBySymbol, setGroupBySymbol] = useState(true)
   const [deleteConfirm, setDeleteConfirm] = useState<PriceAlert | null>(null)
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
 
@@ -180,147 +180,146 @@ const AlertsPage: React.FC = () => {
     }
   }
 
-  // Group alerts by symbol
-  const groupedAlerts = groupBySymbol
-    ? alerts.reduce(
-        (groups, alert) => {
-          const symbol = alert.symbol
-          if (!groups[symbol]) {
-            groups[symbol] = []
-          }
-          groups[symbol].push(alert)
-          return groups
-        },
-        {} as Record<string, PriceAlert[]>
-      )
-    : { 'All Alerts': alerts }
+  // Group alerts by symbol (always grouped)
+  const groupedAlerts = alerts.reduce(
+    (groups, alert) => {
+      const symbol = alert.symbol
+      if (!groups[symbol]) {
+        groups[symbol] = []
+      }
+      groups[symbol].push(alert)
+      return groups
+    },
+    {} as Record<string, PriceAlert[]>
+  )
 
-  const AlertCard: React.FC<{ alert: PriceAlert }> = ({ alert }) => (
+  const AlertCard: React.FC<{ alert: PriceAlert; hideSymbol?: boolean }> = ({
+    alert,
+    hideSymbol = false,
+  }) => (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 transition-colors ${
+      className={`px-4 py-4 transition-colors ${
         selectedAlerts.has(alert.id)
-          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-          : 'border-gray-200 dark:border-gray-700'
+          ? 'bg-blue-50 dark:bg-blue-900'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
       }`}
     >
-      <div className='flex items-center justify-between mb-3'>
-        <div className='flex items-center space-x-3'>
-          <input
-            type='checkbox'
-            checked={selectedAlerts.has(alert.id)}
-            onChange={() => toggleAlertSelection(alert.id)}
-            className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
-          />
+      <div className='flex items-center space-x-3'>
+        {/* Selection Checkbox */}
+        <button
+          onClick={() => toggleAlertSelection(alert.id)}
+          className='flex-shrink-0 touch-target flex items-center justify-center'
+        >
           <div
-            className={`w-3 h-3 rounded-full ${alert.enabled ? 'bg-green-500' : 'bg-gray-400'}`}
-          />
-          <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>{alert.symbol}</h3>
-          <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${
-              alert.triggeredAt
-                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                : alert.enabled
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+            className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+              selectedAlerts.has(alert.id)
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'border-gray-300 dark:border-gray-600'
             }`}
           >
-            {alert.triggeredAt ? 'Triggered' : alert.enabled ? 'Active' : 'Disabled'}
-          </span>
-        </div>
-
-        <div className='flex items-center space-x-2'>
-          <button
-            onClick={() => editAlert(alert)}
-            className='p-1 text-gray-400 hover:text-blue-500'
-            title='Edit alert'
-          >
-            <Icon name='edit' className='w-4 h-4' />
-          </button>
-          <button
-            onClick={() => toggleAlert(alert)}
-            disabled={togglingAlertId === alert.id}
-            className={`p-1 ${
-              togglingAlertId === alert.id
-                ? 'text-gray-300 cursor-not-allowed'
-                : alert.enabled
-                  ? 'text-green-500 hover:text-green-600'
-                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-            }`}
-            title={
-              togglingAlertId === alert.id
-                ? 'Updating...'
-                : alert.enabled
-                  ? 'Disable alert'
-                  : 'Enable alert'
-            }
-          >
-            {togglingAlertId === alert.id ? (
-              <div className='animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-500' />
-            ) : (
-              <Icon name={alert.enabled ? 'pause' : 'play'} className='w-4 h-4' />
+            {selectedAlerts.has(alert.id) && (
+              <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                <path
+                  fillRule='evenodd'
+                  d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                  clipRule='evenodd'
+                />
+              </svg>
             )}
-          </button>
-          <button
-            onClick={() => setDeleteConfirm(alert)}
-            disabled={deletingAlertId === alert.id}
-            className={`p-1 ${
-              deletingAlertId === alert.id
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-400 hover:text-red-500'
-            }`}
-            title={deletingAlertId === alert.id ? 'Deleting...' : 'Delete alert'}
-          >
-            {deletingAlertId === alert.id ? (
-              <div className='animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-red-500' />
-            ) : (
-              <Icon name='trash' className='w-4 h-4' />
-            )}
-          </button>
-        </div>
-      </div>
-
-      <div className='space-y-2'>
-        <div className='flex items-center justify-between text-sm'>
-          <span className='text-gray-600 dark:text-gray-400'>Condition:</span>
-          <span className='text-gray-900 dark:text-white font-medium'>
-            {alert.targetPrice
-              ? `Price ${alert.condition} ${formatPrice(alert.targetPrice, alert.currency)}`
-              : `${alert.percentageChange && alert.percentageChange > 0 ? '+' : ''}${alert.percentageChange}% change`}
-          </span>
-        </div>
-
-        {alert.percentageChange && alert.targetPrice && (
-          <div className='flex items-center justify-between text-sm'>
-            <span className='text-gray-600 dark:text-gray-400'>Change Trigger:</span>
-            <span className='text-gray-900 dark:text-white font-medium'>
-              {alert.percentageChange > 0 ? '+' : ''}
-              {alert.percentageChange}%
-            </span>
           </div>
-        )}
+        </button>
 
-        <div className='flex items-center justify-between text-sm'>
-          <span className='text-gray-600 dark:text-gray-400'>Created:</span>
-          <span className='text-gray-900 dark:text-white'>
-            {new Date(alert.createdAt).toLocaleDateString()}
-          </span>
+        {/* Alert Info */}
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center justify-between mb-2'>
+            <div className='flex items-center space-x-3'>
+              {!hideSymbol && (
+                <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
+                  {alert.symbol}
+                </h3>
+              )}
+              <span
+                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  alert.triggeredAt
+                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    : alert.enabled
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {alert.triggeredAt ? 'Triggered' : alert.enabled ? 'Active' : 'Disabled'}
+              </span>
+            </div>
+
+            <div className='flex items-center space-x-2'>
+              <button
+                onClick={() => editAlert(alert)}
+                className='p-1 text-gray-400 hover:text-blue-500'
+                title='Edit alert'
+              >
+                <Icon name='edit' className='w-4 h-4' />
+              </button>
+              <button
+                onClick={() => toggleAlert(alert)}
+                disabled={togglingAlertId === alert.id}
+                className={`p-1 ${
+                  togglingAlertId === alert.id
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : alert.enabled
+                      ? 'text-green-500 hover:text-green-600'
+                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                }`}
+                title={
+                  togglingAlertId === alert.id
+                    ? 'Updating...'
+                    : alert.enabled
+                      ? 'Disable alert'
+                      : 'Enable alert'
+                }
+              >
+                {togglingAlertId === alert.id ? (
+                  <div className='animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-500' />
+                ) : (
+                  <Icon name={alert.enabled ? 'pause' : 'play'} className='w-4 h-4' />
+                )}
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(alert)}
+                disabled={deletingAlertId === alert.id}
+                className={`p-1 ${
+                  deletingAlertId === alert.id
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-400 hover:text-red-500'
+                }`}
+                title={deletingAlertId === alert.id ? 'Deleting...' : 'Delete alert'}
+              >
+                {deletingAlertId === alert.id ? (
+                  <div className='animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-red-500' />
+                ) : (
+                  <Icon name='trash' className='w-4 h-4' />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Alert Details - Mobile style grid */}
+          <div className='mt-3 grid grid-cols-2 gap-4 text-xs'>
+            <div>
+              <span className='text-gray-500 dark:text-gray-400'>Condition</span>
+              <div className='font-medium text-gray-900 dark:text-white'>
+                {alert.targetPrice
+                  ? `Price ${alert.condition} ${formatPrice(alert.targetPrice, alert.currency)}`
+                  : `Price change ${alert.percentageChange && alert.percentageChange > 0 ? 'above +' : 'below '}${Math.abs(alert.percentageChange || 0)}%`}
+              </div>
+            </div>
+            <div>
+              <span className='text-gray-500 dark:text-gray-400'>Created</span>
+              <div className='font-medium text-gray-900 dark:text-white'>
+                {new Date(alert.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          </div>
         </div>
-
-        {alert.currency && alert.currency !== 'USD' && (
-          <div className='flex items-center justify-between text-sm'>
-            <span className='text-gray-600 dark:text-gray-400'>Currency:</span>
-            <span className='text-gray-900 dark:text-white'>{alert.currency}</span>
-          </div>
-        )}
-
-        {alert.triggeredAt && (
-          <div className='flex items-center justify-between text-sm'>
-            <span className='text-gray-600 dark:text-gray-400'>Triggered:</span>
-            <span className='text-red-600 dark:text-red-400 font-medium'>
-              {new Date(alert.triggeredAt).toLocaleString()}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -343,174 +342,160 @@ const AlertsPage: React.FC = () => {
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-      {/* Header */}
-      <div className='flex items-center justify-between mb-8'>
-        <div>
-          <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Price Alerts</h1>
-          <p className='mt-2 text-gray-600 dark:text-gray-400'>
-            Get notified when your symbols reach target prices
-          </p>
-        </div>
-
-        <div className='flex items-center space-x-3'>
-          {selectedAlerts.size > 0 && (
-            <Button
-              variant='outline'
-              onClick={() => setBulkDeleteConfirm(true)}
-              disabled={bulkDeleting}
-              className='flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50'
-            >
-              {bulkDeleting ? (
-                <div className='animate-spin rounded-full h-4 w-4 border-2 border-red-500 border-t-transparent' />
-              ) : (
-                <Icon name='trash' className='w-4 h-4' />
-              )}
-              <span>{bulkDeleting ? 'Deleting...' : `Delete ${selectedAlerts.size} Selected`}</span>
-            </Button>
-          )}
-          <Button onClick={() => setShowCreateModal(true)} className='flex items-center space-x-2'>
-            <Icon name='add' className='w-4 h-4' />
-            <span>Create Alert</span>
-          </Button>
-        </div>
+      <div className='mb-8'>
+        <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Price Alerts</h1>
+        <p className='mt-2 text-gray-600 dark:text-gray-400'>
+          {alerts.length} alert{alerts.length !== 1 ? 's' : ''} active
+        </p>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className='mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
-          <div className='flex items-center'>
-            <Icon name='alertTriangle' className='w-5 h-5 text-red-500 mr-3' />
-            <p className='text-red-700 dark:text-red-300'>{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className='ml-auto text-red-500 hover:text-red-700'
-            >
-              <Icon name='x' className='w-4 h-4' />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Statistics */}
-      {alerts.length > 0 && (
-        <div className='mb-8 grid grid-cols-1 md:grid-cols-4 gap-4'>
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4'>
-            <div className='text-sm text-gray-600 dark:text-gray-400'>Total Alerts</div>
-            <div className='text-2xl font-bold text-gray-900 dark:text-white'>{alerts.length}</div>
-          </div>
-
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4'>
-            <div className='text-sm text-gray-600 dark:text-gray-400'>Active</div>
-            <div className='text-2xl font-bold text-green-600 dark:text-green-400'>
-              {alerts.filter(a => a.enabled && !a.triggeredAt).length}
-            </div>
-          </div>
-
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4'>
-            <div className='text-sm text-gray-600 dark:text-gray-400'>Triggered</div>
-            <div className='text-2xl font-bold text-red-600 dark:text-red-400'>
-              {alerts.filter(a => a.triggeredAt).length}
-            </div>
-          </div>
-
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4'>
-            <div className='text-sm text-gray-600 dark:text-gray-400'>Disabled</div>
-            <div className='text-2xl font-bold text-gray-600 dark:text-gray-400'>
-              {alerts.filter(a => !a.enabled && !a.triggeredAt).length}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loading ? (
-        <div className='text-center py-12'>
-          <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mx-auto mb-4' />
-          <p className='text-gray-600 dark:text-gray-400'>Loading your alerts...</p>
-        </div>
-      ) : alerts.length === 0 ? (
-        /* Empty State */
-        <div className='text-center py-12'>
-          <Icon name='bell' className='w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>No alerts yet</h3>
-          <p className='text-gray-600 dark:text-gray-400 mb-6'>
-            Create your first price alert to get notified when symbols reach your target prices.
-          </p>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Icon name='add' className='w-4 h-4 mr-2' />
-            Create Your First Alert
-          </Button>
-        </div>
-      ) : (
-        /* Alerts Display */
-        <div className='space-y-6'>
-          {/* Bulk Actions Bar */}
-          <div className='flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3'>
+      <div className='h-full flex flex-col'>
+        {/* Actions Bar */}
+        <div className='flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4'>
+          <div className='flex items-center justify-between'>
+            {/* Left side - Selection controls */}
             <div className='flex items-center space-x-4'>
-              <label className='flex items-center'>
-                <input
-                  type='checkbox'
-                  checked={selectedAlerts.size === alerts.length && alerts.length > 0}
-                  onChange={selectAllAlerts}
-                  className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
-                />
-                <span className='ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium'>
-                  {selectedAlerts.size === alerts.length && alerts.length > 0
-                    ? 'Deselect All'
-                    : 'Select All'}
-                </span>
-              </label>
+              <SelectAllButton
+                totalCount={alerts.length}
+                selectedCount={selectedAlerts.size}
+                onToggle={selectAllAlerts}
+              />
               {selectedAlerts.size > 0 && (
-                <span className='text-sm text-blue-700 dark:text-blue-300 font-medium'>
-                  {selectedAlerts.size} of {alerts.length} selected
+                <span className='text-sm text-gray-500 dark:text-gray-400'>
+                  {selectedAlerts.size} selected
                 </span>
               )}
             </div>
+
+            {/* Right side - Action Buttons */}
             <div className='flex items-center space-x-2'>
-              <label className='flex items-center'>
-                <input
-                  type='checkbox'
-                  checked={groupBySymbol}
-                  onChange={e => setGroupBySymbol(e.target.checked)}
-                  className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
-                />
-                <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>
-                  Group by Symbol
-                </span>
-              </label>
+              {selectedAlerts.size > 0 && (
+                <>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setSelectedAlerts(new Set())}
+                    className='hidden sm:flex'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setBulkDeleteConfirm(true)}
+                    disabled={bulkDeleting}
+                    className='text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900'
+                  >
+                    <svg
+                      className='w-4 h-4 sm:mr-2'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
+                      />
+                    </svg>
+                    <span className='hidden sm:inline'>Delete ({selectedAlerts.size})</span>
+                  </Button>
+                </>
+              )}
+              <Button variant='primary' size='sm' onClick={() => setShowCreateModal(true)}>
+                <svg
+                  className='w-4 h-4 sm:mr-2'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M12 4v16m8-8H4'
+                  />
+                </svg>
+                <span className='hidden sm:inline'>Create Alert</span>
+              </Button>
             </div>
           </div>
+        </div>
 
-          {Object.entries(groupedAlerts).map(([symbol, symbolAlerts]) => (
-            <div key={symbol} className='space-y-4'>
-              {groupBySymbol && symbol !== 'All Alerts' && (
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center space-x-3'>
-                    <h2 className='text-xl font-bold text-gray-900 dark:text-white'>{symbol}</h2>
-                    <span className='px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full'>
-                      {symbolAlerts.length} alert{symbolAlerts.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  <div className='text-sm text-gray-500 dark:text-gray-400'>
-                    Active: {symbolAlerts.filter(a => a.enabled && !a.triggeredAt).length} |
-                    Triggered: {symbolAlerts.filter(a => a.triggeredAt).length} | Disabled:{' '}
-                    {symbolAlerts.filter(a => !a.enabled && !a.triggeredAt).length}
-                  </div>
-                </div>
-              )}
-              <div
-                className={`grid gap-4 ${
-                  groupBySymbol ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                }`}
+        {/* Error Message */}
+        {error && (
+          <div className='mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
+            <div className='flex items-center'>
+              <Icon name='alertTriangle' className='w-5 h-5 text-red-500 mr-3' />
+              <p className='text-red-700 dark:text-red-300'>{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className='ml-auto text-red-500 hover:text-red-700'
               >
-                {symbolAlerts.map(alert => (
-                  <AlertCard key={alert.id} alert={alert} />
+                <Icon name='x' className='w-4 h-4' />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className='text-center py-12'>
+            <div className='animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mx-auto mb-4' />
+            <p className='text-gray-600 dark:text-gray-400'>Loading your alerts...</p>
+          </div>
+        ) : alerts.length === 0 ? (
+          /* Empty State */
+          <div className='text-center py-12'>
+            <Icon name='bell' className='w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4' />
+            <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>
+              No alerts yet
+            </h3>
+            <p className='text-gray-600 dark:text-gray-400 mb-6'>
+              Create your first price alert to get notified when symbols reach your target prices.
+            </p>
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Icon name='add' className='w-4 h-4 mr-2' />
+              Create Your First Alert
+            </Button>
+          </div>
+        ) : (
+          <div className='flex-1 overflow-hidden'>
+            <div className='h-full overflow-y-auto mobile-scroll'>
+              <div className='space-y-6 p-4'>
+                {Object.entries(groupedAlerts).map(([symbol, symbolAlerts]) => (
+                  <div key={symbol} className='space-y-3'>
+                    {/* Symbol Group Header */}
+                    <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2'>
+                      <div className='flex items-center space-x-3'>
+                        <h2 className='text-xl font-bold text-gray-900 dark:text-white'>
+                          {symbol}
+                        </h2>
+                        <span className='px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full'>
+                          {symbolAlerts.length} alert{symbolAlerts.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className='text-sm text-gray-500 dark:text-gray-400'>
+                        Active: {symbolAlerts.filter(a => a.enabled && !a.triggeredAt).length} |
+                        Triggered: {symbolAlerts.filter(a => a.triggeredAt).length} | Disabled:{' '}
+                        {symbolAlerts.filter(a => !a.enabled && !a.triggeredAt).length}
+                      </div>
+                    </div>
+
+                    {/* Symbol Alerts */}
+                    <div className='divide-y divide-gray-200 dark:divide-gray-700'>
+                      {symbolAlerts.map(alert => (
+                        <AlertCard key={alert.id} alert={alert} hideSymbol={true} />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Create/Edit Alert Modal */}
       <CreateAlertModal

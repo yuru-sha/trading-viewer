@@ -45,9 +45,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <div className='flex items-center justify-center min-h-screen p-4'>
         <div className='relative bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-8 transform transition-all'>
           {/* Title */}
-          <h3 className='text-xl font-semibold text-white mb-4'>
-            {title}
-          </h3>
+          <h3 className='text-xl font-semibold text-white mb-4'>{title}</h3>
 
           {/* Message */}
           <p className='text-gray-300 mb-8 leading-relaxed'>{message}</p>

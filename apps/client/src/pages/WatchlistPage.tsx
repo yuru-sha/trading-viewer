@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button, Loading } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { apiService } from '../services/base/ApiService'
+import SelectAllButton from '../components/common/SelectAllButton'
 import {
   DndContext,
   closestCenter,
@@ -574,33 +575,11 @@ const WatchlistPage: React.FC = () => {
           <div className='flex items-center justify-between'>
             {/* Left side - Selection controls */}
             <div className='flex items-center space-x-4'>
-              {watchlist.length > 0 && (
-                <button
-                  onClick={handleSelectAll}
-                  className='flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
-                >
-                  <div
-                    className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
-                      selectedItems.size === watchlist.length
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  >
-                    {selectedItems.size === watchlist.length && (
-                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
-                        <path
-                          fillRule='evenodd'
-                          d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                          clipRule='evenodd'
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <span>
-                    {selectedItems.size === watchlist.length ? 'Deselect All' : 'Select All'}
-                  </span>
-                </button>
-              )}
+              <SelectAllButton
+                totalCount={watchlist.length}
+                selectedCount={selectedItems.size}
+                onToggle={handleSelectAll}
+              />
               {selectedItems.size > 0 && (
                 <span className='text-sm text-gray-500 dark:text-gray-400'>
                   {selectedItems.size} selected
@@ -694,17 +673,15 @@ const WatchlistPage: React.FC = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
-          <div 
+          <div
             className='fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50'
             onClick={() => setShowDeleteConfirm(false)}
           >
-            <div 
+            <div
               className='bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md'
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
-              <h3 className='text-xl font-semibold text-white mb-4'>
-                Delete Selected Items
-              </h3>
+              <h3 className='text-xl font-semibold text-white mb-4'>Delete Selected Items</h3>
               <p className='text-gray-300 mb-8 leading-relaxed'>
                 Are you sure you want to remove {selectedItems.size} item
                 {selectedItems.size !== 1 ? 's' : ''} from your watchlist? This action cannot be

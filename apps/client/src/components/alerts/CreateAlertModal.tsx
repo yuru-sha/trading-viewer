@@ -106,7 +106,6 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
     }
   }, [formData.symbol, isOpen])
 
-
   const fetchWatchlist = async () => {
     try {
       setLoadingWatchlist(true)
@@ -273,7 +272,8 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                 // Empty watchlist message
                 <div className='p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md'>
                   <p className='text-sm text-yellow-700 dark:text-yellow-300'>
-                    No symbols in your watchlist. Please add symbols to your watchlist first to create alerts.
+                    No symbols in your watchlist. Please add symbols to your watchlist first to
+                    create alerts.
                   </p>
                 </div>
               )}
@@ -316,7 +316,9 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                     onChange={e => handleInputChange('alertType', e.target.value)}
                     className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
                   />
-                  <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>Price Target</span>
+                  <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>
+                    Price Target
+                  </span>
                 </label>
                 <label className='flex items-center'>
                   <input
