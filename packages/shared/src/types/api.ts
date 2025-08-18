@@ -1,5 +1,5 @@
 import type { CandleData, Timeframe } from './chart'
-import type { DrawingTool } from './drawing'
+import type { DrawingTool } from './domains/drawing'
 
 export interface Symbol {
   symbol: string

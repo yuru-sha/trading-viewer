@@ -43,7 +43,7 @@ export interface CommandHistoryEntry<T = any> {
 /**
  * Drawing Commands
  */
-import type { DrawingToolType } from './drawing'
+import type { DrawingToolType } from './domains/drawing'
 
 export interface DrawingCommandParams {
   toolType: DrawingToolType
