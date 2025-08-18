@@ -309,7 +309,7 @@ const AlertsPage: React.FC = () => {
               <div className='font-medium text-gray-900 dark:text-white'>
                 {alert.targetPrice
                   ? `Price ${alert.condition} ${formatPrice(alert.targetPrice, alert.currency)}`
-                  : `Price change ${alert.percentageChange && alert.percentageChange > 0 ? 'above +' : 'below '}${Math.abs(alert.percentageChange || 0)}%`}
+                  : `Price change ${alert.condition} ${alert.percentageChange && alert.percentageChange >= 0 ? '+' : ''}${alert.percentageChange || 0}%`}
               </div>
             </div>
             <div>
