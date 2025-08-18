@@ -89,7 +89,6 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([])
   const [loadingWatchlist, setLoadingWatchlist] = useState(false)
-  const [showCustomInput, setShowCustomInput] = useState(false)
   const [currentPriceInfo, setCurrentPriceInfo] = useState<CurrentPriceInfo | null>(null)
   const [loadingCurrentPrice, setLoadingCurrentPrice] = useState(false)
 
@@ -107,6 +106,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
     }
   }, [formData.symbol, isOpen])
 
+
   const fetchWatchlist = async () => {
     try {
       setLoadingWatchlist(true)
@@ -122,13 +122,10 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
       } else {
         console.warn('Watchlist data is not an array:', result)
         setWatchlist([])
-        setShowCustomInput(true)
       }
     } catch (err) {
       console.error('Failed to fetch watchlist:', err)
       setWatchlist([])
-      // If watchlist fetch fails, default to custom input
-      setShowCustomInput(true)
     } finally {
       setLoadingWatchlist(false)
     }
@@ -215,19 +212,6 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
 
   const handleInputChange = (field: keyof AlertFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-
-    // Auto-suggest target price based on current price when symbol is selected
-    if (field === 'symbol' && value && !showCustomInput && Array.isArray(watchlist)) {
-      const selectedItem = watchlist.find(item => item.symbol === value)
-      if (selectedItem?.currentPrice && !formData.targetPrice) {
-        // Suggest a price 5% above current price for 'above' alerts
-        const suggestedPrice =
-          formData.condition === 'above'
-            ? selectedItem.currentPrice * 1.05
-            : selectedItem.currentPrice * 0.95
-        setFormData(prev => ({ ...prev, targetPrice: suggestedPrice.toFixed(2) }))
-      }
-    }
   }
 
   if (!isOpen) return null
@@ -258,82 +242,68 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
           <form onSubmit={handleSubmit} className='space-y-4'>
             {/* Symbol Selection */}
             <div>
-              <div className='flex items-center justify-between mb-2'>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-                  Symbol
-                </label>
-                {watchlist.length > 0 && (
-                  <button
-                    type='button'
-                    onClick={() => setShowCustomInput(!showCustomInput)}
-                    className='text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
-                  >
-                    {showCustomInput ? 'Choose from Watchlist' : 'Enter Custom Symbol'}
-                  </button>
-                )}
-              </div>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                Symbol
+              </label>
 
-              {loadingWatchlist ? (
-                <div className='flex items-center justify-center py-3 text-gray-500'>
-                  <div className='animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent mr-2' />
-                  Loading watchlist...
+              {defaultSymbol && !editingAlert ? (
+                // Show default symbol from chart (fixed, no changes allowed)
+                <div className='flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md'>
+                  <Icon name='trendingUp' className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+                  <span className='text-sm text-blue-700 dark:text-blue-300 font-medium'>
+                    Creating alert for chart symbol: {defaultSymbol}
+                  </span>
                 </div>
-              ) : showCustomInput || watchlist.length === 0 ? (
-                <input
-                  type='text'
-                  value={formData.symbol}
-                  onChange={e => handleInputChange('symbol', e.target.value)}
-                  placeholder='e.g., AAPL, TSLA, BTC-USD'
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                  required
-                />
-              ) : (
+              ) : watchlist.length > 0 ? (
+                // Watchlist dropdown
                 <select
                   value={formData.symbol}
                   onChange={e => handleInputChange('symbol', e.target.value)}
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
                   required
                 >
-                  <option value=''>Select a symbol from your watchlist</option>
-                  {Array.isArray(watchlist) &&
-                    watchlist.map(item => (
-                      <option key={item.id} value={item.symbol}>
-                        {item.symbol} - {item.name}{' '}
-                        {item.currentPrice
-                          ? `(${formatPrice(item.currentPrice, item.currency)})`
-                          : ''}
-                      </option>
-                    ))}
+                  <option value=''>Select a symbol</option>
+                  {watchlist.map(item => (
+                    <option key={item.symbol} value={item.symbol}>
+                      {item.symbol} - {item.name}
+                    </option>
+                  ))}
                 </select>
+              ) : (
+                // Empty watchlist message
+                <div className='p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md'>
+                  <p className='text-sm text-yellow-700 dark:text-yellow-300'>
+                    No symbols in your watchlist. Please add symbols to your watchlist first to create alerts.
+                  </p>
+                </div>
+              )}
+
+              {loadingWatchlist && (
+                <p className='text-sm text-gray-500 dark:text-gray-400'>Loading watchlist...</p>
               )}
             </div>
 
             {/* Current Price Display */}
-            {formData.symbol && (
-              <div className='p-3 bg-gray-50 dark:bg-gray-900 rounded-md'>
+            {currentPriceInfo && (
+              <div className='bg-gray-50 dark:bg-gray-700 rounded-md p-3'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-                    Current Price:
-                  </span>
-                  {loadingCurrentPrice ? (
-                    <div className='flex items-center'>
-                      <div className='animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent mr-2' />
-                      <span className='text-sm text-gray-500'>Loading...</span>
-                    </div>
-                  ) : currentPriceInfo ? (
-                    <span className='text-sm font-bold text-gray-900 dark:text-white'>
-                      {formatPrice(currentPriceInfo.price, currentPriceInfo.currency)}
-                    </span>
-                  ) : (
-                    <span className='text-sm text-gray-500'>Not available</span>
-                  )}
+                  <span className='text-sm text-gray-600 dark:text-gray-400'>Current Price:</span>
+                  <div className='flex items-center space-x-2'>
+                    {loadingCurrentPrice ? (
+                      <div className='animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent' />
+                    ) : (
+                      <span className='text-lg font-semibold text-gray-900 dark:text-white'>
+                        ${currentPriceInfo.price.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Alert Type */}
+            {/* Alert Type Selection */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
                 Alert Type
               </label>
               <div className='flex space-x-4'>
@@ -346,9 +316,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                     onChange={e => handleInputChange('alertType', e.target.value)}
                     className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
                   />
-                  <span className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
-                    Price Target
-                  </span>
+                  <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>Price Target</span>
                 </label>
                 <label className='flex items-center'>
                   <input
@@ -359,25 +327,27 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                     onChange={e => handleInputChange('alertType', e.target.value)}
                     className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
                   />
-                  <span className='ml-2 text-sm font-medium text-gray-900 dark:text-gray-300'>
+                  <span className='ml-2 text-sm text-gray-700 dark:text-gray-300'>
                     Percentage Change
                   </span>
                 </label>
               </div>
             </div>
 
-            {/* Condition */}
+            {/* Condition Selection */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
                 Condition
               </label>
               <select
                 value={formData.condition}
                 onChange={e => handleInputChange('condition', e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
+                required
               >
-                <option value='above'>Price goes above</option>
-                <option value='below'>Price goes below</option>
+                <option value='above'>Above</option>
+                <option value='below'>Below</option>
+                <option value='crosses'>Crosses</option>
               </select>
             </div>
 
@@ -385,7 +355,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
             {formData.alertType === 'price' ? (
               <div>
                 <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  Target Price
+                  Target Price ($)
                 </label>
                 <input
                   type='number'
@@ -393,8 +363,8 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                   min='0'
                   value={formData.targetPrice}
                   onChange={e => handleInputChange('targetPrice', e.target.value)}
-                  placeholder='100.00'
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
+                  placeholder='Enter target price'
                   required
                 />
               </div>
@@ -408,17 +378,14 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                   step='0.1'
                   value={formData.percentageChange}
                   onChange={e => handleInputChange('percentageChange', e.target.value)}
-                  placeholder='e.g., 5 for +5% or -10 for -10%'
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
+                  placeholder='Enter percentage change'
                   required
                 />
-                <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                  Use positive numbers for gains, negative for losses
-                </p>
               </div>
             )}
 
-            {/* Error Message */}
+            {/* Error Display */}
             {error && (
               <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3'>
                 <div className='flex'>
@@ -429,24 +396,30 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div className='flex items-center justify-end space-x-3 pt-4'>
-              <Button type='button' variant='outline' onClick={onClose} disabled={loading}>
+            <div className='flex space-x-3 pt-4'>
+              <button
+                type='button'
+                onClick={onClose}
+                className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+              >
                 Cancel
-              </Button>
-              <Button type='submit' disabled={loading} className='flex items-center space-x-2'>
-                {loading && (
-                  <div className='animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent' />
+              </button>
+              <button
+                type='submit'
+                disabled={loading}
+                className='flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+              >
+                {loading ? (
+                  <div className='flex items-center justify-center'>
+                    <div className='animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2' />
+                    {editingAlert ? 'Updating...' : 'Creating...'}
+                  </div>
+                ) : editingAlert ? (
+                  'Update Alert'
+                ) : (
+                  'Create Alert'
                 )}
-                <span>
-                  {loading
-                    ? editingAlert
-                      ? 'Updating...'
-                      : 'Creating...'
-                    : editingAlert
-                      ? 'Update Alert'
-                      : 'Create Alert'}
-                </span>
-              </Button>
+              </button>
             </div>
           </form>
         </div>
