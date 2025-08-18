@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiClient } from '../lib/apiClient'
 import CreateAlertModal from '../components/alerts/CreateAlertModal'
 import { formatPrice } from '../utils/currency'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 
 interface PriceAlert {
   id: string
@@ -32,6 +33,8 @@ const AlertsPage: React.FC = () => {
   const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [groupBySymbol, setGroupBySymbol] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState<PriceAlert | null>(null)
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
 
   // Fetch alerts
   const fetchAlerts = async () => {
@@ -86,20 +89,14 @@ const AlertsPage: React.FC = () => {
 
   // Delete alert with improved UX
   const deleteAlert = async (alert: PriceAlert) => {
-    const confirmMessage = `Are you sure you want to delete the alert for ${alert.symbol}?\n\nCondition: Price ${alert.condition} ${alert.targetPrice ? `$${alert.targetPrice}` : `${alert.percentageChange}%`}`
-
-    if (!confirm(confirmMessage)) return
-
     setDeletingAlertId(alert.id)
     try {
       await requestWithAuth(`/api/alerts/${alert.id}`, {
         method: 'DELETE',
       })
       setAlerts(prev => prev.filter(a => a.id !== alert.id))
-      // Show success message briefly
-      const successMsg = `Alert for ${alert.symbol} deleted successfully`
       setError(null)
-      // You could add a success toast here instead
+      setDeleteConfirm(null)
     } catch (err: any) {
       setError(err.message || `Failed to delete alert for ${alert.symbol}`)
     } finally {
@@ -145,12 +142,8 @@ const AlertsPage: React.FC = () => {
   const bulkDeleteAlerts = async () => {
     if (selectedAlerts.size === 0) return
 
-    const selectedAlertsData = alerts.filter(alert => selectedAlerts.has(alert.id))
-    const confirmMessage = `Are you sure you want to delete ${selectedAlerts.size} alert(s)?\n\n${selectedAlertsData.map(alert => `• ${alert.symbol} - ${alert.condition} ${alert.targetPrice ? `$${alert.targetPrice}` : `${alert.percentageChange}%`}`).join('\n')}`
-
-    if (!confirm(confirmMessage)) return
-
     setBulkDeleting(true)
+    setBulkDeleteConfirm(false)
     const failedDeletes: string[] = []
 
     try {
@@ -268,7 +261,7 @@ const AlertsPage: React.FC = () => {
             )}
           </button>
           <button
-            onClick={() => deleteAlert(alert)}
+            onClick={() => setDeleteConfirm(alert)}
             disabled={deletingAlertId === alert.id}
             className={`p-1 ${
               deletingAlertId === alert.id
@@ -363,7 +356,7 @@ const AlertsPage: React.FC = () => {
           {selectedAlerts.size > 0 && (
             <Button
               variant='outline'
-              onClick={bulkDeleteAlerts}
+              onClick={() => setBulkDeleteConfirm(true)}
               disabled={bulkDeleting}
               className='flex items-center space-x-2 text-red-600 border-red-300 hover:bg-red-50'
             >
@@ -528,6 +521,37 @@ const AlertsPage: React.FC = () => {
           handleModalClose()
         }}
         editingAlert={editingAlert}
+      />
+
+      {/* Single Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm !== null}
+        onConfirm={() => {
+          if (deleteConfirm) {
+            deleteAlert(deleteConfirm)
+          }
+        }}
+        onCancel={() => {
+          setDeleteConfirm(null)
+          setDeletingAlertId(null)
+        }}
+        title='Delete Selected Items'
+        message={`Are you sure you want to remove 1 item from your alerts? This action cannot be undone.`}
+        confirmText='Delete'
+        cancelText='Cancel'
+        isLoading={deleteConfirm ? deletingAlertId === deleteConfirm.id : false}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={bulkDeleteConfirm}
+        onConfirm={() => bulkDeleteAlerts()}
+        onCancel={() => setBulkDeleteConfirm(false)}
+        title='Delete Selected Items'
+        message={`Are you sure you want to remove ${selectedAlerts.size} item${selectedAlerts.size !== 1 ? 's' : ''} from your alerts? This action cannot be undone.`}
+        confirmText='Delete'
+        cancelText='Cancel'
+        isLoading={bulkDeleting}
       />
     </div>
   )

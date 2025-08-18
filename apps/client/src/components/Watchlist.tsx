@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { api } from '../lib/apiClient'
+import ConfirmDialog from './common/ConfirmDialog'
 
 interface WatchlistSymbol {
   symbol: string
@@ -25,6 +26,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
   const [watchlist, setWatchlist] = useState<WatchlistSymbol[]>([])
   const [loading, setLoading] = useState(false)
   const [isExpanded, setIsExpanded] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ symbol: string; name: string } | null>(null)
 
   // Default watchlist symbols
   const defaultSymbols = [
@@ -131,6 +133,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
     // Save to localStorage
     const symbolsToSave = updatedWatchlist.map(item => ({ symbol: item.symbol, name: item.name }))
     localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
+    setDeleteConfirm(null)
   }
 
   // Refresh watchlist data
@@ -273,7 +276,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
                           <button
                             onClick={e => {
                               e.stopPropagation()
-                              removeFromWatchlist(item.symbol)
+                              setDeleteConfirm({ symbol: item.symbol, name: item.name })
                             }}
                             className='p-1 text-gray-400 hover:text-red-500 transition-colors'
                             title='Remove from watchlist'
@@ -355,6 +358,21 @@ export const Watchlist: React.FC<WatchlistProps> = ({
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm !== null}
+        onConfirm={() => {
+          if (deleteConfirm) {
+            removeFromWatchlist(deleteConfirm.symbol)
+          }
+        }}
+        onCancel={() => setDeleteConfirm(null)}
+        title='Delete Selected Items'
+        message={`Are you sure you want to remove 1 item from your watchlist? This action cannot be undone.`}
+        confirmText='Delete'
+        cancelText='Cancel'
+      />
     </div>
   )
 }

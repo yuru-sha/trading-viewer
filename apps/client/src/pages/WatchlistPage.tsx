@@ -694,31 +694,35 @@ const WatchlistPage: React.FC = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
-          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
-            <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm'>
-              <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-4'>
+          <div 
+            className='fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50'
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <div 
+              className='bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className='text-xl font-semibold text-white mb-4'>
                 Delete Selected Items
               </h3>
-              <p className='text-sm text-gray-500 dark:text-gray-400 mb-6'>
+              <p className='text-gray-300 mb-8 leading-relaxed'>
                 Are you sure you want to remove {selectedItems.size} item
                 {selectedItems.size !== 1 ? 's' : ''} from your watchlist? This action cannot be
                 undone.
               </p>
-              <div className='flex space-x-4'>
-                <Button
-                  variant='outline'
+              <div className='flex justify-end space-x-3'>
+                <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className='flex-1'
+                  className='px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors min-w-[100px]'
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant='primary'
+                </button>
+                <button
                   onClick={confirmDelete}
-                  className='flex-1 bg-red-600 hover:bg-red-700 border-red-600'
+                  className='px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors min-w-[100px]'
                 >
                   Delete
-                </Button>
+                </button>
               </div>
             </div>
           </div>
