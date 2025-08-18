@@ -292,7 +292,7 @@ const WatchlistPage: React.FC = () => {
 
       // バッチ API でまとめて取得（N+1 クエリ問題を解決）
       const symbolList = visibleSymbols.map(s => s.symbol).join(',')
-      const response = await apiService.get(`/api/market/quotes?symbols=${symbolList}`)
+      const response = await apiService.get(`/market/quotes?symbols=${symbolList}`)
 
       if (!response?.quotes) {
         console.warn('Batch quotes API returned no data, falling back to mock data')
