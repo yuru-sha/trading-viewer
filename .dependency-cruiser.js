@@ -37,14 +37,14 @@ module.exports = {
       },
     },
 
-    // UI package should only depend on shared
+    // UI package should only depend on shared (allow internal dependencies)
     {
       name: 'ui-forbidden-packages',
       severity: 'error',
       from: { path: '^packages/ui' },
       to: {
         path: '^packages',
-        pathNot: '^packages/shared',
+        pathNot: '^packages/(shared|ui)',
       },
     },
 
