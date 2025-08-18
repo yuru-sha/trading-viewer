@@ -6,13 +6,13 @@ module.exports = {
       name: 'no-app-to-app',
       severity: 'error',
       from: { path: '^apps/client' },
-      to: { path: '^apps/server' }
+      to: { path: '^apps/server' },
     },
     {
       name: 'no-server-to-client',
       severity: 'error',
       from: { path: '^apps/server' },
-      to: { path: '^apps/client' }
+      to: { path: '^apps/client' },
     },
 
     // Client app should only depend on shared and ui packages
@@ -20,10 +20,10 @@ module.exports = {
       name: 'client-forbidden-packages',
       severity: 'error',
       from: { path: '^apps/client' },
-      to: { 
+      to: {
         path: '^packages',
-        pathNot: '^packages/(shared|ui)'
-      }
+        pathNot: '^packages/(shared|ui)',
+      },
     },
 
     // Server app should only depend on shared package
@@ -31,10 +31,10 @@ module.exports = {
       name: 'server-forbidden-packages',
       severity: 'error',
       from: { path: '^apps/server' },
-      to: { 
+      to: {
         path: '^packages',
-        pathNot: '^packages/shared'
-      }
+        pathNot: '^packages/shared',
+      },
     },
 
     // UI package should only depend on shared
@@ -42,10 +42,10 @@ module.exports = {
       name: 'ui-forbidden-packages',
       severity: 'error',
       from: { path: '^packages/ui' },
-      to: { 
+      to: {
         path: '^packages',
-        pathNot: '^packages/shared'
-      }
+        pathNot: '^packages/shared',
+      },
     },
 
     // Prevent circular dependencies
@@ -53,7 +53,7 @@ module.exports = {
       name: 'no-circular',
       severity: 'error',
       from: {},
-      to: { circular: true }
+      to: { circular: true },
     },
 
     // Prevent orphans
@@ -61,21 +61,15 @@ module.exports = {
       name: 'no-orphans',
       severity: 'warn',
       from: { orphan: true },
-      to: {}
-    }
+      to: {},
+    },
   ],
 
   options: {
     // What to exclude from the analysis
     doNotFollow: {
       path: 'node_modules',
-      dependencyTypes: [
-        'npm',
-        'npm-dev',
-        'npm-optional',
-        'npm-peer',
-        'npm-bundled'
-      ]
+      dependencyTypes: ['npm', 'npm-dev', 'npm-optional', 'npm-peer', 'npm-bundled'],
     },
 
     // Exclude patterns
@@ -87,7 +81,7 @@ module.exports = {
       '__mocks__',
       'dist',
       'build',
-      '\\.git'
+      '\\.git',
     ],
 
     // Module systems to use
@@ -95,14 +89,14 @@ module.exports = {
 
     // TypeScript settings
     tsConfig: {
-      fileName: './tsconfig.base.json'
+      fileName: './tsconfig.base.json',
     },
 
     // How to resolve modules
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'require', 'node', 'default'],
-      mainFields: ['module', 'main', 'types']
+      mainFields: ['module', 'main', 'types'],
     },
 
     // Report settings
@@ -112,38 +106,38 @@ module.exports = {
         theme: {
           graph: {
             bgcolor: 'transparent',
-            splines: 'ortho'
+            splines: 'ortho',
           },
           modules: [
             {
               criteria: { source: '^apps/client' },
-              attributes: { fillcolor: '#90EE90' }
+              attributes: { fillcolor: '#90EE90' },
             },
             {
               criteria: { source: '^apps/server' },
-              attributes: { fillcolor: '#FFB6C1' }
+              attributes: { fillcolor: '#FFB6C1' },
             },
             {
               criteria: { source: '^packages/shared' },
-              attributes: { fillcolor: '#87CEEB' }
+              attributes: { fillcolor: '#87CEEB' },
             },
             {
               criteria: { source: '^packages/ui' },
-              attributes: { fillcolor: '#DDA0DD' }
-            }
+              attributes: { fillcolor: '#DDA0DD' },
+            },
           ],
           dependencies: [
             {
               criteria: { resolved: '\\.(js|jsx|ts|tsx)$' },
-              attributes: { color: 'blue' }
+              attributes: { color: 'blue' },
             },
             {
               criteria: { violation: true },
-              attributes: { color: 'red', penwidth: 2 }
-            }
-          ]
-        }
-      }
-    }
-  }
+              attributes: { color: 'red', penwidth: 2 },
+            },
+          ],
+        },
+      },
+    },
+  },
 }

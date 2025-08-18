@@ -82,19 +82,21 @@ export class ApplicationBootstrap {
 
     // Error handling middleware
     this.app.use(errorLogger)
-    this.app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      // Check if it's an API error
-      if (error.code && error.statusCode) {
-        return res.status(error.statusCode).json(error)
-      }
+    this.app.use(
+      (error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+        // Check if it's an API error
+        if (error.code && error.statusCode) {
+          return res.status(error.statusCode).json(error)
+        }
 
-      // Default error response
-      return res.status(500).json({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
-        statusCode: 500,
-      })
-    })
+        // Default error response
+        return res.status(500).json({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+          statusCode: 500,
+        })
+      }
+    )
   }
 
   private trackConnections(): void {
@@ -146,7 +148,6 @@ export class ApplicationBootstrap {
 
       // Setup signal handlers
       this.setupSignalHandlers()
-
     } catch (error) {
       console.error('Failed to initialize application:', error)
       throw error
