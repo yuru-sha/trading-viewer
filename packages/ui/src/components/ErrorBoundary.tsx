@@ -8,7 +8,7 @@ interface Props {
 
 interface State {
   hasError: boolean
-  error?: Error
+  error?: Error | undefined
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 interface ErrorFallbackProps {
-  error?: Error
+  error?: Error | undefined
   onRetry: () => void
 }
 

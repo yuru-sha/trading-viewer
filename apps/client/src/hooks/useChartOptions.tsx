@@ -105,10 +105,10 @@ export const useChartOptions = (
         show: false,
       },
       tooltip: {
-        trigger: config.enableDrawingTools && config.activeDrawingTool ? 'none' : 'axis',
-        show: !(config.enableDrawingTools && config.activeDrawingTool),
+        trigger: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select' ? 'none' : 'axis',
+        show: !(config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'),
         axisPointer: {
-          type: config.enableDrawingTools && config.activeDrawingTool ? 'none' : 'cross',
+          type: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select' ? 'none' : 'cross',
           animation: false,
           label: {
             backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
@@ -157,7 +157,7 @@ export const useChartOptions = (
         },
       },
       axisPointer:
-        config.enableDrawingTools && config.activeDrawingTool
+        config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
           ? {
               show: false,
             }
@@ -166,9 +166,10 @@ export const useChartOptions = (
               label: {
                 backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
                 color: '#ffffff',
+                fontSize: 11,
                 formatter: (params: any) => {
                   if (params.axisDimension === 'y') {
-                    return `$${params.value.toFixed(2)}`
+                    return params.value.toFixed(2)
                   }
                   return params.value
                 },
@@ -403,7 +404,7 @@ export const useChartOptions = (
                 },
               },
               axisLabel: {
-                show: !(hasRSI || hasMACD),
+                show: false,
                 color: isDarkMode ? '#9ca3af' : '#6b7280',
               },
               min: 'dataMin',
@@ -427,7 +428,7 @@ export const useChartOptions = (
                 },
               },
               axisLabel: {
-                show: !(hasRSI || hasMACD),
+                show: !hasRSI && !hasMACD,
                 color: isDarkMode ? '#9ca3af' : '#6b7280',
                 formatter: (value: string) => {
                   if (value.includes(' ')) {
@@ -1063,18 +1064,19 @@ function generateYAxisConfig(
       },
     },
 
-    axisPointer: config.enableDrawingTools
+    axisPointer: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
       ? {
           show: false,
         }
       : {
           label: {
             formatter: (params: any) => {
-              return `$${params.value.toFixed(2)}`
+              return params.value.toFixed(2)
             },
-            backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+            backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
             borderColor: isDarkMode ? '#374151' : '#d1d5db',
             color: isDarkMode ? '#f9fafb' : '#111827',
+            fontSize: 11,
           },
         },
     min: (value: any) => {
