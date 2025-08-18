@@ -195,6 +195,15 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
       return
     }
 
+    // RSI と MACD の重複追加を制限
+    if (type === 'rsi' || type === 'macd') {
+      const existingIndicator = indicators.find(indicator => indicator.type === type)
+      if (existingIndicator) {
+        alert(`${type.toUpperCase()} indicator is already added. Only one ${type.toUpperCase()} indicator is allowed.`)
+        return
+      }
+    }
+
     console.log('🔍 Setting config modal:', { type, symbol })
     setConfigModal({ type, symbol })
   }
@@ -510,7 +519,9 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
           <div className='space-y-1'>
             {availableTypes.map(type => {
               const metadata = INDICATOR_METADATA[type]
-              console.log(`🔍 Rendering ${type} button:`, { metadata, isAdding })
+              const isAlreadyAdded = (type === 'rsi' || type === 'macd') && 
+                indicators.some(indicator => indicator.type === type)
+              console.log(`🔍 Rendering ${type} button:`, { metadata, isAdding, isAlreadyAdded })
               return (
                 <button
                   key={type}
@@ -524,11 +535,15 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
                     e.stopPropagation()
                     handleAddIndicator(type)
                   }}
-                  disabled={isAdding}
-                  className='block w-full text-left px-2 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed'
+                  disabled={isAdding || isAlreadyAdded}
+                  className={`block w-full text-left px-2 py-1.5 text-sm rounded ${
+                    isAlreadyAdded
+                      ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   <div className='flex items-center justify-between'>
-                    <span>{metadata.name}</span>
+                    <span>{metadata.name}{isAlreadyAdded ? ' (Already added)' : ''}</span>
                     <span className='text-xs text-gray-400 capitalize'>{metadata.category}</span>
                   </div>
                 </button>
