@@ -3,7 +3,9 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
-  dts: true,
+  dts: {
+    tsconfig: './tsconfig.json'
+  },
   clean: true,
   external: ['react', 'react-dom'],
   target: 'es2020',

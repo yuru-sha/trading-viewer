@@ -2,8 +2,7 @@ import React, { useState, useImperativeHandle, forwardRef } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
-import { Icon } from 'lucide-react'
-import { crosshairPlus } from '@lucide/lab'
+import { Icon, Crosshair } from 'lucide-react'
 
 interface LeftDrawingToolbarProps {
   activeTool: DrawingToolType | null
@@ -65,7 +64,7 @@ export const LeftDrawingToolbar = forwardRef<LeftDrawingToolbarRef, LeftDrawingT
           }`}
           title='Select'
         >
-          <Icon iconNode={crosshairPlus} className='w-5 h-5' />
+          <Crosshair className='w-5 h-5' />
         </button>
 
         {/* Separator */}

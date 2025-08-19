@@ -14,6 +14,5 @@
     "composite": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["dist", "**/__tests__/**/*"],
-  "references": [{ "path": "../shared" }]
+  "exclude": ["dist", "**/__tests__/**/*"]
 }

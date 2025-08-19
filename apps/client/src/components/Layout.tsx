@@ -1,11 +1,17 @@
 import React, { ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
-import { useApp } from '../contexts/AppContext'
+import { Link, useLocation } from 'react-router-dom'
+import { useApp, useAppActions } from '../contexts/AppContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
 import Onboarding from './Onboarding'
 import { useOnboarding, createTradingViewerOnboarding } from '../hooks/useOnboarding'
-import { Header, LoadingOverlay, LayoutErrorDisplay, MobileBottomNav } from './layout'
+import Icon from './Icon'
+import UserDropdown from './UserDropdown'
+import AlertNotifications from './alerts/AlertNotifications'
+import { MobileBottomNav } from './layout/MobileBottomNav'
+import { Header } from './layout/Header'
+import { LoadingOverlay } from './layout/LoadingOverlay'
+import { LayoutErrorDisplay } from './layout/LayoutErrorDisplay'
 
 interface LayoutProps {
   children: ReactNode
@@ -13,6 +19,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { state } = useApp()
+  const { setTheme, clearAppError } = useAppActions()
   const { user } = useAuth()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
@@ -85,13 +92,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       : []),
   ]
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
+  const toggleTheme = () => {
+    setTheme(state.theme === 'dark' ? 'light' : 'dark')
   }
 
-  const handleMobileNavigate = (message: string) => {
-    setIsMobileMenuOpen(false)
-    announceToScreenReader(message)
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
   // Close mobile menu when route changes
@@ -104,15 +110,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Skip Links */}
       <SkipLinks links={skipLinks} />
 
+      {/* Header */}
       <Header
         navigation={navigation}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={toggleMobileMenu}
-        onMobileNavigate={handleMobileNavigate}
+        announceToScreenReader={announceToScreenReader}
       />
 
+      {/* Loading Overlay */}
       <LoadingOverlay isVisible={state.isLoading} />
 
+      {/* Error Display */}
       <LayoutErrorDisplay />
 
       {/* Main Content */}
@@ -120,6 +129,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className='h-full'>{children}</div>
       </main>
 
+      {/* Mobile Bottom Navigation */}
       <MobileBottomNav navigation={navigation} />
 
       {/* Onboarding Tour */}

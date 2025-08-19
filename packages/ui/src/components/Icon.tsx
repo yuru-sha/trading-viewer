@@ -1,7 +1,7 @@
 import React from 'react'
 import * as LucideIcons from 'lucide-react'
+import { COMMON_ICONS, type IconProps, type CommonIconName } from '@trading-viewer/shared'
 import { cn } from '../utils'
-import { IconProps, COMMON_ICONS, CommonIconName } from '@trading-viewer/shared'
 
 export const Icon: React.FC<IconProps> = ({ name, size = 16, className, color }) => {
   // Check if it's a common icon name first
