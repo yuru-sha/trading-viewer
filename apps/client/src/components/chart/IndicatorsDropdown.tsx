@@ -199,7 +199,9 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     if (type === 'rsi' || type === 'macd') {
       const existingIndicator = indicators.find(indicator => indicator.type === type)
       if (existingIndicator) {
-        alert(`${type.toUpperCase()} indicator is already added. Only one ${type.toUpperCase()} indicator is allowed.`)
+        alert(
+          `${type.toUpperCase()} indicator is already added. Only one ${type.toUpperCase()} indicator is allowed.`
+        )
         return
       }
     }
@@ -519,7 +521,8 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
           <div className='space-y-1'>
             {availableTypes.map(type => {
               const metadata = INDICATOR_METADATA[type]
-              const isAlreadyAdded = (type === 'rsi' || type === 'macd') && 
+              const isAlreadyAdded =
+                (type === 'rsi' || type === 'macd') &&
                 indicators.some(indicator => indicator.type === type)
               console.log(`🔍 Rendering ${type} button:`, { metadata, isAdding, isAlreadyAdded })
               return (
@@ -543,7 +546,10 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   <div className='flex items-center justify-between'>
-                    <span>{metadata.name}{isAlreadyAdded ? ' (Already added)' : ''}</span>
+                    <span>
+                      {metadata.name}
+                      {isAlreadyAdded ? ' (Already added)' : ''}
+                    </span>
                     <span className='text-xs text-gray-400 capitalize'>{metadata.category}</span>
                   </div>
                 </button>

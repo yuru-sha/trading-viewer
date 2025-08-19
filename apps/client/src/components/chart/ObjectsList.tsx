@@ -25,13 +25,13 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   const getObjectIcon = (type: ChartObject['type']) => {
     switch (type) {
       case 'price':
-        return <Icon name="BarChart3" size={16} />
+        return <Icon name='BarChart3' size={16} />
       case 'volume':
-        return <Icon name="Volume2" size={16} />
+        return <Icon name='Volume2' size={16} />
       case 'indicator':
-        return <Icon name="TrendingUp" size={16} />
+        return <Icon name='TrendingUp' size={16} />
       case 'overlay':
-        return <Icon name="Layers" size={16} />
+        return <Icon name='Layers' size={16} />
       default:
         return null
     }
@@ -71,7 +71,11 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
                     }`}
                     title={object.visible ? 'Hide' : 'Show'}
                   >
-                    {object.visible ? <Icon name="Eye" size={16} /> : <Icon name="EyeOff" size={16} />}
+                    {object.visible ? (
+                      <Icon name='Eye' size={16} />
+                    ) : (
+                      <Icon name='EyeOff' size={16} />
+                    )}
                   </button>
 
                   {/* Icon */}
@@ -105,7 +109,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
                   className='flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all'
                   title='Remove'
                 >
-                  <Icon name="Trash2" size={14} />
+                  <Icon name='Trash2' size={14} />
                 </button>
               </div>
             ))}

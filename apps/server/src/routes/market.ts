@@ -603,7 +603,7 @@ router.get('/data-source', (_req: Request, res: Response) => {
 router.get('/rate-limit', (_req, res: Response) => {
   res.json({
     message: 'Rate limiting is configured',
-    timestamp: Math.floor(Date.now() / 1000)
+    timestamp: Math.floor(Date.now() / 1000),
   })
 })
 

@@ -50,7 +50,7 @@ export async function initializeRedis(): Promise<boolean> {
     redisPublisher = createClient(connectionConfig)
 
     // Set up error handlers before connecting
-    redisClient.on('error', (error) => {
+    redisClient.on('error', error => {
       isRedisHealthy = false
       logError('Redis client error:', error)
     })
@@ -76,7 +76,7 @@ export async function initializeRedis(): Promise<boolean> {
 
     // Connect to Redis
     await redisClient.connect()
-    await redisSubscriber.connect()  
+    await redisSubscriber.connect()
     await redisPublisher.connect()
 
     // Test connection with ping
@@ -90,9 +90,11 @@ export async function initializeRedis(): Promise<boolean> {
   } catch (error) {
     connectionAttempts++
     isRedisHealthy = false
-    
+
     if (config.isDevelopment && connectionAttempts <= MAX_CONNECTION_ATTEMPTS) {
-      logWarn(`Redis: Connection failed (attempt ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}), falling back to in-memory store`)
+      logWarn(
+        `Redis: Connection failed (attempt ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}), falling back to in-memory store`
+      )
       return false
     } else {
       logError('Redis: Failed to initialize connections', error as Error)
@@ -107,7 +109,7 @@ export async function initializeRedis(): Promise<boolean> {
 export async function disconnectRedis(): Promise<void> {
   try {
     logInfo('Redis: Disconnecting all connections...')
-    
+
     if (redisClient?.isReady) {
       await redisClient.quit()
     }
@@ -268,7 +270,9 @@ export class RedisManager {
       await redisClient.mSet(keyValues)
       return true
     } catch (error) {
-      logError('Redis: Failed to set multiple keys', error as Error, { keyCount: Object.keys(keyValues).length })
+      logError('Redis: Failed to set multiple keys', error as Error, {
+        keyCount: Object.keys(keyValues).length,
+      })
       return false
     }
   }
@@ -294,7 +298,11 @@ export class RedisManager {
 export { redisClient as redis }
 
 // Health check function
-export async function checkRedisHealth(): Promise<{ healthy: boolean; message: string; details?: any }> {
+export async function checkRedisHealth(): Promise<{
+  healthy: boolean
+  message: string
+  details?: any
+}> {
   try {
     if (!isRedisConnected()) {
       return {

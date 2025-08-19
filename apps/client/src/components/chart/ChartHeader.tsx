@@ -211,11 +211,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 title='Select chart type'
               >
                 {chartType === 'candle' ? (
-                  <Icon name="AlignHorizontalDistributeCenter" className='w-4 h-4' />
+                  <Icon name='AlignHorizontalDistributeCenter' className='w-4 h-4' />
                 ) : chartType === 'line' ? (
-                  <Icon name="TrendingUpDown" className='w-4 h-4' />
+                  <Icon name='TrendingUpDown' className='w-4 h-4' />
                 ) : (
-                  <Icon name="ChartNoAxesCombined" className='w-4 h-4' />
+                  <Icon name='ChartNoAxesCombined' className='w-4 h-4' />
                 )}
                 <svg className='w-3 h-3 ml-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path
@@ -239,7 +239,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <Icon name="AlignHorizontalDistributeCenter" className='w-4 h-4' />
+                    <Icon name='AlignHorizontalDistributeCenter' className='w-4 h-4' />
                     <span>Candlestick</span>
                   </button>
                   <button
@@ -253,7 +253,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <Icon name="TrendingUpDown" className='w-4 h-4' />
+                    <Icon name='TrendingUpDown' className='w-4 h-4' />
                     <span>Line</span>
                   </button>
                   <button
@@ -267,7 +267,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <Icon name="ChartNoAxesCombined" className='w-4 h-4' />
+                    <Icon name='ChartNoAxesCombined' className='w-4 h-4' />
                     <span>Area</span>
                   </button>
                 </div>
@@ -287,7 +287,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 className='flex items-center space-x-1 px-2 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
                 title='Select technical indicators'
               >
-                <Icon name="ChartNoAxesCombined" className='w-4 h-4' />
+                <Icon name='ChartNoAxesCombined' className='w-4 h-4' />
                 <span>Indicators</span>
                 <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path
@@ -328,7 +328,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 }`}
                 title={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
               >
-                <Icon name="Heart" className={`w-4 h-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+                <Icon name='Heart' className={`w-4 h-4 ${isInWatchlist ? 'fill-current' : ''}`} />
               </button>
             )}
 
@@ -339,7 +339,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
                 title='Create Price Alert'
               >
-                <Icon name="BellPlus" className='w-4 h-4' />
+                <Icon name='BellPlus' className='w-4 h-4' />
               </button>
             )}
 
@@ -350,7 +350,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 className='relative flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
                 title='Price Alerts'
               >
-                <Icon name="Bell" className='w-4 h-4' />
+                <Icon name='Bell' className='w-4 h-4' />
                 {activeAlertsCount && activeAlertsCount > 0 && (
                   <span className='absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center'>
                     {activeAlertsCount > 9 ? '9+' : activeAlertsCount}
@@ -365,7 +365,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               className='flex items-center px-2 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
               title='Save Template'
             >
-              <Icon name="Save" className='w-4 h-4' />
+              <Icon name='Save' className='w-4 h-4' />
             </button>
 
             {/* Separator */}
@@ -378,9 +378,9 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               title={showDrawingTools ? 'Hide drawing tools sidebar' : 'Show drawing tools sidebar'}
             >
               {showDrawingTools ? (
-                <Icon name="PanelLeftClose" className='w-4 h-4' />
+                <Icon name='PanelLeftClose' className='w-4 h-4' />
               ) : (
-                <Icon name="PanelLeftOpen" className='w-4 h-4' />
+                <Icon name='PanelLeftOpen' className='w-4 h-4' />
               )}
             </button>
 
@@ -391,9 +391,9 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               title={showFooter ? 'Hide footer' : 'Show footer'}
             >
               {showFooter ? (
-                <Icon name="PanelBottomClose" className='w-4 h-4' />
+                <Icon name='PanelBottomClose' className='w-4 h-4' />
               ) : (
-                <Icon name="PanelBottomOpen" className='w-4 h-4' />
+                <Icon name='PanelBottomOpen' className='w-4 h-4' />
               )}
             </button>
 
@@ -432,7 +432,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
-              {isFullscreen ? <Icon name="Minimize" className='w-4 h-4' /> : <Icon name="Maximize" className='w-4 h-4' />}
+              {isFullscreen ? (
+                <Icon name='Minimize' className='w-4 h-4' />
+              ) : (
+                <Icon name='Maximize' className='w-4 h-4' />
+              )}
             </button>
 
             {/* Screenshot */}
@@ -441,7 +445,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
               title='Take Screenshot'
             >
-              <Icon name="Camera" className='w-4 h-4' />
+              <Icon name='Camera' className='w-4 h-4' />
             </button>
 
             {/* Separator */}
@@ -453,7 +457,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
               title={state.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              {state.theme === 'dark' ? <Icon name="Sun" className='w-4 h-4' /> : <Icon name="Moon" className='w-4 h-4' />}
+              {state.theme === 'dark' ? (
+                <Icon name='Sun' className='w-4 h-4' />
+              ) : (
+                <Icon name='Moon' className='w-4 h-4' />
+              )}
             </button>
 
             {/* Auth Section */}
@@ -467,7 +475,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                 className='flex items-center px-2 py-1 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
                 title='Login'
               >
-                <Icon name="LogIn" className='w-4 h-4 mr-2' />
+                <Icon name='LogIn' className='w-4 h-4 mr-2' />
                 <span className='text-sm font-medium'>Login</span>
               </button>
             )}

@@ -105,10 +105,24 @@ export const useChartOptions = (
         show: false,
       },
       tooltip: {
-        trigger: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select' ? 'none' : 'axis',
-        show: !(config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'),
+        trigger:
+          config.enableDrawingTools &&
+          config.activeDrawingTool &&
+          config.activeDrawingTool !== 'select'
+            ? 'none'
+            : 'axis',
+        show: !(
+          config.enableDrawingTools &&
+          config.activeDrawingTool &&
+          config.activeDrawingTool !== 'select'
+        ),
         axisPointer: {
-          type: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select' ? 'none' : 'cross',
+          type:
+            config.enableDrawingTools &&
+            config.activeDrawingTool &&
+            config.activeDrawingTool !== 'select'
+              ? 'none'
+              : 'cross',
           animation: false,
           label: {
             backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
@@ -157,7 +171,9 @@ export const useChartOptions = (
         },
       },
       axisPointer:
-        config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
+        config.enableDrawingTools &&
+        config.activeDrawingTool &&
+        config.activeDrawingTool !== 'select'
           ? {
               show: false,
             }
@@ -385,7 +401,7 @@ export const useChartOptions = (
                       backgroundColor: 'transparent',
                     },
                   ],
-      
+
       xAxis: config.showVolume
         ? [
             {
@@ -591,7 +607,7 @@ export const useChartOptions = (
                   : []),
           ]
         : // Volume OFF 時の xAxis 構造 - RSI+MACD 組み合わせ対応
-        hasRSI && hasMACD
+          hasRSI && hasMACD
           ? [
               // メインチャート用 X 軸
               {
@@ -782,99 +798,99 @@ export const useChartOptions = (
                     max: 'dataMax',
                   },
                 ]
-            : [
-              {
-                type: 'category',
-                data: chartData.dates,
-                boundaryGap: ['0%', '20%'],
-                axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-                axisTick: { alignWithLabel: true },
-                splitLine: {
-                  show: config.showGridlines !== false,
-                  lineStyle: {
-                    color: isDarkMode ? '#374151' : '#e5e7eb',
-                    width: 1,
-                    type: 'solid' as const,
-                    opacity: 0.6,
-                  },
-                },
-                axisLabel: {
-                  color: isDarkMode ? '#9ca3af' : '#6b7280',
-                  formatter: (value: string) => {
-                    if (value.includes(' ')) {
-                      const parts = value.split(' ')
-                      const date = parts[0]
-                      const time = parts[1]
-                      // 時刻がある場合の処理
-                      if (time) {
-                        const hour = parseInt(time?.split(':')[0] || '0')
-                        const minute = parseInt(time?.split(':')[1] || '0')
+              : [
+                  {
+                    type: 'category',
+                    data: chartData.dates,
+                    boundaryGap: ['0%', '20%'],
+                    axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
+                    axisTick: { alignWithLabel: true },
+                    splitLine: {
+                      show: config.showGridlines !== false,
+                      lineStyle: {
+                        color: isDarkMode ? '#374151' : '#e5e7eb',
+                        width: 1,
+                        type: 'solid' as const,
+                        opacity: 0.6,
+                      },
+                    },
+                    axisLabel: {
+                      color: isDarkMode ? '#9ca3af' : '#6b7280',
+                      formatter: (value: string) => {
+                        if (value.includes(' ')) {
+                          const parts = value.split(' ')
+                          const date = parts[0]
+                          const time = parts[1]
+                          // 時刻がある場合の処理
+                          if (time) {
+                            const hour = parseInt(time?.split(':')[0] || '0')
+                            const minute = parseInt(time?.split(':')[1] || '0')
 
-                        // 時間軸に応じて日付表示の間隔を調整
-                        let showDate = false
+                            // 時間軸に応じて日付表示の間隔を調整
+                            let showDate = false
 
-                        // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
-                        if (minute === 0 || hour % 6 === 0) {
-                          showDate = true
-                        }
-
-                        if (showDate) {
-                          // 複数の日付形式に対応
-                          let displayDate = date || ''
-                          if (date?.includes('-')) {
-                            const dateParts = date.split('-')
-                            if (dateParts.length >= 3) {
-                              const month = dateParts[1]
-                              const day = dateParts[2]
-                              displayDate = `${month}/${day}`
+                            // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
+                            if (minute === 0 || hour % 6 === 0) {
+                              showDate = true
                             }
-                          }
 
-                          return `${displayDate} ${time.substring(0, 5)}`
+                            if (showDate) {
+                              // 複数の日付形式に対応
+                              let displayDate = date || ''
+                              if (date?.includes('-')) {
+                                const dateParts = date.split('-')
+                                if (dateParts.length >= 3) {
+                                  const month = dateParts[1]
+                                  const day = dateParts[2]
+                                  displayDate = `${month}/${day}`
+                                }
+                              }
+
+                              return `${displayDate} ${time.substring(0, 5)}`
+                            }
+                            // その他の時刻は HH:MM 形式で表示
+                            return time.substring(0, 5)
+                          }
+                          return date // 日付のみ
                         }
-                        // その他の時刻は HH:MM 形式で表示
-                        return time.substring(0, 5)
-                      }
-                      return date // 日付のみ
-                    }
-                    return value
+                        return value
+                      },
+                    },
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    splitNumber: 8, // X 軸のグリッド線数を調整
                   },
-                },
-                min: 'dataMin',
-                max: 'dataMax',
-                splitNumber: 8, // X 軸のグリッド線数を調整
-              },
-            ].map((axis, index) => {
-              // 最終的な xAxis 構造をログ出力
-              if (index === 0) {
-                const totalAxes = config.showVolume
-                  ? [
-                      'Main Chart',
-                      'Volume Chart',
-                      ...(hasRSI && hasMACD
-                        ? ['RSI Chart', 'MACD Chart']
+                ].map((axis, index) => {
+                  // 最終的な xAxis 構造をログ出力
+                  if (index === 0) {
+                    const totalAxes = config.showVolume
+                      ? [
+                          'Main Chart',
+                          'Volume Chart',
+                          ...(hasRSI && hasMACD
+                            ? ['RSI Chart', 'MACD Chart']
+                            : hasRSI
+                              ? ['RSI Chart']
+                              : hasMACD
+                                ? ['MACD Chart']
+                                : []),
+                        ]
+                      : hasRSI && hasMACD
+                        ? ['Main Chart', 'RSI Chart', 'MACD Chart']
                         : hasRSI
-                          ? ['RSI Chart']
+                          ? ['Main Chart', 'RSI Chart']
                           : hasMACD
-                            ? ['MACD Chart']
-                            : [])
-                    ]
-                  : hasRSI && hasMACD
-                    ? ['Main Chart', 'RSI Chart', 'MACD Chart']
-                    : hasRSI
-                      ? ['Main Chart', 'RSI Chart']
-                      : hasMACD
-                        ? ['Main Chart', 'MACD Chart'] 
-                        : ['Main Chart']
-                
-                console.log('🔍 Final xAxis structure:', {
-                  totalXAxisCount: totalAxes.length,
-                  xAxisStructure: totalAxes,
-                  config: { showVolume: config.showVolume, hasRSI, hasMACD }
-                })
-              }
-              return axis
-            }),
+                            ? ['Main Chart', 'MACD Chart']
+                            : ['Main Chart']
+
+                    console.log('🔍 Final xAxis structure:', {
+                      totalXAxisCount: totalAxes.length,
+                      xAxisStructure: totalAxes,
+                      config: { showVolume: config.showVolume, hasRSI, hasMACD },
+                    })
+                  }
+                  return axis
+                }),
       yAxis: generateYAxisConfig(config, isDarkMode, priceStats, config.currentPrice, indicators),
       dataZoom: [
         {
@@ -953,15 +969,15 @@ export const useChartOptions = (
     // Add indicator series from API data
     console.log('🔍 baseOption.xAxis structure verification:', {
       xAxisLength: baseOption.xAxis.length,
-      xAxisGridIndexes: baseOption.xAxis.map((axis, index) => ({ 
-        index, 
-        gridIndex: axis.gridIndex 
+      xAxisGridIndexes: baseOption.xAxis.map((axis, index) => ({
+        index,
+        gridIndex: axis.gridIndex,
       })),
       showVolume: config.showVolume,
       hasRSI: indicators.some(i => i.type === 'rsi' && i.visible),
-      hasMACD: indicators.some(i => i.type === 'macd' && i.visible)
+      hasMACD: indicators.some(i => i.type === 'macd' && i.visible),
     })
-    
+
     const indicatorSeries = createIndicatorSeries(
       chartData,
       indicators,
@@ -1065,21 +1081,22 @@ function generateYAxisConfig(
       },
     },
 
-    axisPointer: config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
-      ? {
-          show: false,
-        }
-      : {
-          label: {
-            formatter: (params: any) => {
-              return params.value.toFixed(2)
+    axisPointer:
+      config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
+        ? {
+            show: false,
+          }
+        : {
+            label: {
+              formatter: (params: any) => {
+                return params.value.toFixed(2)
+              },
+              backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
+              borderColor: isDarkMode ? '#374151' : '#d1d5db',
+              color: isDarkMode ? '#f9fafb' : '#111827',
+              fontSize: 11,
             },
-            backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
-            borderColor: isDarkMode ? '#374151' : '#d1d5db',
-            color: isDarkMode ? '#f9fafb' : '#111827',
-            fontSize: 11,
           },
-        },
     min: (value: any) => {
       if (!priceStats) return value.min
       // 安値を確実に含むように調整
@@ -1160,8 +1177,12 @@ function generateYAxisConfig(
   }
 
   // RSI と MACD が表示されているかを確認
-  const hasRSI = indicators.some(indicator => indicator.type === 'rsi' && indicator.visible === true)
-  const hasMACD = indicators.some(indicator => indicator.type === 'macd' && indicator.visible === true)
+  const hasRSI = indicators.some(
+    indicator => indicator.type === 'rsi' && indicator.visible === true
+  )
+  const hasMACD = indicators.some(
+    indicator => indicator.type === 'macd' && indicator.visible === true
+  )
 
   const yAxisArray = [baseYAxisConfig]
 
@@ -1194,7 +1215,7 @@ function generateYAxisConfig(
         position: 'right' as const,
         gridIndex: 2,
         splitNumber: 4,
-        axisLabel: { 
+        axisLabel: {
           show: true,
           color: isDarkMode ? '#9ca3af' : '#6b7280',
           fontSize: 10,
@@ -1221,7 +1242,7 @@ function generateYAxisConfig(
         position: 'right' as const,
         gridIndex: hasRSI ? 3 : 2,
         splitNumber: 4,
-        axisLabel: { 
+        axisLabel: {
           show: true,
           color: isDarkMode ? '#9ca3af' : '#6b7280',
           fontSize: 10,
@@ -1249,7 +1270,7 @@ function generateYAxisConfig(
         position: 'right' as const,
         gridIndex: 1,
         splitNumber: 4,
-        axisLabel: { 
+        axisLabel: {
           show: true,
           color: isDarkMode ? '#9ca3af' : '#6b7280',
           fontSize: 10,
@@ -1276,7 +1297,7 @@ function generateYAxisConfig(
         position: 'right' as const,
         gridIndex: hasRSI ? 2 : 1,
         splitNumber: 4,
-        axisLabel: { 
+        axisLabel: {
           show: true,
           color: isDarkMode ? '#9ca3af' : '#6b7280',
           fontSize: 10,
@@ -1563,23 +1584,27 @@ function createIndicatorSeries(
     indicators:
       indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || [],
   })
-  
+
   console.log('🔍 createIndicatorSeries config received:', {
     showVolume: config.showVolume,
     chartType: config.chartType,
-    symbol: config.symbol
+    symbol: config.symbol,
   })
 
   const series: any[] = []
 
   // RSI と MACD が表示されているかを確認
-  const hasRSI = indicators.some(indicator => indicator.type === 'rsi' && indicator.visible === true)
-  const hasMACD = indicators.some(indicator => indicator.type === 'macd' && indicator.visible === true)
+  const hasRSI = indicators.some(
+    indicator => indicator.type === 'rsi' && indicator.visible === true
+  )
+  const hasMACD = indicators.some(
+    indicator => indicator.type === 'macd' && indicator.visible === true
+  )
 
   console.log('🔍 Chart configuration:', {
     showVolume: config.showVolume,
     hasRSI,
-    hasMACD
+    hasMACD,
   })
 
   // xAxis 構造に基づいた軸インデックスの計算
@@ -1617,21 +1642,21 @@ function createIndicatorSeries(
     showVolume: config.showVolume,
     hasRSI,
     hasMACD,
-    expectedAxisStructure: config.showVolume 
-      ? hasRSI && hasMACD 
+    expectedAxisStructure: config.showVolume
+      ? hasRSI && hasMACD
         ? 'Volume ON: [0]=Main, [1]=Volume, [2]=RSI, [3]=MACD'
-        : hasRSI 
+        : hasRSI
           ? 'Volume ON: [0]=Main, [1]=Volume, [2]=RSI'
-          : hasMACD 
+          : hasMACD
             ? 'Volume ON: [0]=Main, [1]=Volume, [2]=MACD'
             : 'Volume ON: [0]=Main, [1]=Volume'
-      : hasRSI && hasMACD 
+      : hasRSI && hasMACD
         ? 'Volume OFF: [0]=Main, [1]=RSI, [2]=MACD'
-        : hasRSI 
+        : hasRSI
           ? 'Volume OFF: [0]=Main, [1]=RSI'
-          : hasMACD 
+          : hasMACD
             ? 'Volume OFF: [0]=Main, [1]=MACD'
-            : 'Volume OFF: [0]=Main'
+            : 'Volume OFF: [0]=Main',
   })
 
   indicators.forEach(indicator => {
@@ -1839,28 +1864,36 @@ function createIndicatorSeries(
             'points'
           )
           console.log('📊 RSI Series: Sample data values:', indicatorData.slice(-10))
-          
+
           if (rsiAxisIndex === -1) {
             console.error('❌ RSI axis index not calculated correctly')
             return
           }
-          
+
           // Validate that the calculated axis index exists
-          const expectedAxisCount = config.showVolume 
-            ? (hasRSI && hasMACD ? 4 : hasRSI || hasMACD ? 3 : 2)
-            : (hasRSI && hasMACD ? 3 : hasRSI || hasMACD ? 2 : 1)
-          
+          const expectedAxisCount = config.showVolume
+            ? hasRSI && hasMACD
+              ? 4
+              : hasRSI || hasMACD
+                ? 3
+                : 2
+            : hasRSI && hasMACD
+              ? 3
+              : hasRSI || hasMACD
+                ? 2
+                : 1
+
           if (rsiAxisIndex >= expectedAxisCount) {
             console.error('❌ RSI axis index out of bounds:', {
               rsiAxisIndex,
               expectedAxisCount,
               showVolume: config.showVolume,
               hasRSI,
-              hasMACD
+              hasMACD,
             })
             return
           }
-          
+
           console.log('📊 RSI Series: Using axis index:', rsiAxisIndex)
           console.log('📊 RSI Series: Setting xAxisIndex and yAxisIndex to:', rsiAxisIndex)
           seriesConfig.yAxisIndex = rsiAxisIndex
@@ -1936,26 +1969,31 @@ function createIndicatorSeries(
             return
           }
 
-          // Validate that the calculated axis index exists  
-          const expectedAxisCount = config.showVolume 
-            ? (hasRSI && hasMACD ? 4 : hasRSI || hasMACD ? 3 : 2)
-            : (hasRSI && hasMACD ? 3 : hasRSI || hasMACD ? 2 : 1)
-          
+          // Validate that the calculated axis index exists
+          const expectedAxisCount = config.showVolume
+            ? hasRSI && hasMACD
+              ? 4
+              : hasRSI || hasMACD
+                ? 3
+                : 2
+            : hasRSI && hasMACD
+              ? 3
+              : hasRSI || hasMACD
+                ? 2
+                : 1
+
           if (macdAxisIndex >= expectedAxisCount) {
             console.error('❌ MACD axis index out of bounds:', {
               macdAxisIndex,
               expectedAxisCount,
               showVolume: config.showVolume,
               hasRSI,
-              hasMACD
+              hasMACD,
             })
             return
           }
 
-          console.log(
-            '📊 MACD Series: Using axis index:',
-            macdAxisIndex
-          )
+          console.log('📊 MACD Series: Using axis index:', macdAxisIndex)
           console.log('📊 MACD Series: Setting xAxisIndex and yAxisIndex to:', macdAxisIndex)
 
           // MACD データが配列の配列形式の場合、3 つのシリーズに分離

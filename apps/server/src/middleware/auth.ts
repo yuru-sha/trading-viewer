@@ -3,7 +3,12 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { UnauthorizedError, ForbiddenError } from './errorHandling'
-import { TokenBlacklist, RefreshTokenStore, CSRFTokenStore, RateLimitStore } from '../services/tokenStore.js'
+import {
+  TokenBlacklist,
+  RefreshTokenStore,
+  CSRFTokenStore,
+  RateLimitStore,
+} from '../services/tokenStore.js'
 
 // JWT payload interface
 export interface JWTPayload {
@@ -197,7 +202,7 @@ export const verifyRefreshToken = async (token: string): Promise<{ userId: strin
 export const revokeToken = async (token: string): Promise<void> => {
   // Extract expiration from token for Redis TTL
   let expirationSeconds: number | undefined
-  
+
   try {
     const decoded = jwt.decode(token) as JWTPayload
     if (decoded && decoded.exp) {
@@ -207,7 +212,7 @@ export const revokeToken = async (token: string): Promise<void> => {
   } catch (error) {
     console.warn('Could not extract expiration from token for blacklist TTL')
   }
-  
+
   await TokenBlacklist.add(token, expirationSeconds)
 }
 
@@ -467,13 +472,21 @@ export const rateLimitAuth = async (identifier: string): Promise<void> => {
   const attempts = await RateLimitStore.get(identifier)
 
   if (!attempts) {
-    await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
+    await RateLimitStore.set(
+      identifier,
+      { count: 1, lastAttempt: now },
+      Math.ceil(AUTH_ATTEMPT_WINDOW / 1000)
+    )
     return
   }
 
   // Reset if window has passed
   if (now.getTime() - attempts.lastAttempt.getTime() > AUTH_ATTEMPT_WINDOW) {
-    await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
+    await RateLimitStore.set(
+      identifier,
+      { count: 1, lastAttempt: now },
+      Math.ceil(AUTH_ATTEMPT_WINDOW / 1000)
+    )
     return
   }
 
@@ -487,14 +500,22 @@ export const rateLimitAuth = async (identifier: string): Promise<void> => {
       )
     } else {
       // Lockout period ended, reset
-      await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
+      await RateLimitStore.set(
+        identifier,
+        { count: 1, lastAttempt: now },
+        Math.ceil(AUTH_ATTEMPT_WINDOW / 1000)
+      )
       return
     }
   }
 
   // Increment attempts
   const newCount = attempts.count + 1
-  await RateLimitStore.set(identifier, { count: newCount, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
+  await RateLimitStore.set(
+    identifier,
+    { count: newCount, lastAttempt: now },
+    Math.ceil(AUTH_ATTEMPT_WINDOW / 1000)
+  )
 
   if (newCount >= MAX_AUTH_ATTEMPTS) {
     throw new UnauthorizedError(
@@ -610,12 +631,12 @@ export const securityHeaders = (_req: Request, res: Response, next: NextFunction
 setInterval(
   () => {
     // Clean up expired CSRF tokens (Redis-based cleanup)
-    CSRFTokenStore.cleanupExpired().catch((error) => {
+    CSRFTokenStore.cleanupExpired().catch(error => {
       console.error('Failed to cleanup expired CSRF tokens:', error)
     })
 
     // Clean up expired rate limit entries (Redis-based cleanup)
-    RateLimitStore.cleanupExpired(AUTH_ATTEMPT_WINDOW).catch((error) => {
+    RateLimitStore.cleanupExpired(AUTH_ATTEMPT_WINDOW).catch(error => {
       console.error('Failed to cleanup expired rate limit entries:', error)
     })
   },

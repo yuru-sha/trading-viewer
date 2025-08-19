@@ -375,7 +375,8 @@ describe('MarketDataRepository', () => {
         updatedAt: new Date(),
       }
 
-      mockPrisma.candle.findFirst = vi.fn()
+      mockPrisma.candle.findFirst = vi
+        .fn()
         .mockResolvedValueOnce(null) // 最初の呼び出し（キャッシュチェック）
         .mockResolvedValueOnce(mockCandle) // 2 回目の呼び出し（フォールバック）
 

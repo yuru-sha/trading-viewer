@@ -153,12 +153,7 @@ export class RateLimitExceededError extends MarketDataProviderError {
 
 export class SymbolNotFoundError extends MarketDataProviderError {
   constructor(symbol: string, provider: string) {
-    super(
-      `Symbol ${symbol} not found on ${provider}`,
-      'SYMBOL_NOT_FOUND',
-      provider,
-      false
-    )
+    super(`Symbol ${symbol} not found on ${provider}`, 'SYMBOL_NOT_FOUND', provider, false)
   }
 }
 

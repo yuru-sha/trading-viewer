@@ -226,7 +226,7 @@ const WatchlistPage: React.FC = () => {
   }
 
   // ウォッチリストから複数のシンボルを削除
-  const deleteWatchlistItems = async (symbols: string[]) => {
+  const deleteWatchlistItems = async (symbols: string[], disableAlerts: boolean = true) => {
     try {
       console.log('削除開始:', symbols)
 
@@ -234,6 +234,28 @@ const WatchlistPage: React.FC = () => {
       await Promise.all(
         symbols.map(symbol => apiService.delete(`/watchlist/${encodeURIComponent(symbol)}`))
       )
+
+      // アラートを無効化（ユーザーが選択した場合）
+      if (disableAlerts) {
+        try {
+          const disablePromises = symbols.map(symbol =>
+            apiService.put(`/alerts/symbol/${encodeURIComponent(symbol)}/disable`)
+          )
+          const disableResults = await Promise.all(disablePromises)
+
+          const totalDisabled = disableResults.reduce(
+            (sum, result) => sum + (result.data?.disabledCount || 0),
+            0
+          )
+
+          if (totalDisabled > 0) {
+            console.log(`アラート無効化完了: ${totalDisabled} 件のアラートを無効化`)
+          }
+        } catch (alertError) {
+          console.warn('アラートの無効化でエラーが発生しました:', alertError)
+          // アラート無効化の失敗は、ウォッチリスト削除を中断しない
+        }
+      }
 
       // ローカル状態を更新
       const updatedWatchlistItems = watchlistItems.filter(item => !symbols.includes(item.symbol))
@@ -252,7 +274,10 @@ const WatchlistPage: React.FC = () => {
       // API を使って並び替え位置をサーバーに送信
       const response = await apiService.put('/watchlist/positions', { items: items })
       if (response.success) {
-        console.log('位置更新完了:', items.map(item => `${item.symbol}: ${item.position}`).join(', '))
+        console.log(
+          '位置更新完了:',
+          items.map(item => `${item.symbol}: ${item.position}`).join(', ')
+        )
       } else {
         throw new Error(response.error || 'Position update failed')
       }
@@ -668,17 +693,17 @@ const WatchlistPage: React.FC = () => {
                 const itemIds = watchlist.map(item => item.id)
                 return (
                   <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-                <div className='divide-y divide-gray-200 dark:divide-gray-700'>
-                  {watchlist.map(item => (
-                    <SortableWatchlistItem
-                      key={item.id}
-                      item={item}
-                      selectedItems={selectedItems}
-                      onItemSelect={handleItemSelect}
-                      onSymbolClick={handleSymbolClick}
-                    />
-                  ))}
-                </div>
+                    <div className='divide-y divide-gray-200 dark:divide-gray-700'>
+                      {watchlist.map(item => (
+                        <SortableWatchlistItem
+                          key={item.id}
+                          item={item}
+                          selectedItems={selectedItems}
+                          onItemSelect={handleItemSelect}
+                          onSymbolClick={handleSymbolClick}
+                        />
+                      ))}
+                    </div>
                   </SortableContext>
                 )
               })()}

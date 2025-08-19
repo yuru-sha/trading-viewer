@@ -66,7 +66,7 @@ export class ApplicationBootstrap {
       const dbHealthy = await checkDatabaseHealth()
       const redisHealth = await checkRedisHealth()
       const overallHealthy = dbHealthy && redisHealth.healthy
-      
+
       return res.json({
         status: overallHealthy ? 'ok' : 'error',
         database: dbHealthy ? 'connected' : 'disconnected',

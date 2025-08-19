@@ -40,7 +40,7 @@ export const SERVICE_NAMES = {
   USER_INDICATOR_REPOSITORY: 'UserIndicatorRepository',
   MARKET_DATA_REPOSITORY: 'MarketDataRepository',
   PRISMA_MARKET_DATA_REPOSITORY: 'PrismaMarketDataRepository',
-  
+
   // Market Data Provider
   MARKET_DATA_PROVIDER: 'MarketDataProvider',
 
@@ -118,7 +118,9 @@ export function registerApplicationServices(): void {
 
   // Market Data Provider (Singleton)
   registerService.singleton(SERVICE_NAMES.MARKET_DATA_PROVIDER, () => {
-    const { RefactoredYahooFinanceProvider } = require('../infrastructure/providers/RefactoredYahooFinanceProvider')
+    const {
+      RefactoredYahooFinanceProvider,
+    } = require('../infrastructure/providers/RefactoredYahooFinanceProvider')
     return new RefactoredYahooFinanceProvider({
       rateLimit: {
         requestsPerMinute: 60,
@@ -139,7 +141,9 @@ export function registerApplicationServices(): void {
   registerService.singleton(
     SERVICE_NAMES.PRISMA_MARKET_DATA_REPOSITORY,
     prisma => {
-      const { PrismaMarketDataRepository } = require('../infrastructure/repositories/PrismaMarketDataRepository')
+      const {
+        PrismaMarketDataRepository,
+      } = require('../infrastructure/repositories/PrismaMarketDataRepository')
       return new PrismaMarketDataRepository(prisma)
     },
     [SERVICE_NAMES.PRISMA_CLIENT]

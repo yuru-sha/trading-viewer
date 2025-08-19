@@ -75,12 +75,12 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
       // オプションプロパティ
       if (quote.marketCap !== undefined) result.marketCap = quote.marketCap
       if (quote.currency !== undefined) result.currency = quote.currency
-      if (quote.exchangeTimezoneName !== undefined) result.exchangeTimezoneName = quote.exchangeTimezoneName
+      if (quote.exchangeTimezoneName !== undefined)
+        result.exchangeTimezoneName = quote.exchangeTimezoneName
       if (quote.fullExchangeName !== undefined) result.exchangeName = quote.fullExchangeName
 
       this.setCachedQuote(symbol, result)
       return result
-
     } catch (error) {
       if (error instanceof MarketDataProviderError) {
         throw error
@@ -117,12 +117,12 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
 
         if (quote.marketCap !== undefined) result.marketCap = quote.marketCap
         if (quote.currency !== undefined) result.currency = quote.currency
-        if (quote.exchangeTimezoneName !== undefined) result.exchangeTimezoneName = quote.exchangeTimezoneName
+        if (quote.exchangeTimezoneName !== undefined)
+          result.exchangeTimezoneName = quote.exchangeTimezoneName
         if (quote.fullExchangeName !== undefined) result.exchangeName = quote.fullExchangeName
 
         return result
       })
-
     } catch (error) {
       throw new MarketDataProviderError(
         `Failed to fetch multiple quotes: ${error}`,
@@ -166,7 +166,6 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
         },
         status: 'ok',
       }
-
     } catch (error) {
       if (error instanceof MarketDataProviderError) {
         throw error
@@ -198,7 +197,6 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
         quoteType: quote.quoteType,
         typeDisp: quote.typeDisp,
       }))
-
     } catch (error) {
       throw new MarketDataProviderError(
         `Failed to search symbols for "${query}": ${error}`,
@@ -251,7 +249,6 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
 
         return result
       })
-
     } catch (error) {
       console.warn('Failed to fetch news:', error)
       return []
@@ -269,11 +266,14 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
 
   async getRateLimitStatus(): Promise<{ requestsRemaining: number; resetTime: number }> {
     const now = Date.now()
-    const requestsInLastMinute = Array.from(this.rateLimitMap.values())
-      .filter(timestamp => now - timestamp < 60000)
-      .length
+    const requestsInLastMinute = Array.from(this.rateLimitMap.values()).filter(
+      timestamp => now - timestamp < 60000
+    ).length
 
-    const requestsRemaining = Math.max(0, this.config.rateLimit!.requestsPerMinute! - requestsInLastMinute)
+    const requestsRemaining = Math.max(
+      0,
+      this.config.rateLimit!.requestsPerMinute! - requestsInLastMinute
+    )
     const resetTime = now + 60000
 
     return { requestsRemaining, resetTime }

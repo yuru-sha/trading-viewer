@@ -111,11 +111,11 @@ const AlertModal: React.FC<AlertModalProps> = ({
   const getAlertIcon = (type: 'above' | 'below' | 'crosses') => {
     switch (type) {
       case 'above':
-        return <Icon name="TrendingUp" className='w-4 h-4 text-green-500' />
+        return <Icon name='TrendingUp' className='w-4 h-4 text-green-500' />
       case 'below':
-        return <Icon name="TrendingDown" className='w-4 h-4 text-red-500' />
+        return <Icon name='TrendingDown' className='w-4 h-4 text-red-500' />
       case 'crosses':
-        return <Icon name="Bell" className='w-4 h-4 text-blue-500' />
+        return <Icon name='Bell' className='w-4 h-4 text-blue-500' />
     }
   }
 
@@ -125,7 +125,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
         {/* Modal Header */}
         <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
           <div className='flex items-center space-x-3'>
-            <Icon name="Bell" className='w-6 h-6 text-blue-500' />
+            <Icon name='Bell' className='w-6 h-6 text-blue-500' />
             <h2 className='text-xl font-semibold text-gray-900 dark:text-white'>
               価格アラート設定
             </h2>
@@ -134,7 +134,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
             onClick={onClose}
             className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
           >
-            <Icon name="X" className='w-6 h-6' />
+            <Icon name='X' className='w-6 h-6' />
           </button>
         </div>
 
@@ -207,7 +207,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
-                  <Icon name="TrendingUp" className='w-5 h-5' />
+                  <Icon name='TrendingUp' className='w-5 h-5' />
                   <span>以上</span>
                 </button>
                 <button
@@ -219,7 +219,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
-                  <Icon name="TrendingDown" className='w-5 h-5' />
+                  <Icon name='TrendingDown' className='w-5 h-5' />
                   <span>以下</span>
                 </button>
                 <button
@@ -231,7 +231,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
-                  <Icon name="Bell" className='w-5 h-5' />
+                  <Icon name='Bell' className='w-5 h-5' />
                   <span>クロス</span>
                 </button>
               </div>
@@ -393,7 +393,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                             onClick={() => onDeleteAlert(alert.id)}
                             className='p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors'
                           >
-                            <Icon name="X" className='w-4 h-4' />
+                            <Icon name='X' className='w-4 h-4' />
                           </button>
                         )}
                       </div>

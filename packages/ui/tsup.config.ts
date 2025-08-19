@@ -4,7 +4,7 @@ export default defineConfig({
   entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
   dts: {
-    tsconfig: './tsconfig.json'
+    tsconfig: './tsconfig.json',
   },
   clean: true,
   external: ['react', 'react-dom'],

@@ -70,7 +70,7 @@ export const drawingTools: DrawingTool[] = [
     id: 'fibonacci',
     name: 'Fibonacci Retracement',
     type: 'fibonacci',
-    icon: <Icon name="ChartNoAxesGantt" className='w-4 h-4' />,
+    icon: <Icon name='ChartNoAxesGantt' className='w-4 h-4' />,
   },
 ]
 

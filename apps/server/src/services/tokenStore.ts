@@ -9,7 +9,10 @@ const RATE_LIMIT_PREFIX = 'rate_limit:auth:'
 
 // In-memory fallback stores for development
 const memoryTokenBlacklist = new Set<string>()
-const memoryRefreshTokenStore = new Map<string, { userId: string; version: number; createdAt: Date }>()
+const memoryRefreshTokenStore = new Map<
+  string,
+  { userId: string; version: number; createdAt: Date }
+>()
 const memoryCsrfTokenStore = new Map<string, { userId: string; expiresAt: Date }>()
 const memoryRateLimitStore = new Map<string, { count: number; lastAttempt: Date }>()
 
@@ -22,7 +25,7 @@ export class TokenBlacklist {
    */
   static async add(jti: string, expirationSeconds?: number): Promise<boolean> {
     const key = TOKEN_BLACKLIST_PREFIX + jti
-    
+
     if (isRedisConnected()) {
       const success = await RedisManager.set(key, 'true', expirationSeconds)
       if (success) {
@@ -30,17 +33,17 @@ export class TokenBlacklist {
         return true
       }
     }
-    
+
     // Fallback to memory
     memoryTokenBlacklist.add(jti)
     logWarn('Token blacklisted in memory (Redis unavailable)', { jti })
-    
+
     // Clean up memory periodically if using fallback
     if (memoryTokenBlacklist.size > 10000) {
       logWarn('Memory token blacklist size limit reached, clearing old tokens')
       memoryTokenBlacklist.clear()
     }
-    
+
     return true
   }
 
@@ -49,12 +52,12 @@ export class TokenBlacklist {
    */
   static async isBlacklisted(jti: string): Promise<boolean> {
     const key = TOKEN_BLACKLIST_PREFIX + jti
-    
+
     if (isRedisConnected()) {
       const exists = await RedisManager.exists(key)
       return exists
     }
-    
+
     // Fallback to memory
     return memoryTokenBlacklist.has(jti)
   }
@@ -64,11 +67,11 @@ export class TokenBlacklist {
    */
   static async remove(jti: string): Promise<boolean> {
     const key = TOKEN_BLACKLIST_PREFIX + jti
-    
+
     if (isRedisConnected()) {
       return await RedisManager.del(key)
     }
-    
+
     // Fallback to memory
     return memoryTokenBlacklist.delete(jti)
   }
@@ -87,7 +90,7 @@ export class TokenBlacklist {
       }
       return true
     }
-    
+
     // Fallback to memory
     memoryTokenBlacklist.clear()
     logInfo('All blacklisted tokens cleared from memory')
@@ -108,13 +111,17 @@ export class RefreshTokenStore {
   /**
    * Store refresh token data
    */
-  static async set(tokenId: string, data: RefreshTokenData, expirationSeconds?: number): Promise<boolean> {
+  static async set(
+    tokenId: string,
+    data: RefreshTokenData,
+    expirationSeconds?: number
+  ): Promise<boolean> {
     const key = REFRESH_TOKEN_PREFIX + tokenId
     const value = JSON.stringify({
       ...data,
       createdAt: data.createdAt.toISOString(),
     })
-    
+
     if (isRedisConnected()) {
       const success = await RedisManager.set(key, value, expirationSeconds)
       if (success) {
@@ -122,7 +129,7 @@ export class RefreshTokenStore {
         return true
       }
     }
-    
+
     // Fallback to memory
     memoryRefreshTokenStore.set(tokenId, data)
     logWarn('Refresh token stored in memory (Redis unavailable)', { tokenId, userId: data.userId })
@@ -134,7 +141,7 @@ export class RefreshTokenStore {
    */
   static async get(tokenId: string): Promise<RefreshTokenData | null> {
     const key = REFRESH_TOKEN_PREFIX + tokenId
-    
+
     if (isRedisConnected()) {
       const value = await RedisManager.get(key)
       if (value) {
@@ -150,7 +157,7 @@ export class RefreshTokenStore {
       }
       return null
     }
-    
+
     // Fallback to memory
     return memoryRefreshTokenStore.get(tokenId) || null
   }
@@ -160,7 +167,7 @@ export class RefreshTokenStore {
    */
   static async remove(tokenId: string): Promise<boolean> {
     const key = REFRESH_TOKEN_PREFIX + tokenId
-    
+
     if (isRedisConnected()) {
       const success = await RedisManager.del(key)
       if (success) {
@@ -168,7 +175,7 @@ export class RefreshTokenStore {
       }
       return success
     }
-    
+
     // Fallback to memory
     const existed = memoryRefreshTokenStore.delete(tokenId)
     if (existed) {
@@ -182,10 +189,10 @@ export class RefreshTokenStore {
    */
   static async removeAllForUser(userId: string): Promise<number> {
     let removedCount = 0
-    
+
     if (isRedisConnected()) {
       const keys = await RedisManager.keys(REFRESH_TOKEN_PREFIX + '*')
-      
+
       for (const key of keys) {
         const value = await RedisManager.get(key)
         if (value) {
@@ -200,9 +207,13 @@ export class RefreshTokenStore {
           }
         }
       }
-      
+
       if (removedCount > 0) {
-        logInfo('Removed refresh tokens for user', { userId, count: removedCount, storage: 'redis' })
+        logInfo('Removed refresh tokens for user', {
+          userId,
+          count: removedCount,
+          storage: 'redis',
+        })
       }
     } else {
       // Fallback to memory
@@ -212,12 +223,12 @@ export class RefreshTokenStore {
           removedCount++
         }
       }
-      
+
       if (removedCount > 0) {
         logInfo('Removed refresh tokens for user from memory', { userId, count: removedCount })
       }
     }
-    
+
     return removedCount
   }
 }
@@ -234,13 +245,17 @@ export class CSRFTokenStore {
   /**
    * Store CSRF token
    */
-  static async set(tokenId: string, data: CSRFTokenData, expirationSeconds?: number): Promise<boolean> {
+  static async set(
+    tokenId: string,
+    data: CSRFTokenData,
+    expirationSeconds?: number
+  ): Promise<boolean> {
     const key = CSRF_TOKEN_PREFIX + tokenId
     const value = JSON.stringify({
       ...data,
       expiresAt: data.expiresAt.toISOString(),
     })
-    
+
     if (isRedisConnected()) {
       const success = await RedisManager.set(key, value, expirationSeconds)
       if (success) {
@@ -248,7 +263,7 @@ export class CSRFTokenStore {
         return true
       }
     }
-    
+
     // Fallback to memory
     memoryCsrfTokenStore.set(tokenId, data)
     logWarn('CSRF token stored in memory (Redis unavailable)', { tokenId, userId: data.userId })
@@ -260,7 +275,7 @@ export class CSRFTokenStore {
    */
   static async get(tokenId: string): Promise<CSRFTokenData | null> {
     const key = CSRF_TOKEN_PREFIX + tokenId
-    
+
     if (isRedisConnected()) {
       const value = await RedisManager.get(key)
       if (value) {
@@ -276,7 +291,7 @@ export class CSRFTokenStore {
       }
       return null
     }
-    
+
     // Fallback to memory
     return memoryCsrfTokenStore.get(tokenId) || null
   }
@@ -286,11 +301,11 @@ export class CSRFTokenStore {
    */
   static async remove(tokenId: string): Promise<boolean> {
     const key = CSRF_TOKEN_PREFIX + tokenId
-    
+
     if (isRedisConnected()) {
       return await RedisManager.del(key)
     }
-    
+
     // Fallback to memory
     return memoryCsrfTokenStore.delete(tokenId)
   }
@@ -300,10 +315,10 @@ export class CSRFTokenStore {
    */
   static async removeAllForUser(userId: string): Promise<number> {
     let removedCount = 0
-    
+
     if (isRedisConnected()) {
       const keys = await RedisManager.keys(CSRF_TOKEN_PREFIX + '*')
-      
+
       for (const key of keys) {
         const value = await RedisManager.get(key)
         if (value) {
@@ -327,7 +342,7 @@ export class CSRFTokenStore {
         }
       }
     }
-    
+
     return removedCount
   }
 
@@ -337,17 +352,17 @@ export class CSRFTokenStore {
   static async cleanupExpired(): Promise<number> {
     const now = new Date()
     let cleanedCount = 0
-    
+
     if (isRedisConnected()) {
       const keys = await RedisManager.keys(CSRF_TOKEN_PREFIX + '*')
-      
+
       for (const key of keys) {
         const value = await RedisManager.get(key)
         if (value) {
           try {
             const data = JSON.parse(value)
             const expiresAt = new Date(data.expiresAt)
-            
+
             if (expiresAt <= now) {
               await RedisManager.del(key)
               cleanedCount++
@@ -368,11 +383,11 @@ export class CSRFTokenStore {
         }
       }
     }
-    
+
     if (cleanedCount > 0) {
       logInfo('Cleaned up expired CSRF tokens', { count: cleanedCount })
     }
-    
+
     return cleanedCount
   }
 }
@@ -391,7 +406,7 @@ export class RateLimitStore {
    */
   static async get(identifier: string): Promise<RateLimitData | null> {
     const key = RATE_LIMIT_PREFIX + identifier
-    
+
     if (isRedisConnected()) {
       const value = await RedisManager.get(key)
       if (value) {
@@ -407,7 +422,7 @@ export class RateLimitStore {
       }
       return null
     }
-    
+
     // Fallback to memory
     return memoryRateLimitStore.get(identifier) || null
   }
@@ -415,13 +430,17 @@ export class RateLimitStore {
   /**
    * Set rate limit data for an identifier
    */
-  static async set(identifier: string, data: RateLimitData, expirationSeconds?: number): Promise<boolean> {
+  static async set(
+    identifier: string,
+    data: RateLimitData,
+    expirationSeconds?: number
+  ): Promise<boolean> {
     const key = RATE_LIMIT_PREFIX + identifier
     const value = JSON.stringify({
       ...data,
       lastAttempt: data.lastAttempt.toISOString(),
     })
-    
+
     if (isRedisConnected()) {
       const success = await RedisManager.set(key, value, expirationSeconds)
       if (success) {
@@ -429,24 +448,27 @@ export class RateLimitStore {
         return true
       }
     }
-    
+
     // Fallback to memory
     memoryRateLimitStore.set(identifier, data)
-    logWarn('Rate limit data stored in memory (Redis unavailable)', { identifier, count: data.count })
-    
-    // Clean up memory periodically if using fallback  
+    logWarn('Rate limit data stored in memory (Redis unavailable)', {
+      identifier,
+      count: data.count,
+    })
+
+    // Clean up memory periodically if using fallback
     if (memoryRateLimitStore.size > 5000) {
       logWarn('Memory rate limit store size limit reached, clearing old entries')
       const now = new Date()
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-      
+
       for (const [id, data] of memoryRateLimitStore.entries()) {
         if (data.lastAttempt < oneHourAgo) {
           memoryRateLimitStore.delete(id)
         }
       }
     }
-    
+
     return true
   }
 
@@ -455,11 +477,11 @@ export class RateLimitStore {
    */
   static async remove(identifier: string): Promise<boolean> {
     const key = RATE_LIMIT_PREFIX + identifier
-    
+
     if (isRedisConnected()) {
       return await RedisManager.del(key)
     }
-    
+
     // Fallback to memory
     return memoryRateLimitStore.delete(identifier)
   }
@@ -470,17 +492,17 @@ export class RateLimitStore {
   static async cleanupExpired(windowMs: number): Promise<number> {
     const cutoffTime = new Date(Date.now() - windowMs)
     let cleanedCount = 0
-    
+
     if (isRedisConnected()) {
       const keys = await RedisManager.keys(RATE_LIMIT_PREFIX + '*')
-      
+
       for (const key of keys) {
         const value = await RedisManager.get(key)
         if (value) {
           try {
             const data = JSON.parse(value)
             const lastAttempt = new Date(data.lastAttempt)
-            
+
             if (lastAttempt <= cutoffTime) {
               await RedisManager.del(key)
               cleanedCount++
@@ -501,11 +523,11 @@ export class RateLimitStore {
         }
       }
     }
-    
+
     if (cleanedCount > 0) {
       logInfo('Cleaned up expired rate limit entries', { count: cleanedCount })
     }
-    
+
     return cleanedCount
   }
 }

@@ -1,7 +1,12 @@
 import request from 'supertest'
 import { getExpressApp } from '../../__tests__/setup/testApp.js'
 import { prisma } from '../../lib/database'
-import { createTestUser, cleanupTestUser, getAuthHeaders, TestUser } from '../../__tests__/helpers/auth.js'
+import {
+  createTestUser,
+  cleanupTestUser,
+  getAuthHeaders,
+  TestUser,
+} from '../../__tests__/helpers/auth.js'
 
 describe('Drawing Tools API', () => {
   let testUser: TestUser

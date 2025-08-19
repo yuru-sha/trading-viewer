@@ -50,7 +50,7 @@ export interface IMarketDataRepository {
   update(id: string, data: Partial<MarketDataCreateInput>): Promise<MarketDataItem>
   delete(id: string): Promise<void>
   count(filter?: MarketDataFilter): Promise<number>
-  
+
   // 外部プロバイダー経由のデータ取得
   getRealtimeQuote(symbol: string): Promise<QuoteResponse>
   getMultipleQuotes(symbols: string[]): Promise<QuoteResponse[]>
@@ -62,19 +62,24 @@ export interface IMarketDataRepository {
   ): Promise<HistoricalDataResponse>
   searchSymbols(query: string, limit?: number): Promise<SymbolSearchResult[]>
   getNews(query?: string, count?: number): Promise<NewsItemResponse[]>
-  
+
   // 統合機能
   syncHistoricalData(symbol: string, from: Date, to: Date): Promise<number>
   getOrFetchQuote(symbol: string, maxAgeSeconds?: number): Promise<QuoteResponse>
   bulkSyncData(symbols: string[], from: Date, to: Date): Promise<number>
-  
+
   // キャッシュ・メンテナンス
   clearOldData(symbol: string, beforeTimestamp: number): Promise<number>
   getProviderStatus(): Promise<{ healthy: boolean; rateLimitStatus: any }>
 }
 
 export class MarketDataRepository
-  extends BaseRepository<MarketDataItem, MarketDataCreateInput, Partial<MarketDataCreateInput>, MarketDataFilter>
+  extends BaseRepository<
+    MarketDataItem,
+    MarketDataCreateInput,
+    Partial<MarketDataCreateInput>,
+    MarketDataFilter
+  >
   implements IMarketDataRepository
 {
   constructor(
@@ -101,7 +106,9 @@ export class MarketDataRepository
       return this.convertToMarketDataItem(candle)
     } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new Error(`Market data for ${data.symbol} at timestamp ${data.timestamp} already exists`)
+        throw new Error(
+          `Market data for ${data.symbol} at timestamp ${data.timestamp} already exists`
+        )
       }
       throw error
     }
@@ -209,7 +216,7 @@ export class MarketDataRepository
   async syncHistoricalData(symbol: string, from: Date, to: Date): Promise<number> {
     try {
       const historicalData = await this.provider.getHistoricalData(symbol, from, to, '1d')
-      
+
       if (historicalData.status !== 'ok' || !historicalData.candles) {
         return 0
       }

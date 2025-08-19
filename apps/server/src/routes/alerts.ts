@@ -223,6 +223,89 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 })
 
+// PUT /api/alerts/symbol/:symbol/disable - Disable all alerts for a symbol
+router.put('/symbol/:symbol/disable', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId
+    const { symbol } = req.params
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' })
+    }
+
+    const updatedAlerts = await prisma.priceAlert.updateMany({
+      where: {
+        userId,
+        symbol: symbol.toUpperCase(),
+        enabled: true, // Only disable currently enabled alerts
+      },
+      data: {
+        enabled: false,
+      },
+    })
+
+    res.json({
+      success: true,
+      disabledCount: updatedAlerts.count,
+      message: `Disabled ${updatedAlerts.count} alerts for ${symbol.toUpperCase()}`,
+    })
+  } catch (error) {
+    console.error('Error disabling symbol alerts:', error)
+    res.status(500).json({ error: 'Failed to disable symbol alerts' })
+  }
+})
+
+// GET /api/alerts/count/:symbol - Get alert count for a symbol
+router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId
+    const { symbol } = req.params
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' })
+    }
+
+    const alertCount = await prisma.priceAlert.count({
+      where: {
+        userId,
+        symbol: symbol.toUpperCase(),
+      },
+    })
+
+    const alerts = await prisma.priceAlert.findMany({
+      where: {
+        userId,
+        symbol: symbol.toUpperCase(),
+      },
+      select: {
+        id: true,
+        type: true,
+        price: true,
+        percentageChange: true,
+        enabled: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    res.json({
+      symbol: symbol.toUpperCase(),
+      count: alertCount,
+      alerts: alerts.map(alert => ({
+        id: alert.id,
+        condition: alert.type,
+        targetPrice: alert.price,
+        percentageChange: alert.percentageChange,
+        enabled: alert.enabled,
+        createdAt: alert.createdAt.toISOString(),
+      })),
+    })
+  } catch (error) {
+    console.error('Error counting symbol alerts:', error)
+    res.status(500).json({ error: 'Failed to count symbol alerts' })
+  }
+})
+
 // POST /api/alerts/:id/trigger - Mark alert as triggered (internal use)
 router.post('/:id/trigger', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {

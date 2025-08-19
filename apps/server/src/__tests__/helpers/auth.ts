@@ -13,10 +13,13 @@ export interface TestUser {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production'
 
-export async function createTestUser(email: string = 'test@example.com', role: 'user' | 'admin' = 'user'): Promise<TestUser> {
+export async function createTestUser(
+  email: string = 'test@example.com',
+  role: 'user' | 'admin' = 'user'
+): Promise<TestUser> {
   // Clean up existing test user
   await prisma.user.deleteMany({
-    where: { email }
+    where: { email },
   })
 
   // Create new test user
@@ -26,8 +29,8 @@ export async function createTestUser(email: string = 'test@example.com', role: '
       email,
       passwordHash: hashedPassword,
       role,
-      isEmailVerified: true
-    }
+      isEmailVerified: true,
+    },
   })
 
   // Generate access token
@@ -35,7 +38,7 @@ export async function createTestUser(email: string = 'test@example.com', role: '
     {
       userId: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
     },
     JWT_SECRET,
     { expiresIn: '1h' }
@@ -45,20 +48,23 @@ export async function createTestUser(email: string = 'test@example.com', role: '
     id: user.id,
     email: user.email,
     role: user.role,
-    accessToken
+    accessToken,
   }
 }
 
 export async function cleanupTestUser(email: string = 'test@example.com'): Promise<void> {
   await prisma.user.deleteMany({
-    where: { email }
+    where: { email },
   })
 }
 
-export async function getAuthHeaders(accessToken: string, includeCsrf: boolean = false): Promise<Record<string, string>> {
+export async function getAuthHeaders(
+  accessToken: string,
+  includeCsrf: boolean = false
+): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
   }
 
   if (includeCsrf) {

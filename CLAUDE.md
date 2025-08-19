@@ -249,6 +249,7 @@ pnpm --filter @trading-viewer/client test:e2e -- --grep "Login flow"
 ### Common Issues and Solutions
 
 **Port Conflicts**
+
 ```bash
 # Check what's using port 3000/8000
 lsof -i :3000
@@ -259,6 +260,7 @@ kill -9 $(lsof -t -i:3000)
 ```
 
 **Type Errors After Package Updates**
+
 ```bash
 # Regenerate types and clear cache
 pnpm --filter packages/shared build
@@ -267,6 +269,7 @@ rm -rf node_modules/.vite  # Clear Vite cache
 ```
 
 **Database Connection Issues**
+
 ```bash
 # Check database status
 pnpm db:studio  # Opens Prisma Studio to verify connection
@@ -274,6 +277,7 @@ pnpm --filter @trading-viewer/server db:generate  # Regenerate Prisma client
 ```
 
 **Build Failures**
+
 ```bash
 # Clean build and reinstall
 pnpm clean && pnpm install
@@ -282,6 +286,7 @@ pnpm build
 ```
 
 **WebSocket Connection Problems**
+
 ```bash
 # Check server logs
 pnpm dev:server  # Check console output for WebSocket errors
@@ -291,6 +296,7 @@ pnpm dev:server  # Check console output for WebSocket errors
 ### Performance Monitoring
 
 **Bundle Size Analysis**
+
 ```bash
 # Analyze client bundle composition
 pnpm analyze:bundle:size
@@ -299,6 +305,7 @@ pnpm analyze:deps:duplicates
 ```
 
 **Memory Usage Monitoring** (macOS)
+
 ```bash
 # Check Node.js memory usage
 top -pid $(pgrep -f "node.*server") -l 1
@@ -306,6 +313,7 @@ top -pid $(pgrep -f "node.*server") -l 1
 ```
 
 **Development Server Performance**
+
 ```bash
 # Check for circular dependencies that slow builds
 pnpm deps:check
