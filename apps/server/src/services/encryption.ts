@@ -137,10 +137,11 @@ export class SymmetricEncryption {
     }
 
     const iv = SymmetricEncryption.generateIV()
-    const cipher = crypto.createCipher('aes-256-cbc', key)
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
 
-    let encrypted = cipher.update(data, 'utf8', 'hex')
-    encrypted += cipher.final('hex')
+    const encrypted = Buffer.concat([cipher.update(data.toString(), 'utf8'), cipher.final()])
+
+    const tag = cipher.getAuthTag()
 
     securityLogger.log({
       eventType: SecurityEventType.SUSPICIOUS_ACTIVITY, // For audit trail
@@ -150,24 +151,25 @@ export class SymmetricEncryption {
     })
 
     return {
-      encrypted: encrypted,
+      encrypted,
       iv,
+      tag,
     }
   }
 
   // Decrypt data with AES-256-GCM
-  decrypt(encryptedData: string, key: Buffer, iv: Buffer): string {
+  decrypt(encryptedData: Buffer, key: Buffer, iv: Buffer, tag: Buffer): string {
     if (!CryptographicValidator.validateKeyStrength(key)) {
       throw new Error('Decryption key does not meet minimum strength requirements')
     }
 
     try {
-      const decipher = crypto.createDecipher('aes-256-cbc', key)
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
+      decipher.setAuthTag(tag)
 
-      let decrypted = decipher.update(encryptedData, 'hex', 'utf8')
-      decrypted += decipher.final('utf8')
+      const decrypted = Buffer.concat([decipher.update(encryptedData), decipher.final()])
 
-      return decrypted
+      return decrypted.toString('utf8')
     } catch (error) {
       securityLogger.log({
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
@@ -199,7 +201,7 @@ export class SymmetricEncryption {
     )
     const encrypted = combined.subarray(ENCRYPTION_CONFIG.IV_LENGTH + ENCRYPTION_CONFIG.TAG_LENGTH)
 
-    return this.decrypt(encrypted.toString('hex'), key, iv)
+    return this.decrypt(encrypted, key, iv, tag)
   }
 }
 

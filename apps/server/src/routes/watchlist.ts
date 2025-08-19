@@ -26,6 +26,10 @@ const UpdatePositionsSchema = z.object({
   ),
 })
 
+const BulkRemoveWatchlistSchema = z.object({
+  symbols: z.array(z.string().min(1)).min(1).max(50), // 最大 50 シンボルまで
+})
+
 // GET /api/watchlist - Get user's watchlist
 router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -235,6 +239,47 @@ router.delete('/:symbol', requireAuth, requireCSRF, async (req: AuthenticatedReq
     })
   }
 })
+
+// DELETE /api/watchlist/bulk - Remove multiple symbols from watchlist
+router.delete(
+  '/bulk',
+  requireAuth,
+  requireCSRF,
+  validateRequest({ body: BulkRemoveWatchlistSchema }),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.userId
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' })
+      }
+
+      const { symbols } = req.body
+
+      // バルク削除: 1 つのクエリで複数シンボルを削除
+      const deleteResult = await prisma.watchlist.deleteMany({
+        where: {
+          userId,
+          symbol: {
+            in: symbols.map(symbol => symbol.toUpperCase()),
+          },
+        },
+      })
+
+      res.json({
+        success: true,
+        deletedCount: deleteResult.count,
+        message: `Removed ${deleteResult.count} symbols from watchlist`,
+        symbols: symbols.map(s => s.toUpperCase()),
+      })
+    } catch (error) {
+      console.error('Error bulk removing from watchlist:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Failed to remove symbols from watchlist',
+      })
+    }
+  }
+)
 
 // PUT /api/watchlist/positions - Update watchlist item positions
 router.put(

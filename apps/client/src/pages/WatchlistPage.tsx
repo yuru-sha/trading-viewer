@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Loading } from '@trading-viewer/ui'
+import { Button, Loading, ToastContainer, useToast } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { apiService } from '../services/base/ApiService'
 import SelectAllButton from '../components/common/SelectAllButton'
@@ -190,6 +190,7 @@ const WatchlistPage: React.FC = () => {
   const [watchlistItems, setWatchlistItems] = useState<
     Array<{ symbol: string; name: string; addedAt: string }>
   >([])
+  const { toasts, toast } = useToast()
 
   // Sensors for drag and drop
   const sensors = useSensors(
@@ -230,40 +231,46 @@ const WatchlistPage: React.FC = () => {
     try {
       console.log('削除開始:', symbols)
 
-      // API 経由で各シンボルを削除
-      await Promise.all(
-        symbols.map(symbol => apiService.delete(`/watchlist/${encodeURIComponent(symbol)}`))
-      )
+      // バルク削除 API を使用（N+1 問題解消）
+      const deleteResponse = await apiService.delete('/watchlist/bulk', {
+        symbols,
+      })
 
-      // アラートを無効化（ユーザーが選択した場合）
+      const deletedCount = deleteResponse.data?.deletedCount || symbols.length
+
+      // アラートをバルク無効化（ユーザーが選択した場合）
+      let disabledAlertsCount = 0
       if (disableAlerts) {
         try {
-          const disablePromises = symbols.map(symbol =>
-            apiService.put(`/alerts/symbol/${encodeURIComponent(symbol)}/disable`)
-          )
-          const disableResults = await Promise.all(disablePromises)
+          const disableResponse = await apiService.put('/alerts/bulk/disable', {
+            symbols,
+          })
 
-          const totalDisabled = disableResults.reduce(
-            (sum, result) => sum + (result.data?.disabledCount || 0),
-            0
-          )
-
-          if (totalDisabled > 0) {
-            console.log(`アラート無効化完了: ${totalDisabled} 件のアラートを無効化`)
-          }
+          disabledAlertsCount = disableResponse.data?.disabledCount || 0
         } catch (alertError) {
           console.warn('アラートの無効化でエラーが発生しました:', alertError)
-          // アラート無効化の失敗は、ウォッチリスト削除を中断しない
+          toast.warning('アラートの無効化に失敗しました', {
+            message: 'ウォッチリストの削除は完了しましたが、関連するアラートは手動で無効化してください。',
+          })
         }
       }
 
       // ローカル状態を更新
       const updatedWatchlistItems = watchlistItems.filter(item => !symbols.includes(item.symbol))
-
       setWatchlistItems(updatedWatchlistItems)
-      console.log(`削除完了: ${symbols.length} シンボルを API から削除`)
+
+      // 成功メッセージ
+      let message = `${deletedCount} 件のシンボルを削除しました`
+      if (disabledAlertsCount > 0) {
+        message += ` (${disabledAlertsCount} 件のアラートも無効化)`
+      }
+      
+      toast.success('削除完了', { message })
     } catch (error) {
       console.error('Error deleting from watchlist:', error)
+      toast.error('削除に失敗しました', {
+        message: 'ウォッチリストからの削除に失敗しました。再度お試しください。',
+      })
       setError('ウォッチリストからの削除に失敗しました')
     }
   }

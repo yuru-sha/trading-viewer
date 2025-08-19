@@ -26,6 +26,10 @@ const UpdateAlertSchema = z.object({
   percentageChange: z.number().optional(),
 })
 
+const BulkDisableAlertsSchema = z.object({
+  symbols: z.array(z.string().min(1)).min(1).max(50), // 最大 50 シンボルまで
+})
+
 // GET /api/alerts - Get user's alerts
 router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -305,6 +309,47 @@ router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res)
     res.status(500).json({ error: 'Failed to count symbol alerts' })
   }
 })
+
+// PUT /api/alerts/bulk/disable - Disable alerts for multiple symbols
+router.put(
+  '/bulk/disable', 
+  requireAuth,
+  validateRequest({ body: BulkDisableAlertsSchema }),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.userId
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' })
+      }
+
+      const { symbols } = req.body
+
+      // バルク無効化: 1 つのクエリで複数シンボルのアラートを無効化
+      const updatedAlerts = await prisma.priceAlert.updateMany({
+        where: {
+          userId,
+          symbol: {
+            in: symbols.map(symbol => symbol.toUpperCase()),
+          },
+          enabled: true, // 現在有効なアラートのみ対象
+        },
+        data: {
+          enabled: false,
+        },
+      })
+
+      res.json({
+        success: true,
+        disabledCount: updatedAlerts.count,
+        message: `Disabled ${updatedAlerts.count} alerts for ${symbols.length} symbols`,
+        symbols: symbols.map(s => s.toUpperCase()),
+      })
+    } catch (error) {
+      console.error('Error bulk disabling alerts:', error)
+      res.status(500).json({ error: 'Failed to disable alerts' })
+    }
+  }
+)
 
 // POST /api/alerts/:id/trigger - Mark alert as triggered (internal use)
 router.post('/:id/trigger', requireAuth, async (req: AuthenticatedRequest, res) => {

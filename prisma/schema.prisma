@@ -122,6 +122,10 @@ model PriceAlert {
 
   @@index([userId, symbol])
   @@index([enabled])
+  @@index([userId, enabled])
+  @@index([symbol, enabled])
+  @@index([triggeredAt])
+  @@index([type, enabled])
   @@map("price_alerts")
 }
 

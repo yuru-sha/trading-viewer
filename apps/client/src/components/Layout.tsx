@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
+import { ToastContainer, useToast } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
@@ -20,6 +21,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuth()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const { toasts } = useToast()
 
   // オンボーディング設定
   const onboardingSteps = createTradingViewerOnboarding()
@@ -142,6 +144,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         onSkip={onboarding.skip}
         onStepChange={onboarding.handleStepChange}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} />
     </div>
   )
 }
