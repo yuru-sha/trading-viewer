@@ -82,6 +82,13 @@ module.exports = {
       'dist',
       'build',
       '\\.git',
+      // Configuration files that are expected to be orphans
+      '\\.config\\.(js|ts)$',
+      '\\.eslintrc\\.(js|cjs)$',
+      'vitest\\.config\\.ts$',
+      'tsup\\.config\\.ts$',
+      'playwright\\.config\\.ts$',
+      'postcss\\.config\\.js$',
     ],
 
     // Module systems to use

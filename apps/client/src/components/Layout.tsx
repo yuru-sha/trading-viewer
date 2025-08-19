@@ -1,13 +1,10 @@
 import React, { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
 import Onboarding from './Onboarding'
 import { useOnboarding, createTradingViewerOnboarding } from '../hooks/useOnboarding'
-import Icon from './Icon'
-import UserDropdown from './UserDropdown'
-import AlertNotifications from './alerts/AlertNotifications'
 import { MobileBottomNav } from './layout/MobileBottomNav'
 import { Header } from './layout/Header'
 import { LoadingOverlay } from './layout/LoadingOverlay'
@@ -100,6 +97,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
+  const handleMobileNavigate = (message: string) => {
+    setIsMobileMenuOpen(false)
+    announceToScreenReader(message)
+  }
+
   // Close mobile menu when route changes
   React.useEffect(() => {
     setIsMobileMenuOpen(false)
@@ -115,7 +117,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         navigation={navigation}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={toggleMobileMenu}
-        announceToScreenReader={announceToScreenReader}
+        onMobileNavigate={handleMobileNavigate}
       />
 
       {/* Loading Overlay */}
