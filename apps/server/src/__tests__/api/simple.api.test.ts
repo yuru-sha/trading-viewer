@@ -15,7 +15,7 @@ const createTestApp = () => {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      version: '1.0.0',
+      version: '0.1.0',
     })
   })
 
@@ -23,7 +23,7 @@ const createTestApp = () => {
   app.get('/api', (req, res) => {
     res.json({
       name: 'TradingViewer API',
-      version: '1.0.0',
+      version: '0.1.0',
       description: 'Trading data and market information API',
     })
   })

@@ -300,7 +300,7 @@ export class SecurityConfigValidator {
 
         return { valid: true, value: apiVersion }
       },
-      remediation: 'Set proper API version in semantic versioning format (e.g., v1.0.0)',
+      remediation: 'Set proper API version in semantic versioning format (e.g., v0.1.0)',
     })
 
     // Error Handling Rules

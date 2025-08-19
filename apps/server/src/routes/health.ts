@@ -64,7 +64,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env.npm_package_version || '0.1.0',
     environment: process.env.NODE_ENV || 'development',
     services: {
       database: { status: 'down' },

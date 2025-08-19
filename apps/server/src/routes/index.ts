@@ -24,7 +24,7 @@ export function setupRoutes(app: Application): void {
   app.get('/api', (_req, res) => {
     res.json({
       name: 'TradingViewer API',
-      version: '1.0.0',
+      version: '0.1.0',
       timestamp: new Date().toISOString(),
       endpoints: {
         auth: {
