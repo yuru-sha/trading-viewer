@@ -119,18 +119,15 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ onboardingId }) => {
               </Link>
             )}
 
-            <button
-              onClick={() => {
-                setIsOpen(false)
-                // Navigate to help
-                window.location.href = '/help'
-              }}
+            <Link
+              to='/help'
+              onClick={() => setIsOpen(false)}
               className='flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150'
               role='menuitem'
             >
               <Icon name='help' className='w-4 h-4 mr-3' />
               Help
-            </button>
+            </Link>
           </div>
 
           {/* Logout */}

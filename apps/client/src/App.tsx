@@ -15,6 +15,7 @@ import {
   AlertsPage,
   AdminUsersPage,
   SettingsPage,
+  HelpPage,
 } from './pages'
 import LoginPage from './pages/LoginPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -68,6 +69,7 @@ const AppContent: React.FC = () => {
         <Route path='/watchlist' element={<WatchlistPage />} />
         <Route path='/alerts' element={<AlertsPage />} />
         <Route path='/settings' element={<SettingsPage />} />
+        <Route path='/help' element={<HelpPage />} />
         <Route path='/admin/users' element={<AdminUsersPage />} />
       </Routes>
     </Layout>
