@@ -37,6 +37,12 @@ export const SERVICE_NAMES = {
   SYMBOL_REPOSITORY: 'SymbolRepository',
   CANDLE_REPOSITORY: 'CandleRepository',
   USER_PREFERENCES_REPOSITORY: 'UserPreferencesRepository',
+  USER_INDICATOR_REPOSITORY: 'UserIndicatorRepository',
+  MARKET_DATA_REPOSITORY: 'MarketDataRepository',
+  PRISMA_MARKET_DATA_REPOSITORY: 'PrismaMarketDataRepository',
+  
+  // Market Data Provider
+  MARKET_DATA_PROVIDER: 'MarketDataProvider',
 
   // Utilities
   LOGGER: 'Logger',
@@ -99,6 +105,54 @@ export function registerApplicationServices(): void {
       return new UserPreferencesRepository(prisma)
     },
     [SERVICE_NAMES.PRISMA_CLIENT]
+  )
+
+  registerService.singleton(
+    SERVICE_NAMES.USER_INDICATOR_REPOSITORY,
+    prisma => {
+      const { UserIndicatorRepository } = require('../repositories/UserIndicatorRepository')
+      return new UserIndicatorRepository(prisma)
+    },
+    [SERVICE_NAMES.PRISMA_CLIENT]
+  )
+
+  // Market Data Provider (Singleton)
+  registerService.singleton(SERVICE_NAMES.MARKET_DATA_PROVIDER, () => {
+    const { RefactoredYahooFinanceProvider } = require('../infrastructure/providers/RefactoredYahooFinanceProvider')
+    return new RefactoredYahooFinanceProvider({
+      rateLimit: {
+        requestsPerMinute: 60,
+        burstSize: 10,
+      },
+      cache: {
+        ttlSeconds: 30,
+        maxEntries: 1000,
+      },
+      timeout: {
+        connectTimeoutMs: 5000,
+        readTimeoutMs: 10000,
+      },
+    })
+  })
+
+  // Prisma Market Data Repository (Singleton)
+  registerService.singleton(
+    SERVICE_NAMES.PRISMA_MARKET_DATA_REPOSITORY,
+    prisma => {
+      const { PrismaMarketDataRepository } = require('../infrastructure/repositories/PrismaMarketDataRepository')
+      return new PrismaMarketDataRepository(prisma)
+    },
+    [SERVICE_NAMES.PRISMA_CLIENT]
+  )
+
+  // Enhanced Market Data Repository (Singleton)
+  registerService.singleton(
+    SERVICE_NAMES.MARKET_DATA_REPOSITORY,
+    (prisma, provider) => {
+      const { MarketDataRepository } = require('../repositories/MarketDataRepository')
+      return new MarketDataRepository(prisma, provider)
+    },
+    [SERVICE_NAMES.PRISMA_CLIENT, SERVICE_NAMES.MARKET_DATA_PROVIDER]
   )
 
   // Cache services (Singleton)
