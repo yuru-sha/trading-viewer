@@ -89,6 +89,26 @@ pnpm db:reset     # Reset database
 pnpm db:studio    # Open Prisma Studio
 ```
 
+### Analysis & Monitoring
+
+```bash
+# Security & dependency analysis
+pnpm security:audit        # Security vulnerability audit
+pnpm security:scan         # Comprehensive security scan
+pnpm security:deps         # Dependency security check
+
+# Bundle & performance analysis
+pnpm analyze:bundle        # Analyze bundle composition
+pnpm analyze:bundle:size   # Bundle size analysis with visualizer
+pnpm analyze:deps          # Dependency structure analysis
+
+# Code quality analysis
+pnpm deps:check            # Check for circular dependencies
+pnpm deps:analyze          # Comprehensive dependency analysis
+pnpm deps:complexity       # Code complexity metrics
+pnpm deps:graph            # Generate dependency graph
+```
+
 ### Package Management
 
 ```bash
@@ -182,6 +202,11 @@ pnpm --filter @trading-viewer/client test:e2e
 
 # Run all tests
 pnpm test
+
+# Run specific tests
+pnpm --filter @trading-viewer/client test:unit -- --testNamePattern="ComponentName"
+pnpm --filter @trading-viewer/server test:unit -- --testPathPattern="api"
+pnpm --filter @trading-viewer/client test:e2e -- --grep "Login flow"
 ```
 
 ## Key Features
@@ -218,3 +243,79 @@ pnpm test
 - XSS protection with React's built-in escaping
 - Environment variables for sensitive configuration
 - CORS configuration for API access control
+
+## Troubleshooting & Development Tips
+
+### Common Issues and Solutions
+
+**Port Conflicts**
+```bash
+# Check what's using port 3000/8000
+lsof -i :3000
+lsof -i :8000
+
+# Kill process using port
+kill -9 $(lsof -t -i:3000)
+```
+
+**Type Errors After Package Updates**
+```bash
+# Regenerate types and clear cache
+pnpm --filter packages/shared build
+pnpm type-check
+rm -rf node_modules/.vite  # Clear Vite cache
+```
+
+**Database Connection Issues**
+```bash
+# Check database status
+pnpm db:studio  # Opens Prisma Studio to verify connection
+pnpm --filter @trading-viewer/server db:generate  # Regenerate Prisma client
+```
+
+**Build Failures**
+```bash
+# Clean build and reinstall
+pnpm clean && pnpm install
+pnpm --filter packages/shared build  # Build shared packages first
+pnpm build
+```
+
+**WebSocket Connection Problems**
+```bash
+# Check server logs
+pnpm dev:server  # Check console output for WebSocket errors
+# Verify CORS settings in server configuration
+```
+
+### Performance Monitoring
+
+**Bundle Size Analysis**
+```bash
+# Analyze client bundle composition
+pnpm analyze:bundle:size
+# Check for duplicate dependencies
+pnpm analyze:deps:duplicates
+```
+
+**Memory Usage Monitoring** (macOS)
+```bash
+# Check Node.js memory usage
+top -pid $(pgrep -f "node.*server") -l 1
+# Monitor client resource usage in browser DevTools
+```
+
+**Development Server Performance**
+```bash
+# Check for circular dependencies that slow builds
+pnpm deps:check
+# Monitor file watcher performance
+pnpm deps:watch
+```
+
+### IDE Configuration Notes
+
+- VSCode: Install recommended extensions for TypeScript, React, Prisma
+- Debugging: Use built-in debugger for server-side code
+- Source maps are enabled in development for better debugging experience
+- Workspace settings configured for consistent formatting across team

@@ -193,7 +193,11 @@ const WatchlistPage: React.FC = () => {
 
   // Sensors for drag and drop
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -242,15 +246,21 @@ const WatchlistPage: React.FC = () => {
     }
   }
 
-  // ウォッチリストの位置を更新（ローカル）
+  // ウォッチリストの位置を更新（サーバー API 呼び出し）
   const updateWatchlistPositions = async (items: Array<{ symbol: string; position: number }>) => {
     try {
-      // ローカル状態での並び替えなので、特に処理は不要
-      // ドラッグ&ドロップで既に状態は更新済み
-      console.log('位置更新完了:', items.map(item => `${item.symbol}: ${item.position}`).join(', '))
+      // API を使って並び替え位置をサーバーに送信
+      const response = await apiService.put('/watchlist/positions', { items: items })
+      if (response.success) {
+        console.log('位置更新完了:', items.map(item => `${item.symbol}: ${item.position}`).join(', '))
+      } else {
+        throw new Error(response.error || 'Position update failed')
+      }
     } catch (error) {
       console.error('Error updating watchlist positions:', error)
       setError('ウォッチリストの順番更新に失敗しました')
+      // エラー時は元の順序に戻す
+      await fetchWatchlist()
     }
   }
 
@@ -654,7 +664,10 @@ const WatchlistPage: React.FC = () => {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext items={watchlist} strategy={verticalListSortingStrategy}>
+              {(() => {
+                const itemIds = watchlist.map(item => item.id)
+                return (
+                  <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
                 <div className='divide-y divide-gray-200 dark:divide-gray-700'>
                   {watchlist.map(item => (
                     <SortableWatchlistItem
@@ -666,7 +679,9 @@ const WatchlistPage: React.FC = () => {
                     />
                   ))}
                 </div>
-              </SortableContext>
+                  </SortableContext>
+                )
+              })()}
             </DndContext>
           </div>
         </div>
