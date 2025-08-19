@@ -241,11 +241,11 @@ router.post(
     const userId = req.user!.userId
 
     // Revoke all user tokens except current session
-    revokeAllUserTokens(userId)
-    revokeAllUserCSRFTokens(userId)
+    await revokeAllUserTokens(userId)
+    await revokeAllUserCSRFTokens(userId)
 
     // Generate new CSRF token for current session
-    const csrfToken = generateCSRFToken(userId)
+    const csrfToken = await generateCSRFToken(userId)
 
     // Log session revocation
     securityLogger.log({

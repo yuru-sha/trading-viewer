@@ -286,7 +286,7 @@ router.post(
 
     try {
       // Rate limiting
-      rateLimitAuth(email)
+      await rateLimitAuth(email)
 
       // Find user
       const user = await prisma.user.findUnique({
@@ -322,7 +322,7 @@ router.post(
 
       // Clear failed attempts on successful login
       await resetFailedLogin(user.id)
-      clearAuthAttempts(email)
+      await clearAuthAttempts(email)
 
       // Log successful login
       securityLogger.logAuthSuccess(req as AuthenticatedRequest, user.id, email)
@@ -494,7 +494,7 @@ router.get(
       throw new UnauthorizedError('Authentication required')
     }
 
-    const csrfToken = generateCSRFToken(req.user.userId)
+    const csrfToken = await generateCSRFToken(req.user.userId)
 
     res.json({
       success: true,

@@ -46,6 +46,7 @@
     "isomorphic-dompurify": "^2.26.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "redis": "^5.8.1",
     "reflect-metadata": "^0.2.2",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
@@ -62,13 +63,15 @@
     "@types/node": "^20.8.0",
     "@types/reflect-metadata": "^0.1.0",
     "@types/supertest": "^2.0.0",
+    "@types/winston": "^2.4.4",
     "@types/ws": "^8.5.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
+    "@vitest/coverage-v8": "^3.2.4",
     "prisma": "^5.6.0",
     "supertest": "^6.3.0",
     "tsx": "^4.1.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "vitest": "^3.2.4"
   }
 }

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import { createServer } from 'http'
 import { connectDatabase, disconnectDatabase, checkDatabaseHealth } from './lib/database.js'
+import { initializeRedis, disconnectRedis, checkRedisHealth } from './lib/redis.js'
 import { setupRoutes } from './routes/index.js'
 import { setupMiddleware } from './middleware/index.js'
 import { setupRateLimiting } from './middleware/rateLimiting.js'
@@ -63,9 +64,14 @@ export class ApplicationBootstrap {
       }
 
       const dbHealthy = await checkDatabaseHealth()
+      const redisHealth = await checkRedisHealth()
+      const overallHealthy = dbHealthy && redisHealth.healthy
+      
       return res.json({
-        status: dbHealthy ? 'ok' : 'error',
+        status: overallHealthy ? 'ok' : 'error',
         database: dbHealthy ? 'connected' : 'disconnected',
+        redis: redisHealth.healthy ? 'connected' : 'disconnected',
+        redisDetails: redisHealth.details,
         timestamp: new Date().toISOString(),
       })
     })
@@ -137,6 +143,9 @@ export class ApplicationBootstrap {
 
       // Connect to database
       await connectDatabase()
+
+      // Initialize Redis
+      await initializeRedis()
 
       // Create HTTP server
       this.server = createServer(this.app)
@@ -232,6 +241,11 @@ export class ApplicationBootstrap {
       console.log('🗄️  Closing database connections...')
       await disconnectDatabase()
       console.log('✅ Database connections closed')
+
+      // Step 5: Close Redis connections
+      console.log('📡 Closing Redis connections...')
+      await disconnectRedis()
+      console.log('✅ Redis connections closed')
 
       // Clear the timeout
       clearTimeout(shutdownTimeout)

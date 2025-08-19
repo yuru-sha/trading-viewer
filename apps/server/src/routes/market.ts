@@ -1,4 +1,4 @@
-import { Router, Response } from 'express'
+import { Router, Response, Request } from 'express'
 import { getYahooFinanceService } from '../services/yahooFinanceService'
 import { ApiError } from '@trading-viewer/shared'
 import {
@@ -597,6 +597,14 @@ router.get('/data-source', (_req: Request, res: Response) => {
       statusCode: 500,
     } as ApiError)
   }
+})
+
+// Rate limit test endpoint
+router.get('/rate-limit', (_req, res: Response) => {
+  res.json({
+    message: 'Rate limiting is configured',
+    timestamp: Math.floor(Date.now() / 1000)
+  })
 })
 
 export default router

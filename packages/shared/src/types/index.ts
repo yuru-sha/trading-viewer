@@ -9,7 +9,7 @@ export * from './business'
 
 // From old api-contract.ts
 export type { ApiResponse as ApiContractResponse } from './api/contracts'
-export type { ApiError } from '../types/api-contract'
+export type { ApiError } from './api-contract'
 
 // From old repository.ts
 export type {

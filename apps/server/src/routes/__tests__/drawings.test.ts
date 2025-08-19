@@ -1,25 +1,28 @@
 import request from 'supertest'
-import express from 'express'
+import { getExpressApp } from '../../__tests__/setup/testApp.js'
 import { prisma } from '../../lib/database'
-import drawingRoutes from '../drawings'
-
-// Create test app
-const app = express()
-app.use(express.json())
-app.use('/api/drawings', drawingRoutes)
+import { createTestUser, cleanupTestUser, getAuthHeaders, TestUser } from '../../__tests__/helpers/auth.js'
 
 describe('Drawing Tools API', () => {
+  let testUser: TestUser
+
+  beforeAll(async () => {
+    testUser = await createTestUser()
+  })
+
   beforeEach(async () => {
     // Clean up database before each test
     await prisma.drawingTool.deleteMany()
   })
 
   afterAll(async () => {
+    await cleanupTestUser()
     await prisma.$disconnect()
   })
 
   describe('POST /api/drawings', () => {
     it('should create a new drawing tool', async () => {
+      const app = await getExpressApp()
       const newDrawingTool = {
         symbol: 'AAPL',
         tool: {
@@ -38,7 +41,11 @@ describe('Drawing Tools API', () => {
         },
       }
 
-      const response = await request(app).post('/api/drawings').send(newDrawingTool).expect(201)
+      const response = await request(app)
+        .post('/api/drawings')
+        .set(await getAuthHeaders(testUser.accessToken, true))
+        .send(newDrawingTool)
+        .expect(201)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toBeDefined()
@@ -47,6 +54,7 @@ describe('Drawing Tools API', () => {
     })
 
     it('should return validation error for invalid data', async () => {
+      const app = await getExpressApp()
       const invalidData = {
         symbol: 'AAPL',
         tool: {
@@ -54,7 +62,11 @@ describe('Drawing Tools API', () => {
         },
       }
 
-      const response = await request(app).post('/api/drawings').send(invalidData).expect(400)
+      const response = await request(app)
+        .post('/api/drawings')
+        .set(await getAuthHeaders(testUser.accessToken, true))
+        .send(invalidData)
+        .expect(400)
 
       expect(response.body.status).toBe('error')
     })
@@ -62,10 +74,11 @@ describe('Drawing Tools API', () => {
 
   describe('GET /api/drawings/:symbol', () => {
     it('should get all drawing tools for a symbol', async () => {
+      const app = await getExpressApp()
       // Create a test drawing tool
       const drawingTool = await prisma.drawingTool.create({
         data: {
-          userId: 'default-user',
+          userId: testUser.id,
           symbol: 'AAPL',
           type: 'trendline',
           points: JSON.stringify([
@@ -82,7 +95,10 @@ describe('Drawing Tools API', () => {
         },
       })
 
-      const response = await request(app).get('/api/drawings/AAPL').expect(200)
+      const response = await request(app)
+        .get('/api/drawings/AAPL')
+        .set(await getAuthHeaders(testUser.accessToken))
+        .expect(200)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toHaveLength(1)
@@ -91,7 +107,11 @@ describe('Drawing Tools API', () => {
     })
 
     it('should return empty array for symbol with no drawings', async () => {
-      const response = await request(app).get('/api/drawings/MSFT').expect(200)
+      const app = await getExpressApp()
+      const response = await request(app)
+        .get('/api/drawings/MSFT')
+        .set(await getAuthHeaders(testUser.accessToken))
+        .expect(200)
 
       expect(response.body.status).toBe('success')
       expect(response.body.data).toHaveLength(0)
@@ -100,10 +120,11 @@ describe('Drawing Tools API', () => {
 
   describe('DELETE /api/drawings/:id', () => {
     it('should delete a drawing tool', async () => {
+      const app = await getExpressApp()
       // Create a test drawing tool
       const drawingTool = await prisma.drawingTool.create({
         data: {
-          userId: 'default-user',
+          userId: testUser.id,
           symbol: 'AAPL',
           type: 'trendline',
           points: JSON.stringify([
@@ -120,7 +141,10 @@ describe('Drawing Tools API', () => {
         },
       })
 
-      const response = await request(app).delete(`/api/drawings/${drawingTool.id}`).expect(200)
+      const response = await request(app)
+        .delete(`/api/drawings/${drawingTool.id}`)
+        .set(await getAuthHeaders(testUser.accessToken, true))
+        .expect(200)
 
       expect(response.body.status).toBe('success')
 
@@ -132,7 +156,11 @@ describe('Drawing Tools API', () => {
     })
 
     it('should return 404 for non-existent drawing tool', async () => {
-      const response = await request(app).delete('/api/drawings/non-existent-id').expect(404)
+      const app = await getExpressApp()
+      const response = await request(app)
+        .delete('/api/drawings/non-existent-id')
+        .set(await getAuthHeaders(testUser.accessToken, true))
+        .expect(404)
 
       expect(response.body.status).toBe('error')
       expect(response.body.message).toBe('Drawing tool not found')

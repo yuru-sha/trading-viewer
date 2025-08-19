@@ -9,7 +9,7 @@ import {
   comparePassword,
   validatePassword,
   validateEmail,
-  rateLimitAuth,
+  rateLimitAuthMiddleware,
   clearAuthAttempts,
   requireAuth,
   AuthenticatedRequest,
@@ -128,7 +128,7 @@ router.post(
 // POST /api/auth/login
 router.post(
   '/login',
-  rateLimitAuth,
+  rateLimitAuthMiddleware,
   validateRequest(loginSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body

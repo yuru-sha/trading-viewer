@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { UnauthorizedError, ForbiddenError } from './errorHandling'
+import { TokenBlacklist, RefreshTokenStore, CSRFTokenStore, RateLimitStore } from '../services/tokenStore.js'
 
 // JWT payload interface
 export interface JWTPayload {
@@ -57,12 +58,8 @@ export const ACCESS_TOKEN_COOKIE = 'access_token'
 export const REFRESH_TOKEN_COOKIE = 'refresh_token'
 export const CSRF_TOKEN_COOKIE = 'csrf_token'
 
-// Token blacklist (in-memory store - in production, use Redis)
-const tokenBlacklist = new Set<string>()
-const refreshTokenStore = new Map<string, { userId: string; version: number; createdAt: Date }>()
-
-// CSRF token store (in-memory - in production, use Redis)
-const csrfTokenStore = new Map<string, { userId: string; expiresAt: Date }>()
+// Rate limiting for authentication attempts (kept in memory for simplicity)
+// In production, this should also use Redis for distributed rate limiting
 
 // JWT utilities
 export const generateTokens = async (
@@ -130,10 +127,11 @@ export const generateTokens = async (
   }
 }
 
-export const verifyAccessToken = (token: string): JWTPayload => {
+export const verifyAccessToken = async (token: string): Promise<JWTPayload> => {
   console.log('🔍 verifyAccessToken called with token:', token ? 'exists' : 'missing')
 
-  if (tokenBlacklist.has(token)) {
+  // Check if token is blacklisted using Redis
+  if (await TokenBlacklist.isBlacklisted(token)) {
     throw new UnauthorizedError('Token has been revoked')
   }
 
@@ -196,13 +194,21 @@ export const verifyRefreshToken = async (token: string): Promise<{ userId: strin
   }
 }
 
-export const revokeToken = (token: string): void => {
-  tokenBlacklist.add(token)
-
-  // Clean up old tokens periodically (simple implementation)
-  if (tokenBlacklist.size > 10000) {
-    tokenBlacklist.clear()
+export const revokeToken = async (token: string): Promise<void> => {
+  // Extract expiration from token for Redis TTL
+  let expirationSeconds: number | undefined
+  
+  try {
+    const decoded = jwt.decode(token) as JWTPayload
+    if (decoded && decoded.exp) {
+      const now = Math.floor(Date.now() / 1000)
+      expirationSeconds = Math.max(0, decoded.exp - now)
+    }
+  } catch (error) {
+    console.warn('Could not extract expiration from token for blacklist TTL')
   }
+  
+  await TokenBlacklist.add(token, expirationSeconds)
 }
 
 export const revokeRefreshToken = async (token: string): Promise<void> => {
@@ -321,11 +327,11 @@ export const validateEmail = (email: string): { valid: boolean; errors: string[]
 }
 
 // Authentication middleware with Cookie support
-export const requireAuth = (
+export const requireAuth = async (
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     let token: string | undefined
 
@@ -347,7 +353,7 @@ export const requireAuth = (
       throw new UnauthorizedError('Authentication required')
     }
 
-    const user = verifyAccessToken(token)
+    const user = await verifyAccessToken(token)
     req.user = user
 
     next()
@@ -357,11 +363,11 @@ export const requireAuth = (
 }
 
 // Optional authentication middleware with Cookie support
-export const optionalAuth = (
+export const optionalAuth = async (
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     let token: string | undefined
 
@@ -381,7 +387,7 @@ export const optionalAuth = (
 
     if (token) {
       try {
-        const user = verifyAccessToken(token)
+        const user = await verifyAccessToken(token)
         req.user = user
       } catch (error) {
         // Ignore token errors for optional auth
@@ -414,11 +420,11 @@ export const requireRole = (...roles: Array<'user' | 'admin'>) => {
 }
 
 // CSRF protection middleware
-export const requireCSRF = (
+export const requireCSRF = async (
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required')
@@ -436,7 +442,7 @@ export const requireCSRF = (
       throw new ForbiddenError('CSRF token is required')
     }
 
-    if (!verifyCSRFToken(csrfToken, req.user.userId)) {
+    if (!(await verifyCSRFToken(csrfToken, req.user.userId))) {
       throw new ForbiddenError('Invalid CSRF token')
     }
 
@@ -446,31 +452,28 @@ export const requireCSRF = (
   }
 }
 
-// Rate limiting for authentication attempts
-const authAttempts = new Map<string, { count: number; lastAttempt: Date }>()
+// Rate limiting constants for authentication attempts
 const MAX_AUTH_ATTEMPTS = 10 // Increased from 5 for better UX
 const AUTH_ATTEMPT_WINDOW = 15 * 60 * 1000 // 15 minutes
 const LOCKOUT_DURATION = 15 * 60 * 1000 // Reduced from 30 to 15 minutes
 
-export const rateLimitAuth = (identifier: string): void => {
+export const rateLimitAuth = async (identifier: string): Promise<void> => {
   // Skip rate limiting in development environment
   if (process.env.NODE_ENV === 'development') {
     return
   }
 
-  // More lenient production settings for legitimate users
-
   const now = new Date()
-  const attempts = authAttempts.get(identifier)
+  const attempts = await RateLimitStore.get(identifier)
 
   if (!attempts) {
-    authAttempts.set(identifier, { count: 1, lastAttempt: now })
+    await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
     return
   }
 
   // Reset if window has passed
   if (now.getTime() - attempts.lastAttempt.getTime() > AUTH_ATTEMPT_WINDOW) {
-    authAttempts.set(identifier, { count: 1, lastAttempt: now })
+    await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
     return
   }
 
@@ -484,36 +487,53 @@ export const rateLimitAuth = (identifier: string): void => {
       )
     } else {
       // Lockout period ended, reset
-      authAttempts.set(identifier, { count: 1, lastAttempt: now })
+      await RateLimitStore.set(identifier, { count: 1, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
       return
     }
   }
 
   // Increment attempts
-  authAttempts.set(identifier, { count: attempts.count + 1, lastAttempt: now })
+  const newCount = attempts.count + 1
+  await RateLimitStore.set(identifier, { count: newCount, lastAttempt: now }, Math.ceil(AUTH_ATTEMPT_WINDOW / 1000))
 
-  if (attempts.count + 1 >= MAX_AUTH_ATTEMPTS) {
+  if (newCount >= MAX_AUTH_ATTEMPTS) {
     throw new UnauthorizedError(
       `Too many failed attempts. Account locked for ${LOCKOUT_DURATION / 60000} minutes.`
     )
   }
 }
 
-export const clearAuthAttempts = (identifier: string): void => {
-  authAttempts.delete(identifier)
+export const clearAuthAttempts = async (identifier: string): Promise<void> => {
+  await RateLimitStore.remove(identifier)
+}
+
+// Rate limiting middleware wrapper
+export const rateLimitAuthMiddleware = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const identifier = req.body?.email || req.ip || 'unknown'
+    await rateLimitAuth(identifier)
+    next()
+  } catch (error) {
+    next(error)
+  }
 }
 
 // CSRF Token utilities
-export const generateCSRFToken = (userId: string): string => {
+export const generateCSRFToken = async (userId: string): Promise<string> => {
   const token = crypto.randomBytes(32).toString('hex')
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+  const expirationSeconds = 60 * 60 // 1 hour in seconds
 
-  csrfTokenStore.set(token, { userId, expiresAt })
+  await CSRFTokenStore.set(token, { userId, expiresAt }, expirationSeconds)
   return token
 }
 
-export const verifyCSRFToken = (token: string, userId: string): boolean => {
-  const storedData = csrfTokenStore.get(token)
+export const verifyCSRFToken = async (token: string, userId: string): Promise<boolean> => {
+  const storedData = await CSRFTokenStore.get(token)
 
   if (!storedData) {
     return false
@@ -524,23 +544,19 @@ export const verifyCSRFToken = (token: string, userId: string): boolean => {
   }
 
   if (storedData.expiresAt < new Date()) {
-    csrfTokenStore.delete(token)
+    await CSRFTokenStore.remove(token)
     return false
   }
 
   return true
 }
 
-export const revokeCSRFToken = (token: string): void => {
-  csrfTokenStore.delete(token)
+export const revokeCSRFToken = async (token: string): Promise<void> => {
+  await CSRFTokenStore.remove(token)
 }
 
-export const revokeAllUserCSRFTokens = (userId: string): void => {
-  for (const [token, data] of csrfTokenStore.entries()) {
-    if (data.userId === userId) {
-      csrfTokenStore.delete(token)
-    }
-  }
+export const revokeAllUserCSRFTokens = async (userId: string): Promise<void> => {
+  await CSRFTokenStore.removeAllForUser(userId)
 }
 
 // Security headers middleware with strict CSP
@@ -590,27 +606,18 @@ export const securityHeaders = (_req: Request, res: Response, next: NextFunction
   next()
 }
 
-// Clean up expired tokens periodically
+// Clean up expired tokens and rate limit entries periodically
 setInterval(
   () => {
-    const now = new Date()
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+    // Clean up expired CSRF tokens (Redis-based cleanup)
+    CSRFTokenStore.cleanupExpired().catch((error) => {
+      console.error('Failed to cleanup expired CSRF tokens:', error)
+    })
 
-    // Clean up auth attempts
-    for (const [identifier, data] of authAttempts.entries()) {
-      if (data.lastAttempt < oneHourAgo) {
-        authAttempts.delete(identifier)
-      }
-    }
-
-    // Clean up expired refresh tokens
-    for (const [token, _data] of refreshTokenStore.entries()) {
-      try {
-        jwt.verify(token, JWT_REFRESH_SECRET)
-      } catch (error) {
-        refreshTokenStore.delete(token)
-      }
-    }
+    // Clean up expired rate limit entries (Redis-based cleanup)
+    RateLimitStore.cleanupExpired(AUTH_ATTEMPT_WINDOW).catch((error) => {
+      console.error('Failed to cleanup expired rate limit entries:', error)
+    })
   },
   60 * 60 * 1000
 ) // Run every hour
