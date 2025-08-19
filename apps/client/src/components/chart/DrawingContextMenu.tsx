@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Palette, Trash2, Copy } from 'lucide-react'
+import { Icon } from '@ui'
 import { DrawingTool } from '@trading-viewer/shared'
 
 interface DrawingContextMenuProps {
@@ -127,7 +127,7 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
               className='w-4 h-4 rounded border border-gray-300 dark:border-gray-600'
               style={{ backgroundColor: tool.style.color }}
             />
-            <Palette size={16} />
+            <Icon name="Palette" size={16} />
             <span>Change Color</span>
           </div>
         </button>
@@ -160,7 +160,7 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
             className='flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           >
             <div className='flex items-center space-x-3'>
-              <Copy size={16} />
+              <Icon name="Copy" size={16} />
               <span>Duplicate</span>
             </div>
           </button>
@@ -175,7 +175,7 @@ export const DrawingContextMenu: React.FC<DrawingContextMenuProps> = ({
           className='flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
         >
           <div className='flex items-center space-x-3'>
-            <Trash2 size={16} />
+            <Icon name="Trash2" size={16} />
             <span>Delete</span>
           </div>
         </button>

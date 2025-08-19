@@ -2,9 +2,7 @@ import React, { useState } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { api } from '../../lib/apiClient'
 // Test regular icons from lucide-react
-import { Target, Plus, Icon, ChartNoAxesGantt } from 'lucide-react'
-// Test lab icons from @lucide/lab (as icon nodes)
-import { crosshairPlus, crosshair2 } from '@lucide/lab'
+import { Icon } from '@ui'
 
 export interface DrawingTool {
   id: string
@@ -72,7 +70,7 @@ export const drawingTools: DrawingTool[] = [
     id: 'fibonacci',
     name: 'Fibonacci Retracement',
     type: 'fibonacci',
-    icon: <ChartNoAxesGantt className='w-4 h-4' />,
+    icon: <Icon name="ChartNoAxesGantt" className='w-4 h-4' />,
   },
 ]
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Trash2, Palette, ChartNoAxesGantt } from 'lucide-react'
+import { Icon } from '@ui'
 import { DrawingToolType } from '@trading-viewer/shared'
 
 export interface DrawingObject {
@@ -60,7 +60,7 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
           </svg>
         )
       case 'fibonacci':
-        return <ChartNoAxesGantt className='w-4 h-4' />
+        return <Icon name="ChartNoAxesGantt" className='w-4 h-4' />
       default:
         return (
           <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -125,7 +125,7 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
                       }`}
                       title={object.visible ? 'Hide' : 'Show'}
                     >
-                      {object.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      {object.visible ? <Icon name="Eye" size={16} /> : <Icon name="EyeOff" size={16} />}
                     </button>
 
                     {/* Type Icon */}
@@ -162,7 +162,7 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
                           className='w-4 h-4 rounded border border-gray-300 dark:border-gray-600'
                           style={{ backgroundColor: object.color }}
                         />
-                        <Palette size={12} className='text-gray-400' />
+                        <Icon name="Palette" size={12} className='text-gray-400' />
                       </div>
                     </button>
                   </div>
@@ -173,7 +173,7 @@ export const DrawingObjectsPanel: React.FC<DrawingObjectsPanelProps> = ({
                     className='flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all ml-2'
                     title='Remove'
                   >
-                    <Trash2 size={14} />
+                    <Icon name="Trash2" size={14} />
                   </button>
                 </div>
 
