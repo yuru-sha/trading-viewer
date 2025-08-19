@@ -83,17 +83,13 @@ export function setAuthErrorCallback(callback: () => void): void {
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
 
-  const defaultHeaders = {
+  const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...options.headers,
   }
 
-  // Add Authorization header if user token is available in localStorage
-  const authUser = localStorage.getItem('auth_user')
-  const authToken = localStorage.getItem('access_token') || localStorage.getItem('auth_token')
-  if (authToken && authUser) {
-    defaultHeaders['Authorization'] = `Bearer ${authToken}`
-  }
+  // Note: Authentication is handled via httpOnly cookies (credentials: 'include')
+  // No manual Authorization header needed
 
   // Add CSRF token for state-changing operations
   if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
@@ -355,7 +351,7 @@ export const apiClient = {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : null,
     })
     return { data: response }
   },
@@ -364,7 +360,7 @@ export const apiClient = {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : null,
     })
     return { data: response }
   },

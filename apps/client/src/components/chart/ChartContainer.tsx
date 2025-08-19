@@ -1,4 +1,4 @@
-import React, { useCallback, forwardRef, useImperativeHandle } from 'react'
+import React, { useCallback, forwardRef, useImperativeHandle, useMemo } from 'react'
 import { Loading } from '@trading-viewer/ui'
 import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
@@ -46,7 +46,7 @@ export interface ChartContainerRef {
   takeScreenshot: (filename?: string) => void
 }
 
-export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>(
+const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProps>(
   (
     {
       symbol,
@@ -67,25 +67,39 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
     },
     ref
   ) => {
+    // Memoize hook dependencies to prevent unnecessary re-renders
+    const dataManagerConfig = useMemo(
+      () => ({
+        symbol,
+        data,
+        currentPrice,
+        isLoading,
+        isRealTime,
+      }),
+      [symbol, data, currentPrice, isLoading, isRealTime]
+    )
+
+    const renderingConfig = useMemo(
+      () => ({
+        showDrawingTools: showDrawingTools ?? defaultSettings.showDrawingTools,
+      }),
+      [showDrawingTools]
+    )
+
+    const drawingConfig = useMemo(
+      () => ({
+        symbol,
+        timeframe,
+        autoSave: true,
+        autoSaveInterval: 1000,
+      }),
+      [symbol, timeframe]
+    )
+
     // Separated concerns using custom hooks
-    const dataManager = useChartDataManager({
-      symbol,
-      data,
-      currentPrice,
-      isLoading,
-      isRealTime,
-    })
-
-    const renderingManager = useChartRendering({
-      showDrawingTools: showDrawingTools ?? defaultSettings.showDrawingTools,
-    })
-
-    const drawingManager = useChartDrawingManager({
-      symbol,
-      timeframe,
-      autoSave: true,
-      autoSaveInterval: 1000,
-    })
+    const dataManager = useChartDataManager(dataManagerConfig)
+    const renderingManager = useChartRendering(renderingConfig)
+    const drawingManager = useChartDrawingManager(drawingConfig)
 
     // Get indicators for the current symbol and timeframe
     const { data: indicators = [] } = useIndicators(symbol, timeframe)
@@ -260,6 +274,26 @@ export const ChartContainer = forwardRef<ChartContainerRef, ChartContainerProps>
   }
 )
 
-ChartContainer.displayName = 'ChartContainer'
+ChartContainerComponent.displayName = 'ChartContainer'
+
+// Memoize the component to prevent unnecessary re-renders
+export const ChartContainer = React.memo(ChartContainerComponent, (prevProps, nextProps) => {
+  // Custom comparison logic for better performance
+  return (
+    prevProps.symbol === nextProps.symbol &&
+    prevProps.data === nextProps.data &&
+    prevProps.currentPrice === nextProps.currentPrice &&
+    prevProps.isLoading === nextProps.isLoading &&
+    prevProps.isRealTime === nextProps.isRealTime &&
+    prevProps.chartType === nextProps.chartType &&
+    prevProps.timeframe === nextProps.timeframe &&
+    prevProps.showDrawingTools === nextProps.showDrawingTools &&
+    prevProps.showVolume === nextProps.showVolume &&
+    prevProps.showGridlines === nextProps.showGridlines &&
+    prevProps.showPeriodHigh === nextProps.showPeriodHigh &&
+    prevProps.showPeriodLow === nextProps.showPeriodLow &&
+    prevProps.periodWeeks === nextProps.periodWeeks
+  )
+})
 
 export default ChartContainer
