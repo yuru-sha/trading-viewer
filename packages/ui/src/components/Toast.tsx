@@ -70,20 +70,20 @@ export const Toast: React.FC<ToastProps> = ({
         }
       )}
     >
-      <div className="p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
+      <div className='p-4'>
+        <div className='flex items-start'>
+          <div className='flex-shrink-0'>
             <Icon name={config.icon} className={clsx('h-6 w-6', config.iconColor)} />
           </div>
-          <div className="ml-3 w-0 flex-1 pt-0.5">
+          <div className='ml-3 w-0 flex-1 pt-0.5'>
             <p className={clsx('text-sm font-medium', config.textColor)}>{title}</p>
             {message && (
               <p className={clsx('mt-1 text-sm', config.textColor, 'opacity-80')}>{message}</p>
             )}
           </div>
-          <div className="ml-4 flex flex-shrink-0">
+          <div className='ml-4 flex flex-shrink-0'>
             <button
-              type="button"
+              type='button'
               className={clsx(
                 'inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2',
                 config.textColor,
@@ -94,8 +94,8 @@ export const Toast: React.FC<ToastProps> = ({
                 setTimeout(() => onClose(id), 300)
               }}
             >
-              <span className="sr-only">Close</span>
-              <Icon name="X" className="h-5 w-5" />
+              <span className='sr-only'>Close</span>
+              <Icon name='X' className='h-5 w-5' />
             </button>
           </div>
         </div>
@@ -121,14 +121,9 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   }
 
   return (
-    <div
-      className={clsx(
-        'fixed z-50 p-6 pointer-events-none',
-        positionClasses[position]
-      )}
-    >
-      <div className="space-y-4">
-        {toasts.map((toast) => (
+    <div className={clsx('fixed z-50 p-6 pointer-events-none', positionClasses[position])}>
+      <div className='space-y-4'>
+        {toasts.map(toast => (
           <Toast key={toast.id} {...toast} />
         ))}
       </div>

@@ -312,7 +312,7 @@ router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res)
 
 // PUT /api/alerts/bulk/disable - Disable alerts for multiple symbols
 router.put(
-  '/bulk/disable', 
+  '/bulk/disable',
   requireAuth,
   validateRequest({ body: BulkDisableAlertsSchema }),
   async (req: AuthenticatedRequest, res) => {

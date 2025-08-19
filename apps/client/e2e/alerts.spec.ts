@@ -12,9 +12,10 @@ test.describe('TradingViewer Alerts Functionality', () => {
     await expect(page).toHaveTitle(/TradingViewer/i)
 
     // Should display either alerts content or authentication required message
-    const authRequired = await page.locator('h2:has-text("Authentication Required")').count() > 0
-    const alertsContent = await page.locator('h1:has-text("Price Alerts")').count() > 0 ||
-                         await page.locator('h1:has-text("Alerts")').count() > 0
+    const authRequired = (await page.locator('h2:has-text("Authentication Required")').count()) > 0
+    const alertsContent =
+      (await page.locator('h1:has-text("Price Alerts")').count()) > 0 ||
+      (await page.locator('h1:has-text("Alerts")').count()) > 0
 
     // Should show either auth message or alerts content
     expect(authRequired || alertsContent).toBe(true)
@@ -34,17 +35,18 @@ test.describe('TradingViewer Alerts Functionality', () => {
     await page.waitForTimeout(1000)
 
     // Check if user is authenticated first
-    const authRequired = await page.locator('h2:has-text("Authentication Required")').count() > 0
-    
+    const authRequired = (await page.locator('h2:has-text("Authentication Required")').count()) > 0
+
     if (authRequired) {
       // If not authenticated, should show auth message
       await expect(page.locator('h2:has-text("Authentication Required")')).toBeVisible()
     } else {
       // If authenticated, check for either alerts list or empty state
-      const hasAlertsList = await page.locator('[data-testid="alerts-list"]').count() > 0
-      const hasEmptyState = await page.locator(':has-text("No alerts yet")').count() > 0 ||
-                           await page.locator(':has-text("empty")').count() > 0 ||
-                           await page.locator('text=Create your first price alert').count() > 0
+      const hasAlertsList = (await page.locator('[data-testid="alerts-list"]').count()) > 0
+      const hasEmptyState =
+        (await page.locator(':has-text("No alerts yet")').count()) > 0 ||
+        (await page.locator(':has-text("empty")').count()) > 0 ||
+        (await page.locator('text=Create your first price alert').count()) > 0
 
       // Should have either alerts or empty state
       expect(hasAlertsList || hasEmptyState).toBe(true)
@@ -58,7 +60,7 @@ test.describe('TradingViewer Alerts Functionality', () => {
       'button:has-text("Create Alert")',
       'button:has-text("Add Alert")',
       'button:has-text("New Alert")',
-      '[data-testid="add-alert-button"]'
+      '[data-testid="add-alert-button"]',
     ]
 
     let createButton
@@ -76,9 +78,10 @@ test.describe('TradingViewer Alerts Functionality', () => {
       await page.waitForTimeout(500)
 
       // Should open modal or navigate to create form
-      const modalOrForm = await page.locator('[data-testid="alert-form"]').count() > 0 ||
-                         await page.locator('.modal').count() > 0 ||
-                         await page.locator('[role="dialog"]').count() > 0
+      const modalOrForm =
+        (await page.locator('[data-testid="alert-form"]').count()) > 0 ||
+        (await page.locator('.modal').count()) > 0 ||
+        (await page.locator('[role="dialog"]').count()) > 0
 
       expect(modalOrForm).toBe(true)
     } else {
@@ -92,13 +95,13 @@ test.describe('TradingViewer Alerts Functionality', () => {
       '[data-testid="alerts-search"]',
       'input[placeholder*="search" i]',
       'input[placeholder*="filter" i]',
-      '[data-testid="search-input"]'
+      '[data-testid="search-input"]',
     ]
 
     let searchInput
     for (const selector of searchSelectors) {
       const element = page.locator(selector).first()
-      if ((await element.count()) > 0 && await element.isVisible()) {
+      if ((await element.count()) > 0 && (await element.isVisible())) {
         searchInput = element
         break
       }
@@ -108,11 +111,12 @@ test.describe('TradingViewer Alerts Functionality', () => {
       // Test search functionality
       await searchInput.fill('AAPL')
       await page.waitForTimeout(500)
-      
+
       // Should show filtered results or no results message
-      const hasResults = await page.locator('[data-testid="alert-item"]').count() > 0
-      const hasNoResults = await page.locator(':has-text("No results")').count() > 0 ||
-                           await page.locator(':has-text("No alerts found")').count() > 0
+      const hasResults = (await page.locator('[data-testid="alert-item"]').count()) > 0
+      const hasNoResults =
+        (await page.locator(':has-text("No results")').count()) > 0 ||
+        (await page.locator(':has-text("No alerts found")').count()) > 0
 
       // Either should have results or show no results message
       expect(hasResults || hasNoResults).toBe(true)
@@ -131,7 +135,7 @@ test.describe('TradingViewer Alerts Functionality', () => {
 
     if (alertCount > 0) {
       const firstAlert = alertItems.first()
-      
+
       // Look for action buttons
       const actionSelectors = [
         '[data-testid="alert-toggle"]',
@@ -139,13 +143,13 @@ test.describe('TradingViewer Alerts Functionality', () => {
         'button:has-text("Enable")',
         'button:has-text("Disable")',
         'button:has-text("Delete")',
-        '.alert-actions button'
+        '.alert-actions button',
       ]
 
       let actionFound = false
       for (const selector of actionSelectors) {
         const actionButton = firstAlert.locator(selector).first()
-        if ((await actionButton.count()) > 0 && await actionButton.isVisible()) {
+        if ((await actionButton.count()) > 0 && (await actionButton.isVisible())) {
           // Test clicking the action
           await actionButton.click()
           await page.waitForTimeout(500)
@@ -171,7 +175,7 @@ test.describe('TradingViewer Alerts Functionality', () => {
       'input[type="checkbox"]:has-text("Select All")',
       '[data-testid="bulk-actions"]',
       'button:has-text("Delete Selected")',
-      'button:has-text("Disable Selected")'
+      'button:has-text("Disable Selected")',
     ]
 
     let bulkControlFound = false
@@ -202,15 +206,16 @@ test.describe('TradingViewer Alerts Functionality', () => {
     await page.waitForTimeout(500)
     await expect(page.locator('body')).toBeVisible()
 
-    // Test mobile view  
+    // Test mobile view
     await page.setViewportSize({ width: 375, height: 667 })
     await page.waitForTimeout(500)
     await expect(page.locator('body')).toBeVisible()
 
     // Should still show content in mobile (either auth message or alerts)
-    const hasContent = await page.locator('main, [role="main"]').count() > 0 ||
-                      await page.locator('h2:has-text("Authentication Required")').count() > 0 ||
-                      await page.locator('h1:has-text("Price Alerts")').count() > 0
+    const hasContent =
+      (await page.locator('main, [role="main"]').count()) > 0 ||
+      (await page.locator('h2:has-text("Authentication Required")').count()) > 0 ||
+      (await page.locator('h1:has-text("Price Alerts")').count()) > 0
 
     expect(hasContent).toBe(true)
   })
@@ -245,7 +250,9 @@ test.describe('TradingViewer Alerts Functionality', () => {
 
     // Should not have uncaught errors
     expect(errors).toHaveLength(0)
-    expect(logs.filter(log => !log.includes('development') && !log.includes('DevTools'))).toHaveLength(0)
+    expect(
+      logs.filter(log => !log.includes('development') && !log.includes('DevTools'))
+    ).toHaveLength(0)
   })
 
   test('should load with proper accessibility attributes', async ({ page }) => {
@@ -253,14 +260,14 @@ test.describe('TradingViewer Alerts Functionality', () => {
     await page.waitForTimeout(1000)
 
     // Check for basic accessibility attributes - main element or role
-    const mainElement = await page.locator('main').count() > 0
-    const mainRole = await page.locator('[role="main"]').count() > 0
+    const mainElement = (await page.locator('main').count()) > 0
+    const mainRole = (await page.locator('[role="main"]').count()) > 0
 
     // Should have proper semantic structure
     expect(mainElement || mainRole).toBe(true)
 
     // Check for heading hierarchy (either auth message or alerts page)
-    const hasHeadings = await page.locator('h1, h2, h3').count() > 0
+    const hasHeadings = (await page.locator('h1, h2, h3').count()) > 0
     expect(hasHeadings).toBe(true)
 
     // Should have at least one heading visible

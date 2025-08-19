@@ -250,7 +250,8 @@ const WatchlistPage: React.FC = () => {
         } catch (alertError) {
           console.warn('アラートの無効化でエラーが発生しました:', alertError)
           toast.warning('アラートの無効化に失敗しました', {
-            message: 'ウォッチリストの削除は完了しましたが、関連するアラートは手動で無効化してください。',
+            message:
+              'ウォッチリストの削除は完了しましたが、関連するアラートは手動で無効化してください。',
           })
         }
       }
@@ -264,7 +265,7 @@ const WatchlistPage: React.FC = () => {
       if (disabledAlertsCount > 0) {
         message += ` (${disabledAlertsCount} 件のアラートも無効化)`
       }
-      
+
       toast.success('削除完了', { message })
     } catch (error) {
       console.error('Error deleting from watchlist:', error)

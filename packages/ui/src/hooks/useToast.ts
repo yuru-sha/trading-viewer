@@ -14,7 +14,7 @@ export const useToast = () => {
   const [toasts, setToasts] = useState<Toast[]>([])
 
   const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+    setToasts(prev => prev.filter(toast => toast.id !== id))
   }, [])
 
   const addToast = useCallback(
@@ -29,7 +29,7 @@ export const useToast = () => {
         onClose: removeToast,
       }
 
-      setToasts((prev) => [...prev, toast])
+      setToasts(prev => [...prev, toast])
       return id
     },
     [removeToast]
@@ -45,7 +45,7 @@ export const useToast = () => {
   }
 
   return {
-    toasts: toasts.map((t) => ({ ...t, onClose: removeToast })),
+    toasts: toasts.map(t => ({ ...t, onClose: removeToast })),
     toast,
   }
 }
