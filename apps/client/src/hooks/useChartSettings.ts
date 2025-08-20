@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ChartSettings as ChartSettingsType } from '../components/chart/ChartSettings'
-import { useApp } from '../../contexts/AppContext'
+import { useApp } from '../contexts/AppContext'
 
 export const useChartSettings = () => {
   const {
