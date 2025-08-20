@@ -37,10 +37,10 @@ interface ServiceHealth {
   error?: string
 }
 
-// Basic health check
+// 基本的なヘルスチェック
 router.get('/health', async (req: Request, res: Response) => {
   try {
-    // Quick database connectivity check
+    // 簡単なデータベース接続チェック
     await prisma.$queryRaw`SELECT 1`
 
     res.status(200).json({
@@ -51,13 +51,13 @@ router.get('/health', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',
-      error: 'Database connection failed',
+      error: 'データベース接続に失敗しました',
       timestamp: new Date().toISOString(),
     })
   }
 })
 
-// Detailed health check
+// 詳細なヘルスチェック
 router.get('/health/detailed', async (req: Request, res: Response) => {
   const startTime = Date.now()
   const health: HealthStatus = {
@@ -83,7 +83,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     },
   }
 
-  // Check database
+  // データベースのチェック
   try {
     const dbStart = Date.now()
     await prisma.$queryRaw`SELECT 1`
@@ -94,26 +94,26 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
   } catch (error) {
     health.services.database = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : '不明なエラー',
     }
     health.status = 'unhealthy'
   }
 
-  // Check Redis (if configured)
+  // Redisのチェック (設定されている場合)
   if (process.env.REDIS_URL) {
     try {
-      // Redis health check would go here
+      // Redisのヘルスチェックはここに実装
       health.services.redis = { status: 'up' }
     } catch (error) {
       health.services.redis = {
         status: 'down',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '不明なエラー',
       }
       health.status = health.status === 'unhealthy' ? 'unhealthy' : 'degraded'
     }
   }
 
-  // Check WebSocket service
+  // WebSocketサービスのチェック
   try {
     const wsService = WebSocketService.getInstance()
     const wsStatus = wsService.getStatus()
@@ -124,12 +124,12 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
   } catch (error) {
     health.services.websocket = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : '不明なエラー',
     }
     health.status = health.status === 'unhealthy' ? 'unhealthy' : 'degraded'
   }
 
-  // Market data service check (Yahoo Finance)
+  // 市場データサービス(Yahoo Finance)のチェック
   try {
     const yahooStart = Date.now()
     const response = await fetch('https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL')
@@ -144,11 +144,11 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
   } catch (error) {
     health.services.yahooFinance = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : '不明なエラー',
     }
   }
 
-  // System metrics
+  // システムメトリクス
   const memUsage = process.memoryUsage()
   const totalMem = os.totalmem()
   const freeMem = os.freemem()
@@ -160,13 +160,13 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     percentage: Math.round((usedMem / totalMem) * 100),
   }
 
-  // Determine overall health status
+  // 全体的なヘルスステータスを決定
   const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 206 : 503
 
   res.status(statusCode).json(health)
 })
 
-// Liveness probe (for Kubernetes)
+// Liveness probe (Kubernetes用)
 router.get('/health/live', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'alive',
@@ -174,10 +174,10 @@ router.get('/health/live', (req: Request, res: Response) => {
   })
 })
 
-// Readiness probe (for Kubernetes)
+// Readiness probe (Kubernetes用)
 router.get('/health/ready', async (req: Request, res: Response) => {
   try {
-    // Check if service is ready to accept traffic
+    // サービスがトラフィックを受け入れられる準備ができているか確認
     await prisma.$queryRaw`SELECT 1`
 
     res.status(200).json({
@@ -187,38 +187,38 @@ router.get('/health/ready', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(503).json({
       status: 'not_ready',
-      error: 'Service not ready',
+      error: 'サービスは準備ができていません',
       timestamp: new Date().toISOString(),
     })
   }
 })
 
-// Metrics endpoint (for Prometheus)
+// メトリクスエンドポイント (Prometheus用)
 router.get('/metrics', (req: Request, res: Response) => {
   const metrics = []
   const timestamp = Date.now()
 
-  // Process metrics
+  // プロセスメトリクス
   const memUsage = process.memoryUsage()
-  metrics.push(`# HELP process_memory_heap_used_bytes Process heap memory used`)
+  metrics.push(`# HELP process_memory_heap_used_bytes プロセスのヒープ使用量`)
   metrics.push(`# TYPE process_memory_heap_used_bytes gauge`)
   metrics.push(`process_memory_heap_used_bytes ${memUsage.heapUsed}`)
 
-  metrics.push(`# HELP process_memory_heap_total_bytes Process heap memory total`)
+  metrics.push(`# HELP process_memory_heap_total_bytes プロセスの合計ヒープメモリ`)
   metrics.push(`# TYPE process_memory_heap_total_bytes gauge`)
   metrics.push(`process_memory_heap_total_bytes ${memUsage.heapTotal}`)
 
-  metrics.push(`# HELP process_uptime_seconds Process uptime in seconds`)
+  metrics.push(`# HELP process_uptime_seconds プロセスの稼働時間 (秒)`)
   metrics.push(`# TYPE process_uptime_seconds counter`)
   metrics.push(`process_uptime_seconds ${process.uptime()}`)
 
-  // System metrics
+  // システムメトリクス
   const loadAvg = os.loadavg()
-  metrics.push(`# HELP system_load_average_1m System load average 1 minute`)
+  metrics.push(`# HELP system_load_average_1m システムの1分間の平均負荷`)
   metrics.push(`# TYPE system_load_average_1m gauge`)
   metrics.push(`system_load_average_1m ${loadAvg[0]}`)
 
-  metrics.push(`# HELP system_cpu_cores Total CPU cores`)
+  metrics.push(`# HELP system_cpu_cores CPUコアの総数`)
   metrics.push(`# TYPE system_cpu_cores gauge`)
   metrics.push(`system_cpu_cores ${os.cpus().length}`)
 
