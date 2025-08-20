@@ -133,86 +133,42 @@ export function useChartOptions(
       indicators.map(i => ({ type: i.type, visible: i.visible }))
     )
 
-    // 🚨 GEMINI PATTERN: 明確なグリッド構造 [Main, Volume?, RSI?, MACD?]
-    const gridConfigs = []
-    let gridCount = 0
+    // Dynamically calculate grid heights and positions
+    const gridConfigs: any[] = []
+    const yAxes: any[] = []
+    const seriesMapping: Record<string, number> = {}
+    let currentTop = 2 // Start with a 2% top margin
 
-    // Main chart (always present)
+    const visibleSubCharts: { type: string; height: number }[] = []
+    if (config.showVolume) {
+      visibleSubCharts.push({ type: 'volume', height: 10 })
+    }
+    if (hasRSI) {
+      visibleSubCharts.push({ type: 'rsi', height: 15 })
+    }
+    if (hasMACD) {
+      visibleSubCharts.push({ type: 'macd', height: 15 })
+    }
+
+    const numSubCharts = visibleSubCharts.length
+    const subChartTotalHeight = visibleSubCharts.reduce((sum, chart) => sum + chart.height, 0)
+    const gapHeight = numSubCharts > 0 ? numSubCharts * 3 : 0
+    const mainChartHeight = 100 - subChartTotalHeight - gapHeight - 5 // 5% for top/bottom margins
+
+    // Main chart grid
     gridConfigs.push({
       left: '3%',
       right: '6%',
-      top: '2%',
-      height: config.showVolume || hasRSI || hasMACD ? '50%' : '93%',
+      top: `${currentTop}%`,
+      height: `${mainChartHeight}%`,
     })
-    gridCount++
-
-    // Volume grid (if enabled)
-    if (config.showVolume) {
-      gridConfigs.push({
-        left: '3%',
-        right: '6%',
-        top: '55%',
-        height: '10%',
-      })
-      gridCount++
-    }
-
-    // RSI grid (if enabled)
-    if (hasRSI) {
-      const topPosition = config.showVolume ? '68%' : '55%'
-      gridConfigs.push({
-        left: '3%',
-        right: '6%',
-        top: topPosition,
-        height: '12%',
-      })
-      gridCount++
-    }
-
-    // MACD grid (if enabled)
-    if (hasMACD) {
-      let topPosition = '55%'
-      if (config.showVolume && hasRSI) topPosition = '83%'
-      else if (config.showVolume) topPosition = '68%'
-      else if (hasRSI) topPosition = '70%'
-
-      gridConfigs.push({
-        left: '3%',
-        right: '6%',
-        top: topPosition,
-        height: '12%',
-      })
-      gridCount++
-    }
-
-    console.log('🚨 GEMINI PATTERN: Grid structure:', {
-      chartType: config.chartType,
-      totalGrids: gridCount,
-      showVolume: config.showVolume,
-      hasRSI,
-      hasMACD,
-      configs: gridConfigs.map((grid, index) => ({
-        index,
-        top: grid.top,
-        height: grid.height,
-        type: index === 0 ? 'Main' :
-              index === 1 && config.showVolume ? 'Volume' :
-              index === 1 && !config.showVolume && hasRSI ? 'RSI' :
-              index === 1 && !config.showVolume && hasMACD ? 'MACD' :
-              'SubChart'
-      }))
-    })
-
-    // 🚨 GEMINI PATTERN: X 軸設定 - 各グリッドに 1 つの X 軸
-    const xAxes = gridConfigs.map((_, index) => ({
-      type: 'category',
-      data: chartData.dates,
-      gridIndex: index,
+    yAxes.push({
       scale: true,
-      boundaryGap: false,
-      axisLine: { onZero: false },
-      splitLine: { 
-        show: config.showGridlines !== false, // showGridlines 設定を反映
+      gridIndex: 0,
+      position: 'right',
+      splitArea: { show: false },
+      splitLine: {
+        show: config.showGridlines !== false,
         lineStyle: {
           color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
           width: 1,
@@ -220,84 +176,83 @@ export function useChartOptions(
           opacity: 0.6,
         },
       },
-      axisLabel: { 
-        show: index === gridCount - 1, // Only show labels on bottom-most chart
+      axisLabel: {
+        color: isDarkMode ? '#9ca3af' : '#6b7280',
+        fontSize: 11,
+      },
+    })
+    currentTop += mainChartHeight + 3 // Add gap
+
+    // Sub-chart grids
+    visibleSubCharts.forEach((chart, index) => {
+      const gridIndex = index + 1
+      seriesMapping[chart.type] = gridIndex
+      gridConfigs.push({
+        left: '3%',
+        right: '6%',
+        top: `${currentTop}%`,
+        height: `${chart.height}%`,
+      })
+
+      // Y-axis for sub-chart
+      yAxes.push({
+        scale: true,
+        gridIndex: gridIndex,
+        position: 'right',
+        splitNumber: 2,
+        axisLabel: {
+          show: chart.type !== 'volume',
+          color: isDarkMode ? '#9ca3af' : '#6b7280',
+          fontSize: 10,
+        },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: {
+          show: config.showGridlines !== false,
+          lineStyle: {
+            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
+            width: 1,
+            type: 'solid',
+            opacity: 0.3,
+          },
+        },
+        min: chart.type === 'rsi' ? 0 : 'dataMin',
+        max: chart.type === 'rsi' ? 100 : 'dataMax',
+      })
+      currentTop += chart.height + 3 // Add gap
+    })
+
+    const gridCount = gridConfigs.length;
+
+    console.log('🚨 Dynamically Calculated Grid structure:', {
+      totalGrids: gridCount,
+      configs: gridConfigs,
+    })
+
+    const xAxes = gridConfigs.map((_, index) => ({
+      type: 'category',
+      data: chartData.dates,
+      gridIndex: index,
+      scale: true,
+      boundaryGap: false,
+      axisLine: { onZero: false },
+      splitLine: {
+        show: config.showGridlines !== false,
+        lineStyle: {
+          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
+          width: 1,
+          type: 'solid',
+          opacity: 0.6,
+        },
+      },
+      axisLabel: {
+        show: index === gridCount - 1, // Only show labels on the bottom-most chart
         color: isDarkMode ? '#9ca3af' : '#6b7280',
         fontSize: 11,
       },
       min: 'dataMin',
       max: 'dataMax',
     }))
-
-    // 🚨 GEMINI PATTERN: Y 軸設定 - 各グリッドに 1 つの Y 軸
-    const yAxes = gridConfigs.map((_, index) => {
-      if (index === 0) {
-        // Main chart Y-axis - 右側に配置
-        return {
-          scale: true,
-          gridIndex: index,
-          position: 'right', // Y 軸ラベルを右側に移動
-          splitArea: { show: false }, // 背景色の縞模様を無効化
-          splitLine: {
-            show: config.showGridlines !== false, // showGridlines 設定を反映
-            lineStyle: {
-              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-              width: 1,
-              type: 'solid',
-              opacity: 0.6,
-            },
-          },
-          axisLabel: {
-            color: isDarkMode ? '#9ca3af' : '#6b7280',
-            fontSize: 11,
-          },
-        }
-      } else if (index === 1 && config.showVolume) {
-        // Volume Y-axis - 右側に配置
-        return {
-          scale: true,
-          gridIndex: index,
-          position: 'right',
-          splitNumber: 2,
-          axisLabel: { show: false },
-          axisLine: { show: false },
-          axisTick: { show: false },
-          splitLine: { 
-            show: config.showGridlines !== false, // showGridlines 設定を反映
-            lineStyle: {
-              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-              width: 1,
-              type: 'solid',
-              opacity: 0.3,
-            },
-          },
-        }
-      } else {
-        // RSI/MACD Y-axis - 右側に配置
-        return {
-          scale: true,
-          gridIndex: index,
-          position: 'right',
-          splitNumber: 2,
-          axisLabel: { 
-            show: true,
-            color: isDarkMode ? '#9ca3af' : '#6b7280',
-            fontSize: 10,
-          },
-          axisLine: { show: false },
-          axisTick: { show: false },
-          splitLine: { 
-            show: config.showGridlines !== false, // showGridlines 設定を反映
-            lineStyle: {
-              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-              width: 1,
-              type: 'solid',
-              opacity: 0.3,
-            },
-          },
-        }
-      }
-    })
 
     const baseOption: any = {
       backgroundColor: config.colors?.background || (isDarkMode ? '#1f2937' : '#ffffff'),
@@ -397,22 +352,21 @@ export function useChartOptions(
 
     // Add volume series if enabled
     if (config.showVolume) {
-      const volumeIndex = 1 // Volume is always at index 1 when enabled
-      baseOption.series.push({
-        name: 'Volume',
-        type: 'bar',
-        xAxisIndex: volumeIndex,
-        yAxisIndex: volumeIndex,
-        data: chartData.volumes,
-        barWidth: '60%',
-        itemStyle: {
-          color: config.colors?.volume || '#10b981',
-        },
-      })
-      console.log('🚨 GEMINI PATTERN: Volume series:', {
-        xAxisIndex: volumeIndex,
-        yAxisIndex: volumeIndex,
-      })
+      const volumeGridIndex = seriesMapping['volume']
+      if (volumeGridIndex !== undefined) {
+        baseOption.series.push({
+          name: 'Volume',
+          type: 'bar',
+          xAxisIndex: volumeGridIndex,
+          yAxisIndex: volumeGridIndex,
+          data: chartData.volumes,
+          barWidth: '60%',
+          itemStyle: {
+            color: config.colors?.volume || '#10b981',
+          },
+        })
+        console.log('📊 Added Volume series to grid index:', volumeGridIndex)
+      }
     }
 
     // Add indicator series from API data
@@ -421,7 +375,7 @@ export function useChartOptions(
       indicators,
       indicatorCalculations,
       config,
-      gridCount
+      seriesMapping // Pass the series mapping instead of gridCount
     )
     console.log('🔍 Generated indicator series:', indicatorSeries.length, 'series')
     baseOption.series.push(...indicatorSeries)
@@ -1064,67 +1018,10 @@ function createIndicatorSeries(
   indicators: UserIndicator[],
   calculations: Record<string, any> = {},
   config: ChartOptionsConfig,
-  gridCount: number
+  seriesMapping: Record<string, number>
 ) {
-  console.log('🚨 GEMINI PATTERN: createIndicatorSeries called with:', {
-    chartDataLength: chartData?.values?.length || 0,
-    indicatorsCount: indicators?.length || 0,
-    calculationsCount: Object.keys(calculations || {}).length,
-    gridCount,
-    indicators: indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || [],
-  })
-
+  console.log('📊 Creating indicator series with mapping:', seriesMapping)
   const series: any[] = []
-
-  // RSI と MACD が表示されているかを確認
-  const hasRSI = indicators.some(
-    indicator => indicator.type === 'rsi' && indicator.visible === true
-  )
-  const hasMACD = indicators.some(
-    indicator => indicator.type === 'macd' && indicator.visible === true
-  )
-
-  console.log('🚨 GEMINI PATTERN: Chart configuration:', {
-    showVolume: config.showVolume,
-    hasRSI,
-    hasMACD,
-    gridCount,
-  })
-
-  // 🚨 GEMINI PATTERN: インデックス計算 [Main, Volume?, RSI?, MACD?]
-  let rsiGridIndex = -1
-  let macdGridIndex = -1
-
-  let currentIndex = 0
-  
-  // Main chart at index 0
-  currentIndex++
-
-  // Volume at index 1 if enabled
-  if (config.showVolume) {
-    currentIndex++
-  }
-
-  // RSI at next available index
-  if (hasRSI) {
-    rsiGridIndex = currentIndex
-    currentIndex++
-  }
-
-  // MACD at next available index
-  if (hasMACD) {
-    macdGridIndex = currentIndex
-    currentIndex++
-  }
-
-  console.log('🚨 GEMINI PATTERN: Grid index calculation:', {
-    rsiGridIndex,
-    macdGridIndex,
-    totalGrids: gridCount,
-    showVolume: config.showVolume,
-    hasRSI,
-    hasMACD,
-  })
 
   indicators.forEach(indicator => {
     console.log('🔍 Processing indicator:', {
@@ -1259,21 +1156,16 @@ function createIndicatorSeries(
         break
 
       case 'rsi':
-        // 🚨 GEMINI PATTERN: RSI サブチャート
-        if (rsiGridIndex === -1) {
-          console.error('❌ RSI grid index not calculated')
+        const rsiGridIndex = seriesMapping['rsi']
+        if (rsiGridIndex === undefined) {
+          console.error('❌ RSI grid index not found in seriesMapping')
           return
         }
 
-        console.log('🚨 GEMINI PATTERN: RSI series setup:', {
-          gridIndex: rsiGridIndex,
-          xAxisIndex: rsiGridIndex,
-          yAxisIndex: rsiGridIndex,
-          dataLength: indicatorData.length,
-        })
+        console.log('📊 Adding RSI series to grid index:', rsiGridIndex)
 
-        // RSI メインライン
-        const rsiSeries = {
+        // RSI Main Line
+        series.push({
           name: indicator.name,
           type: 'line',
           data: indicatorData,
@@ -1286,15 +1178,14 @@ function createIndicatorSeries(
           xAxisIndex: rsiGridIndex,
           yAxisIndex: rsiGridIndex,
           z: 50,
-        }
-        series.push(rsiSeries)
+        })
 
-        // RSI 参考線
-        const rsiReferenceLines = [
+        // RSI Reference Lines
+        series.push(
           {
-            name: `${indicator.name} Oversold (30)`,
+            name: 'RSI Oversold',
             type: 'line',
-            data: indicatorData.map(() => 30),
+            data: Array(indicatorData.length).fill(30),
             lineStyle: { color: '#ef4444', width: 1, type: 'dashed', opacity: 0.6 },
             symbol: 'none',
             xAxisIndex: rsiGridIndex,
@@ -1302,9 +1193,9 @@ function createIndicatorSeries(
             z: 30,
           },
           {
-            name: `${indicator.name} Overbought (70)`,
+            name: 'RSI Overbought',
             type: 'line',
-            data: indicatorData.map(() => 70),
+            data: Array(indicatorData.length).fill(70),
             lineStyle: { color: '#ef4444', width: 1, type: 'dashed', opacity: 0.6 },
             symbol: 'none',
             xAxisIndex: rsiGridIndex,
@@ -1312,45 +1203,34 @@ function createIndicatorSeries(
             z: 30,
           },
           {
-            name: `${indicator.name} Midline (50)`,
+            name: 'RSI Midline',
             type: 'line',
-            data: indicatorData.map(() => 50),
+            data: Array(indicatorData.length).fill(50),
             lineStyle: { color: '#6b7280', width: 1, type: 'dotted', opacity: 0.4 },
             symbol: 'none',
             xAxisIndex: rsiGridIndex,
             yAxisIndex: rsiGridIndex,
             z: 20,
-          },
-        ]
-        series.push(...rsiReferenceLines)
-
-        console.log('✅ Added RSI series with 4 components (main line + 3 reference lines)')
+          }
+        )
         break
 
       case 'macd':
-        // 🚨 GEMINI PATTERN: MACD サブチャート
-        if (macdGridIndex === -1) {
-          console.error('❌ MACD grid index not calculated')
+        const macdGridIndex = seriesMapping['macd']
+        if (macdGridIndex === undefined) {
+          console.error('❌ MACD grid index not found in seriesMapping')
           return
         }
 
-        console.log('🚨 GEMINI PATTERN: MACD series setup:', {
-          gridIndex: macdGridIndex,
-          xAxisIndex: macdGridIndex,
-          yAxisIndex: macdGridIndex,
-          dataLength: indicatorData.length,
-        })
+        console.log('📊 Adding MACD series to grid index:', macdGridIndex)
 
-        // MACD データが配列の配列形式の場合、3 つのシリーズに分離
-        if (Array.isArray(indicatorData[0])) {
+        if (Array.isArray(indicatorData) && Array.isArray(indicatorData[0])) {
           const macdData = indicatorData as number[][]
-
-          // MACD ライン、シグナルライン、ヒストグラム
-          const macdSeries = [
+          series.push(
             {
-              name: `${indicator.name} Line`,
+              name: `${indicator.name} MACD`,
               type: 'line',
-              data: macdData.map((item: number[]) => item[0]),
+              data: macdData.map(d => d[0]),
               smooth: true,
               symbol: 'none',
               lineStyle: { color: '#3b82f6', width: 2 },
@@ -1361,7 +1241,7 @@ function createIndicatorSeries(
             {
               name: `${indicator.name} Signal`,
               type: 'line',
-              data: macdData.map((item: number[]) => item[1]),
+              data: macdData.map(d => d[1]),
               smooth: true,
               symbol: 'none',
               lineStyle: { color: '#ef4444', width: 2 },
@@ -1372,9 +1252,9 @@ function createIndicatorSeries(
             {
               name: `${indicator.name} Histogram`,
               type: 'bar',
-              data: macdData.map((item: number[]) => item[2]),
+              data: macdData.map(d => d[2]),
               itemStyle: {
-                color: (params: any) => params.value >= 0 ? '#22c55e' : '#ef4444'
+                color: params => (params.value >= 0 ? '#22c55e' : '#ef4444'),
               },
               xAxisIndex: macdGridIndex,
               yAxisIndex: macdGridIndex,
@@ -1389,11 +1269,8 @@ function createIndicatorSeries(
               xAxisIndex: macdGridIndex,
               yAxisIndex: macdGridIndex,
               z: 20,
-            },
-          ]
-          
-          series.push(...macdSeries)
-          console.log('✅ Added MACD series with 4 components (line, signal, histogram, zero line)')
+            }
+          )
         }
         break
 
