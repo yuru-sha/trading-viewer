@@ -1,5 +1,4 @@
 import { createClient } from 'redis'
-import { config } from '../config/environment.js'
 import { logInfo, logError, logWarn } from '../utils/logger.js'
 
 // Redis client configuration
@@ -40,7 +39,7 @@ const MAX_CONNECTION_ATTEMPTS = 5
 /**
  * Initialize Redis connections
  */
-export async function initializeRedis(): Promise<boolean> {
+export async function initializeRedis(isDevelopment: boolean): Promise<boolean> {
   try {
     logInfo('Redis: Initializing connections...')
 
@@ -91,7 +90,7 @@ export async function initializeRedis(): Promise<boolean> {
     connectionAttempts++
     isRedisHealthy = false
 
-    if (config.isDevelopment && connectionAttempts <= MAX_CONNECTION_ATTEMPTS) {
+    if (isDevelopment && connectionAttempts <= MAX_CONNECTION_ATTEMPTS) {
       logWarn(
         `Redis: Connection failed (attempt ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}), falling back to in-memory store`
       )
