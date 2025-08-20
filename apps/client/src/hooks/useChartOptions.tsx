@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
 import type { ChartData, PriceStats } from './useChartData'
 import { UserIndicator } from '@trading-viewer/shared'
@@ -25,32 +26,44 @@ interface ChartOptionsConfig {
  * ECharts オプション生成フック
  * 責任: チャート設定の生成、テーマ適用、シリーズ構成
  */
-export const useChartOptions = (
+export function useChartOptions(
   chartData: ChartData,
   priceStats: PriceStats | null,
   config: ChartOptionsConfig
-) => {
-  // Get indicators data from API with timeframe filtering
-  const { data: indicators = [], isLoading: indicatorsLoading } = useIndicators(
-    config.symbol,
-    config.timeframe
-  )
+) {
+  // Fetch indicators for the current symbol and timeframe
+  const { data: indicators = [], isLoading: indicatorsLoading } = useQuery({
+    queryKey: ['indicators', config.symbol, config.timeframe],
+    queryFn: async () => {
+      if (!config.symbol || !config.timeframe) return []
+      const response = await fetch(`/api/indicators?symbol=${config.symbol}&timeframe=${config.timeframe}`)
+      if (!response.ok) throw new Error('Failed to fetch indicators')
+      return response.json()
+    },
+    enabled: Boolean(config.symbol && config.timeframe),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 
-  // Get indicator calculations with error handling
-  let indicatorCalculations = {}
-  let calculationsLoading = false
+  // Fetch indicator calculations
+  const { data: indicatorCalculations = {}, isLoading: calculationsLoading } = useQuery({
+    queryKey: ['indicatorCalculations', config.symbol, config.timeframe, indicators],
+    queryFn: async () => {
+      if (!config.symbol || !config.timeframe || indicators.length === 0) return {}
+      const response = await fetch(
+        `/api/indicators/calculate?symbol=${config.symbol}&timeframe=${config.timeframe}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ indicators }),
+        }
+      )
+      if (!response.ok) throw new Error('Failed to calculate indicators')
+      return response.json()
+    },
+    enabled: Boolean(config.symbol && config.timeframe && indicators.length > 0),
+    staleTime: 5 * 60 * 1000,
+  })
 
-  try {
-    const calculationsResult = useIndicatorCalculations(config.symbol || '', indicators)
-    indicatorCalculations = calculationsResult.data
-    calculationsLoading = calculationsResult.isLoading
-  } catch (error) {
-    console.error('❌ useChartOptions: Error in useIndicatorCalculations:', error)
-    indicatorCalculations = {}
-    calculationsLoading = false
-  }
-
-  // Always log indicators state for debugging
   console.log('📊 useChartOptions: ALL indicators received:', indicators)
   console.log('📊 useChartOptions: Indicators count:', indicators.length)
 
@@ -76,6 +89,15 @@ export const useChartOptions = (
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
 
+    // 🔥 DEBUG: チャートタイプをログに出力
+    console.log('🚨 GEMINI PATTERN: Chart type:', config.chartType)
+    console.log('🚨 GEMINI PATTERN: Current indicators:', indicators.map(i => ({ 
+      id: i.id, 
+      name: i.name, 
+      type: i.type, 
+      visible: i.visible 
+    })))
+
     // RSI インジケーターが有効かつ表示中かどうかをチェック
     const hasRSI = indicators.some(
       indicator => indicator.type === 'rsi' && indicator.visible === true
@@ -98,6 +120,148 @@ export const useChartOptions = (
       indicators.map(i => ({ type: i.type, visible: i.visible }))
     )
 
+    // 🚨 GEMINI PATTERN: 明確なグリッド構造 [Main, Volume?, RSI?, MACD?]
+    const gridConfigs = []
+    let gridCount = 0
+
+    // Main chart (always present)
+    gridConfigs.push({
+      left: '3%',
+      right: '6%',
+      top: '2%',
+      height: config.showVolume || hasRSI || hasMACD ? '50%' : '93%',
+    })
+    gridCount++
+
+    // Volume grid (if enabled)
+    if (config.showVolume) {
+      gridConfigs.push({
+        left: '3%',
+        right: '6%',
+        top: '55%',
+        height: '10%',
+      })
+      gridCount++
+    }
+
+    // RSI grid (if enabled)
+    if (hasRSI) {
+      const topPosition = config.showVolume ? '68%' : '55%'
+      gridConfigs.push({
+        left: '3%',
+        right: '6%',
+        top: topPosition,
+        height: '12%',
+      })
+      gridCount++
+    }
+
+    // MACD grid (if enabled)
+    if (hasMACD) {
+      let topPosition = '55%'
+      if (config.showVolume && hasRSI) topPosition = '83%'
+      else if (config.showVolume) topPosition = '68%'
+      else if (hasRSI) topPosition = '70%'
+
+      gridConfigs.push({
+        left: '3%',
+        right: '6%',
+        top: topPosition,
+        height: '12%',
+      })
+      gridCount++
+    }
+
+    console.log('🚨 GEMINI PATTERN: Grid structure:', {
+      chartType: config.chartType,
+      totalGrids: gridCount,
+      showVolume: config.showVolume,
+      hasRSI,
+      hasMACD,
+      configs: gridConfigs.map((grid, index) => ({
+        index,
+        top: grid.top,
+        height: grid.height,
+        type: index === 0 ? 'Main' :
+              index === 1 && config.showVolume ? 'Volume' :
+              index === 1 && !config.showVolume && hasRSI ? 'RSI' :
+              index === 1 && !config.showVolume && hasMACD ? 'MACD' :
+              'SubChart'
+      }))
+    })
+
+    // 🚨 GEMINI PATTERN: X 軸設定 - 各グリッドに 1 つの X 軸
+    const xAxes = gridConfigs.map((_, index) => ({
+      type: 'category',
+      data: chartData.dates,
+      gridIndex: index,
+      scale: true,
+      boundaryGap: false,
+      axisLine: { onZero: false },
+      splitLine: { show: false },
+      axisLabel: { 
+        show: index === gridCount - 1, // Only show labels on bottom-most chart
+        color: isDarkMode ? '#9ca3af' : '#6b7280',
+        fontSize: 11,
+      },
+      min: 'dataMin',
+      max: 'dataMax',
+    }))
+
+    // 🚨 GEMINI PATTERN: Y 軸設定 - 各グリッドに 1 つの Y 軸
+    const yAxes = gridConfigs.map((_, index) => {
+      if (index === 0) {
+        // Main chart Y-axis - 右側に配置
+        return {
+          scale: true,
+          gridIndex: index,
+          position: 'right', // Y 軸ラベルを右側に移動
+          splitArea: { show: false }, // 背景色の縞模様を無効化
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: isDarkMode ? '#374151' : '#e5e7eb',
+              width: 1,
+              type: 'solid',
+              opacity: 0.6,
+            },
+          },
+          axisLabel: {
+            color: isDarkMode ? '#9ca3af' : '#6b7280',
+            fontSize: 11,
+          },
+        }
+      } else if (index === 1 && config.showVolume) {
+        // Volume Y-axis - 右側に配置
+        return {
+          scale: true,
+          gridIndex: index,
+          position: 'right',
+          splitNumber: 2,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+        }
+      } else {
+        // RSI/MACD Y-axis - 右側に配置
+        return {
+          scale: true,
+          gridIndex: index,
+          position: 'right',
+          splitNumber: 2,
+          axisLabel: { 
+            show: true,
+            color: isDarkMode ? '#9ca3af' : '#6b7280',
+            fontSize: 10,
+          },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+        }
+      }
+    })
+
     const baseOption: any = {
       backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
       animation: false,
@@ -105,33 +269,12 @@ export const useChartOptions = (
         show: false,
       },
       tooltip: {
-        trigger:
-          config.enableDrawingTools &&
-          config.activeDrawingTool &&
-          config.activeDrawingTool !== 'select'
-            ? 'none'
-            : 'axis',
-        show: !(
-          config.enableDrawingTools &&
-          config.activeDrawingTool &&
-          config.activeDrawingTool !== 'select'
-        ),
+        trigger: 'axis',
         axisPointer: {
-          type:
-            config.enableDrawingTools &&
-            config.activeDrawingTool &&
-            config.activeDrawingTool !== 'select'
-              ? 'none'
-              : 'cross',
+          type: 'cross',
           animation: false,
           label: {
             backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
-            formatter: (params: any) => {
-              if (params.axisDimension === 'y') {
-                return `$${params.value.toFixed(2)}`
-              }
-              return params.value
-            },
           },
         },
         backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
@@ -139,778 +282,20 @@ export const useChartOptions = (
         textStyle: {
           color: isDarkMode ? '#f9fafb' : '#111827',
         },
-        formatter: (params: any) => {
-          if (!params || params.length === 0) return ''
-
-          const data = params[0]
-          if (!data) return ''
-
-          const value = data.data
-          if (Array.isArray(value) && value.length >= 4) {
-            // Candlestick data [open, close, low, high]
-            return `
-              <div style="padding: 8px;">
-                <div style="font-weight: bold; margin-bottom: 4px;">${data.name}</div>
-                <div>Open: $${value[0].toFixed(2)}</div>
-                <div>High: $${value[3].toFixed(2)}</div>
-                <div>Low: $${value[2].toFixed(2)}</div>
-                <div>Close: $${value[1].toFixed(2)}</div>
-              </div>
-            `
-          } else if (typeof value === 'number') {
-            // Line/Area data
-            return `
-              <div style="padding: 8px;">
-                <div style="font-weight: bold; margin-bottom: 4px;">${data.name}</div>
-                <div>Price: $${value.toFixed(2)}</div>
-              </div>
-            `
-          }
-
-          return ''
+      },
+      axisPointer: {
+        link: [{ xAxisIndex: 'all' }],
+        label: {
+          backgroundColor: '#777',
         },
       },
-      axisPointer:
-        config.enableDrawingTools &&
-        config.activeDrawingTool &&
-        config.activeDrawingTool !== 'select'
-          ? {
-              show: false,
-            }
-          : {
-              link: [{ xAxisIndex: 'all' }],
-              label: {
-                backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
-                color: '#ffffff',
-                fontSize: 11,
-                formatter: (params: any) => {
-                  if (params.axisDimension === 'y') {
-                    return params.value.toFixed(2)
-                  }
-                  return params.value
-                },
-              },
-            },
-      grid:
-        hasRSI && hasMACD
-          ? config.showVolume
-            ? [
-                // メインチャート + ボリューム + RSI + MACD
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '2%',
-                  height: '48%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '53%',
-                  height: '12%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '66%',
-                  height: '12%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '80%',
-                  height: '15%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-              ]
-            : [
-                // メインチャート + RSI + MACD
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '2%',
-                  height: '60%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '63%',
-                  height: '13%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-                {
-                  left: '3%',
-                  right: '6%',
-                  top: '78%',
-                  height: '17%',
-                  show: true,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                },
-              ]
-          : hasRSI
-            ? config.showVolume
-              ? [
-                  // メインチャート + ボリューム + RSI
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '2%',
-                    height: '60%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '65%',
-                    height: '15%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '83%',
-                    height: '12%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                ]
-              : [
-                  // メインチャート + RSI
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '2%',
-                    height: '75%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                  {
-                    left: '3%',
-                    right: '6%',
-                    top: '80%',
-                    height: '15%',
-                    show: true,
-                    borderWidth: 0,
-                    backgroundColor: 'transparent',
-                  },
-                ]
-            : hasMACD
-              ? config.showVolume
-                ? [
-                    // メインチャート + ボリューム + MACD
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '2%',
-                      height: '60%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '65%',
-                      height: '15%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '83%',
-                      height: '12%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                  ]
-                : [
-                    // メインチャート + MACD
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '2%',
-                      height: '75%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '80%',
-                      height: '15%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                  ]
-              : config.showVolume
-                ? [
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '2%',
-                      height: '70%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '75%',
-                      height: '20%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                  ]
-                : [
-                    {
-                      left: '3%',
-                      right: '6%',
-                      top: '2%',
-                      height: '93%',
-                      show: true,
-                      borderWidth: 0,
-                      backgroundColor: 'transparent',
-                    },
-                  ],
-
-      xAxis: config.showVolume
-        ? [
-            {
-              type: 'category',
-              data: chartData.dates,
-              boundaryGap: ['0%', '20%'],
-              axisTick: { alignWithLabel: true },
-              axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-              splitLine: {
-                show: config.showGridlines !== false,
-                lineStyle: {
-                  color: isDarkMode ? '#374151' : '#e5e7eb',
-                  width: 1,
-                  type: 'solid' as const,
-                  opacity: 0.6,
-                },
-              },
-              axisLabel: {
-                show: false,
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
-              },
-              min: 'dataMin',
-              max: 'dataMax',
-              splitNumber: 8, // X 軸のグリッド線数を調整
-            },
-            {
-              type: 'category',
-              gridIndex: 1,
-              data: chartData.dates,
-              boundaryGap: false,
-              axisLine: { onZero: false, lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-              axisTick: { alignWithLabel: true },
-              splitLine: {
-                show: config.showGridlines !== false,
-                lineStyle: {
-                  color: isDarkMode ? '#374151' : '#e5e7eb',
-                  width: 1,
-                  type: 'solid' as const,
-                  opacity: 0.4,
-                },
-              },
-              axisLabel: {
-                show: !hasRSI && !hasMACD,
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
-                fontSize: 11,
-                formatter: (value: string) => {
-                  if (value.includes(' ')) {
-                    const parts = value.split(' ')
-                    const date = parts[0]
-                    const time = parts[1]
-                    // 時刻がある場合の処理
-                    if (time) {
-                      const hour = parseInt(time?.split(':')[0] || '0')
-                      const minute = parseInt(time?.split(':')[1] || '0')
-
-                      // 時間軸に応じて日付表示の間隔を調整
-                      let showDate = false
-
-                      // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
-                      if (minute === 0 || hour % 6 === 0) {
-                        showDate = true
-                      }
-
-                      if (showDate) {
-                        // 複数の日付形式に対応
-                        let displayDate = date || ''
-                        if (date?.includes('-')) {
-                          const dateParts = date.split('-')
-                          if (dateParts.length >= 3) {
-                            const month = dateParts[1]
-                            const day = dateParts[2]
-                            displayDate = `${month}/${day}`
-                          }
-                        }
-
-                        return `${displayDate} ${time.substring(0, 5)}`
-                      }
-                      // その他の時刻は HH:MM 形式で表示
-                      return time.substring(0, 5)
-                    }
-                    return date // 日付のみ
-                  }
-                  return value
-                },
-              },
-              min: 'dataMin',
-              max: 'dataMax',
-              splitNumber: 8,
-            },
-            // インジケーター用 X 軸
-            ...(hasRSI && hasMACD
-              ? [
-                  // RSI 用 X 軸
-                  {
-                    type: 'category',
-                    gridIndex: config.showVolume ? 2 : 1,
-                    data: chartData.dates,
-                    boundaryGap: false,
-                    axisTick: { alignWithLabel: true },
-                    axisLine: {
-                      onZero: false,
-                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                    },
-                    splitLine: {
-                      show: config.showGridlines !== false,
-                      lineStyle: {
-                        color: isDarkMode ? '#374151' : '#e5e7eb',
-                        width: 1,
-                        type: 'solid' as const,
-                        opacity: 0.6,
-                      },
-                    },
-                    axisLabel: { show: false },
-                    min: 'dataMin',
-                    max: 'dataMax',
-                  },
-                  // MACD 用 X 軸
-                  {
-                    type: 'category',
-                    gridIndex: config.showVolume ? 3 : 2,
-                    data: chartData.dates,
-                    boundaryGap: false,
-                    axisTick: { alignWithLabel: true },
-                    axisLine: {
-                      onZero: false,
-                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                    },
-                    splitLine: {
-                      show: config.showGridlines !== false,
-                      lineStyle: {
-                        color: isDarkMode ? '#374151' : '#e5e7eb',
-                        width: 1,
-                        type: 'solid' as const,
-                        opacity: 0.6,
-                      },
-                    },
-                    axisLabel: {
-                      color: isDarkMode ? '#9ca3af' : '#6b7280',
-                      fontSize: 10,
-                    },
-                    min: 'dataMin',
-                    max: 'dataMax',
-                  },
-                ]
-              : hasRSI
-                ? [
-                    {
-                      type: 'category',
-                      gridIndex: config.showVolume ? 2 : 1,
-                      data: chartData.dates,
-                      boundaryGap: false,
-                      axisTick: { alignWithLabel: true },
-                      axisLine: {
-                        onZero: false,
-                        lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                      },
-                      splitLine: {
-                        show: config.showGridlines !== false,
-                        lineStyle: {
-                          color: isDarkMode ? '#374151' : '#e5e7eb',
-                          width: 1,
-                          type: 'solid' as const,
-                          opacity: 0.6,
-                        },
-                      },
-                      axisLabel: {
-                        color: isDarkMode ? '#9ca3af' : '#6b7280',
-                        fontSize: 10,
-                      },
-                      min: 'dataMin',
-                      max: 'dataMax',
-                    },
-                  ]
-                : hasMACD
-                  ? [
-                      {
-                        type: 'category',
-                        gridIndex: config.showVolume ? 2 : 1,
-                        data: chartData.dates,
-                        boundaryGap: false,
-                        axisTick: { alignWithLabel: true },
-                        axisLine: {
-                          onZero: false,
-                          lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                        },
-                        splitLine: {
-                          show: config.showGridlines !== false,
-                          lineStyle: {
-                            color: isDarkMode ? '#374151' : '#e5e7eb',
-                            width: 1,
-                            type: 'solid' as const,
-                            opacity: 0.6,
-                          },
-                        },
-                        axisLabel: {
-                          color: isDarkMode ? '#9ca3af' : '#6b7280',
-                          fontSize: 10,
-                        },
-                        min: 'dataMin',
-                        max: 'dataMax',
-                      },
-                    ]
-                  : []),
-          ]
-        : // Volume OFF 時の xAxis 構造 - RSI+MACD 組み合わせ対応
-          hasRSI && hasMACD
-          ? [
-              // メインチャート用 X 軸
-              {
-                type: 'category',
-                data: chartData.dates,
-                boundaryGap: ['0%', '20%'],
-                axisTick: { alignWithLabel: true },
-                axisLine: {
-                  onZero: false,
-                  lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                },
-                splitLine: {
-                  show: config.showGridlines !== false,
-                  lineStyle: {
-                    color: isDarkMode ? '#374151' : '#e5e7eb',
-                    width: 1,
-                    type: 'solid' as const,
-                    opacity: 0.6,
-                  },
-                },
-                axisLabel: {
-                  show: false,
-                  color: isDarkMode ? '#9ca3af' : '#6b7280',
-                },
-                min: 'dataMin',
-                max: 'dataMax',
-                splitNumber: 8,
-              },
-              // RSI 用 X 軸
-              {
-                type: 'category',
-                gridIndex: 1,
-                data: chartData.dates,
-                boundaryGap: false,
-                axisTick: { alignWithLabel: true },
-                axisLine: {
-                  onZero: false,
-                  lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                },
-                splitLine: {
-                  show: config.showGridlines !== false,
-                  lineStyle: {
-                    color: isDarkMode ? '#374151' : '#e5e7eb',
-                    width: 1,
-                    type: 'solid' as const,
-                    opacity: 0.6,
-                  },
-                },
-                axisLabel: { show: false },
-                min: 'dataMin',
-                max: 'dataMax',
-              },
-              // MACD 用 X 軸
-              {
-                type: 'category',
-                gridIndex: 2,
-                data: chartData.dates,
-                boundaryGap: false,
-                axisTick: { alignWithLabel: true },
-                axisLine: {
-                  onZero: false,
-                  lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                },
-                splitLine: {
-                  show: config.showGridlines !== false,
-                  lineStyle: {
-                    color: isDarkMode ? '#374151' : '#e5e7eb',
-                    width: 1,
-                    type: 'solid' as const,
-                    opacity: 0.6,
-                  },
-                },
-                axisLabel: {
-                  color: isDarkMode ? '#9ca3af' : '#6b7280',
-                  fontSize: 10,
-                },
-                min: 'dataMin',
-                max: 'dataMax',
-              },
-            ]
-          : hasRSI
-            ? [
-                {
-                  type: 'category',
-                  data: chartData.dates,
-                  boundaryGap: ['0%', '20%'],
-                  axisTick: { alignWithLabel: true },
-                  axisLine: {
-                    onZero: false,
-                    lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                  },
-                  splitLine: {
-                    show: config.showGridlines !== false,
-                    lineStyle: {
-                      color: isDarkMode ? '#374151' : '#e5e7eb',
-                      width: 1,
-                      type: 'solid' as const,
-                      opacity: 0.6,
-                    },
-                  },
-                  axisLabel: {
-                    show: false,
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
-                  },
-                  min: 'dataMin',
-                  max: 'dataMax',
-                  splitNumber: 8,
-                },
-                {
-                  type: 'category',
-                  gridIndex: 1,
-                  data: chartData.dates,
-                  boundaryGap: false,
-                  axisTick: { alignWithLabel: true },
-                  axisLine: {
-                    onZero: false,
-                    lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                  },
-                  splitLine: {
-                    show: config.showGridlines !== false,
-                    lineStyle: {
-                      color: isDarkMode ? '#374151' : '#e5e7eb',
-                      width: 1,
-                      type: 'solid' as const,
-                      opacity: 0.6,
-                    },
-                  },
-                  axisLabel: {
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
-                    fontSize: 10,
-                  },
-                  min: 'dataMin',
-                  max: 'dataMax',
-                },
-              ]
-            : hasMACD
-              ? [
-                  {
-                    type: 'category',
-                    data: chartData.dates,
-                    boundaryGap: ['0%', '20%'],
-                    axisTick: { alignWithLabel: true },
-                    axisLine: {
-                      onZero: false,
-                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                    },
-                    splitLine: {
-                      show: config.showGridlines !== false,
-                      lineStyle: {
-                        color: isDarkMode ? '#374151' : '#e5e7eb',
-                        width: 1,
-                        type: 'solid' as const,
-                        opacity: 0.6,
-                      },
-                    },
-                    axisLabel: {
-                      show: false,
-                      color: isDarkMode ? '#9ca3af' : '#6b7280',
-                    },
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    splitNumber: 8,
-                  },
-                  {
-                    type: 'category',
-                    gridIndex: 1,
-                    data: chartData.dates,
-                    boundaryGap: false,
-                    axisTick: { alignWithLabel: true },
-                    axisLine: {
-                      onZero: false,
-                      lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' },
-                    },
-                    splitLine: {
-                      show: config.showGridlines !== false,
-                      lineStyle: {
-                        color: isDarkMode ? '#374151' : '#e5e7eb',
-                        width: 1,
-                        type: 'solid' as const,
-                        opacity: 0.6,
-                      },
-                    },
-                    axisLabel: {
-                      color: isDarkMode ? '#9ca3af' : '#6b7280',
-                      fontSize: 10,
-                    },
-                    min: 'dataMin',
-                    max: 'dataMax',
-                  },
-                ]
-              : [
-                  {
-                    type: 'category',
-                    data: chartData.dates,
-                    boundaryGap: ['0%', '20%'],
-                    axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-                    axisTick: { alignWithLabel: true },
-                    splitLine: {
-                      show: config.showGridlines !== false,
-                      lineStyle: {
-                        color: isDarkMode ? '#374151' : '#e5e7eb',
-                        width: 1,
-                        type: 'solid' as const,
-                        opacity: 0.6,
-                      },
-                    },
-                    axisLabel: {
-                      color: isDarkMode ? '#9ca3af' : '#6b7280',
-                      formatter: (value: string) => {
-                        if (value.includes(' ')) {
-                          const parts = value.split(' ')
-                          const date = parts[0]
-                          const time = parts[1]
-                          // 時刻がある場合の処理
-                          if (time) {
-                            const hour = parseInt(time?.split(':')[0] || '0')
-                            const minute = parseInt(time?.split(':')[1] || '0')
-
-                            // 時間軸に応じて日付表示の間隔を調整
-                            let showDate = false
-
-                            // 整時（XX:00）または 6 時間おき（0,6,12,18 時）に日付を表示
-                            if (minute === 0 || hour % 6 === 0) {
-                              showDate = true
-                            }
-
-                            if (showDate) {
-                              // 複数の日付形式に対応
-                              let displayDate = date || ''
-                              if (date?.includes('-')) {
-                                const dateParts = date.split('-')
-                                if (dateParts.length >= 3) {
-                                  const month = dateParts[1]
-                                  const day = dateParts[2]
-                                  displayDate = `${month}/${day}`
-                                }
-                              }
-
-                              return `${displayDate} ${time.substring(0, 5)}`
-                            }
-                            // その他の時刻は HH:MM 形式で表示
-                            return time.substring(0, 5)
-                          }
-                          return date // 日付のみ
-                        }
-                        return value
-                      },
-                    },
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    splitNumber: 8, // X 軸のグリッド線数を調整
-                  },
-                ].map((axis, index) => {
-                  // 最終的な xAxis 構造をログ出力
-                  if (index === 0) {
-                    const totalAxes = config.showVolume
-                      ? [
-                          'Main Chart',
-                          'Volume Chart',
-                          ...(hasRSI && hasMACD
-                            ? ['RSI Chart', 'MACD Chart']
-                            : hasRSI
-                              ? ['RSI Chart']
-                              : hasMACD
-                                ? ['MACD Chart']
-                                : []),
-                        ]
-                      : hasRSI && hasMACD
-                        ? ['Main Chart', 'RSI Chart', 'MACD Chart']
-                        : hasRSI
-                          ? ['Main Chart', 'RSI Chart']
-                          : hasMACD
-                            ? ['Main Chart', 'MACD Chart']
-                            : ['Main Chart']
-
-                    console.log('🔍 Final xAxis structure:', {
-                      totalXAxisCount: totalAxes.length,
-                      xAxisStructure: totalAxes,
-                      config: { showVolume: config.showVolume, hasRSI, hasMACD },
-                    })
-                  }
-                  return axis
-                }),
-      yAxis: generateYAxisConfig(config, isDarkMode, priceStats, config.currentPrice, indicators),
+      grid: gridConfigs,
+      xAxis: xAxes,
+      yAxis: yAxes,
       dataZoom: [
         {
           type: 'inside',
-          xAxisIndex:
-            hasRSI && hasMACD
-              ? config.showVolume
-                ? [0, 1, 2, 3]
-                : [0, 1, 2]
-              : hasRSI
-                ? config.showVolume
-                  ? [0, 1, 2]
-                  : [0, 1]
-                : hasMACD
-                  ? config.showVolume
-                    ? [0, 1, 2]
-                    : [0, 1]
-                  : config.showVolume
-                    ? [0, 1]
-                    : [0],
+          xAxisIndex: Array.from({ length: gridCount }, (_, i) => i), // All X-axes
           start: 0,
           end: 100,
           filterMode: 'filter',
@@ -919,6 +304,14 @@ export const useChartOptions = (
       series: [] as any[],
       graphic: config.graphicElements,
     }
+
+    console.log('🚨 GEMINI PATTERN: Final chart structure:', {
+      chartType: config.chartType,
+      totalGrids: baseOption.grid.length,
+      totalXAxes: baseOption.xAxis.length,
+      totalYAxes: baseOption.yAxis.length,
+      dataZoomXAxes: baseOption.dataZoom[0].xAxisIndex,
+    })
 
     // Add main series based on chart type
     if (config.chartType === 'candle') {
@@ -930,7 +323,10 @@ export const useChartOptions = (
         config.showPeriodHigh,
         config.showPeriodLow
       )
+      candlestickSeries.xAxisIndex = 0
+      candlestickSeries.yAxisIndex = 0
       baseOption.series.push(candlestickSeries)
+      console.log('🚨 GEMINI PATTERN: Added candlestick series')
     } else if (config.chartType === 'line') {
       const lineSeries = createLineSeries(
         chartData,
@@ -940,7 +336,10 @@ export const useChartOptions = (
         config.showPeriodHigh,
         config.showPeriodLow
       )
+      lineSeries.xAxisIndex = 0
+      lineSeries.yAxisIndex = 0
       baseOption.series.push(lineSeries)
+      console.log('🚨 GEMINI PATTERN: Added line series')
     } else {
       // area
       const areaSeries = createAreaSeries(
@@ -951,55 +350,52 @@ export const useChartOptions = (
         config.showPeriodHigh,
         config.showPeriodLow
       )
+      areaSeries.xAxisIndex = 0
+      areaSeries.yAxisIndex = 0
       baseOption.series.push(areaSeries)
+      console.log('🚨 GEMINI PATTERN: Added area series')
     }
 
     // Add volume series if enabled
     if (config.showVolume) {
+      const volumeIndex = 1 // Volume is always at index 1 when enabled
       baseOption.series.push({
         name: 'Volume',
         type: 'bar',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
+        xAxisIndex: volumeIndex,
+        yAxisIndex: volumeIndex,
         data: chartData.volumes,
         barWidth: '60%',
+        itemStyle: {
+          color: '#10b981',
+        },
+      })
+      console.log('🚨 GEMINI PATTERN: Volume series:', {
+        xAxisIndex: volumeIndex,
+        yAxisIndex: volumeIndex,
       })
     }
 
     // Add indicator series from API data
-    console.log('🔍 baseOption.xAxis structure verification:', {
-      xAxisLength: baseOption.xAxis.length,
-      xAxisGridIndexes: baseOption.xAxis.map((axis, index) => ({
-        index,
-        gridIndex: axis.gridIndex,
-      })),
-      showVolume: config.showVolume,
-      hasRSI: indicators.some(i => i.type === 'rsi' && i.visible),
-      hasMACD: indicators.some(i => i.type === 'macd' && i.visible),
-    })
-
     const indicatorSeries = createIndicatorSeries(
       chartData,
       indicators,
       indicatorCalculations,
-      config
+      config,
+      gridCount
     )
     console.log('🔍 Generated indicator series:', indicatorSeries.length, 'series')
-    console.log(
-      '📊 Indicator series details:',
-      indicatorSeries.map(s => ({
-        name: s.name,
-        type: s.type,
-        dataLength: s.data?.length || 0,
-        color: s.lineStyle?.color,
-      }))
-    )
     baseOption.series.push(...indicatorSeries)
 
-    console.log('📊 Final baseOption.series count:', baseOption.series.length)
+    console.log('🚨 GEMINI PATTERN: Final option.series count:', baseOption.series.length)
     console.log(
-      '📊 All series names:',
-      baseOption.series.map(s => s.name || s.type)
+      '🚨 GEMINI PATTERN: All series names and indices:',
+      baseOption.series.map(s => ({
+        name: s.name || s.type,
+        xAxisIndex: s.xAxisIndex,
+        yAxisIndex: s.yAxisIndex,
+        type: s.type
+      }))
     )
 
     return baseOption
@@ -1433,10 +829,33 @@ function createLineSeries(
   showPeriodHigh?: boolean,
   showPeriodLow?: boolean
 ) {
+  // 🚨 GEMINI FIX: ラインチャート用にデータ形式を正規化
+  // ローソク足データ [始値, 高値, 安値, 終値] から終値のみを抽出
+  const lineData = chartData.values.map((item: any) => {
+    if (Array.isArray(item) && item.length >= 4) {
+      // ローソク足形式の場合、終値（インデックス 3）を使用
+      return item[3] // 終値
+    } else if (typeof item === 'number') {
+      // 単純な数値の場合はそのまま使用
+      return item
+    } else {
+      // その他の場合は 0 を返す（安全な処理）
+      console.warn('🚨 GEMINI FIX: Unexpected data format for line chart:', item)
+      return 0
+    }
+  })
+
+  console.log('🚨 GEMINI FIX: Line series data conversion:', {
+    originalLength: chartData.values.length,
+    convertedLength: lineData.length,
+    originalSample: chartData.values.slice(0, 3),
+    convertedSample: lineData.slice(0, 3),
+  })
+
   const lineSeries: any = {
     name: symbol || 'Price',
     type: 'line',
-    data: chartData.values,
+    data: lineData, // 正規化されたデータを使用
     smooth: true,
     symbol: 'none',
     lineStyle: {
@@ -1462,10 +881,33 @@ function createAreaSeries(
   showPeriodHigh?: boolean,
   showPeriodLow?: boolean
 ) {
+  // 🚨 GEMINI FIX: エリアチャート用にデータ形式を正規化
+  // ローソク足データ [始値, 高値, 安値, 終値] から終値のみを抽出
+  const areaData = chartData.values.map((item: any) => {
+    if (Array.isArray(item) && item.length >= 4) {
+      // ローソク足形式の場合、終値（インデックス 3）を使用
+      return item[3] // 終値
+    } else if (typeof item === 'number') {
+      // 単純な数値の場合はそのまま使用
+      return item
+    } else {
+      // その他の場合は 0 を返す（安全な処理）
+      console.warn('🚨 GEMINI FIX: Unexpected data format for area chart:', item)
+      return 0
+    }
+  })
+
+  console.log('🚨 GEMINI FIX: Area series data conversion:', {
+    originalLength: chartData.values.length,
+    convertedLength: areaData.length,
+    originalSample: chartData.values.slice(0, 3),
+    convertedSample: areaData.slice(0, 3),
+  })
+
   const areaSeries: any = {
     name: symbol || 'Price',
     type: 'line',
-    data: chartData.values,
+    data: areaData, // 正規化されたデータを使用
     smooth: true,
     symbol: 'none',
     lineStyle: {
@@ -1575,20 +1017,15 @@ function createIndicatorSeries(
   chartData: ChartData,
   indicators: UserIndicator[],
   calculations: Record<string, any> = {},
-  config: ChartOptionsConfig
+  config: ChartOptionsConfig,
+  gridCount: number
 ) {
-  console.log('🔍 createIndicatorSeries called with:', {
+  console.log('🚨 GEMINI PATTERN: createIndicatorSeries called with:', {
     chartDataLength: chartData?.values?.length || 0,
     indicatorsCount: indicators?.length || 0,
     calculationsCount: Object.keys(calculations || {}).length,
-    indicators:
-      indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || [],
-  })
-
-  console.log('🔍 createIndicatorSeries config received:', {
-    showVolume: config.showVolume,
-    chartType: config.chartType,
-    symbol: config.symbol,
+    gridCount,
+    indicators: indicators?.map(i => ({ id: i.id, name: i.name, visible: i.visible, type: i.type })) || [],
   })
 
   const series: any[] = []
@@ -1601,62 +1038,46 @@ function createIndicatorSeries(
     indicator => indicator.type === 'macd' && indicator.visible === true
   )
 
-  console.log('🔍 Chart configuration:', {
+  console.log('🚨 GEMINI PATTERN: Chart configuration:', {
     showVolume: config.showVolume,
     hasRSI,
     hasMACD,
+    gridCount,
   })
 
-  // xAxis 構造に基づいた軸インデックスの計算
-  // Volume OFF 時の xAxis 構造を正しく反映
-  let rsiAxisIndex = -1
-  let macdAxisIndex = -1
+  // 🚨 GEMINI PATTERN: インデックス計算 [Main, Volume?, RSI?, MACD?]
+  let rsiGridIndex = -1
+  let macdGridIndex = -1
 
+  let currentIndex = 0
+  
+  // Main chart at index 0
+  currentIndex++
+
+  // Volume at index 1 if enabled
   if (config.showVolume) {
-    // Volume ON の場合の xAxis 構造:
-    // [0] = main chart, [1] = volume chart, [2] = RSI?, [3] = MACD?
-    if (hasRSI && hasMACD) {
-      rsiAxisIndex = 2
-      macdAxisIndex = 3
-    } else if (hasRSI) {
-      rsiAxisIndex = 2
-    } else if (hasMACD) {
-      macdAxisIndex = 2
-    }
-  } else {
-    // Volume OFF の場合の xAxis 構造:
-    // [0] = main chart only, [1] = RSI?, [2] = MACD?
-    if (hasRSI && hasMACD) {
-      rsiAxisIndex = 1
-      macdAxisIndex = 2
-    } else if (hasRSI) {
-      rsiAxisIndex = 1
-    } else if (hasMACD) {
-      macdAxisIndex = 1
-    }
+    currentIndex++
   }
 
-  console.log('🔍 Calculated axis indexes:', {
-    rsiAxisIndex,
-    macdAxisIndex,
+  // RSI at next available index
+  if (hasRSI) {
+    rsiGridIndex = currentIndex
+    currentIndex++
+  }
+
+  // MACD at next available index
+  if (hasMACD) {
+    macdGridIndex = currentIndex
+    currentIndex++
+  }
+
+  console.log('🚨 GEMINI PATTERN: Grid index calculation:', {
+    rsiGridIndex,
+    macdGridIndex,
+    totalGrids: gridCount,
     showVolume: config.showVolume,
     hasRSI,
     hasMACD,
-    expectedAxisStructure: config.showVolume
-      ? hasRSI && hasMACD
-        ? 'Volume ON: [0]=Main, [1]=Volume, [2]=RSI, [3]=MACD'
-        : hasRSI
-          ? 'Volume ON: [0]=Main, [1]=Volume, [2]=RSI'
-          : hasMACD
-            ? 'Volume ON: [0]=Main, [1]=Volume, [2]=MACD'
-            : 'Volume ON: [0]=Main, [1]=Volume'
-      : hasRSI && hasMACD
-        ? 'Volume OFF: [0]=Main, [1]=RSI, [2]=MACD'
-        : hasRSI
-          ? 'Volume OFF: [0]=Main, [1]=RSI'
-          : hasMACD
-            ? 'Volume OFF: [0]=Main, [1]=MACD'
-            : 'Volume OFF: [0]=Main',
   })
 
   indicators.forEach(indicator => {
@@ -1708,6 +1129,7 @@ function createIndicatorSeries(
     switch (indicator.type) {
       case 'sma':
       case 'ema':
+        // メインチャートに表示（gridIndex: 0, xAxisIndex: 0, yAxisIndex: 0）
         const lineSeriesConfig = {
           name: indicator.name,
           type: 'line',
@@ -1718,370 +1140,211 @@ function createIndicatorSeries(
             color: indicator.style?.color || '#ff9500',
             width: indicator.style?.lineWidth || 2,
           },
-          z: 50, // インジケーターは価格チャートより前面に表示
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          z: 50,
         }
-        console.log('📊 Adding line series for', indicator.name, ':', {
-          name: lineSeriesConfig.name,
-          type: lineSeriesConfig.type,
-          dataLength: lineSeriesConfig.data.length,
-          color: lineSeriesConfig.lineStyle.color,
-          firstFewDataPoints: lineSeriesConfig.data.slice(0, 5),
-        })
+        console.log('📊 Adding line series for', indicator.name)
         series.push(lineSeriesConfig)
         break
 
       case 'bollinger':
-        // ボリンジャーバンドは 5 本の線（±2σ、±1σ、中央線）
+        // ボリンジャーバンドはメインチャートに表示
         if (indicatorData.length === 5) {
           const [upper2, upper1, middle, lower1, lower2] = indicatorData
           const baseColor = indicator.style?.color || '#8e44ad'
 
-          // +2σ線（外側上限）
-          series.push({
-            name: `${indicator.name} +2σ`,
-            type: 'line',
-            data: upper2,
-            lineStyle: {
-              color: baseColor,
-              width: 1,
-              type: 'dashed',
+          // 各ボリンジャーバンドラインをメインチャートに追加
+          const bollingerSeries = [
+            {
+              name: `${indicator.name} +2σ`,
+              type: 'line',
+              data: upper2,
+              lineStyle: { color: baseColor, width: 1, type: 'dashed' },
+              symbol: 'none',
+              xAxisIndex: 0,
+              yAxisIndex: 0,
+              z: 50,
             },
-            symbol: 'none',
-            z: 50,
-          })
-
-          // +1σ線
-          series.push({
-            name: `${indicator.name} +1σ`,
-            type: 'line',
-            data: upper1,
-            lineStyle: {
-              color: baseColor,
-              width: 1,
-              type: 'dotted',
-              opacity: 0.7,
+            {
+              name: `${indicator.name} SMA`,
+              type: 'line',
+              data: middle,
+              lineStyle: { color: baseColor, width: 2 },
+              symbol: 'none',
+              xAxisIndex: 0,
+              yAxisIndex: 0,
+              z: 50,
             },
-            symbol: 'none',
-            z: 50,
-          })
-
-          // 中央線（SMA）
-          series.push({
-            name: `${indicator.name} SMA`,
-            type: 'line',
-            data: middle,
-            lineStyle: {
-              color: baseColor,
-              width: 2,
+            {
+              name: `${indicator.name} -2σ`,
+              type: 'line',
+              data: lower2,
+              lineStyle: { color: baseColor, width: 1, type: 'dashed' },
+              symbol: 'none',
+              xAxisIndex: 0,
+              yAxisIndex: 0,
+              z: 50,
             },
-            symbol: 'none',
-            z: 50,
-          })
-
-          // -1σ線
-          series.push({
-            name: `${indicator.name} -1σ`,
-            type: 'line',
-            data: lower1,
-            lineStyle: {
-              color: baseColor,
-              width: 1,
-              type: 'dotted',
-              opacity: 0.7,
-            },
-            symbol: 'none',
-            z: 50,
-          })
-
-          // -2σ線（外側下限）
-          series.push({
-            name: `${indicator.name} -2σ`,
-            type: 'line',
-            data: lower2,
-            lineStyle: {
-              color: baseColor,
-              width: 1,
-              type: 'dashed',
-            },
-            symbol: 'none',
-            z: 50,
-          })
-
-          // ±2σ帯域の塗りつぶし
-          series.push({
-            name: `${indicator.name} ±2σ Band`,
-            type: 'line',
-            data: upper2,
-            areaStyle: {
-              color: `rgba(142, 68, 173, 0.1)`,
-            },
-            lineStyle: {
-              opacity: 0,
-            },
-            stack: 'bollinger_outer',
-            symbol: 'none',
-            z: 5,
-          })
-
-          // ±1σ帯域の塗りつぶし
-          series.push({
-            name: `${indicator.name} ±1σ Band`,
-            type: 'line',
-            data: upper1,
-            areaStyle: {
-              color: `rgba(142, 68, 173, 0.05)`,
-            },
-            lineStyle: {
-              opacity: 0,
-            },
-            stack: 'bollinger_inner',
-            symbol: 'none',
-            z: 8,
-          })
+          ]
+          
+          series.push(...bollingerSeries)
         }
         break
 
-      default:
-        // その他のインジケーター（RSI、MACD など）は基本的にライン表示
-        const seriesConfig: any = {
+      case 'rsi':
+        // 🚨 GEMINI PATTERN: RSI サブチャート
+        if (rsiGridIndex === -1) {
+          console.error('❌ RSI grid index not calculated')
+          return
+        }
+
+        console.log('🚨 GEMINI PATTERN: RSI series setup:', {
+          gridIndex: rsiGridIndex,
+          xAxisIndex: rsiGridIndex,
+          yAxisIndex: rsiGridIndex,
+          dataLength: indicatorData.length,
+        })
+
+        // RSI メインライン
+        const rsiSeries = {
           name: indicator.name,
           type: 'line',
           data: indicatorData,
           smooth: true,
           symbol: 'none',
           lineStyle: {
-            color: indicator.style?.color || '#e74c3c',
+            color: indicator.style?.color || '#9C27B0',
             width: indicator.style?.lineWidth || 2,
           },
+          xAxisIndex: rsiGridIndex,
+          yAxisIndex: rsiGridIndex,
           z: 50,
         }
+        series.push(rsiSeries)
 
-        // RSI の場合はサブチャートに表示
-        if (indicator.type === 'rsi') {
-          console.log(
-            '📊 RSI Series: Setting up RSI in subchart with data:',
-            indicatorData.length,
-            'points'
-          )
-          console.log('📊 RSI Series: Sample data values:', indicatorData.slice(-10))
-
-          if (rsiAxisIndex === -1) {
-            console.error('❌ RSI axis index not calculated correctly')
-            return
-          }
-
-          // Validate that the calculated axis index exists
-          const expectedAxisCount = config.showVolume
-            ? hasRSI && hasMACD
-              ? 4
-              : hasRSI || hasMACD
-                ? 3
-                : 2
-            : hasRSI && hasMACD
-              ? 3
-              : hasRSI || hasMACD
-                ? 2
-                : 1
-
-          if (rsiAxisIndex >= expectedAxisCount) {
-            console.error('❌ RSI axis index out of bounds:', {
-              rsiAxisIndex,
-              expectedAxisCount,
-              showVolume: config.showVolume,
-              hasRSI,
-              hasMACD,
-            })
-            return
-          }
-
-          console.log('📊 RSI Series: Using axis index:', rsiAxisIndex)
-          console.log('📊 RSI Series: Setting xAxisIndex and yAxisIndex to:', rsiAxisIndex)
-          seriesConfig.yAxisIndex = rsiAxisIndex
-          seriesConfig.xAxisIndex = rsiAxisIndex
-
-          // RSI 用の参考線も追加
-          // 30 レベル線（売られすぎ）
-          const oversoldLine = indicatorData.map(() => 30)
-          series.push({
+        // RSI 参考線
+        const rsiReferenceLines = [
+          {
             name: `${indicator.name} Oversold (30)`,
             type: 'line',
-            data: oversoldLine,
-            lineStyle: {
-              color: '#ef4444',
-              width: 1,
-              type: 'dashed',
-              opacity: 0.6,
-            },
+            data: indicatorData.map(() => 30),
+            lineStyle: { color: '#ef4444', width: 1, type: 'dashed', opacity: 0.6 },
             symbol: 'none',
-            yAxisIndex: rsiAxisIndex,
-            xAxisIndex: rsiAxisIndex,
+            xAxisIndex: rsiGridIndex,
+            yAxisIndex: rsiGridIndex,
             z: 30,
-          })
-
-          // 70 レベル線（買われすぎ）
-          const overboughtLine = indicatorData.map(() => 70)
-          series.push({
+          },
+          {
             name: `${indicator.name} Overbought (70)`,
             type: 'line',
-            data: overboughtLine,
-            lineStyle: {
-              color: '#ef4444',
-              width: 1,
-              type: 'dashed',
-              opacity: 0.6,
-            },
+            data: indicatorData.map(() => 70),
+            lineStyle: { color: '#ef4444', width: 1, type: 'dashed', opacity: 0.6 },
             symbol: 'none',
-            yAxisIndex: rsiAxisIndex,
-            xAxisIndex: rsiAxisIndex,
+            xAxisIndex: rsiGridIndex,
+            yAxisIndex: rsiGridIndex,
             z: 30,
-          })
-
-          // 50 レベル線（中央線）
-          const midLine = indicatorData.map(() => 50)
-          series.push({
+          },
+          {
             name: `${indicator.name} Midline (50)`,
             type: 'line',
-            data: midLine,
-            lineStyle: {
-              color: '#6b7280',
-              width: 1,
-              type: 'dotted',
-              opacity: 0.4,
-            },
+            data: indicatorData.map(() => 50),
+            lineStyle: { color: '#6b7280', width: 1, type: 'dotted', opacity: 0.4 },
             symbol: 'none',
-            yAxisIndex: rsiAxisIndex,
-            xAxisIndex: rsiAxisIndex,
+            xAxisIndex: rsiGridIndex,
+            yAxisIndex: rsiGridIndex,
             z: 20,
-          })
+          },
+        ]
+        series.push(...rsiReferenceLines)
+
+        console.log('✅ Added RSI series with 4 components (main line + 3 reference lines)')
+        break
+
+      case 'macd':
+        // 🚨 GEMINI PATTERN: MACD サブチャート
+        if (macdGridIndex === -1) {
+          console.error('❌ MACD grid index not calculated')
+          return
         }
 
-        // MACD の場合はサブチャートに表示
-        if (indicator.type === 'macd') {
-          console.log(
-            '📊 MACD Series: Setting up MACD in subchart with data:',
-            indicatorData.length,
-            'points'
-          )
-          console.log('📊 MACD Series: Sample data values:', indicatorData.slice(-5))
+        console.log('🚨 GEMINI PATTERN: MACD series setup:', {
+          gridIndex: macdGridIndex,
+          xAxisIndex: macdGridIndex,
+          yAxisIndex: macdGridIndex,
+          dataLength: indicatorData.length,
+        })
 
-          if (macdAxisIndex === -1) {
-            console.error('❌ MACD axis index not calculated correctly')
-            return
-          }
+        // MACD データが配列の配列形式の場合、3 つのシリーズに分離
+        if (Array.isArray(indicatorData[0])) {
+          const macdData = indicatorData as number[][]
 
-          // Validate that the calculated axis index exists
-          const expectedAxisCount = config.showVolume
-            ? hasRSI && hasMACD
-              ? 4
-              : hasRSI || hasMACD
-                ? 3
-                : 2
-            : hasRSI && hasMACD
-              ? 3
-              : hasRSI || hasMACD
-                ? 2
-                : 1
-
-          if (macdAxisIndex >= expectedAxisCount) {
-            console.error('❌ MACD axis index out of bounds:', {
-              macdAxisIndex,
-              expectedAxisCount,
-              showVolume: config.showVolume,
-              hasRSI,
-              hasMACD,
-            })
-            return
-          }
-
-          console.log('📊 MACD Series: Using axis index:', macdAxisIndex)
-          console.log('📊 MACD Series: Setting xAxisIndex and yAxisIndex to:', macdAxisIndex)
-
-          // MACD データが配列の配列形式の場合、3 つのシリーズに分離
-          if (Array.isArray(indicatorData[0])) {
-            const macdData = indicatorData as number[][]
-
-            // MACD ライン
-            const macdLine = macdData.map((item: number[]) => item[0])
-            const macdSeries = {
+          // MACD ライン、シグナルライン、ヒストグラム
+          const macdSeries = [
+            {
               name: `${indicator.name} Line`,
               type: 'line',
-              data: macdLine,
+              data: macdData.map((item: number[]) => item[0]),
               smooth: true,
               symbol: 'none',
-              lineStyle: {
-                color: '#3b82f6',
-                width: 2,
-              },
-              yAxisIndex: macdAxisIndex,
-              xAxisIndex: macdAxisIndex,
+              lineStyle: { color: '#3b82f6', width: 2 },
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
               z: 50,
-            }
-            series.push(macdSeries)
-
-            // シグナルライン
-            const signalLine = macdData.map((item: number[]) => item[1])
-            const signalSeries = {
+            },
+            {
               name: `${indicator.name} Signal`,
               type: 'line',
-              data: signalLine,
+              data: macdData.map((item: number[]) => item[1]),
               smooth: true,
               symbol: 'none',
-              lineStyle: {
-                color: '#ef4444',
-                width: 2,
-              },
-              yAxisIndex: macdAxisIndex,
-              xAxisIndex: macdAxisIndex,
+              lineStyle: { color: '#ef4444', width: 2 },
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
               z: 50,
-            }
-            series.push(signalSeries)
-
-            // ヒストグラム
-            const histogram = macdData.map((item: number[]) => item[2])
-            const histogramSeries = {
+            },
+            {
               name: `${indicator.name} Histogram`,
               type: 'bar',
-              data: histogram,
+              data: macdData.map((item: number[]) => item[2]),
               itemStyle: {
-                color: (params: any) => {
-                  return params.value >= 0 ? '#22c55e' : '#ef4444'
-                },
+                color: (params: any) => params.value >= 0 ? '#22c55e' : '#ef4444'
               },
-              yAxisIndex: macdAxisIndex,
-              xAxisIndex: macdAxisIndex,
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
               z: 30,
-            }
-            series.push(histogramSeries)
-
-            // ゼロライン
-            const zeroLine = macdData.map(() => 0)
-            const zeroLineSeries = {
+            },
+            {
               name: `${indicator.name} Zero Line`,
               type: 'line',
-              data: zeroLine,
-              lineStyle: {
-                color: '#6b7280',
-                width: 1,
-                type: 'dashed',
-                opacity: 0.6,
-              },
+              data: macdData.map(() => 0),
+              lineStyle: { color: '#6b7280', width: 1, type: 'dashed', opacity: 0.6 },
               symbol: 'none',
-              yAxisIndex: macdAxisIndex,
-              xAxisIndex: macdAxisIndex,
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
               z: 20,
-            }
-            series.push(zeroLineSeries)
-
-            console.log('📊 MACD Series: Added 4 series (MACD line, Signal, Histogram, Zero line)')
-
-            // seriesConfig は使用しない（個別に追加済み）
-            return
-          }
+            },
+          ]
+          
+          series.push(...macdSeries)
+          console.log('✅ Added MACD series with 4 components (line, signal, histogram, zero line)')
         }
+        break
 
-        series.push(seriesConfig)
+      default:
+        console.log('⚠️ Unknown indicator type:', indicator.type)
         break
     }
+  })
+
+  console.log('🚨 GEMINI PATTERN: Final series summary:', {
+    totalSeries: series.length,
+    seriesDetails: series.map(s => ({
+      name: s.name,
+      type: s.type,
+      xAxisIndex: s.xAxisIndex,
+      yAxisIndex: s.yAxisIndex,
+    }))
   })
 
   return series
@@ -2107,17 +1370,34 @@ function calculateIndicatorFromData(
     }
 
     // Log debug info to console instead of downloading
-    console.log('🔍 SMA Debug Info:', debugInfo)
+    console.log('🔍 Indicator Debug Info:', debugInfo)
 
-    const prices = chartData.values.map((candle: any) => {
-      if (Array.isArray(candle) && candle.length >= 5) {
-        return candle[4] // close price (OHLCV format)
-      } else if (Array.isArray(candle) && candle.length >= 2) {
-        return candle[1] // try close price at index 1
-      } else if (typeof candle === 'object' && candle.close) {
-        return candle.close // object format
+    // 🚨 GEMINI FIX: 堅牢な価格抽出（ローソク足とライン両方に対応）
+    const prices = chartData.values.map((item: any) => {
+      if (Array.isArray(item) && item.length >= 4) {
+        // ローソク足形式 [始値, 高値, 安値, 終値] の場合、終値を使用
+        return item[3]
+      } else if (Array.isArray(item) && item.length >= 2) {
+        // 2 つ以上の値がある場合、最後の値を終値として使用
+        return item[item.length - 1]
+      } else if (typeof item === 'number') {
+        // 単純な数値の場合はそのまま使用
+        return item
+      } else if (typeof item === 'object' && item?.close !== undefined) {
+        // オブジェクト形式で close プロパティがある場合
+        return item.close
+      } else {
+        console.warn('🚨 GEMINI FIX: Unable to extract price from:', item)
+        return 0
       }
-      return 0
+    })
+
+    console.log('🚨 GEMINI FIX: Price extraction for indicators:', {
+      originalLength: chartData.values.length,
+      extractedLength: prices.length,
+      originalSample: chartData.values.slice(0, 3),
+      extractedSample: prices.slice(0, 3),
+      indicatorType: indicator.type,
     })
 
     if (prices.length === 0) return []
