@@ -145,7 +145,7 @@ export class ApplicationBootstrap {
       await connectDatabase()
 
       // Initialize Redis
-      await initializeRedis()
+      await initializeRedis(config.isDevelopment)
 
       // Create HTTP server
       this.server = createServer(this.app)
