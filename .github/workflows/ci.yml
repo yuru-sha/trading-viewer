@@ -339,33 +339,40 @@ jobs:
       - name: 💬 Comment PR with analysis results
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         with:
           script: |
-            let comment = '## 🔍 CI/CD Pipeline Results\n\n';
-            
-            // Quality checks
-            comment += '### ✅ 品質チェック結果\n';
-            comment += '- 🔄 循環依存チェック: ✅\n';
-            comment += '- 🕸️ 依存関係検証: ✅\n';
-            comment += '- 📊 重複依存チェック: ✅\n';
-            comment += '- 🧪 Unit Tests: ${{ needs.unit-tests.result == "success" && "✅" || "❌" }}\n';
-            comment += '- 🔗 Integration Tests: ${{ needs.integration-tests.result == "success" && "✅" || "❌" }}\n';
-            comment += '- 🎭 E2E Tests: ${{ needs.e2e-tests.result == "success" && "✅" || "❌" }}\n';
-            comment += '- 🔒 Security Scan: ${{ needs.security.result == "success" && "✅" || "❌" }}\n';
-            comment += '- 🏗️ Build: ${{ needs.build.result == "success" && "✅" || "❌" }}\n\n';
-            
-            comment += '### 📊 メトリクス\n';
-            comment += '- パッケージ数: 4 (client, server, shared, ui)\n';
-            comment += '- モノレポ構成: pnpm workspace\n';
-            comment += '- Node.js: 18, 20 (build tested)\n\n';
-            
-            comment += '詳細は [Actions ログ](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) を確認してください。';
-            
-            github.rest.issues.createComment({
+            const icon = (result) => result === 'success' ? '✅' : '❌';
+
+            const body = `
+            ## 🔍 CI/CD Pipeline Results
+
+            ### ✅ 品質チェック結果
+            - 🔄 循環依存チェック: ✅
+            - 🕸️ 依存関係検証: ✅
+            - 📊 重複依存チェック: ✅
+            - 🧪 Unit Tests: ${icon(needs.unit-tests.result)}
+            - 🔗 Integration Tests: ${icon(needs.integration-tests.result)}
+            - 🎭 E2E Tests: ${icon(needs.e2e-tests.result)}
+            - 🔒 Security Scan: ${icon(needs.security.result)}
+            - 🏗️ Build: ${icon(needs.build.result)}
+
+            ### 📊 メトリクス
+            - パッケージ数: 4 (client, server, shared, ui)
+            - モノレポ構成: pnpm workspace
+            - Node.js: 18, 20 (build tested)
+
+            詳細は [Actions ログ](${process.env.SERVER_URL}/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}) を確認してください。
+            `;
+
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: comment
+              body: body.trim()
             });
         continue-on-error: true
 
