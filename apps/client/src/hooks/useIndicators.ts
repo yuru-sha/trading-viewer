@@ -315,11 +315,11 @@ export const useAddIndicator = () => {
     type: IndicatorType,
     symbol: string,
     timeframe: string = 'D',
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     options?: {
       name?: string
       visible?: boolean
-      style?: Record<string, any>
+      style?: Record<string, unknown>
     }
   ) => {
     console.log('🔍 useAddIndicator: Starting to add indicator:', {

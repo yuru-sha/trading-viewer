@@ -171,7 +171,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
     symbol: string
     timeframe: string
     type: string
-    data: any
+    data: unknown
   }): Promise<DrawingTool> {
     const response = await api.drawing.createDrawingTool({
       symbol: data.symbol,
@@ -194,7 +194,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
     }
   }
 
-  async updateDrawingTool(id: string, updates: any): Promise<DrawingTool> {
+  async updateDrawingTool(id: string, updates: unknown): Promise<DrawingTool> {
     const response = await api.drawing.updateDrawingTool(id, updates)
     const item = response.data
     return {
@@ -221,7 +221,7 @@ class AuthClient implements IAuthClient {
     email: string,
     password: string
   ): Promise<{
-    user: any
+    user: unknown
     token: string
   }> {
     // 既存の認証ロジックを統合する必要がある
@@ -234,7 +234,7 @@ class AuthClient implements IAuthClient {
   }
 
   async register(userData: { email: string; password: string }): Promise<{
-    user: any
+    user: unknown
     token: string
   }> {
     // 既存の認証ロジックを統合する必要がある

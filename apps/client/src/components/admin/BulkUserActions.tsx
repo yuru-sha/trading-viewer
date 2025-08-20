@@ -24,7 +24,7 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
   const [actionType, setActionType] = useState<string | null>(null)
   const { showError, showSuccess } = useError()
 
-  const handleBulkAction = async (action: string, data?: any) => {
+  const handleBulkAction = async (action: string, data?: unknown) => {
     if (selectedUsers.length === 0) {
       showError('No users selected')
       return
@@ -60,9 +60,20 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
         onClearSelection()
         onRefresh()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to perform bulk ${action}:`, error)
-      showError(error.response?.data?.message || `Failed to ${action} users`)
+      const errorMessage =
+        error instanceof Error &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data
+          ? String(error.response.data.message)
+          : `Failed to ${action} users`
+      showError(errorMessage)
     } finally {
       setLoading(false)
       setActionType(null)

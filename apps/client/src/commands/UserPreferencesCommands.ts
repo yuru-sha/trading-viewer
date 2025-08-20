@@ -20,7 +20,7 @@ interface UserPreferences {
     fillColor: string
     textSize: number
   }
-  customSettings: Record<string, any>
+  customSettings: Record<string, unknown>
   lastModified: number
 }
 
@@ -34,7 +34,7 @@ interface IUserPreferencesContext {
   exportUserPreferences(): string
   importUserPreferences(data: string): void
   getPreference<T>(key: string, defaultValue?: T): T
-  setPreference(key: string, value: any): void
+  setPreference(key: string, value: unknown): void
 }
 
 /**
@@ -61,7 +61,9 @@ export class UpdateUserPreferencesCommand
 
     Object.keys(this.params).forEach(key => {
       if (key in currentPreferences) {
-        ;(preferencesToCapture as any)[key] = (currentPreferences as any)[key]
+        ;(preferencesToCapture as Record<string, unknown>)[key] = (
+          currentPreferences as Record<string, unknown>
+        )[key]
       }
     })
 
@@ -147,7 +149,7 @@ export class UpdateUserPreferencesCommand
     return validLanguages.includes(language)
   }
 
-  private validateChartDefaults(chartDefaults: any): boolean {
+  private validateChartDefaults(chartDefaults: unknown): boolean {
     if (typeof chartDefaults !== 'object') {
       return false
     }
@@ -170,7 +172,7 @@ export class UpdateUserPreferencesCommand
     return true
   }
 
-  private validateDrawingDefaults(drawingDefaults: any): boolean {
+  private validateDrawingDefaults(drawingDefaults: unknown): boolean {
     if (typeof drawingDefaults !== 'object') {
       return false
     }
@@ -236,7 +238,7 @@ export class UpdateUserPreferencesCommand
 /**
  * Reset User Preferences Command
  */
-export class ResetUserPreferencesCommand extends BaseCommand<void, {}> {
+export class ResetUserPreferencesCommand extends BaseCommand<void, Record<string, never>> {
   readonly type = 'RESET_USER_PREFERENCES'
   private context: IUserPreferencesContext
   private backupPreferences?: UserPreferences
@@ -329,7 +331,7 @@ export class ImportUserPreferencesCommand extends BaseCommand<void, { data: stri
 /**
  * Export User Preferences Command
  */
-export class ExportUserPreferencesCommand extends BaseCommand<string, {}> {
+export class ExportUserPreferencesCommand extends BaseCommand<string, Record<string, never>> {
   readonly type = 'EXPORT_USER_PREFERENCES'
   private context: IUserPreferencesContext
 

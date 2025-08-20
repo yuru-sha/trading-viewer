@@ -85,7 +85,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
 
       const response = await apiService.post<{
         success: boolean
-        data: { user: any; temporaryPassword?: string }
+        data: { user: unknown; temporaryPassword?: string }
       }>('/auth/users', submitData)
 
       if (response.success) {
@@ -96,13 +96,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
         onUserCreated()
         handleClose()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create user:', error)
-      if (error.response?.data?.message) {
-        showError(error.response.data.message)
-      } else {
-        showError('Failed to create user')
-      }
+      const errorMessage =
+        error instanceof Error &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data
+          ? String(error.response.data.message)
+          : 'Failed to create user'
+      showError(errorMessage)
     } finally {
       setCreating(false)
     }

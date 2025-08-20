@@ -54,8 +54,8 @@ export class CommandFactory implements ICommandFactory {
   /**
    * Get all registered contexts
    */
-  private getContexts(): Record<string, any> {
-    const contexts: Record<string, any> = {}
+  private getContexts(): Record<string, unknown> {
+    const contexts: Record<string, unknown> = {}
     for (const [name, context] of this.contexts) {
       contexts[name] = context
     }
@@ -151,13 +151,13 @@ export class CommandFactory implements ICommandFactory {
  */
 type CommandCreator<T extends ICommand = ICommand> = (
   params: T['params'],
-  contexts: Record<string, any>
+  contexts: Record<string, unknown>
 ) => T
 
 /**
  * Generic Batch Command Implementation
  */
-class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
+class BatchCommand extends BaseCommand<unknown[], { commands: ICommand[] }> {
   readonly type = 'BATCH'
   private results: unknown[] = []
 
@@ -165,7 +165,7 @@ class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
     super('BATCH', { commands }, true)
   }
 
-  async doExecute(): Promise<any[]> {
+  async doExecute(): Promise<unknown[]> {
     this.results = []
 
     for (const command of this.params.commands) {
@@ -190,7 +190,7 @@ class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
     }
   }
 
-  protected async doRedo(): Promise<any[]> {
+  protected async doRedo(): Promise<unknown[]> {
     this.results = []
 
     for (const command of this.params.commands) {
@@ -237,7 +237,7 @@ export function createCommand<T extends ICommand>(type: T['type'], params: T['pa
 export class CommandBuilder {
   private commandType?: string
   private commandParams: Record<string, unknown> = {}
-  private contexts: Record<string, any> = {}
+  private contexts: Record<string, unknown> = {}
 
   type(type: string): this {
     this.commandType = type
@@ -254,7 +254,7 @@ export class CommandBuilder {
     return this
   }
 
-  context(name: string, context: any): this {
+  context(name: string, context: unknown): this {
     this.contexts[name] = context
     return this
   }
@@ -273,11 +273,11 @@ export class CommandBuilder {
   }
 
   // Convenience methods for common command types
-  createDrawing(params: any): this {
+  createDrawing(params: unknown): this {
     return this.type('CREATE_DRAWING').params(params)
   }
 
-  updateDrawing(id: string, properties: any): this {
+  updateDrawing(id: string, properties: unknown): this {
     return this.type('UPDATE_DRAWING').params({ id, properties })
   }
 
@@ -285,11 +285,11 @@ export class CommandBuilder {
     return this.type('DELETE_DRAWING').params({ id })
   }
 
-  updateChartSettings(settings: any): this {
+  updateChartSettings(settings: unknown): this {
     return this.type('UPDATE_CHART_SETTINGS').params(settings)
   }
 
-  addIndicator(type: string, params: any): this {
+  addIndicator(type: string, params: unknown): this {
     return this.type('ADD_INDICATOR').params({ type, params })
   }
 
@@ -297,7 +297,7 @@ export class CommandBuilder {
     return this.type('REMOVE_INDICATOR').params({ id })
   }
 
-  updateUserPreferences(preferences: any): this {
+  updateUserPreferences(preferences: unknown): this {
     return this.type('UPDATE_USER_PREFERENCES').params(preferences)
   }
 }

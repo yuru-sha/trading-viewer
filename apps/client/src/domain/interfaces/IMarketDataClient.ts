@@ -56,7 +56,7 @@ export interface DrawingTool {
   symbol: string
   timeframe: string
   type: string
-  data: any
+  data: unknown
   createdAt: Date
   updatedAt: Date
 }
@@ -111,7 +111,7 @@ export interface IDrawingToolsClient {
     symbol: string
     timeframe: string
     type: string
-    data: any
+    data: unknown
   }): Promise<DrawingTool>
   updateDrawingTool(id: string, updates: any): Promise<DrawingTool>
   deleteDrawingTool(id: string): Promise<void>

@@ -217,7 +217,7 @@ export const infoApi = {
     name: string
     version: string
     timestamp: string
-    endpoints: Record<string, any>
+    endpoints: Record<string, unknown>
   }> => {
     return apiRequest('')
   },
@@ -248,7 +248,7 @@ export const watchlistApi = {
     name: string
   ): Promise<{
     success: boolean
-    data: any
+    data: unknown
   }> => {
     return apiRequest('/watchlist', {
       method: 'POST',
@@ -284,7 +284,7 @@ export const drawingApi = {
     symbol: string,
     timeframe?: string
   ): Promise<{
-    data: any[]
+    data: unknown[]
     status: 'success' | 'error'
     message?: string
   }> => {
@@ -298,9 +298,9 @@ export const drawingApi = {
   createDrawingTool: async (data: {
     symbol: string
     timeframe?: string
-    tool: any
+    tool: unknown
   }): Promise<{
-    data: any
+    data: unknown
     status: 'success' | 'error'
     message?: string
   }> => {
@@ -313,9 +313,9 @@ export const drawingApi = {
   // Update a drawing tool
   updateDrawingTool: async (
     id: string,
-    updates: any
+    updates: unknown
   ): Promise<{
-    data: any
+    data: unknown
     status: 'success' | 'error'
     message?: string
   }> => {
@@ -347,7 +347,7 @@ export const apiClient = {
     return { data: response }
   },
 
-  post: async (url: string, data?: any) => {
+  post: async (url: string, data?: unknown) => {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
       method: 'POST',
@@ -356,7 +356,7 @@ export const apiClient = {
     return { data: response }
   },
 
-  put: async (url: string, data?: any) => {
+  put: async (url: string, data?: unknown) => {
     const cleanUrl = url.startsWith('/api') ? url.slice(4) : url
     const response = await apiRequest(cleanUrl, {
       method: 'PUT',

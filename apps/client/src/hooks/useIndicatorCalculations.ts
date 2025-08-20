@@ -7,7 +7,7 @@ const API_BASE = '/api'
 const fetchIndicatorCalculation = async (
   symbol: string,
   type: string,
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 ): Promise<IndicatorResult> => {
   const response = await fetch(`${API_BASE}/indicators/calculate`, {
     method: 'POST',

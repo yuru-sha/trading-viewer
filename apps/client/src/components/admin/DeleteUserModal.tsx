@@ -98,13 +98,20 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
       showSuccess(`User ${deleteTypeText} successfully`)
       onUserDeleted()
       handleClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete user:', error)
-      if (error.response?.data?.message) {
-        showError(error.response.data.message)
-      } else {
-        showError('Failed to delete user')
-      }
+      const errorMessage =
+        error instanceof Error &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data
+          ? String(error.response.data.message)
+          : 'Failed to delete user'
+      showError(errorMessage)
     } finally {
       setDeleting(false)
     }

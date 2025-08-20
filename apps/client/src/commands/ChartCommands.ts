@@ -146,14 +146,14 @@ export class ChartSettingsCommand
  * Add Indicator Command
  */
 export class AddIndicatorCommand
-  extends BaseCommand<string, { type: string; params: Record<string, any> }>
+  extends BaseCommand<string, { type: string; params: Record<string, unknown> }>
   implements AddIndicatorCommand
 {
   readonly type = 'ADD_INDICATOR'
   private context: IChartContext
   private addedIndicatorId?: string
 
-  constructor(params: { type: string; params: Record<string, any> }, context: IChartContext) {
+  constructor(params: { type: string; params: Record<string, unknown> }, context: IChartContext) {
     super('ADD_INDICATOR', params, true)
     this.context = context
   }
@@ -218,7 +218,7 @@ export class AddIndicatorCommand
     return validTypes.includes(type.toUpperCase())
   }
 
-  private validateIndicatorParams(type: string, params: Record<string, any>): boolean | string {
+  private validateIndicatorParams(type: string, params: Record<string, unknown>): boolean | string {
     switch (type.toUpperCase()) {
       case 'SMA':
       case 'EMA':

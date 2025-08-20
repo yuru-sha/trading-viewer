@@ -24,7 +24,7 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
     try {
       const response = await api.watchlist.get()
       const isSymbolInWatchlist = response.data?.watchlist?.some(
-        (item: any) => item.symbol === currentSymbol
+        (item: { symbol: string }) => item.symbol === currentSymbol
       )
       setIsInWatchlist(!!isSymbolInWatchlist)
     } catch {

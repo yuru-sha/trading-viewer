@@ -90,11 +90,11 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
     { code: 'de', name: 'German' },
   ]
 
-  const handleFilterChange = (key: keyof UserFilters, value: any) => {
+  const handleFilterChange = (key: keyof UserFilters, value: unknown) => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
-  const handleFailedLoginCountChange = (field: 'operator' | 'value', value: any) => {
+  const handleFailedLoginCountChange = (field: 'operator' | 'value', value: unknown) => {
     setFilters(prev => ({
       ...prev,
       failedLoginCount: {

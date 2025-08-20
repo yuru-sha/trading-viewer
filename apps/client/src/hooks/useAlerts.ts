@@ -27,11 +27,13 @@ export const useAlerts = ({
       setIsLoading(true)
       const response = await api.get(`/api/alerts/${symbol}`)
       if (response.ok && response.data?.alerts) {
-        const serverAlerts = response.data.alerts.map((alert: any) => ({
-          ...alert,
-          createdAt: new Date(alert.createdAt),
-          triggeredAt: alert.triggeredAt ? new Date(alert.triggeredAt) : undefined,
-        }))
+        const serverAlerts = response.data.alerts.map(
+          (alert: { createdAt: string; triggeredAt?: string }) => ({
+            ...alert,
+            createdAt: new Date(alert.createdAt),
+            triggeredAt: alert.triggeredAt ? new Date(alert.triggeredAt) : undefined,
+          })
+        )
         setAlerts(serverAlerts)
       }
     } catch {

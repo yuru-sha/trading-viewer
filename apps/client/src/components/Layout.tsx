@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ToastContainer, useToast } from '@trading-viewer/ui'
-import { useApp, useAppActions } from '../contexts/AppContext'
+import { useApp } from '../contexts/AppContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useFocusManagement, SkipLinks } from '../hooks/useFocusManagement'
 import Onboarding from './Onboarding'
@@ -17,7 +17,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { state } = useApp()
-  const { setTheme, clearAppError } = useAppActions()
   const { user } = useAuth()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
@@ -90,10 +89,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         ]
       : []),
   ]
-
-  const toggleTheme = () => {
-    setTheme(state.theme === 'dark' ? 'light' : 'dark')
-  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)

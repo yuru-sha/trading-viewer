@@ -98,7 +98,7 @@ export class ApiService {
 
       const data = await response.json()
       return data
-    } catch {
+    } catch (error: unknown) {
       clearTimeout(timeoutId)
 
       // Handle timeout
@@ -171,8 +171,10 @@ export class ApiService {
   // Utility methods
   private shouldRetry(error: unknown): boolean {
     // Retry on network errors and 5xx server errors
-    if (!error.response) return true
-    const status = error.response.status
+    if (!error || typeof error !== 'object' || !('response' in error)) return true
+    const response = (error as { response?: { status?: number } }).response
+    if (!response?.status) return true
+    const status = response.status
     return status >= 500 && status < 600
   }
 

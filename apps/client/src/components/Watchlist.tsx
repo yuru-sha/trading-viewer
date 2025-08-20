@@ -97,34 +97,6 @@ export const Watchlist: React.FC<WatchlistProps> = ({
     }
   }
 
-  // Add symbol to watchlist
-  const addToWatchlist = async (symbol: string, name: string) => {
-    if (watchlist.find(item => item.symbol === symbol)) {
-      return // Already in watchlist
-    }
-
-    try {
-      const quote = await api.market.getQuote(symbol)
-      const newItem: WatchlistSymbol = {
-        symbol,
-        name,
-        price: quote.c,
-        change: quote.d,
-        changePercent: quote.dp,
-        lastUpdate: Date.now(),
-      }
-
-      const updatedWatchlist = [...watchlist, newItem]
-      setWatchlist(updatedWatchlist)
-
-      // Save to localStorage
-      const symbolsToSave = updatedWatchlist.map(item => ({ symbol: item.symbol, name: item.name }))
-      localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch {
-      console.error('Failed to add symbol to watchlist:', error)
-    }
-  }
-
   // Remove symbol from watchlist
   const removeFromWatchlist = (symbol: string) => {
     const updatedWatchlist = watchlist.filter(item => item.symbol !== symbol)

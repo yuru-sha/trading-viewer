@@ -283,7 +283,7 @@ export class CommandInvoker implements ICommandInvoker {
 
           // Create a new instance of the command for retry
           if ('clone' in command && typeof command.clone === 'function') {
-            command = (command as any).clone()
+            command = (command as { clone(): typeof command }).clone()
           }
         }
       }

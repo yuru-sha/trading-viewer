@@ -15,7 +15,7 @@ interface DrawingToolState {
   type: DrawingToolType
   startPoint: { x: number; y: number }
   endPoint?: { x: number; y: number }
-  properties: Record<string, any>
+  properties: Record<string, unknown>
   visible: boolean
   createdAt: number
 }
@@ -25,7 +25,7 @@ interface DrawingToolState {
  */
 interface IDrawingContext {
   addDrawingTool(tool: DrawingToolState): string
-  updateDrawingTool(id: string, properties: Record<string, any>): void
+  updateDrawingTool(id: string, properties: Record<string, unknown>): void
   removeDrawingTool(id: string): void
   getDrawingTool(id: string): DrawingToolState | null
   getAllDrawingTools(): DrawingToolState[]
@@ -116,19 +116,22 @@ export class CreateDrawingToolCommand
  * Update Drawing Tool Command
  */
 export class UpdateDrawingToolCommand
-  extends BaseCommand<void, { id: string; properties: Record<string, any> }>
+  extends BaseCommand<void, { id: string; properties: Record<string, unknown> }>
   implements UpdateDrawingCommand
 {
   readonly type = 'UPDATE_DRAWING'
   private context: IDrawingContext
-  private originalProperties?: Record<string, any>
+  private originalProperties?: Record<string, unknown>
 
-  constructor(params: { id: string; properties: Record<string, any> }, context: IDrawingContext) {
+  constructor(
+    params: { id: string; properties: Record<string, unknown> },
+    context: IDrawingContext
+  ) {
     super('UPDATE_DRAWING', params, true)
     this.context = context
   }
 
-  protected async captureState(): Promise<Record<string, any> | null> {
+  protected async captureState(): Promise<Record<string, unknown> | null> {
     const tool = this.context.getDrawingTool(this.params.id)
     if (tool) {
       this.originalProperties = { ...tool.properties }
