@@ -146,7 +146,7 @@ export class UserManager {
         await errorRecoveryManager.attemptRecovery(error, 'profile update')
         // Retry once after recovery
         return await authService.updateProfile(sanitizedData)
-      } catch (recoveryError) {
+      } catch {
         throw error // Re-throw original error if recovery fails
       }
     }

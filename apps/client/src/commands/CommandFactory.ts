@@ -15,7 +15,7 @@ import { UpdateUserPreferencesCommand } from './UserPreferencesCommands'
  */
 export class CommandFactory implements ICommandFactory {
   private registry: Map<string, CommandCreator> = new Map()
-  private contexts: Map<string, any> = new Map()
+  private contexts: Map<string, unknown> = new Map()
 
   constructor() {
     this.registerDefaultCommands()
@@ -47,7 +47,7 @@ export class CommandFactory implements ICommandFactory {
   /**
    * Register a context for dependency injection
    */
-  registerContext(name: string, context: any): void {
+  registerContext(name: string, context: unknown): void {
     this.contexts.set(name, context)
   }
 
@@ -159,7 +159,7 @@ type CommandCreator<T extends ICommand = ICommand> = (
  */
 class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
   readonly type = 'BATCH'
-  private results: any[] = []
+  private results: unknown[] = []
 
   constructor(commands: ICommand[]) {
     super('BATCH', { commands }, true)
@@ -236,7 +236,7 @@ export function createCommand<T extends ICommand>(type: T['type'], params: T['pa
  */
 export class CommandBuilder {
   private commandType?: string
-  private commandParams: any = {}
+  private commandParams: Record<string, unknown> = {}
   private contexts: Record<string, any> = {}
 
   type(type: string): this {
@@ -244,12 +244,12 @@ export class CommandBuilder {
     return this
   }
 
-  params(params: any): this {
+  params(params: Record<string, unknown>): this {
     this.commandParams = { ...this.commandParams, ...params }
     return this
   }
 
-  param(key: string, value: any): this {
+  param(key: string, value: unknown): this {
     this.commandParams[key] = value
     return this
   }

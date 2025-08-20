@@ -209,11 +209,13 @@ const WatchlistPage: React.FC = () => {
     try {
       const response = await apiService.get('/watchlist')
       if (response.success && response.data.watchlist) {
-        const watchlistData = response.data.watchlist.map((item: any) => ({
-          symbol: item.symbol,
-          name: item.name,
-          addedAt: item.createdAt,
-        }))
+        const watchlistData = response.data.watchlist.map(
+          (item: { symbol: string; name: string }) => ({
+            symbol: item.symbol,
+            name: item.name,
+            addedAt: item.createdAt,
+          })
+        )
         setWatchlistItems(watchlistData)
       } else {
         setWatchlistItems([])

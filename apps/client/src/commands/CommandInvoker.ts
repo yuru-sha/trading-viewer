@@ -230,7 +230,7 @@ export class CommandInvoker implements ICommandInvoker {
   async executeParallel<T>(commands: ICommand<T>[]): Promise<CommandResult<T>[]> {
     const promises = commands.map(command =>
       this.execute(command).catch(
-        error =>
+        _error =>
           ({
             success: false,
             error: 'Operation failed',

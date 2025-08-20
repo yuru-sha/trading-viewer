@@ -26,7 +26,7 @@ export interface ErrorClassification {
 }
 
 // エラー分類器
-export const classifyError = (error: any): ErrorClassification => {
+export const classifyError = (error: unknown): ErrorClassification => {
   // Network errors
   if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('fetch')) {
     return {

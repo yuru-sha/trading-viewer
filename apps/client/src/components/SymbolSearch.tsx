@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Button } from '@trading-viewer/ui'
 import { api } from '../lib/apiClient'
 
 interface SymbolResult {

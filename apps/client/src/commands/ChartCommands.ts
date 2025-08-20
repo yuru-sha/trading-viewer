@@ -9,7 +9,7 @@ interface ChartState {
   chartType: 'candlestick' | 'line' | 'area'
   indicators: Map<string, IndicatorConfig>
   theme: 'light' | 'dark'
-  settings: Record<string, any>
+  settings: Record<string, unknown>
 }
 
 /**
@@ -18,7 +18,7 @@ interface ChartState {
 interface IndicatorConfig {
   id: string
   type: string
-  params: Record<string, any>
+  params: Record<string, unknown>
   visible: boolean
   createdAt: number
 }

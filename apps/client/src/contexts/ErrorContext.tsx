@@ -22,7 +22,7 @@ export interface ErrorInfo {
   duration?: number
   timestamp: Date
   source?: 'api' | 'websocket' | 'client' | 'network'
-  details?: any
+  details?: unknown
   // Enhanced error handling
   classification?: ErrorClassification
   recoveryAttempted?: boolean
@@ -201,7 +201,7 @@ export const useErrorHandlers = () => {
         }
       }
 
-      // HTTPステータスに基づくエラーメッセージ
+      // HTTP ステータスに基づくエラーメッセージ
       if (error?.response?.status) {
         const status = error.response.status
         const retryCount = errorRecoveryManager.getRetryCount('retryRequest')
