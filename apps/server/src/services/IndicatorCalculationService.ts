@@ -175,15 +175,23 @@ export class IndicatorCalculationService {
   calculateBollingerBands(
     candles: Candle[],
     period: number = 20,
-    standardDeviations: number = 2
-  ): { upper: IndicatorValue[]; middle: IndicatorValue[]; lower: IndicatorValue[] } {
+    standardDeviations: number = 2.1
+  ): { 
+    upper2: IndicatorValue[]; 
+    upper1: IndicatorValue[]; 
+    middle: IndicatorValue[]; 
+    lower1: IndicatorValue[]; 
+    lower2: IndicatorValue[] 
+  } {
     if (candles.length < period) {
-      return { upper: [], middle: [], lower: [] }
+      return { upper2: [], upper1: [], middle: [], lower1: [], lower2: [] }
     }
 
     const middle: IndicatorValue[] = []
-    const upper: IndicatorValue[] = []
-    const lower: IndicatorValue[] = []
+    const upper2: IndicatorValue[] = []
+    const upper1: IndicatorValue[] = []
+    const lower1: IndicatorValue[] = []
+    const lower2: IndicatorValue[] = []
 
     for (let i = period - 1; i < candles.length; i++) {
       // Calculate SMA (middle band)
@@ -203,11 +211,14 @@ export class IndicatorCalculationService {
       const timestamp = candles[i].timestamp
 
       middle.push({ timestamp, value: sma })
-      upper.push({ timestamp, value: sma + standardDeviations * stdDev })
-      lower.push({ timestamp, value: sma - standardDeviations * stdDev })
+      // ±2σと±1σの両方を計算
+      upper2.push({ timestamp, value: sma + standardDeviations * stdDev })
+      upper1.push({ timestamp, value: sma + (standardDeviations / 2) * stdDev })
+      lower1.push({ timestamp, value: sma - (standardDeviations / 2) * stdDev })
+      lower2.push({ timestamp, value: sma - standardDeviations * stdDev })
     }
 
-    return { upper, middle, lower }
+    return { upper2, upper1, middle, lower1, lower2 }
   }
 
   /**
@@ -285,11 +296,16 @@ export class IndicatorCalculationService {
         const bbResult = this.calculateBollingerBands(
           candles,
           parameters.period || 20,
-          parameters.standardDeviations || 2
+          parameters.standardDeviations || 2.1
         )
-        // For simplicity, return just the middle band
-        // In a real implementation, you might want to return all three bands
-        values = bbResult.middle
+        // Return all five bands as separate arrays
+        values = {
+          upper2: bbResult.upper2,
+          upper1: bbResult.upper1, 
+          middle: bbResult.middle,
+          lower1: bbResult.lower1,
+          lower2: bbResult.lower2
+        }
         break
 
       default:

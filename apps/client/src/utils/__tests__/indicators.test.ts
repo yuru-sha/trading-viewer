@@ -116,10 +116,12 @@ describe('Technical Indicators', () => {
 
       expect(result).toHaveLength(11) // 20 - 10 + 1
 
-      // Check valid bands
+      // Check valid bands - should have 5 bands now
       if (result.length > 0) {
-        expect(result[0].upper).toBeGreaterThan(result[0].middle)
-        expect(result[0].middle).toBeGreaterThan(result[0].lower)
+        expect(result[0].upper2).toBeGreaterThan(result[0].upper1)
+        expect(result[0].upper1).toBeGreaterThan(result[0].middle)
+        expect(result[0].middle).toBeGreaterThan(result[0].lower1)
+        expect(result[0].lower1).toBeGreaterThan(result[0].lower2)
         expect(result[0].middle).toBeDefined()
       }
     })
@@ -129,8 +131,10 @@ describe('Technical Indicators', () => {
       const result = calculateBollingerBands(data, 3, 1.5)
 
       if (result.length > 0) {
-        expect(result[0].upper).toBeGreaterThan(result[0].middle)
-        expect(result[0].middle).toBeGreaterThan(result[0].lower)
+        expect(result[0].upper2).toBeGreaterThan(result[0].upper1)
+        expect(result[0].upper1).toBeGreaterThan(result[0].middle)
+        expect(result[0].middle).toBeGreaterThan(result[0].lower1)
+        expect(result[0].lower1).toBeGreaterThan(result[0].lower2)
       }
     })
   })

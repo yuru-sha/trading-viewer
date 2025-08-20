@@ -23,9 +23,11 @@ export interface MACDResult {
 
 export interface BollingerBandsResult {
   timestamp: number
-  upper: number
+  upper2: number
+  upper1: number
   middle: number
-  lower: number
+  lower1: number
+  lower2: number
 }
 
 export interface RSIResult {
@@ -206,7 +208,7 @@ export const calculateMACD = (
 export const calculateBollingerBands = (
   data: PriceData[],
   period: number = 20,
-  standardDeviations: number = 2
+  standardDeviations: number = 2.1
 ): BollingerBandsResult[] => {
   if (data.length < period) return []
 
@@ -227,9 +229,11 @@ export const calculateBollingerBands = (
 
     result.push({
       timestamp: data[dataIndex].timestamp,
-      upper: middleBand + standardDeviations * stdDev,
+      upper2: middleBand + standardDeviations * stdDev,
+      upper1: middleBand + (standardDeviations / 2) * stdDev,
       middle: middleBand,
-      lower: middleBand - standardDeviations * stdDev,
+      lower1: middleBand - (standardDeviations / 2) * stdDev,
+      lower2: middleBand - standardDeviations * stdDev,
     })
   }
 

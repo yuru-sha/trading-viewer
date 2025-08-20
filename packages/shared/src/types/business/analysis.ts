@@ -292,7 +292,7 @@ export const DEFAULT_INDICATOR_CONFIGS: Record<IndicatorType, Record<string, any
   },
   bollinger: {
     period: 20,
-    standardDeviations: 2,
+    standardDeviations: 2.1,
   },
   stochastic: {
     kPeriod: 14,
@@ -459,7 +459,7 @@ export const INDICATOR_METADATA: Record<IndicatorType, IndicatorMetadata> = {
         key: 'standardDeviations',
         label: 'Standard Deviations',
         type: 'number',
-        default: 2,
+        default: 2.1,
         min: 0.1,
         max: 5,
       },

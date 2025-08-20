@@ -172,20 +172,30 @@ export function calculateMACD(
 export function calculateBollingerBands(
   prices: number[],
   period: number = 20,
-  standardDeviations: number = 2
+  standardDeviations: number = 2.1
 ) {
   if (prices.length < period) {
-    return { upperBand: [], middleBand: [], lowerBand: [] }
+    return { 
+      upperBand2: [], 
+      upperBand1: [], 
+      middleBand: [], 
+      lowerBand1: [], 
+      lowerBand2: [] 
+    }
   }
 
   const middleBand = calculateSMA(prices, period)
-  const upperBand: number[] = []
-  const lowerBand: number[] = []
+  const upperBand2: number[] = []
+  const upperBand1: number[] = []
+  const lowerBand1: number[] = []
+  const lowerBand2: number[] = []
 
   for (let i = 0; i < prices.length; i++) {
     if (i < period - 1) {
-      upperBand.push(NaN)
-      lowerBand.push(NaN)
+      upperBand2.push(NaN)
+      upperBand1.push(NaN)
+      lowerBand1.push(NaN)
+      lowerBand2.push(NaN)
     } else {
       // 標準偏差を計算
       const slice = prices.slice(i - period + 1, i + 1)
@@ -193,12 +203,15 @@ export function calculateBollingerBands(
       const variance = slice.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / period
       const stdDev = Math.sqrt(variance)
 
-      upperBand.push(mean + standardDeviations * stdDev)
-      lowerBand.push(mean - standardDeviations * stdDev)
+      // ±2σと±1σの両方を計算
+      upperBand2.push(mean + standardDeviations * stdDev)
+      upperBand1.push(mean + (standardDeviations / 2) * stdDev)
+      lowerBand1.push(mean - (standardDeviations / 2) * stdDev)
+      lowerBand2.push(mean - standardDeviations * stdDev)
     }
   }
 
-  return { upperBand, middleBand, lowerBand }
+  return { upperBand2, upperBand1, middleBand, lowerBand1, lowerBand2 }
 }
 
 // Volume 加重平均価格 (VWAP) 計算
