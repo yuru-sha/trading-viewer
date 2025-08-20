@@ -226,7 +226,7 @@ describe('CandleRepository', () => {
 
   describe('delete', () => {
     it('should delete candle successfully', async () => {
-      (mockPrismaClient.candle.delete as vi.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.candle.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -238,7 +238,7 @@ describe('CandleRepository', () => {
 
   describe('count', () => {
     it('should count candles with filter', async () => {
-      (mockPrismaClient.candle.count as vi.Mock).mockResolvedValue(100)
+      ;(mockPrismaClient.candle.count as vi.Mock).mockResolvedValue(100)
 
       const result = await repository.count({ symbol: 'AAPL' })
 
@@ -330,7 +330,7 @@ describe('CandleRepository', () => {
 
   describe('deleteOldData', () => {
     it('should delete old candles', async () => {
-      (mockPrismaClient.candle.deleteMany as vi.Mock).mockResolvedValue({ count: 50 })
+      ;(mockPrismaClient.candle.deleteMany as vi.Mock).mockResolvedValue({ count: 50 })
 
       const result = await repository.deleteOldData('AAPL', 1640000000)
 

@@ -43,7 +43,9 @@ export function useChartOptions(
     queryKey: ['indicators', config.symbol, config.timeframe],
     queryFn: async () => {
       if (!config.symbol || !config.timeframe) return []
-      const response = await fetch(`/api/indicators?symbol=${config.symbol}&timeframe=${config.timeframe}`)
+      const response = await fetch(
+        `/api/indicators?symbol=${config.symbol}&timeframe=${config.timeframe}`
+      )
       if (!response.ok) throw new Error('Failed to fetch indicators')
       return response.json()
     },
@@ -95,21 +97,24 @@ export function useChartOptions(
   // Generate chart options
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
-    
+
     console.log('🔧 Chart Options Config:', {
       showGridlines: config.showGridlines,
       chartType: config.chartType,
-      theme: config.theme
+      theme: config.theme,
     })
 
     // 🔥 DEBUG: チャートタイプをログに出力
     console.log('🚨 GEMINI PATTERN: Chart type:', config.chartType)
-    console.log('🚨 GEMINI PATTERN: Current indicators:', indicators.map(i => ({ 
-      id: i.id, 
-      name: i.name, 
-      type: i.type, 
-      visible: i.visible 
-    })))
+    console.log(
+      '🚨 GEMINI PATTERN: Current indicators:',
+      indicators.map(i => ({
+        id: i.id,
+        name: i.name,
+        type: i.type,
+        visible: i.visible,
+      }))
+    )
 
     // RSI インジケーターが有効かつ表示中かどうかをチェック
     const hasRSI = indicators.some(
@@ -222,7 +227,7 @@ export function useChartOptions(
       currentTop += chart.height + 3 // Add gap
     })
 
-    const gridCount = gridConfigs.length;
+    const gridCount = gridConfigs.length
 
     console.log('🚨 Dynamically Calculated Grid structure:', {
       totalGrids: gridCount,
@@ -387,7 +392,7 @@ export function useChartOptions(
         name: s.name || s.type,
         xAxisIndex: s.xAxisIndex,
         yAxisIndex: s.yAxisIndex,
-        type: s.type
+        type: s.type,
       }))
     )
 
@@ -1150,7 +1155,7 @@ function createIndicatorSeries(
               z: 50,
             },
           ]
-          
+
           series.push(...bollingerSeries)
         }
         break
@@ -1287,7 +1292,7 @@ function createIndicatorSeries(
       type: s.type,
       xAxisIndex: s.xAxisIndex,
       yAxisIndex: s.yAxisIndex,
-    }))
+    })),
   })
 
   return series

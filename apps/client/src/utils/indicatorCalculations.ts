@@ -175,12 +175,12 @@ export function calculateBollingerBands(
   standardDeviations: number = 2.1
 ) {
   if (prices.length < period) {
-    return { 
-      upperBand2: [], 
-      upperBand1: [], 
-      middleBand: [], 
-      lowerBand1: [], 
-      lowerBand2: [] 
+    return {
+      upperBand2: [],
+      upperBand1: [],
+      middleBand: [],
+      lowerBand1: [],
+      lowerBand2: [],
     }
   }
 

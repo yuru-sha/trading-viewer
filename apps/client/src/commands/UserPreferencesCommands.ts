@@ -64,7 +64,7 @@ export class UpdateUserPreferencesCommand
 
     Object.keys(this.params).forEach(key => {
       if (key in currentPreferences) {
-        (preferencesToCapture as any)[key] = (currentPreferences as any)[key]
+        ;(preferencesToCapture as any)[key] = (currentPreferences as any)[key]
       }
     })
 

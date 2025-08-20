@@ -88,7 +88,7 @@ describe('SymbolRepository', () => {
     })
 
     it('should return null when symbol not found', async () => {
-      (mockPrismaClient.symbol.findUnique as vi.Mock).mockResolvedValue(null)
+      ;(mockPrismaClient.symbol.findUnique as vi.Mock).mockResolvedValue(null)
 
       const result = await repository.findById('non-existent')
 
@@ -239,7 +239,7 @@ describe('SymbolRepository', () => {
 
   describe('delete', () => {
     it('should delete symbol successfully', async () => {
-      (mockPrismaClient.symbol.delete as vi.Mock).mockResolvedValue({})
+      ;(mockPrismaClient.symbol.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -262,7 +262,7 @@ describe('SymbolRepository', () => {
 
   describe('count', () => {
     it('should count symbols with filter', async () => {
-      (mockPrismaClient.symbol.count as vi.Mock).mockResolvedValue(5)
+      ;(mockPrismaClient.symbol.count as vi.Mock).mockResolvedValue(5)
 
       const result = await repository.count({ type: 'Common Stock' })
 

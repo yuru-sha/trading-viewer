@@ -8,7 +8,12 @@ export * from './business'
 // These will be deprecated in future versions
 
 // From api/contracts.ts
-export type { ApiResponse as ApiContractResponse, NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from './api/contracts'
+export type {
+  ApiResponse as ApiContractResponse,
+  NormalizedSymbol,
+  NormalizedQuote,
+  NormalizedCandleResponse,
+} from './api/contracts'
 export type { ApiError } from './api-contract'
 
 // From old repository.ts
