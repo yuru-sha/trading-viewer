@@ -98,8 +98,8 @@ export const calculateRSI = (data: PriceData[], period: number = 14): RSIResult[
   if (data.length < period + 1) return []
 
   const result: RSIResult[] = []
-  let gains: number[] = []
-  let losses: number[] = []
+  const gains: number[] = []
+  const losses: number[] = []
 
   // Calculate initial gains and losses
   for (let i = 1; i < period + 1; i++) {

@@ -280,7 +280,7 @@ export class IndicatorCalculationService {
         values = this.calculateRSI(candles, parameters.period || 14)
         break
 
-      case 'macd':
+      case 'macd': {
         const macdResult = this.calculateMACD(
           candles,
           parameters.fastPeriod || 12,
@@ -291,8 +291,9 @@ export class IndicatorCalculationService {
         // In a real implementation, you might want to return all three lines
         values = macdResult.macd
         break
+      }
 
-      case 'bollinger':
+      case 'bollinger': {
         const bbResult = this.calculateBollingerBands(
           candles,
           parameters.period || 20,
@@ -307,6 +308,7 @@ export class IndicatorCalculationService {
           lower2: bbResult.lower2
         }
         break
+      }
 
       default:
         throw new Error(`Unsupported indicator type: ${type}`)

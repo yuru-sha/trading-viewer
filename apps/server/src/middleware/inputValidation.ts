@@ -38,7 +38,7 @@ const INJECTION_PATTERNS = {
   LDAP_INJECTION: [
     /(\*\)|\|\||&&|\(|\)|,|;|\\|\||&)/,
     /(objectClass=\*|objectCategory=\*)/i,
-    /(\(\w+=\*\)|\(\!\w+=\*\))/,
+    /(\(\w+=\*\)|\(!\w+=\*\))/,
   ],
 
   // Command Injection patterns
@@ -51,7 +51,7 @@ const INJECTION_PATTERNS = {
 
   // Path Traversal patterns
   PATH_TRAVERSAL: [
-    /(\.\.[\/\\]|\.\.%2f|\.\.%5c|%2e%2e%2f|%2e%2e%5c)/i,
+    /(\.\.[/\\]|\.\.%2f|\.\.%5c|%2e%2e%2f|%2e%2e%5c)/i,
     /(\/etc\/passwd|\/etc\/shadow|\.ssh|\.htaccess|web\.config)/i,
     /(\\windows\\|\\system32\\|\\boot\\)/i,
   ],

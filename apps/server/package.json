@@ -11,7 +11,7 @@
     "start": "node dist/index.js",
     "start:prod": "NODE_ENV=production node dist/index.js",
     "stop": "kill -SIGTERM $(lsof -t -i:8000) 2>/dev/null || echo 'Server not running'",
-    "lint": "echo 'Lint check passed - TypeScript linting disabled for now'",
+    "lint": "eslint src --ext .ts --max-warnings 50",
     "lint:fix": "eslint src --ext .ts --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",

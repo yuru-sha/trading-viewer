@@ -44,8 +44,8 @@ export function calculateRSI(prices: number[], period: number): number[] {
   }
 
   const rsi: number[] = []
-  let gains: number[] = []
-  let losses: number[] = []
+  const gains: number[] = []
+  const losses: number[] = []
 
   // 初期期間の上昇と下降を計算
   for (let i = 1; i <= period; i++) {

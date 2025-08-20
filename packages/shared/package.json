@@ -17,8 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && npm run build:types",
-    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist --declarationDir dist",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",

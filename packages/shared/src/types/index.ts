@@ -7,8 +7,8 @@ export * from './business'
 // Legacy compatibility exports for gradual migration
 // These will be deprecated in future versions
 
-// From old api-contract.ts
-export type { ApiResponse as ApiContractResponse } from './api/contracts'
+// From api/contracts.ts
+export type { ApiResponse as ApiContractResponse, NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from './api/contracts'
 export type { ApiError } from './api-contract'
 
 // From old repository.ts
@@ -18,8 +18,8 @@ export type {
 } from './business'
 
 // From old domains structure (backward compatibility)
-export type { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from './api/contracts'
 export type { UserIndicators } from './core'
+export type { CreateDrawingToolRequest } from './api'
 
 // Legacy re-exports from domains
 export type { User, Symbol, Quote, Candle } from './core'

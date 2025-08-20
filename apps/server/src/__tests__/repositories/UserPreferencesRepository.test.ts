@@ -245,7 +245,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('delete', () => {
     it('should delete user preferences successfully', async () => {
-      ;(mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
+      (mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
 
       await repository.delete('1')
 
@@ -257,7 +257,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('deleteByUserId', () => {
     it('should delete user preferences by userId', async () => {
-      ;(mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
+      (mockPrismaClient.userPreferences.delete as vi.Mock).mockResolvedValue({})
 
       await repository.deleteByUserId('user123')
 
@@ -269,7 +269,7 @@ describe('UserPreferencesRepository', () => {
 
   describe('count', () => {
     it('should count user preferences with filter', async () => {
-      ;(mockPrismaClient.userPreferences.count as vi.Mock).mockResolvedValue(5)
+      (mockPrismaClient.userPreferences.count as vi.Mock).mockResolvedValue(5)
 
       const result = await repository.count({ theme: 'dark' })
 
@@ -350,7 +350,7 @@ describe('UserPreferencesRepository', () => {
       })
 
       it('should return empty array when no preferences found', async () => {
-        ;(mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(null)
+        (mockPrismaClient.userPreferences.findUnique as vi.Mock).mockResolvedValue(null)
 
         const result = await repository.getIndicators('user123')
 

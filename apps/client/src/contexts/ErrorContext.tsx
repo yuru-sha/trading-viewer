@@ -309,7 +309,7 @@ export const useErrorHandlers = () => {
 
   const handleWebSocketError = useCallback(
     (error: any, context?: string) => {
-      let title = 'リアルタイム接続エラー'
+      const title = 'リアルタイム接続エラー'
       let message = 'リアルタイムデータの接続に問題があります。'
 
       if (context) {
@@ -424,7 +424,7 @@ export class ErrorBoundary extends React.Component<
 
     // You could send this to an error reporting service here
     if (typeof window !== 'undefined' && (window as any).errorReporter) {
-      ;(window as any).errorReporter.captureException(error, {
+      (window as any).errorReporter.captureException(error, {
         tags: { source: 'react' },
         extra: errorInfo,
       })
