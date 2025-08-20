@@ -101,7 +101,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
             name: item.name,
           })) || []
         setWatchlistSymbols(symbols)
-      } catch (error) {
+      } catch {
         console.log('Failed to fetch watchlist, showing empty list')
         // Don't fallback to popular symbols - show empty watchlist instead
         setWatchlistSymbols([])

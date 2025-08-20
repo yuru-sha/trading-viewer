@@ -1,10 +1,5 @@
 import { BaseCommand } from './BaseCommand'
-import type {
-  ChartSettingsParams,
-  UpdateChartSettingsCommand,
-  AddIndicatorCommand as IAddIndicatorCommand,
-  RemoveIndicatorCommand as IRemoveIndicatorCommand,
-} from '@trading-viewer/shared'
+import type { ChartSettingsParams, UpdateChartSettingsCommand } from '@trading-viewer/shared'
 
 /**
  * Chart State Interface
@@ -328,7 +323,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
       try {
         await command.execute()
         this.executedCommands.push(command)
-      } catch (error) {
+      } catch {
         // Rollback executed commands
         for (let i = this.executedCommands.length - 1; i >= 0; i--) {
           try {
@@ -339,7 +334,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
             console.error('Failed to rollback chart command:', undoError)
           }
         }
-        throw error
+        throw new Error('Operation failed')
       }
     }
   }
@@ -350,8 +345,8 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
       if (command.canUndo && command.undo) {
         try {
           await command.undo()
-        } catch (error) {
-          console.error(`Failed to undo chart command ${command.id}:`, error)
+        } catch {
+          console.error('Operation failed')
         }
       }
     }
@@ -365,9 +360,9 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
         } else {
           await command.execute()
         }
-      } catch (error) {
-        console.error(`Failed to redo chart command ${command.id}:`, error)
-        throw error
+      } catch {
+        console.error('Operation failed')
+        throw new Error('Operation failed')
       }
     }
   }

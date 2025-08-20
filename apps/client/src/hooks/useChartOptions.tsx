@@ -1466,7 +1466,7 @@ function calculateIndicatorFromData(
       default:
         return []
     }
-  } catch (error) {
+  } catch {
     console.error('Error calculating indicator:', indicator.type, error)
     return []
   }

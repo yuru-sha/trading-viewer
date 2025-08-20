@@ -233,7 +233,7 @@ export const useChartEvents = (
               )
               return distance <= tolerance
             }
-          } catch (error) {
+          } catch {
             console.error('🎯 Error checking tool click:', error)
           }
           return false
@@ -303,7 +303,7 @@ export const useChartEvents = (
                       }
                     }
                   }
-                } catch (error) {
+                } catch {
                   console.error('🎯 Error checking handle click:', error)
                 }
               }
@@ -780,7 +780,7 @@ export const useChartEvents = (
               )
             }
           }
-        } catch (error) {
+        } catch {
           console.error('🎯 Error in handleChartMouseDown:', error)
         }
       }
@@ -957,7 +957,7 @@ export const useChartEvents = (
               return distance <= tolerance
             }
           }
-        } catch (error) {
+        } catch {
           console.error('🎯 Error checking drawing tool click:', error)
         }
         return false
@@ -1159,7 +1159,7 @@ export const useChartEvents = (
           } else {
             console.error('🎯 handleChartMouseMove is undefined in handlersRef')
           }
-        } catch (error) {
+        } catch {
           console.error('🎯 Error calling handleChartMouseMove:', error)
         }
       } else {

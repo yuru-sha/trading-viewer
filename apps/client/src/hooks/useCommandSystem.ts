@@ -114,10 +114,10 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
         }
 
         return result
-      } catch (error) {
+      } catch {
         const errorResult: CommandResult<T> = {
           success: false,
-          error: error instanceof Error ? error.message : String(error),
+          error: 'Operation failed',
           executionTime: 0,
           commandId: command.id,
         }
@@ -134,7 +134,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
           })
         }
 
-        throw error
+        throw new Error('Operation failed')
       } finally {
         setIsExecuting(false)
       }
@@ -187,12 +187,12 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       }
 
       return result
-    } catch (error) {
+    } catch {
       if (enableNotifications) {
         addError({
           type: 'error',
           title: 'Undo Failed',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Operation failed',
           source: 'client',
         })
       }
@@ -215,12 +215,12 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       }
 
       return result
-    } catch (error) {
+    } catch {
       if (enableNotifications) {
         addError({
           type: 'error',
           title: 'Redo Failed',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Operation failed',
           source: 'client',
         })
       }

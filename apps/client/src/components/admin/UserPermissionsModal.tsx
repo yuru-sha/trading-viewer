@@ -95,7 +95,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
         setSelectedPermissions(new Set(response.data.directPermissions.map(p => p.id)))
         setSelectedGroups(new Set(response.data.groups.map(g => g.id)))
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch user permissions:', error)
       showError('Failed to load user permissions')
     } finally {
@@ -111,7 +111,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
       if (response.success) {
         setAllPermissions(response.data)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch permissions:', error)
     }
   }
@@ -122,7 +122,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
       if (response.success) {
         setAllGroups(response.data)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch groups:', error)
     }
   }
@@ -139,7 +139,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
 
       showSuccess('User permissions updated successfully')
       fetchUserPermissions()
-    } catch (error) {
+    } catch {
       console.error('Failed to update permissions:', error)
       showError('Failed to update user permissions')
     } finally {

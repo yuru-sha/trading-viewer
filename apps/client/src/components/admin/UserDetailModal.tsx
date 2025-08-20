@@ -96,7 +96,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           isActive: response.data.isActive,
         })
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch user details:', error)
       showError('Failed to load user details')
     } finally {
@@ -114,7 +114,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
       setIsEditing(false)
       fetchUserDetails()
       onUserUpdate()
-    } catch (error) {
+    } catch {
       console.error('Failed to update user:', error)
       showError('Failed to update user')
     } finally {

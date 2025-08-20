@@ -42,7 +42,7 @@ export const useChartInstance = () => {
         price: price,
         dataIndex: clampedIndex,
       }
-    } catch (error) {
+    } catch {
       console.error('Coordinate conversion failed:', error)
       return null
     }
@@ -56,7 +56,7 @@ export const useChartInstance = () => {
 
       try {
         return chart.convertToPixel('grid', [dataIndex, price])
-      } catch (error) {
+      } catch {
         console.error('Data to pixel conversion failed:', error)
         return null
       }
@@ -94,7 +94,7 @@ export const useChartInstance = () => {
 
         console.log('📸 Screenshot saved successfully')
         return dataURL
-      } catch (error) {
+      } catch {
         console.error('Screenshot failed:', error)
         return null
       }

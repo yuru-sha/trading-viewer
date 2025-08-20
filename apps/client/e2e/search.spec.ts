@@ -122,9 +122,7 @@ test.describe('Search Functionality', () => {
       await page.waitForTimeout(1000)
 
       // Check for suggestions dropdown or similar
-      const suggestions = page.locator(
-        '[data-testid="suggestions"], .suggestions, .autocomplete, .dropdown'
-      )
+      page.locator('[data-testid="suggestions"], .suggestions, .autocomplete, .dropdown')
 
       // Don't fail if no suggestions, just verify no errors
       await expect(page.locator('body')).toBeVisible()

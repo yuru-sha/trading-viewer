@@ -27,8 +27,8 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
         (item: any) => item.symbol === currentSymbol
       )
       setIsInWatchlist(!!isSymbolInWatchlist)
-    } catch (error) {
-      console.error('Failed to check watchlist status:', error)
+    } catch {
+      console.error('Operation failed')
       setIsInWatchlist(false)
     }
   }
@@ -70,8 +70,8 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
         setIsInWatchlist(true)
         console.log(`${currentSymbol} added to watchlist`)
       }
-    } catch (error) {
-      console.error('Failed to toggle watchlist:', error)
+    } catch {
+      console.error('Operation failed')
     } finally {
       setWatchlistLoading(false)
     }

@@ -163,7 +163,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
       window.URL.revokeObjectURL(url)
 
       showSuccess('Users exported successfully')
-    } catch (error) {
+    } catch {
       console.error('Failed to export users:', error)
       showError('Failed to export users')
     } finally {

@@ -218,7 +218,7 @@ const WatchlistPage: React.FC = () => {
       } else {
         setWatchlistItems([])
       }
-    } catch (error) {
+    } catch {
       console.error('Error fetching watchlist:', error)
       setError('ウォッチリストの取得に失敗しました')
       // フォールバック: 空のウォッチリストを設定
@@ -267,7 +267,7 @@ const WatchlistPage: React.FC = () => {
       }
 
       toast.success('削除完了', { message })
-    } catch (error) {
+    } catch {
       console.error('Error deleting from watchlist:', error)
       toast.error('削除に失敗しました', {
         message: 'ウォッチリストからの削除に失敗しました。再度お試しください。',
@@ -289,7 +289,7 @@ const WatchlistPage: React.FC = () => {
       } else {
         throw new Error(response.error || 'Position update failed')
       }
-    } catch (error) {
+    } catch {
       console.error('Error updating watchlist positions:', error)
       setError('ウォッチリストの順番更新に失敗しました')
       // エラー時は元の順序に戻す
@@ -365,7 +365,7 @@ const WatchlistPage: React.FC = () => {
           addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
         }
       })
-    } catch (error) {
+    } catch {
       console.error('Batch quotes fetch error:', error)
       // エラーの場合はモックデータを使用
       return generateMockQuotes(symbols.slice(0, 10))

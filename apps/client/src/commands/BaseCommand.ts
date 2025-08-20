@@ -1,4 +1,4 @@
-import type { ICommand, CommandResult } from '@trading-viewer/shared'
+import type { ICommand } from '@trading-viewer/shared'
 
 /**
  * Abstract Base Command
@@ -58,8 +58,8 @@ export abstract class BaseCommand<TResult = any, TParams = any>
       this.executed = true
 
       return result
-    } catch (error) {
-      throw new Error(`Command execution failed: ${error}`)
+    } catch {
+      throw new Error('Command execution failed')
     }
   }
 
@@ -138,7 +138,7 @@ export abstract class BaseCommand<TResult = any, TParams = any>
    * Restore previous state for undo functionality
    * Subclasses can override this method
    */
-  protected async restoreState(state: any): Promise<void> {
+  protected async restoreState(_state: any): Promise<void> {
     // Default implementation does nothing
   }
 

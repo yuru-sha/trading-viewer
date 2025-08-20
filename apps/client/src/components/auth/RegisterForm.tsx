@@ -79,7 +79,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
       await register(registerData)
       showSuccess('アカウントが正常に作成されました')
       onSuccess?.()
-    } catch (error) {
+    } catch {
       // Error handling is done in the AuthContext
     } finally {
       setIsSubmitting(false)

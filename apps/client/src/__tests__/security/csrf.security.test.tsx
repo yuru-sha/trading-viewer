@@ -149,7 +149,7 @@ describe('CSRF Protection Tests', () => {
 
       try {
         await api.watchlist.add('AAPL', 'Apple Inc.')
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -175,7 +175,7 @@ describe('CSRF Protection Tests', () => {
 
       try {
         await api.watchlist.add('AAPL', 'Apple Inc.')
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 

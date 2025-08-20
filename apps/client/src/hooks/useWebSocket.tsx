@@ -156,7 +156,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
               }
               break
           }
-        } catch (error) {
+        } catch {
           console.error('Failed to parse WebSocket message:', error)
         }
       }
@@ -210,7 +210,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         }
         setIsConnecting(false)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to create WebSocket:', error)
       setError('Failed to create connection')
       setIsConnecting(false)

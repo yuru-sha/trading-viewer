@@ -99,7 +99,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
             quarter: 'Q3 2024',
           },
         ])
-      } catch (error) {
+      } catch {
         // Failed to fetch ranking data
       } finally {
         setLoading(false)
@@ -115,7 +115,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
         setIndicesLoading(true)
         const indicesRes = await api.market.getIndices()
         setIndices(indicesRes.data)
-      } catch (error) {
+      } catch {
         // Failed to fetch indices data
       } finally {
         setIndicesLoading(false)

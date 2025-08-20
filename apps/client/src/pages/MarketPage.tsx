@@ -296,7 +296,7 @@ const MarketPage: React.FC = () => {
         }))
 
         setMarketData(validQuotes)
-      } catch (error) {
+      } catch {
         console.error('Failed to fetch market data:', error)
         setError(error instanceof Error ? error.message : 'Failed to load market data')
       } finally {

@@ -44,7 +44,7 @@ export const SymbolSearch: React.FC<SymbolSearchProps> = ({
         setResults(response.symbols)
         setIsOpen(true)
         setSelectedIndex(-1)
-      } catch (error) {
+      } catch {
         console.error('Failed to search symbols:', error)
         setResults([])
       } finally {

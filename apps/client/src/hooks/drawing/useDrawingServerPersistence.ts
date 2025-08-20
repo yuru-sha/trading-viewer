@@ -73,8 +73,8 @@ export const useDrawingServerPersistence = (
 
         console.log(`💾 Saved ${tools.length} drawing tools to server for ${targetSymbol}`)
         return true
-      } catch (error) {
-        console.error('Failed to save drawing tools to server:', error)
+      } catch {
+        console.error('Operation failed')
         return false
       } finally {
         setIsSaving(false)
@@ -113,8 +113,8 @@ export const useDrawingServerPersistence = (
 
         console.log(`📂 No saved drawings found on server for ${targetSymbol}`)
         return []
-      } catch (error) {
-        console.error('Failed to load drawing tools from server:', error)
+      } catch {
+        console.error('Operation failed')
         return []
       } finally {
         setIsLoading(false)
@@ -152,8 +152,8 @@ export const useDrawingServerPersistence = (
 
         console.log(`🗑️ Deleted saved drawings from server for ${targetSymbol}`)
         return true
-      } catch (error) {
-        console.error('Failed to delete saved drawings from server:', error)
+      } catch {
+        console.error('Operation failed')
         return false
       }
     },

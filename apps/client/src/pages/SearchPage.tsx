@@ -33,7 +33,7 @@ const SearchPage: React.FC = () => {
       if (response.success && response.data?.watchlist) {
         setWatchlistItems(response.data.watchlist)
       }
-    } catch (error) {
+    } catch {
       console.error('Error fetching watchlist:', error)
     }
   }
@@ -49,7 +49,7 @@ const SearchPage: React.FC = () => {
       } else {
         setError(`Failed to remove ${symbol} from watchlist`)
       }
-    } catch (error) {
+    } catch {
       console.error('Error removing from watchlist:', error)
       setError(error instanceof Error ? error.message : 'Failed to remove from watchlist')
     }
@@ -69,7 +69,7 @@ const SearchPage: React.FC = () => {
       const results = await api.market.searchSymbols({ q: query, limit: 20 })
       setSearchResults(results.symbols || [])
       setHasSearched(true)
-    } catch (error) {
+    } catch {
       console.error('Search failed:', error)
       setError(error instanceof Error ? error.message : 'Search failed')
       setSearchResults([])
@@ -96,7 +96,7 @@ const SearchPage: React.FC = () => {
       } else {
         setError(`Failed to add ${symbol} to watchlist`)
       }
-    } catch (error) {
+    } catch {
       console.error('Error adding to watchlist:', error)
 
       // 409 Conflict (既に存在) の場合は情報メッセージとして扱う

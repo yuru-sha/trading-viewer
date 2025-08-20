@@ -56,7 +56,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
       await login(formData)
       showSuccess('ログインが成功しました')
       onSuccess?.()
-    } catch (error) {
+    } catch {
       // Error handling is done in the AuthContext
     } finally {
       setIsSubmitting(false)

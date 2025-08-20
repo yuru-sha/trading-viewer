@@ -98,7 +98,7 @@ export class ApiService {
 
       const data = await response.json()
       return data
-    } catch (error) {
+    } catch {
       clearTimeout(timeoutId)
 
       // Handle timeout
@@ -112,7 +112,7 @@ export class ApiService {
         return this.request<T>(endpoint, { ...options, retries: retries - 1 })
       }
 
-      throw error
+      throw new Error('Operation failed')
     }
   }
 

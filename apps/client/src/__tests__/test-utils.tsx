@@ -187,7 +187,7 @@ export const mockApiResponses = {
       generateMockSymbol({ symbol: 'MSFT', description: 'Microsoft Corporation' }),
     ].filter(symbol => symbol.symbol.includes(query.toUpperCase())),
 
-  getCandleData: (symbol: string, timeframe: string) => generateMockCandleData(),
+  getCandleData: (_symbol: string, _timeframe: string) => generateMockCandleData(),
 
   getQuote: (symbol: string) => generateMockQuote(symbol),
 }

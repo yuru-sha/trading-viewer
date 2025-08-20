@@ -332,7 +332,7 @@ export class TradingViewerApiClient implements ITradingViewerApiClient {
     try {
       await this.appInfo.getHealthStatus()
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

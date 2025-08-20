@@ -221,7 +221,7 @@ export class ErrorRecoveryManager {
   private retryAttempts = new Map<string, number>()
   private maxRetries = 3
 
-  async attemptRecovery(error: any, context?: string): Promise<boolean> {
+  async attemptRecovery(error: any, _context?: string): Promise<boolean> {
     const classification = classifyError(error)
 
     if (!classification.isRecoverable) {
@@ -343,7 +343,7 @@ export const reportError = async (report: ErrorReport): Promise<void> => {
   // デバッグ環境では console.error で出力
   if (process.env.NODE_ENV === 'development') {
     console.group('🚨 Error Report')
-    console.error('Error:', report.error)
+    console.error('Operation failed')
     console.log('Classification:', report.classification)
     console.log('Context:', report.context)
     console.log('URL:', report.url)

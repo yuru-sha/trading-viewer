@@ -94,7 +94,7 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
       if (announcement) {
         announceToScreenReader(`Focused: ${announcement}`)
       }
-    } catch (error) {
+    } catch {
       console.warn('Failed to focus element:', element, error)
     }
   }, [])

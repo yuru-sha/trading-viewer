@@ -157,7 +157,7 @@ class AuthApiClient {
       }
 
       throw new Error('Invalid CSRF token response')
-    } catch (error) {
+    } catch {
       this.csrfToken = null
       throw error
     }
@@ -189,7 +189,7 @@ class AuthApiClient {
           ...config.headers,
           'x-csrf-token': csrfToken,
         }
-      } catch (error) {
+      } catch {
         // If CSRF token fetch fails, proceed without it (will likely get 403)
         console.warn('Failed to get CSRF token:', error)
       }
@@ -243,7 +243,7 @@ class AuthApiClient {
 
       // Return empty object for non-JSON responses
       return {} as any
-    } catch (error) {
+    } catch {
       if (!(error as any).response) {
         // Network error
         throw error
@@ -312,7 +312,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         clearAuth()
       }
-    } catch (error) {
+    } catch {
       clearAuth()
     }
   }, [clearAuth])
@@ -363,7 +363,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           throw new Error('Invalid login response')
         }
-      } catch (error) {
+      } catch {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         handleApiError(error, 'login')
         throw error
@@ -390,7 +390,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             tokens: null,
           })
         }
-      } catch (error) {
+      } catch {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         handleApiError(error, 'registration')
         throw error
@@ -403,7 +403,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout')
-    } catch (error) {
+    } catch {
       console.warn('Logout API call failed:', error)
     } finally {
       clearAuth()
@@ -424,7 +424,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             user: updatedUser,
           }))
         }
-      } catch (error) {
+      } catch {
         handleApiError(error, 'profile update')
         throw error
       }
@@ -438,7 +438,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         await apiClient.post('/auth/change-password', data)
         clearAuth()
-      } catch (error) {
+      } catch {
         handleApiError(error, 'password change')
         throw error
       }
@@ -451,7 +451,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await apiClient.delete('/auth/account')
       clearAuth()
-    } catch (error) {
+    } catch {
       handleApiError(error, 'account deletion')
       throw error
     }
@@ -467,7 +467,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         })
-      } catch (error) {
+      } catch {
         handleApiError(error, 'password reset request')
         throw error
       }
@@ -490,7 +490,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const errorData = await response.json().catch(() => ({}))
           throw { response: { status: response.status, data: errorData } }
         }
-      } catch (error) {
+      } catch {
         handleApiError(error, 'password reset')
         throw error
       }

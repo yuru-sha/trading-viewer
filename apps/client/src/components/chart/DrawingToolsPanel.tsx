@@ -128,7 +128,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
       }
 
       console.log(`Saved ${drawingElements.length} drawings for ${currentSymbol}`)
-    } catch (error) {
+    } catch {
       console.error('Failed to save drawings:', error)
     } finally {
       setIsLoading(false)
@@ -148,7 +148,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
         }
         console.log(`Deleted saved drawings for ${currentSymbol}`)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to delete saved drawings:', error)
     } finally {
       setIsLoading(false)
@@ -195,7 +195,7 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
 
         console.log(`Loaded ${loadedElements.length} drawings for ${currentSymbol}`)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to load drawings:', error)
     } finally {
       setIsLoading(false)

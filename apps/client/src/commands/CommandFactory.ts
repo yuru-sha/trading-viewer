@@ -32,7 +32,7 @@ export class CommandFactory implements ICommandFactory {
 
     try {
       return creator(params, this.getContexts()) as T
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to create command '${type}': ${error}`)
     }
   }
@@ -90,7 +90,7 @@ export class CommandFactory implements ICommandFactory {
     try {
       const data = JSON.parse(serializedCommand)
       return this.createCommand(data.type, data.params)
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to deserialize command: ${error}`)
     }
   }
@@ -183,8 +183,8 @@ class BatchCommand extends BaseCommand<any[], { commands: ICommand[] }> {
       if (command.canUndo && command.undo) {
         try {
           await command.undo()
-        } catch (error) {
-          console.error(`Failed to undo command ${command.id}:`, error)
+        } catch {
+          console.error('Operation failed')
         }
       }
     }

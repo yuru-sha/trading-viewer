@@ -143,8 +143,8 @@ export class AuthService {
   async ensureCSRFToken(): Promise<void> {
     try {
       await this.getCSRFToken()
-    } catch (error) {
-      console.warn('Failed to ensure CSRF token:', error)
+    } catch {
+      console.warn('Operation failed')
     }
   }
 

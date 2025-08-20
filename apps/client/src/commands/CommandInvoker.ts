@@ -49,11 +49,11 @@ export class CommandInvoker implements ICommandInvoker {
       }
 
       return result
-    } catch (error) {
+    } catch {
       const executionTime = performance.now() - startTime
       const result: CommandResult<T> = {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: 'Operation failed',
         executionTime,
         commandId: command.id,
       }
@@ -63,7 +63,7 @@ export class CommandInvoker implements ICommandInvoker {
         this.addToHistory(command, result)
       }
 
-      throw error
+      throw new Error('Operation failed')
     } finally {
       this.isExecuting = false
     }
@@ -95,8 +95,8 @@ export class CommandInvoker implements ICommandInvoker {
       this.currentIndex--
 
       return true
-    } catch (error) {
-      console.error('Failed to undo command:', error)
+    } catch {
+      console.error('Operation failed')
       return false
     } finally {
       this.isExecuting = false
@@ -130,8 +130,8 @@ export class CommandInvoker implements ICommandInvoker {
       this.currentIndex++
 
       return true
-    } catch (error) {
-      console.error('Failed to redo command:', error)
+    } catch {
+      console.error('Operation failed')
       return false
     } finally {
       this.isExecuting = false
@@ -215,7 +215,7 @@ export class CommandInvoker implements ICommandInvoker {
       try {
         const result = await this.execute(command)
         results.push(result)
-      } catch (error) {
+      } catch {
         // If a command fails, stop execution
         break
       }
@@ -233,7 +233,7 @@ export class CommandInvoker implements ICommandInvoker {
         error =>
           ({
             success: false,
-            error: error instanceof Error ? error.message : String(error),
+            error: 'Operation failed',
             executionTime: 0,
             commandId: command.id,
           }) as CommandResult<T>
@@ -256,8 +256,8 @@ export class CommandInvoker implements ICommandInvoker {
 
     try {
       return await Promise.race([this.execute(command), timeoutPromise])
-    } catch (error) {
-      throw error
+    } catch {
+      throw new Error('Operation failed')
     }
   }
 
@@ -274,7 +274,7 @@ export class CommandInvoker implements ICommandInvoker {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await this.execute(command)
-      } catch (error) {
+      } catch {
         lastError = error instanceof Error ? error : new Error(String(error))
 
         if (attempt < maxRetries) {

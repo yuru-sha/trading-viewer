@@ -233,7 +233,7 @@ export class BatchDrawingCommand extends BaseCommand<void, { commands: BaseComma
       try {
         await command.execute()
         this.executedCommands.push(command)
-      } catch (error) {
+      } catch {
         // Rollback executed commands
         for (let i = this.executedCommands.length - 1; i >= 0; i--) {
           try {
@@ -244,7 +244,7 @@ export class BatchDrawingCommand extends BaseCommand<void, { commands: BaseComma
             console.error('Failed to rollback command during batch execution:', undoError)
           }
         }
-        throw error
+        throw new Error('Operation failed')
       }
     }
   }
@@ -256,8 +256,8 @@ export class BatchDrawingCommand extends BaseCommand<void, { commands: BaseComma
       if (command.canUndo && command.undo) {
         try {
           await command.undo()
-        } catch (error) {
-          console.error(`Failed to undo command ${command.id}:`, error)
+        } catch {
+          console.error('Operation failed')
         }
       }
     }
@@ -272,9 +272,9 @@ export class BatchDrawingCommand extends BaseCommand<void, { commands: BaseComma
         } else {
           await command.execute()
         }
-      } catch (error) {
-        console.error(`Failed to redo command ${command.id}:`, error)
-        throw error
+      } catch {
+        console.error('Operation failed')
+        throw new Error('Operation failed')
       }
     }
   }

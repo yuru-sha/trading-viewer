@@ -48,8 +48,8 @@ export const useDrawingPersistence = (
           `💾 Saved ${tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
         )
         return true
-      } catch (error) {
-        console.error('Failed to save drawing tools to localStorage:', error)
+      } catch {
+        console.error('Operation failed')
         return false
       }
     },
@@ -82,8 +82,8 @@ export const useDrawingPersistence = (
           `📂 Loaded ${data.tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
         )
         return data.tools as DrawingTool[]
-      } catch (error) {
-        console.error('Failed to load drawing tools from localStorage:', error)
+      } catch {
+        console.error('Operation failed')
         return []
       }
     },
@@ -119,7 +119,7 @@ export const useDrawingPersistence = (
               combinations.push({ symbol: data.symbol, timeframe: data.timeframe })
             }
           }
-        } catch (error) {
+        } catch {
           console.warn(`Failed to parse data for key: ${key}`)
         }
       }
@@ -139,8 +139,8 @@ export const useDrawingPersistence = (
         localStorage.removeItem(key)
         console.log(`🗑️ Deleted saved drawings for ${targetSymbol}:${targetTimeframe || '1D'}`)
         return true
-      } catch (error) {
-        console.error('Failed to delete saved drawings:', error)
+      } catch {
+        console.error('Operation failed')
         return false
       }
     },
@@ -163,7 +163,7 @@ export const useDrawingPersistence = (
           if (data.tools) {
             totalTools += data.tools.length
           }
-        } catch (error) {
+        } catch {
           // Skip invalid entries
         }
       }

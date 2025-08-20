@@ -85,7 +85,7 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
           }
         })
       }).observe({ entryTypes: ['paint'] })
-    } catch (error) {
+    } catch {
       console.warn('Performance monitoring setup failed:', error)
     }
   }, [])

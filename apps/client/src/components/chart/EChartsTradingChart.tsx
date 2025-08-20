@@ -258,7 +258,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
                 }
               }
             }
-          } catch (error) {
+          } catch {
             console.error('🎨 Failed to convert coordinates for preview:', error)
           }
         }
@@ -570,7 +570,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
                 }
               }
             }
-          } catch (error) {
+          } catch {
             console.error(`🎨 Failed to convert coordinates for ${tool.type}:`, error)
           }
         }

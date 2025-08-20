@@ -102,7 +102,7 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
       window.URL.revokeObjectURL(url)
 
       showSuccess(`Exported ${selectedUsers.length} users to JSON`)
-    } catch (error) {
+    } catch {
       console.error('Failed to export users:', error)
       showError('Failed to export users')
     } finally {

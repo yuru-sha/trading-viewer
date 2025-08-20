@@ -36,7 +36,7 @@ const UserProfile: React.FC = () => {
     try {
       await updateProfile(profileForm)
       showSuccess('プロフィールを更新しました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -74,7 +74,7 @@ const UserProfile: React.FC = () => {
         newPassword: passwordForm.newPassword,
       })
       showSuccess('パスワードを変更しました。再度ログインしてください。')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -93,7 +93,7 @@ const UserProfile: React.FC = () => {
     try {
       await deleteAccount()
       showWarning('アカウントが削除されました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -104,7 +104,7 @@ const UserProfile: React.FC = () => {
     try {
       await logout()
       showSuccess('ログアウトしました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     }
   }

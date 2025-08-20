@@ -59,8 +59,8 @@ async function getCSRFToken(): Promise<string> {
         const data = await response.json()
         csrfToken = data.data?.csrfToken
       }
-    } catch (error) {
-      console.warn('Failed to get CSRF token:', error)
+    } catch {
+      console.warn('Operation failed')
     }
   }
   return csrfToken || ''

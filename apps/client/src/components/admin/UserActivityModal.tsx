@@ -96,7 +96,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
           await fetchSecurityEvents()
           break
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch data:', error)
       showError('Failed to load user activity data')
     } finally {
@@ -141,7 +141,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/sessions/${sessionId}`)
       showSuccess('Session terminated successfully')
       fetchActiveSessions()
-    } catch (error) {
+    } catch {
       console.error('Failed to terminate session:', error)
       showError('Failed to terminate session')
     } finally {
@@ -159,7 +159,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/users/${userId}/sessions`)
       showSuccess('All sessions terminated successfully')
       fetchActiveSessions()
-    } catch (error) {
+    } catch {
       console.error('Failed to terminate all sessions:', error)
       showError('Failed to terminate all sessions')
     } finally {

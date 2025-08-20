@@ -1,8 +1,5 @@
 import { BaseCommand } from './BaseCommand'
-import type {
-  UserPreferencesParams,
-  UpdateUserPreferencesCommand as IUpdateUserPreferencesCommand,
-} from '@trading-viewer/shared'
+import type { UserPreferencesParams } from '@trading-viewer/shared'
 
 /**
  * User Preferences State Interface
@@ -323,7 +320,7 @@ export class ImportUserPreferencesCommand extends BaseCommand<void, { data: stri
       }
 
       return true
-    } catch (error) {
+    } catch {
       return 'Invalid JSON format in import data'
     }
   }

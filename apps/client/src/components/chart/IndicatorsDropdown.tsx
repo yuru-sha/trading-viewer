@@ -248,7 +248,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
 
       setConfigModal(null)
       onClose()
-    } catch (error) {
+    } catch {
       console.error('❌ Failed to add indicator:', error)
       console.error('❌ Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -262,7 +262,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   const handleToggleIndicator = async (id: string, currentVisible: boolean) => {
     try {
       await toggleIndicator(id, !currentVisible)
-    } catch (error) {
+    } catch {
       console.error('Failed to toggle indicator:', error)
     }
   }
@@ -278,7 +278,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
       console.log('🎨 Color update successful:', result)
       setColorPickerIndicator(null)
       setEditingIndicator(null)
-    } catch (error) {
+    } catch {
       console.error('Failed to update indicator color:', error)
       alert('色の変更に失敗しました')
     }
@@ -288,7 +288,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     try {
       await deleteIndicator.mutateAsync(indicatorId)
       setEditingIndicator(null)
-    } catch (error) {
+    } catch {
       console.error('Failed to delete indicator:', error)
       alert('インジケーターの削除に失敗しました')
     }
@@ -318,7 +318,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
       console.log('📊 Parameter update successful:', result)
       setEditingParametersIndicator(null)
       setEditingIndicator(null)
-    } catch (error) {
+    } catch {
       console.error('Failed to update indicator parameters:', error)
       alert('パラメーターの更新に失敗しました')
     }

@@ -71,7 +71,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
             changePercent: quote.dp,
             lastUpdate: Date.now(),
           }
-        } catch (error) {
+        } catch {
           console.warn(`Failed to fetch data for ${symbol}:`, error)
           return {
             symbol,
@@ -90,7 +90,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
       // Save to localStorage
       const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
       localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch watchlist data:', error)
     } finally {
       setLoading(false)
@@ -120,7 +120,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
       // Save to localStorage
       const symbolsToSave = updatedWatchlist.map(item => ({ symbol: item.symbol, name: item.name }))
       localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch (error) {
+    } catch {
       console.error('Failed to add symbol to watchlist:', error)
     }
   }

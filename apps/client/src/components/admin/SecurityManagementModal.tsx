@@ -85,7 +85,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       if (response.success) {
         setSecuritySettings(response.data)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch security settings:', error)
       showError('Failed to load security settings')
     } finally {
@@ -117,7 +117,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`Two-factor authentication ${newStatus ? 'enabled' : 'disabled'} successfully`)
-    } catch (error) {
+    } catch {
       console.error('Failed to toggle 2FA:', error)
       showError(`Failed to ${newStatus ? 'enable' : 'disable'} two-factor authentication`)
     } finally {
@@ -151,7 +151,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
         setNewIPRestriction({ ipAddress: '', subnet: '', description: '' })
         showSuccess('IP restriction added successfully')
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to add IP restriction:', error)
       showError('Failed to add IP restriction')
     } finally {
@@ -180,7 +180,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`IP restriction ${!isActive ? 'enabled' : 'disabled'}`)
-    } catch (error) {
+    } catch {
       console.error('Failed to toggle IP restriction:', error)
       showError('Failed to update IP restriction')
     } finally {
@@ -207,7 +207,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('IP restriction removed successfully')
-    } catch (error) {
+    } catch {
       console.error('Failed to remove IP restriction:', error)
       showError('Failed to remove IP restriction')
     } finally {
@@ -232,7 +232,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Trusted device revoked successfully')
-    } catch (error) {
+    } catch {
       console.error('Failed to revoke trusted device:', error)
       showError('Failed to revoke trusted device')
     } finally {
@@ -263,7 +263,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Notification settings updated')
-    } catch (error) {
+    } catch {
       console.error('Failed to update notification settings:', error)
       showError('Failed to update notification settings')
     } finally {

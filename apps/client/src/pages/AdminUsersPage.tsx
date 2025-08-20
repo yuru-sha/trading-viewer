@@ -144,7 +144,7 @@ const AdminUsersPage: React.FC = () => {
         setUsers(response.data.users)
         setPagination(response.data.pagination)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch users:', error)
       showError('Failed to load users')
     } finally {
@@ -158,7 +158,7 @@ const AdminUsersPage: React.FC = () => {
       if (response.success) {
         setStats(response.data)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch stats:', error)
     }
   }
@@ -211,7 +211,7 @@ const AdminUsersPage: React.FC = () => {
       showSuccess(`User ${action}d successfully`)
       fetchUsers()
       fetchStats()
-    } catch (error) {
+    } catch {
       console.error(`Failed to ${action} user:`, error)
       showError(`Failed to ${action} user`)
     } finally {
