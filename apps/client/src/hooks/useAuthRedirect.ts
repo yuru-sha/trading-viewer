@@ -13,7 +13,6 @@ export const useAuthRedirect = () => {
   useEffect(() => {
     // ローディング完了後、非認証状態の場合はログイン画面にリダイレクト
     if (!isLoading && !isAuthenticated) {
-      console.log('🔒 Session expired, redirecting to login...')
       navigate('/login', { replace: true })
     }
   }, [isAuthenticated, isLoading, navigate])

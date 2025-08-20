@@ -18,13 +18,13 @@ export interface YahooQuoteData {
 }
 
 export interface YahooCandleData {
-  c: number[] // close prices
-  h: number[] // high prices
-  l: number[] // low prices
-  o: number[] // open prices
-  s: string // status
-  t: number[] // timestamps
-  v: number[] // volumes
+  c: number[] // 終値
+  h: number[] // 高値
+  l: number[] // 安値
+  o: number[] // 始値
+  s: string // ステータス
+  t: number[] // タイムスタンプ
+  v: number[] // 出来高
 }
 
 export interface YahooSearchResult {
@@ -58,8 +58,8 @@ export class YahooFinanceService {
   private static instance: YahooFinanceService
   private cache = new Map<string, { data: YahooQuoteData; timestamp: number }>()
   private rateLimitMap = new Map<string, number>()
-  private readonly CACHE_TTL = 30 * 1000 // 30 seconds cache
-  private readonly RATE_LIMIT_DELAY = 100 // 100ms between requests per symbol
+  private readonly CACHE_TTL = 30 * 1000 // 30秒キャッシュ
+  private readonly RATE_LIMIT_DELAY = 100 // 銘柄ごとにリクエスト間隔を100ms空ける
 
   static getInstance(): YahooFinanceService {
     if (!YahooFinanceService.instance) {
@@ -99,24 +99,24 @@ export class YahooFinanceService {
   }
 
   /**
-   * Get real-time quote data for a symbol
+   * 銘柄のリアルタイム株価データを取得します。
    */
   async getQuote(symbol: string): Promise<YahooQuoteData> {
-    // Check cache first
+    // まずキャッシュを確認
     const cached = this.getCachedQuote(symbol)
     if (cached) {
-      // Using cached data
+      // キャッシュデータを使用
       return cached
     }
 
     try {
-      // Apply rate limiting
+      // レート制限を適用
       await this.waitForRateLimit(symbol)
 
       const result = await yahooFinance.quote(symbol)
 
       if (!result) {
-        throw new Error(`No data found for symbol: ${symbol}`)
+        throw new Error(`銘柄が見つかりません: ${symbol}`)
       }
 
       const quote = result
@@ -134,7 +134,7 @@ export class YahooFinanceService {
         timestamp: Date.now(),
       }
 
-      // Optional プロパティは値が存在する場合のみ設定
+      // オプショナルなプロパティは値が存在する場合のみ設定
       if (quote.marketCap !== undefined) {
         quoteData.marketCap = quote.marketCap
       }
@@ -150,20 +150,20 @@ export class YahooFinanceService {
         quoteData.exchangeName = quote.exchange
       }
 
-      // Cache the result
+      // 結果をキャッシュ
       this.setCachedQuote(symbol, quoteData)
 
       return quoteData
     } catch (error) {
-      console.error(`Yahoo Finance API error for ${symbol}:`, error)
+      console.error(`Yahoo Finance API エラー (${symbol}):`, error)
       throw new Error(
-        `Failed to fetch quote for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `株価の取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
 
   /**
-   * Get historical price data (candles)
+   * 過去の価格データ（ローソク足）を取得します。
    */
   async getCandles(
     symbol: string,
@@ -179,7 +179,7 @@ export class YahooFinanceService {
       })
 
       if (!result || !result.quotes || result.quotes.length === 0) {
-        throw new Error(`No historical data found for symbol: ${symbol}`)
+        throw new Error(`過去データが見つかりません: ${symbol}`)
       }
 
       const quotes = result.quotes
@@ -194,15 +194,15 @@ export class YahooFinanceService {
         v: quotes.map(q => q.volume || 0),
       }
     } catch (error) {
-      console.error(`Yahoo Finance chart API error for ${symbol}:`, error)
+      console.error(`Yahoo Finance チャート API エラー (${symbol}):`, error)
       throw new Error(
-        `Failed to fetch historical data for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `過去データの取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
 
   /**
-   * Search for symbols
+   * 銘柄を検索します。
    */
   async searchSymbols(query: string, limit: number = 10): Promise<YahooSearchResult[]> {
     try {
@@ -221,15 +221,15 @@ export class YahooFinanceService {
         typeDisp: quote.typeDisp,
       }))
     } catch (error) {
-      console.error(`Yahoo Finance search API error for "${query}":`, error)
+      console.error(`Yahoo Finance 検索 API エラー ("${query}"):`, error)
       throw new Error(
-        `Failed to search symbols: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `銘柄の検索に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
 
   /**
-   * Get multiple quotes at once
+   * 複数の株価を一度に取得します。
    */
   async getMultipleQuotes(symbols: string[]): Promise<YahooQuoteData[]> {
     try {
@@ -253,7 +253,7 @@ export class YahooFinanceService {
           timestamp: Date.now(),
         }
 
-        // Optional プロパティは値が存在する場合のみ設定
+        // オプショナルなプロパティは値が存在する場合のみ設定
         if (quote.marketCap !== undefined) {
           quoteData.marketCap = quote.marketCap
         }
@@ -272,15 +272,15 @@ export class YahooFinanceService {
         return quoteData
       })
     } catch (error) {
-      console.error(`Yahoo Finance multiple quotes API error:`, error)
+      console.error(`Yahoo Finance 複数株価取得 API エラー:`, error)
       throw new Error(
-        `Failed to fetch multiple quotes: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `複数株価の取得に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }
 
   /**
-   * Convert resolution to Yahoo Finance interval
+   * 解像度をYahoo Financeのインターバルに変換します。
    */
   private convertResolutionToInterval(
     resolution: string
@@ -306,7 +306,7 @@ export class YahooFinanceService {
   }
 
   /**
-   * Get candles with resolution parameter
+   * 解像度パラメータを使用してローソク足を取得します。
    */
   async getCandlesWithResolution(
     symbol: string,
@@ -322,40 +322,40 @@ export class YahooFinanceService {
   }
 
   /**
-   * Get news articles for a given category/query
+   * 指定されたカテゴリ/クエリのニュース記事を取得します。
    */
   async getNews(query: string = '', count: number = 6): Promise<YahooNewsItem[]> {
     try {
-      // Try basic search for news
+      // 基本的なニュース検索を試みる
       let result: any
 
       try {
         result = await yahooFinance.search(query)
       } catch (error) {
-        // Search failed, return empty array
+        // 検索が失敗した場合は空の配列を返す
         return []
       }
 
-      // Check if we have news results
+      // ニュースの検索結果があるか確認
       if (!result.news || result.news.length === 0) {
         return []
       }
 
-      // Limit results to requested count
+      // 結果を要求された件数に制限
       const newsToProcess = result.news.slice(0, count)
 
       const newsItems: YahooNewsItem[] = newsToProcess.map((item: any) => {
-        // Handle timestamp - can be ISO string or Unix timestamp
+        // タイムスタンプの処理 - ISO文字列またはUnixタイムスタンプの可能性がある
         let timestamp: number
 
         if (typeof item.providerPublishTime === 'string') {
-          // It's an ISO string, convert to Unix timestamp
+          // ISO文字列の場合はUnixタイムスタンプに変換
           timestamp = Math.floor(new Date(item.providerPublishTime).getTime() / 1000)
         } else if (typeof item.providerPublishTime === 'number') {
-          // It's already a number, use as is
+          // すでに数値の場合はそのまま使用
           timestamp = item.providerPublishTime
         } else {
-          // Fallback to current time
+          // フォールバックとして現在の時刻を使用
           timestamp = Math.floor(Date.now() / 1000)
         }
 
@@ -373,28 +373,28 @@ export class YahooFinanceService {
 
       return newsItems
     } catch (error) {
-      // Failed to fetch news
+      // ニュースの取得に失敗
       return []
     }
   }
 
   /**
-   * Get category-specific news
+   * カテゴリ別のニュースを取得します。
    */
   async getCategoryNews(
     category: 'japan' | 'world' | 'crypto' | 'general'
   ): Promise<YahooNewsItem[]> {
-    // Try multiple query approaches for better results
+    // より良い結果を得るために複数のクエリ戦略を試す
     const queryStrategies = {
-      japan: ['Toyota', 'Sony', 'Nintendo', 'Japan', 'Nikkei', 'Tokyo'],
-      world: ['Apple', 'Microsoft', 'Tesla', 'NASDAQ', 'S&P 500', 'stock market'],
-      crypto: ['Bitcoin', 'Ethereum', 'cryptocurrency', 'crypto', 'BTC', 'ETH'],
-      general: ['market', 'stocks', 'finance', 'economy', 'trading', 'investment'],
+      japan: ['トヨタ', 'ソニー', '任天堂', '日本', '日経', '東京'],
+      world: ['Apple', 'Microsoft', 'Tesla', 'NASDAQ', 'S&P 500', '株式市場'],
+      crypto: ['ビットコイン', 'イーサリアム', '暗号資産', '仮想通貨', 'BTC', 'ETH'],
+      general: ['市場', '株', '金融', '経済', '取引', '投資'],
     }
 
     const queries = queryStrategies[category] || queryStrategies.general
 
-    // Try each query until we get results
+    // 結果が得られるまで各クエリを試す
     for (const query of queries) {
       const newsItems = await this.getNews(query, 6)
       if (newsItems.length > 0) {

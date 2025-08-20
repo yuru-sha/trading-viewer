@@ -48,7 +48,7 @@ const defaultSettings = {
   showDrawingTools: true, // デフォルトで描画ツールを表示
 }
 
-// Chart container ref interface
+// チャートコンテナのrefのインターフェース
 export interface ChartContainerRef {
   takeScreenshot: (filename?: string) => void
 }
@@ -75,7 +75,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
     },
     ref
   ) => {
-    // Memoize hook dependencies to prevent unnecessary re-renders
+    // フックの依存関係をメモ化して不要な再レンダリングを防止
     const dataManagerConfig = useMemo(
       () => ({
         symbol,
@@ -104,18 +104,18 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
       [symbol, timeframe]
     )
 
-    // Separated concerns using custom hooks
+    // カスタムフックを使用して関心を分離
     const dataManager = useChartDataManager(dataManagerConfig)
     const renderingManager = useChartRendering(renderingConfig)
     const drawingManager = useChartDrawingManager(drawingConfig)
 
-    // Get indicators for the current symbol and timeframe
+    // 現在の銘柄とタイムフレームのインジケーターを取得
     const { data: indicators = [] } = useIndicators(symbol, timeframe)
 
-    // Drawing toolbar ref to close objects panel
+    // オブジェクトパネルを閉じるための描画ツールバーのref
     const drawingToolbarRef = React.useRef<LeftDrawingToolbarRef>(null)
 
-    // Expose takeScreenshot method through ref
+    // ref経由でtakeScreenshotメソッドを公開
     useImperativeHandle(
       ref,
       () => ({
@@ -124,52 +124,34 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
       [renderingManager.takeScreenshot]
     )
 
-    // Handle drawing tool selection with detailed logging
+    // 描画ツールの選択を処理
     const handleToolSelect = useCallback(
       (toolType: DrawingToolType | null) => {
-        console.log('🔧 ChartContainer - Tool selected:', toolType)
-        console.log('🔧 Drawing tools state before setToolType:', {
-          activeToolType: drawingManager.drawingTools.activeToolType,
-          drawingMode: drawingManager.drawingTools.drawingMode,
-          canDraw: drawingManager.drawingTools.canDraw,
-          isDrawing: drawingManager.drawingTools.isDrawing,
-        })
-
         drawingManager.drawingTools.setToolType(toolType)
-
-        // 状態更新後の確認は次のレンダリングサイクルで行う
-        setTimeout(() => {
-          console.log('🔧 Drawing tools state after setToolType (next tick):', {
-            activeToolType: drawingManager.drawingTools.activeToolType,
-            drawingMode: drawingManager.drawingTools.drawingMode,
-            canDraw: drawingManager.drawingTools.canDraw,
-            isDrawing: drawingManager.drawingTools.isDrawing,
-          })
-        }, 0)
       },
       [drawingManager.drawingTools]
     )
 
-    // Handle chart click to close panels
+    // チャートクリックでパネルを閉じる
     const handleChartClick = useCallback(() => {
       if (drawingToolbarRef.current) {
         drawingToolbarRef.current.closeObjectsPanel()
       }
     }, [])
 
-    // Handle crosshair move
+    // 十字カーソルの移動を処理
     const handleCrosshairMove = useCallback((price: number, time: number) => {
-      // カーソル位置の価格表示を復活させる
+      // カーソル位置の価格表示
       // 必要に応じてここで価格表示の処理を行う
     }, [])
 
-    // Early returns for loading and no data states
+    // ローディング中とデータなしの状態の場合は早期リターン
     if (dataManager.isInitialLoading) {
       return (
         <div
           className={`flex items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-lg border ${className}`}
         >
-          <Loading size='lg' text='Loading chart data...' />
+          <Loading size='lg' text='チャートデータを読み込み中...' />
         </div>
       )
     }
@@ -192,10 +174,9 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
               d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
             />
           </svg>
-          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>No Chart Data</h3>
+          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>チャートデータがありません</h3>
           <p className='text-sm text-gray-500 dark:text-gray-400 text-center max-w-md'>
-            No price data available for {symbol}. The symbol might not be supported or market data
-            is temporarily unavailable.
+            {symbol} の価格データがありません。この銘柄はサポートされていないか、市場データが一時的に利用できない可能性があります。
           </p>
         </div>
       )
@@ -203,7 +184,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
 
     return (
       <div className={`h-full flex relative ${className}`}>
-        {/* Left Drawing Toolbar */}
+        {/* 左側の描画ツールバー */}
         {(showDrawingTools ?? renderingManager.settings.showDrawingTools) && (
           <LeftDrawingToolbar
             ref={drawingToolbarRef}
@@ -217,7 +198,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
           />
         )}
 
-        {/* Main Chart Area - Full height */}
+        {/* メインチャートエリア - 全画面表示 */}
         <div className='flex-1 min-w-0'>
           <LazyEChartsTradingChart
             ref={renderingManager.chartRef}
@@ -241,14 +222,14 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
           />
         </div>
 
-        {/* Loading Overlay */}
+        {/* ローディングオーバーレイ */}
         {dataManager.isUpdating && (
           <div className='absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center'>
-            <Loading size='lg' text='Updating chart data...' />
+            <Loading size='lg' text='チャートデータを更新中...' />
           </div>
         )}
 
-        {/* Drawing Context Menu */}
+        {/* 描画コンテキストメニュー */}
         {drawingManager.drawingTools.contextMenu.isVisible &&
           drawingManager.drawingTools.contextMenu.targetToolId && (
             <DrawingContextMenu
@@ -285,9 +266,9 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
 
 ChartContainerComponent.displayName = 'ChartContainer'
 
-// Memoize the component to prevent unnecessary re-renders
+// パフォーマンス向上のためコンポーネントをメモ化
 export const ChartContainer = React.memo(ChartContainerComponent, (prevProps, nextProps) => {
-  // Custom comparison logic for better performance
+  // パフォーマンス向上のためのカスタム比較ロジック
   return (
     prevProps.symbol === nextProps.symbol &&
     prevProps.data === nextProps.data &&
