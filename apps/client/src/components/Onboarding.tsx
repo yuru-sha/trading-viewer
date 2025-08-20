@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@trading-viewer/ui'
 
@@ -49,7 +49,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
 
   const currentStep = steps[currentStepIndex]
 
-  const calculatePosition = () => {
+  const calculatePosition = useCallback(() => {
     if (!currentStep || !modalRef.current) return
 
     const targetElement = document.querySelector(currentStep.target)
@@ -114,9 +114,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({
     }
 
     setPosition(newPosition)
-  }
+  }, [currentStep])
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStepIndex < steps.length - 1) {
       const nextIndex = currentStepIndex + 1
       setCurrentStepIndex(nextIndex)
@@ -124,15 +124,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({
     } else {
       onComplete()
     }
-  }
+  }, [currentStepIndex, onComplete, onStepChange, steps.length])
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     if (currentStepIndex > 0) {
       const prevIndex = currentStepIndex - 1
       setCurrentStepIndex(prevIndex)
       onStepChange?.(prevIndex)
     }
-  }
+  }, [currentStepIndex, onStepChange])
 
   const goToStep = (index: number) => {
     if (index >= 0 && index < steps.length) {
@@ -141,26 +141,29 @@ export const Onboarding: React.FC<OnboardingProps> = ({
     }
   }
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (!isActive) return
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!isActive) return
 
-    switch (event.key) {
-      case 'Escape':
-        onSkip()
-        break
-      case 'ArrowRight':
-      case 'Enter':
-        event.preventDefault()
-        nextStep()
-        break
-      case 'ArrowLeft':
-        event.preventDefault()
-        prevStep()
-        break
-    }
-  }
+      switch (event.key) {
+        case 'Escape':
+          onSkip()
+          break
+        case 'ArrowRight':
+        case 'Enter':
+          event.preventDefault()
+          nextStep()
+          break
+        case 'ArrowLeft':
+          event.preventDefault()
+          prevStep()
+          break
+      }
+    },
+    [isActive, nextStep, onSkip, prevStep]
+  )
 
-  const scrollToTarget = () => {
+  const scrollToTarget = useCallback(() => {
     if (!currentStep) return
 
     const targetElement = document.querySelector(currentStep.target)
@@ -171,7 +174,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
         inline: 'center',
       })
     }
-  }
+  }, [currentStep])
 
   useEffect(() => {
     if (isActive && currentStep) {
@@ -183,7 +186,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
 
       return () => clearTimeout(timer)
     }
-  }, [isActive, currentStep])
+  }, [isActive, currentStep, calculatePosition, scrollToTarget])
 
   useEffect(() => {
     if (isActive) {
@@ -197,7 +200,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
         window.removeEventListener('scroll', calculatePosition)
       }
     }
-  }, [isActive, currentStepIndex])
+  }, [isActive, calculatePosition, handleKeyDown])
 
   if (!isActive || !currentStep) return null
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Icon } from '@ui'
-import { ChartType, POPULAR_SYMBOLS, CHART_TIMEFRAMES } from '@trading-viewer/shared'
+import { ChartType, CHART_TIMEFRAMES } from '@trading-viewer/shared'
 import { useApp, useAppActions } from '../../contexts/AppContext'
 import { useAuth } from '../../contexts/AuthContext'
 import SymbolSearch from '../SymbolSearch'
@@ -28,7 +28,6 @@ interface ChartHeaderProps {
   onSaveTemplate: () => void
   onToggleFullscreen: () => void
   onTakeScreenshot: () => void
-  onCloseDropdowns: () => void
   chartSettings?: ChartSettingsType
   onSettingsChange?: (settings: ChartSettingsType) => void
   showDrawingTools?: boolean
@@ -36,7 +35,6 @@ interface ChartHeaderProps {
   showFooter?: boolean
   onToggleFooter?: () => void
   // Alert props
-  currentPrice?: number
   onOpenAlerts?: () => void
   activeAlertsCount?: number
   // Watchlist props
@@ -65,7 +63,6 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   onSaveTemplate,
   onToggleFullscreen,
   onTakeScreenshot,
-  onCloseDropdowns,
   chartSettings,
   onSettingsChange,
   showDrawingTools,
@@ -73,7 +70,6 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   showFooter,
   onToggleFooter,
   // Alert props
-  currentPrice,
   onOpenAlerts,
   activeAlertsCount,
   // Watchlist props
@@ -402,7 +398,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
               settings={
                 chartSettings || {
                   chartType: chartType === 'candle' ? 'candlestick' : chartType,
-                  timeframe: selectedTimeframe as any,
+                  timeframe: selectedTimeframe as ChartSettingsType['timeframe'],
                   showVolume: true,
                   showGridlines: true,
                   showPeriodHigh: true,

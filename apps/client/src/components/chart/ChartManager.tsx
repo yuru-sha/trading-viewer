@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react'
+import React, { forwardRef, useMemo } from 'react'
 import { BaseChartProps, ChartRef, DEFAULT_CHART_SETTINGS } from './BaseChart'
 import { ChartContainer } from './ChartContainer'
 import { OptimizedChartContainer } from './OptimizedChartContainer'
@@ -12,7 +12,7 @@ interface ChartManagerProps extends BaseChartProps {
 }
 
 // Chart variant selector based on performance requirements
-const getChartComponent = (variant: ChartVariant, performanceMode: string) => {
+const getChartComponent = (variant: ChartVariant) => {
   switch (variant) {
     case 'optimized':
       return OptimizedChartContainer
@@ -74,8 +74,8 @@ export const ChartManager = forwardRef<ChartRef, ChartManagerProps>(
 
     // Get the appropriate chart component
     const ChartComponent = useMemo(
-      () => getChartComponent(selectedVariant, performanceMode),
-      [selectedVariant, performanceMode]
+      () => getChartComponent(selectedVariant),
+      [selectedVariant]
     )
 
     // Memoize chart props to prevent unnecessary re-renders

@@ -158,10 +158,10 @@ const AlertModal: React.FC<AlertModalProps> = ({
           {/* Alert Form */}
           <form onSubmit={handleSubmit} className='space-y-6'>
             {/* Price Alert Type Selection */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+            <fieldset>
+              <legend className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
                 アラート方式
-              </label>
+              </legend>
               <div className='flex space-x-4'>
                 <label className='flex items-center'>
                   <input
@@ -190,13 +190,13 @@ const AlertModal: React.FC<AlertModalProps> = ({
                   </span>
                 </label>
               </div>
-            </div>
+            </fieldset>
 
             {/* Alert Type */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+            <fieldset>
+              <legend className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
                 条件
-              </label>
+              </legend>
               <div className='grid grid-cols-3 gap-3'>
                 <button
                   type='button'
@@ -235,7 +235,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
                   <span>クロス</span>
                 </button>
               </div>
-            </div>
+            </fieldset>
 
             {/* Price Target or Percentage Change Input */}
             {priceAlertType === 'price' ? (

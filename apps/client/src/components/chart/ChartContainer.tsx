@@ -10,21 +10,12 @@ import { useChartRendering } from '../../hooks/chart/useChartRendering'
 import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
 import { useIndicators } from '../../hooks/useIndicators'
 
-interface TechnicalIndicators {
-  sma?: { enabled: boolean; periods: number[] }
-  ema?: { enabled: boolean; periods: number[] }
-  rsi?: { enabled: boolean; period: number }
-  macd?: { enabled: boolean; fastPeriod: number; slowPeriod: number; signalPeriod: number }
-  bollingerBands?: { enabled: boolean; period: number; standardDeviations: number }
-}
-
 interface ChartContainerProps {
   symbol: string
   data: PriceData[]
   currentPrice?: number
   isLoading?: boolean
   isRealTime?: boolean
-  onSymbolChange?: (symbol: string) => void
   className?: string
   chartType?: 'candle' | 'line' | 'area'
   timeframe?: string
@@ -61,7 +52,6 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
       currentPrice,
       isLoading = false,
       isRealTime = false,
-      onSymbolChange,
       className = '',
       chartType = 'candle',
       timeframe,
@@ -140,7 +130,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
     }, [])
 
     // 十字カーソルの移動を処理
-    const handleCrosshairMove = useCallback((price: number, time: number) => {
+    const handleCrosshairMove = useCallback((_price: number, _time: number) => {
       // カーソル位置の価格表示
       // 必要に応じてここで価格表示の処理を行う
     }, [])
