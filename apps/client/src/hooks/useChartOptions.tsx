@@ -20,6 +20,13 @@ interface ChartOptionsConfig {
   showPeriodHigh?: boolean
   showPeriodLow?: boolean
   indicators?: UserIndicator[]
+  colors?: {
+    bullish: string
+    bearish: string
+    volume: string
+    grid: string
+    background: string
+  }
 }
 
 /**
@@ -88,6 +95,12 @@ export function useChartOptions(
   // Generate chart options
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
+    
+    console.log('🔧 Chart Options Config:', {
+      showGridlines: config.showGridlines,
+      chartType: config.chartType,
+      theme: config.theme
+    })
 
     // 🔥 DEBUG: チャートタイプをログに出力
     console.log('🚨 GEMINI PATTERN: Chart type:', config.chartType)
@@ -198,7 +211,15 @@ export function useChartOptions(
       scale: true,
       boundaryGap: false,
       axisLine: { onZero: false },
-      splitLine: { show: false },
+      splitLine: { 
+        show: config.showGridlines !== false, // showGridlines 設定を反映
+        lineStyle: {
+          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
+          width: 1,
+          type: 'solid',
+          opacity: 0.6,
+        },
+      },
       axisLabel: { 
         show: index === gridCount - 1, // Only show labels on bottom-most chart
         color: isDarkMode ? '#9ca3af' : '#6b7280',
@@ -218,9 +239,9 @@ export function useChartOptions(
           position: 'right', // Y 軸ラベルを右側に移動
           splitArea: { show: false }, // 背景色の縞模様を無効化
           splitLine: {
-            show: true,
+            show: config.showGridlines !== false, // showGridlines 設定を反映
             lineStyle: {
-              color: isDarkMode ? '#374151' : '#e5e7eb',
+              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
               width: 1,
               type: 'solid',
               opacity: 0.6,
@@ -241,7 +262,15 @@ export function useChartOptions(
           axisLabel: { show: false },
           axisLine: { show: false },
           axisTick: { show: false },
-          splitLine: { show: false },
+          splitLine: { 
+            show: config.showGridlines !== false, // showGridlines 設定を反映
+            lineStyle: {
+              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
+              width: 1,
+              type: 'solid',
+              opacity: 0.3,
+            },
+          },
         }
       } else {
         // RSI/MACD Y-axis - 右側に配置
@@ -257,13 +286,21 @@ export function useChartOptions(
           },
           axisLine: { show: false },
           axisTick: { show: false },
-          splitLine: { show: false },
+          splitLine: { 
+            show: config.showGridlines !== false, // showGridlines 設定を反映
+            lineStyle: {
+              color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
+              width: 1,
+              type: 'solid',
+              opacity: 0.3,
+            },
+          },
         }
       }
     })
 
     const baseOption: any = {
-      backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+      backgroundColor: config.colors?.background || (isDarkMode ? '#1f2937' : '#ffffff'),
       animation: false,
       legend: {
         show: false,
@@ -307,6 +344,7 @@ export function useChartOptions(
 
     console.log('🚨 GEMINI PATTERN: Final chart structure:', {
       chartType: config.chartType,
+      showGridlines: config.showGridlines,
       totalGrids: baseOption.grid.length,
       totalXAxes: baseOption.xAxis.length,
       totalYAxes: baseOption.yAxis.length,
@@ -321,7 +359,8 @@ export function useChartOptions(
         priceStats,
         config.currentPrice,
         config.showPeriodHigh,
-        config.showPeriodLow
+        config.showPeriodLow,
+        config.colors
       )
       candlestickSeries.xAxisIndex = 0
       candlestickSeries.yAxisIndex = 0
@@ -367,7 +406,7 @@ export function useChartOptions(
         data: chartData.volumes,
         barWidth: '60%',
         itemStyle: {
-          color: '#10b981',
+          color: config.colors?.volume || '#10b981',
         },
       })
       console.log('🚨 GEMINI PATTERN: Volume series:', {
@@ -538,7 +577,7 @@ function generateYAxisConfig(
       splitLine: {
         show: true,
         lineStyle: {
-          color: isDarkMode ? '#374151' : '#e5e7eb',
+          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
           width: 1,
           type: 'solid' as const,
           opacity: 0.6, // グリッド線を少し薄くして視認性向上
@@ -594,7 +633,7 @@ function generateYAxisConfig(
       splitLine: {
         show: true,
         lineStyle: {
-          color: isDarkMode ? '#374151' : '#e5e7eb',
+          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
           width: 1,
           type: 'solid' as const,
           opacity: 0.4, // ボリュームのグリッド線はさらに薄く
@@ -620,7 +659,7 @@ function generateYAxisConfig(
         splitLine: {
           show: true,
           lineStyle: {
-            color: isDarkMode ? '#374151' : '#e5e7eb',
+            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
             width: 1,
             type: 'solid' as const,
             opacity: 0.3,
@@ -647,7 +686,7 @@ function generateYAxisConfig(
         splitLine: {
           show: true,
           lineStyle: {
-            color: isDarkMode ? '#374151' : '#e5e7eb',
+            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
             width: 1,
             type: 'solid' as const,
             opacity: 0.3,
@@ -675,7 +714,7 @@ function generateYAxisConfig(
         splitLine: {
           show: true,
           lineStyle: {
-            color: isDarkMode ? '#374151' : '#e5e7eb',
+            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
             width: 1,
             type: 'solid' as const,
             opacity: 0.3,
@@ -702,7 +741,7 @@ function generateYAxisConfig(
         splitLine: {
           show: true,
           lineStyle: {
-            color: isDarkMode ? '#374151' : '#e5e7eb',
+            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
             width: 1,
             type: 'solid' as const,
             opacity: 0.3,
@@ -724,7 +763,14 @@ function createCandlestickSeries(
   priceStats?: PriceStats | null,
   currentPrice?: number,
   showPeriodHigh?: boolean,
-  showPeriodLow?: boolean
+  showPeriodLow?: boolean,
+  colors?: {
+    bullish: string
+    bearish: string
+    volume: string
+    grid: string
+    background: string
+  }
 ) {
   const candlestickSeries: any = {
     name: symbol || 'Price',
@@ -732,10 +778,10 @@ function createCandlestickSeries(
     data: chartData.values,
     barWidth: '60%',
     itemStyle: {
-      color: '#10b981',
-      color0: '#ef4444',
-      borderColor: '#10b981',
-      borderColor0: '#ef4444',
+      color: colors?.bullish || '#10b981', // 上昇時の色
+      color0: colors?.bearish || '#ef4444', // 下降時の色
+      borderColor: colors?.bullish || '#10b981', // 上昇時のボーダー色
+      borderColor0: colors?.bearish || '#ef4444', // 下降時のボーダー色
       borderWidth: 1,
     },
   }

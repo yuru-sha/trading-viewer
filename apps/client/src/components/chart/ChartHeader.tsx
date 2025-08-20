@@ -414,11 +414,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                     rsi: { enabled: false, period: 14 },
                   },
                   colors: {
-                    bullish: '#10b981',
+                    bullish: '#22c55e',
                     bearish: '#ef4444',
-                    volume: '#8b5cf6',
-                    grid: '#e5e7eb',
-                    background: '#ffffff',
+                    volume: '#a855f7',
+                    grid: '#4b5563',
+                    background: '#111827',
                   },
                 }
               }

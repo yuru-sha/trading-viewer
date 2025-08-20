@@ -34,6 +34,13 @@ interface ChartContainerProps {
   showPeriodLow?: boolean
   periodWeeks?: number
   showVolume?: boolean
+  colors?: {
+    bullish: string
+    bearish: string
+    volume: string
+    grid: string
+    background: string
+  }
 }
 
 const defaultSettings = {
@@ -64,6 +71,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
       showPeriodLow = true,
       periodWeeks = 52,
       showVolume = true,
+      colors,
     },
     ref
   ) => {
@@ -229,6 +237,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
             periodWeeks={periodWeeks}
             onCrosshairMove={handleCrosshairMove}
             indicators={indicators}
+            colors={colors}
           />
         </div>
 

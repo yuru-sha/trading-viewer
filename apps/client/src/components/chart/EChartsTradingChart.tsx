@@ -29,6 +29,13 @@ interface EChartsTradingChartProps {
   periodWeeks?: number
   onChartClick?: () => void
   indicators?: UserIndicator[]
+  colors?: {
+    bullish: string
+    bearish: string
+    volume: string
+    grid: string
+    background: string
+  }
 }
 
 export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
@@ -52,6 +59,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       periodWeeks = 52,
       onChartClick,
       indicators = [],
+      colors,
     },
     ref
   ) => {
@@ -92,6 +100,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
       showPeriodHigh,
       showPeriodLow,
       indicators,
+      colors,
     })
 
     // Helper function to find closest data index by timestamp
