@@ -16,7 +16,7 @@ const mockUsers = [
     lockedUntil: undefined,
     lastLoginAt: '2024-01-15T10:30:00Z',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T10:30:00Z'
+    updatedAt: '2024-01-15T10:30:00Z',
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ const mockUsers = [
     lockedUntil: undefined,
     lastLoginAt: '2024-01-10T15:45:00Z',
     createdAt: '2024-01-02T00:00:00Z',
-    updatedAt: '2024-01-10T15:45:00Z'
+    updatedAt: '2024-01-10T15:45:00Z',
   },
   {
     id: '3',
@@ -42,8 +42,8 @@ const mockUsers = [
     lockedUntil: '2024-01-20T00:00:00Z',
     lastLoginAt: undefined,
     createdAt: '2024-01-03T00:00:00Z',
-    updatedAt: '2024-01-16T00:00:00Z'
-  }
+    updatedAt: '2024-01-16T00:00:00Z',
+  },
 ]
 
 const mockPagination = {
@@ -52,7 +52,7 @@ const mockPagination = {
   totalCount: 3,
   totalPages: 1,
   hasNext: false,
-  hasPrev: false
+  hasPrev: false,
 }
 
 const mockProps = {
@@ -72,7 +72,9 @@ const mockProps = {
   onDeleteUser: vi.fn(),
   onPageChange: vi.fn(),
   formatDate: vi.fn((date: string) => new Date(date).toLocaleDateString()),
-  isUserLocked: vi.fn((user: any) => Boolean(user.lockedUntil && new Date(user.lockedUntil) > new Date()))
+  isUserLocked: vi.fn((user: any) =>
+    Boolean(user.lockedUntil && new Date(user.lockedUntil) > new Date())
+  ),
 }
 
 describe('UserListComponent', () => {
@@ -100,7 +102,7 @@ describe('UserListComponent', () => {
       render(<UserListComponent {...mockProps} />)
 
       expect(screen.getByRole('table')).toBeInTheDocument()
-      
+
       // Check table headers
       expect(screen.getByText('User')).toBeInTheDocument()
       expect(screen.getByText('Role')).toBeInTheDocument()
@@ -131,7 +133,7 @@ describe('UserListComponent', () => {
 
       const adminBadges = screen.getAllByText('Admin')
       const userBadges = screen.getAllByText('User')
-      
+
       expect(adminBadges).toHaveLength(1)
       expect(userBadges).toHaveLength(2)
     })
@@ -141,7 +143,7 @@ describe('UserListComponent', () => {
 
       const activeBadges = screen.getAllByText('Active')
       const inactiveBadges = screen.getAllByText('Inactive')
-      
+
       expect(activeBadges).toHaveLength(2)
       expect(inactiveBadges).toHaveLength(1)
     })
@@ -186,7 +188,7 @@ describe('UserListComponent', () => {
     it('should check select all when all users are selected', () => {
       const propsWithAllSelected = {
         ...mockProps,
-        selectedUsers: ['1', '2', '3']
+        selectedUsers: ['1', '2', '3'],
       }
 
       render(<UserListComponent {...propsWithAllSelected} />)
@@ -210,7 +212,7 @@ describe('UserListComponent', () => {
       // Each user should have action buttons
       const viewButtons = screen.getAllByText('View')
       const actionButtons = screen.getAllByText('Actions')
-      
+
       expect(viewButtons.length).toBeGreaterThan(0)
       expect(actionButtons.length).toBeGreaterThan(0)
     })
@@ -229,7 +231,7 @@ describe('UserListComponent', () => {
     it('should disable actions for current user', () => {
       const propsWithCurrentUser = {
         ...mockProps,
-        currentUserId: '1'
+        currentUserId: '1',
       }
 
       render(<UserListComponent {...propsWithCurrentUser} />)
@@ -241,7 +243,7 @@ describe('UserListComponent', () => {
     it('should show loading state for specific user action', () => {
       const propsWithActionLoading = {
         ...mockProps,
-        actionLoading: '1'
+        actionLoading: '1',
       }
 
       render(<UserListComponent {...propsWithActionLoading} />)
@@ -259,7 +261,7 @@ describe('UserListComponent', () => {
       // This depends on how verification status is displayed in the component
       const verifiedElements = screen.queryAllByText(/verified/i)
       const unverifiedElements = screen.queryAllByText(/unverified/i)
-      
+
       // At least one of these should exist based on mock data
       expect(verifiedElements.length + unverifiedElements.length).toBeGreaterThan(0)
     })
@@ -270,7 +272,7 @@ describe('UserListComponent', () => {
       // Mock the isUserLocked function to return true for locked user
       const propsWithLockCheck = {
         ...mockProps,
-        isUserLocked: vi.fn((user) => user.id === '3')
+        isUserLocked: vi.fn(user => user.id === '3'),
       }
 
       render(<UserListComponent {...propsWithLockCheck} />)
@@ -299,8 +301,8 @@ describe('UserListComponent', () => {
         users: [],
         pagination: {
           ...mockPagination,
-          totalCount: 0
-        }
+          totalCount: 0,
+        },
       }
 
       render(<UserListComponent {...propsWithNoUsers} />)
@@ -316,8 +318,8 @@ describe('UserListComponent', () => {
         pagination: {
           ...mockPagination,
           totalPages: 3,
-          hasNext: true
-        }
+          hasNext: true,
+        },
       }
 
       render(<UserListComponent {...propsWithPagination} />)
@@ -363,7 +365,7 @@ describe('UserListComponent', () => {
         ...mockUsers[0],
         id: i.toString(),
         email: `user${i}@example.com`,
-        name: `User ${i}`
+        name: `User ${i}`,
       }))
 
       const propsWithLargeList = {
@@ -371,8 +373,8 @@ describe('UserListComponent', () => {
         users: largeUserList,
         pagination: {
           ...mockPagination,
-          totalCount: 100
-        }
+          totalCount: 100,
+        },
       }
 
       render(<UserListComponent {...propsWithLargeList} />)
@@ -395,8 +397,8 @@ describe('UserListComponent', () => {
           lockedUntil: undefined,
           lastLoginAt: undefined,
           createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
+          updatedAt: '2024-01-01T00:00:00Z',
+        },
       ]
 
       const propsWithMissingData = {
@@ -404,8 +406,8 @@ describe('UserListComponent', () => {
         users: usersWithMissingData,
         pagination: {
           ...mockPagination,
-          totalCount: 1
-        }
+          totalCount: 1,
+        },
       }
 
       render(<UserListComponent {...propsWithMissingData} />)
@@ -418,13 +420,13 @@ describe('UserListComponent', () => {
         {
           ...mockUsers[0],
           lastLoginAt: 'invalid-date',
-          createdAt: 'invalid-date'
-        }
+          createdAt: 'invalid-date',
+        },
       ]
 
       const propsWithInvalidDates = {
         ...mockProps,
-        users: usersWithInvalidDates
+        users: usersWithInvalidDates,
       }
 
       render(<UserListComponent {...propsWithInvalidDates} />)

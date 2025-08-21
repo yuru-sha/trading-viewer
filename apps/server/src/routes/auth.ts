@@ -768,13 +768,13 @@ router.get(
     const role = req.query.role as string
     const status = req.query.status as string
     const emailVerified = req.query.emailVerified as string
-    
+
     // Date filters
     const lastLoginStart = req.query.lastLoginStart as string
     const lastLoginEnd = req.query.lastLoginEnd as string
     const createdStart = req.query.createdStart as string
     const createdEnd = req.query.createdEnd as string
-    
+
     // Security filters
     const failedLoginCount = req.query.failedLoginCount as string
     const isLocked = req.query.isLocked as string
@@ -800,7 +800,7 @@ router.get(
     } else if (emailVerified === 'false') {
       filter.isEmailVerified = false
     }
-    
+
     // Date filters
     if (lastLoginStart) {
       filter.lastLoginStart = lastLoginStart
@@ -814,7 +814,7 @@ router.get(
     if (createdEnd) {
       filter.createdEnd = createdEnd
     }
-    
+
     // Security filters
     if (failedLoginCount) {
       // Format: "gt:5" or "lt:3" or "eq:0"
@@ -822,11 +822,11 @@ router.get(
       if (operator && value && ['gt', 'lt', 'eq'].includes(operator)) {
         filter.failedLoginCount = {
           operator: operator as 'gt' | 'lt' | 'eq',
-          value: parseInt(value, 10)
+          value: parseInt(value, 10),
         }
       }
     }
-    
+
     if (isLocked === 'true') {
       filter.isLocked = true
     } else if (isLocked === 'false') {
@@ -834,27 +834,24 @@ router.get(
     }
 
     const [users, totalCount] = await Promise.all([
-      userRepository.findMany(
-        filter,
-        {
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            isEmailVerified: true,
-            isActive: true,
-            failedLoginCount: true,
-            lockedUntil: true,
-            lastLoginAt: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        }
-      ),
+      userRepository.findMany(filter, {
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isEmailVerified: true,
+          isActive: true,
+          failedLoginCount: true,
+          lockedUntil: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
       userRepository.count(filter),
     ])
 

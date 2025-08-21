@@ -97,35 +97,26 @@ describe('UserRepository Filter Tests', () => {
 
   describe('findMany - Search Filter', () => {
     it('should filter by email search', async () => {
-      const users = await userRepository.findMany(
-        { search: 'admin' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: 'admin' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.some(user => user.email.includes('admin'))).toBe(true)
     })
 
     it('should filter by name search', async () => {
-      const users = await userRepository.findMany(
-        { search: 'Filter Admin' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: 'Filter Admin' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.some(user => user.name && user.name.includes('Filter Admin'))).toBe(true)
     })
 
     it('should handle case-insensitive search', async () => {
-      const users = await userRepository.findMany(
-        { search: 'FILTER ADMIN' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: 'FILTER ADMIN' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
-      expect(users.some(user => 
-        user.name && user.name.toLowerCase().includes('filter admin')
-      )).toBe(true)
+      expect(
+        users.some(user => user.name && user.name.toLowerCase().includes('filter admin'))
+      ).toBe(true)
     })
 
     it('should search both email and name fields', async () => {
@@ -134,38 +125,29 @@ describe('UserRepository Filter Tests', () => {
         { take: 10 }
       )
 
-      const nameSearch = await userRepository.findMany(
-        { search: 'Filter Admin' },
-        { take: 10 }
-      )
+      const nameSearch = await userRepository.findMany({ search: 'Filter Admin' }, { take: 10 })
 
       expect(emailSearch.length).toBeGreaterThan(0)
       expect(nameSearch.length).toBeGreaterThan(0)
-      
+
       // Both searches should find the same user
-      const adminUser = emailSearch.find(user => user.email === 'repo-filter-test-admin@example.com')
+      const adminUser = emailSearch.find(
+        user => user.email === 'repo-filter-test-admin@example.com'
+      )
       expect(adminUser).toBeDefined()
       expect(nameSearch.some(user => user.id === adminUser!.id)).toBe(true)
     })
 
     it('should handle special characters in search', async () => {
-      const users = await userRepository.findMany(
-        { search: 'García-Müller' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: 'García-Müller' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
-      expect(users.some(user => 
-        user.name && user.name.includes('García-Müller')
-      )).toBe(true)
+      expect(users.some(user => user.name && user.name.includes('García-Müller'))).toBe(true)
     })
 
     it('should handle null name fields in search', async () => {
       // Search should not crash when name is null
-      const users = await userRepository.findMany(
-        { search: 'null' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: 'null' }, { take: 10 })
 
       // Should not throw error and return valid results
       expect(Array.isArray(users)).toBe(true)
@@ -175,20 +157,14 @@ describe('UserRepository Filter Tests', () => {
 
   describe('findMany - Role Filter', () => {
     it('should filter by admin role', async () => {
-      const users = await userRepository.findMany(
-        { role: 'admin' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ role: 'admin' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.every(user => user.role === 'admin')).toBe(true)
     })
 
     it('should filter by user role', async () => {
-      const users = await userRepository.findMany(
-        { role: 'user' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ role: 'user' }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.every(user => user.role === 'user')).toBe(true)
@@ -197,30 +173,21 @@ describe('UserRepository Filter Tests', () => {
 
   describe('findMany - Status Filter', () => {
     it('should filter by active status', async () => {
-      const users = await userRepository.findMany(
-        { isActive: true },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ isActive: true }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.every(user => user.isActive === true)).toBe(true)
     })
 
     it('should filter by inactive status', async () => {
-      const users = await userRepository.findMany(
-        { isActive: false },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ isActive: false }, { take: 10 })
 
       expect(users.length).toBeGreaterThan(0)
       expect(users.every(user => user.isActive === false)).toBe(true)
     })
 
     it('should filter by email verification status', async () => {
-      const verifiedUsers = await userRepository.findMany(
-        { isEmailVerified: true },
-        { take: 10 }
-      )
+      const verifiedUsers = await userRepository.findMany({ isEmailVerified: true }, { take: 10 })
 
       const unverifiedUsers = await userRepository.findMany(
         { isEmailVerified: false },
@@ -235,27 +202,30 @@ describe('UserRepository Filter Tests', () => {
   describe('findMany - Combined Filters', () => {
     it('should apply multiple filters simultaneously', async () => {
       const users = await userRepository.findMany(
-        { 
+        {
           role: 'user',
           isActive: true,
-          search: 'Active'
+          search: 'Active',
         },
         { take: 10 }
       )
 
-      expect(users.every(user => 
-        user.role === 'user' && 
-        user.isActive === true &&
-        (user.email.toLowerCase().includes('active') || 
-         (user.name && user.name.toLowerCase().includes('active')))
-      )).toBe(true)
+      expect(
+        users.every(
+          user =>
+            user.role === 'user' &&
+            user.isActive === true &&
+            (user.email.toLowerCase().includes('active') ||
+              (user.name && user.name.toLowerCase().includes('active')))
+        )
+      ).toBe(true)
     })
 
     it('should handle conflicting filters', async () => {
       const users = await userRepository.findMany(
-        { 
+        {
           role: 'admin',
-          isActive: false // No admin should be inactive in our test data
+          isActive: false, // No admin should be inactive in our test data
         },
         { take: 10 }
       )
@@ -265,17 +235,16 @@ describe('UserRepository Filter Tests', () => {
 
     it('should combine email filter with other filters', async () => {
       const users = await userRepository.findMany(
-        { 
+        {
           email: 'repo-filter-test',
-          role: 'user'
+          role: 'user',
         },
         { take: 10 }
       )
 
-      expect(users.every(user => 
-        user.email.includes('repo-filter-test') && 
-        user.role === 'user'
-      )).toBe(true)
+      expect(
+        users.every(user => user.email.includes('repo-filter-test') && user.role === 'user')
+      ).toBe(true)
     })
   })
 
@@ -293,7 +262,7 @@ describe('UserRepository Filter Tests', () => {
 
       expect(firstPage).toHaveLength(2)
       expect(secondPage.length).toBeGreaterThanOrEqual(0)
-      
+
       // Should not have overlapping users
       const firstPageIds = firstPage.map(user => user.id)
       const secondPageIds = secondPage.map(user => user.id)
@@ -302,15 +271,9 @@ describe('UserRepository Filter Tests', () => {
     })
 
     it('should maintain consistent ordering', async () => {
-      const users1 = await userRepository.findMany(
-        {},
-        { take: 5, orderBy: { createdAt: 'desc' } }
-      )
+      const users1 = await userRepository.findMany({}, { take: 5, orderBy: { createdAt: 'desc' } })
 
-      const users2 = await userRepository.findMany(
-        {},
-        { take: 5, orderBy: { createdAt: 'desc' } }
-      )
+      const users2 = await userRepository.findMany({}, { take: 5, orderBy: { createdAt: 'desc' } })
 
       expect(users1).toEqual(users2)
     })
@@ -318,24 +281,24 @@ describe('UserRepository Filter Tests', () => {
     it('should handle select options correctly', async () => {
       const users = await userRepository.findMany(
         {},
-        { 
+        {
           take: 1,
           select: {
             id: true,
             email: true,
             role: true,
-          }
+          },
         }
       )
 
       expect(users).toHaveLength(1)
       const user = users[0]
-      
+
       // Should only include selected fields
       expect(user).toHaveProperty('id')
       expect(user).toHaveProperty('email')
       expect(user).toHaveProperty('role')
-      
+
       // Should not include non-selected fields
       expect(user).not.toHaveProperty('passwordHash')
       expect(user).not.toHaveProperty('createdAt')
@@ -345,7 +308,7 @@ describe('UserRepository Filter Tests', () => {
   describe('count - Filter Consistency', () => {
     it('should return consistent counts with findMany', async () => {
       const filter = { role: 'user' as const, isActive: true }
-      
+
       const users = await userRepository.findMany(filter, { take: 1000 })
       const count = await userRepository.count(filter)
 
@@ -354,19 +317,17 @@ describe('UserRepository Filter Tests', () => {
 
     it('should handle search filter in count', async () => {
       const searchTerm = 'repo-filter-test'
-      
-      const users = await userRepository.findMany(
-        { search: searchTerm },
-        { take: 1000 }
-      )
-      
+
+      const users = await userRepository.findMany({ search: searchTerm }, { take: 1000 })
+
       // Note: count method currently doesn't support search filter directly
       // This test verifies the current behavior
       expect(Array.isArray(users)).toBe(true)
-      expect(users.every(user => 
-        user.email.includes(searchTerm) || 
-        (user.name && user.name.includes(searchTerm))
-      )).toBe(true)
+      expect(
+        users.every(
+          user => user.email.includes(searchTerm) || (user.name && user.name.includes(searchTerm))
+        )
+      ).toBe(true)
     })
   })
 
@@ -400,24 +361,21 @@ describe('UserRepository Filter Tests', () => {
   describe('findMany - Performance', () => {
     it('should execute search queries within reasonable time', async () => {
       const startTime = Date.now()
-      
-      await userRepository.findMany(
-        { search: 'test' },
-        { take: 100 }
-      )
-      
+
+      await userRepository.findMany({ search: 'test' }, { take: 100 })
+
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(5000) // Should complete within 5 seconds
     })
 
     it('should handle large result sets efficiently', async () => {
       const startTime = Date.now()
-      
+
       const users = await userRepository.findMany(
         {},
         { take: 1000, orderBy: { createdAt: 'desc' } }
       )
-      
+
       const duration = Date.now() - startTime
       expect(duration).toBeLessThan(10000) // Should complete within 10 seconds
       expect(Array.isArray(users)).toBe(true)
@@ -426,14 +384,11 @@ describe('UserRepository Filter Tests', () => {
 
   describe('findMany - Data Integrity', () => {
     it('should return complete user objects', async () => {
-      const users = await userRepository.findMany(
-        { search: 'repo-filter-test' },
-        { take: 1 }
-      )
+      const users = await userRepository.findMany({ search: 'repo-filter-test' }, { take: 1 })
 
       if (users.length > 0) {
         const user = users[0]
-        
+
         // Essential fields should be present
         expect(user).toHaveProperty('id')
         expect(user).toHaveProperty('email')
@@ -448,21 +403,15 @@ describe('UserRepository Filter Tests', () => {
     })
 
     it('should maintain referential integrity with filters', async () => {
-      const adminUsers = await userRepository.findMany(
-        { role: 'admin' },
-        { take: 10 }
-      )
+      const adminUsers = await userRepository.findMany({ role: 'admin' }, { take: 10 })
 
-      const userRoleUsers = await userRepository.findMany(
-        { role: 'user' },
-        { take: 10 }
-      )
+      const userRoleUsers = await userRepository.findMany({ role: 'user' }, { take: 10 })
 
       // No user should appear in both results
       const adminIds = adminUsers.map(user => user.id)
       const userIds = userRoleUsers.map(user => user.id)
       const overlap = adminIds.filter(id => userIds.includes(id))
-      
+
       expect(overlap).toHaveLength(0)
     })
   })
@@ -470,38 +419,28 @@ describe('UserRepository Filter Tests', () => {
   describe('findMany - Edge Cases', () => {
     it('should handle very long search strings', async () => {
       const longSearch = 'a'.repeat(1000)
-      
-      await expect(userRepository.findMany(
-        { search: longSearch },
-        { take: 10 }
-      )).resolves.toBeDefined()
+
+      await expect(
+        userRepository.findMany({ search: longSearch }, { take: 10 })
+      ).resolves.toBeDefined()
     })
 
     it('should handle search with only whitespace', async () => {
-      const users = await userRepository.findMany(
-        { search: '   ' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: '   ' }, { take: 10 })
 
       expect(Array.isArray(users)).toBe(true)
     })
 
     it('should handle search with special regex characters', async () => {
       const specialChars = ['.', '*', '+', '?', '^', '$', '(', ')', '[', ']', '{', '}', '|', '\\']
-      
+
       for (const char of specialChars) {
-        await expect(userRepository.findMany(
-          { search: char },
-          { take: 10 }
-        )).resolves.toBeDefined()
+        await expect(userRepository.findMany({ search: char }, { take: 10 })).resolves.toBeDefined()
       }
     })
 
     it('should handle empty search string', async () => {
-      const users = await userRepository.findMany(
-        { search: '' },
-        { take: 10 }
-      )
+      const users = await userRepository.findMany({ search: '' }, { take: 10 })
 
       expect(Array.isArray(users)).toBe(true)
     })
@@ -514,11 +453,14 @@ describe('UserRepository Filter Tests', () => {
         { take: 10 }
       )
 
-      expect(users.every(user => 
-        user.role === 'user' &&
-        (user.email.includes('repo-filter-test') || 
-         (user.name && user.name.includes('repo-filter-test')))
-      )).toBe(true)
+      expect(
+        users.every(
+          user =>
+            user.role === 'user' &&
+            (user.email.includes('repo-filter-test') ||
+              (user.name && user.name.includes('repo-filter-test')))
+        )
+      ).toBe(true)
     })
 
     it('should combine search with status filter', async () => {
@@ -527,45 +469,45 @@ describe('UserRepository Filter Tests', () => {
         { take: 10 }
       )
 
-      expect(users.every(user => 
-        user.isActive === true &&
-        (user.email.includes('repo-filter-test') || 
-         (user.name && user.name.includes('repo-filter-test')))
-      )).toBe(true)
+      expect(
+        users.every(
+          user =>
+            user.isActive === true &&
+            (user.email.includes('repo-filter-test') ||
+              (user.name && user.name.includes('repo-filter-test')))
+        )
+      ).toBe(true)
     })
 
     it('should combine all filters together', async () => {
       const users = await userRepository.findMany(
-        { 
+        {
           search: 'Active',
           role: 'user',
           isActive: true,
-          isEmailVerified: true
+          isEmailVerified: true,
         },
         { take: 10 }
       )
 
-      expect(users.every(user => 
-        user.role === 'user' &&
-        user.isActive === true &&
-        user.isEmailVerified === true &&
-        (user.email.toLowerCase().includes('active') || 
-         (user.name && user.name.toLowerCase().includes('active')))
-      )).toBe(true)
+      expect(
+        users.every(
+          user =>
+            user.role === 'user' &&
+            user.isActive === true &&
+            user.isEmailVerified === true &&
+            (user.email.toLowerCase().includes('active') ||
+              (user.name && user.name.toLowerCase().includes('active')))
+        )
+      ).toBe(true)
     })
   })
 
   describe('findMany - Options Handling', () => {
     it('should respect orderBy options', async () => {
-      const ascUsers = await userRepository.findMany(
-        {},
-        { take: 3, orderBy: { email: 'asc' } }
-      )
+      const ascUsers = await userRepository.findMany({}, { take: 3, orderBy: { email: 'asc' } })
 
-      const descUsers = await userRepository.findMany(
-        {},
-        { take: 3, orderBy: { email: 'desc' } }
-      )
+      const descUsers = await userRepository.findMany({}, { take: 3, orderBy: { email: 'desc' } })
 
       if (ascUsers.length > 1) {
         expect(ascUsers[0].email.localeCompare(ascUsers[1].email)).toBeLessThanOrEqual(0)
@@ -579,7 +521,7 @@ describe('UserRepository Filter Tests', () => {
     it('should handle complex select options', async () => {
       const users = await userRepository.findMany(
         { search: 'repo-filter-test' },
-        { 
+        {
           take: 1,
           select: {
             id: true,
@@ -591,7 +533,7 @@ describe('UserRepository Filter Tests', () => {
             // Explicitly exclude sensitive fields
             passwordHash: false,
             resetToken: false,
-          } as any
+          } as any,
         }
       )
 

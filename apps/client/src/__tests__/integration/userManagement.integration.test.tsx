@@ -9,7 +9,7 @@ const MockUserManagementPage = () => {
   const [filters, setFilters] = React.useState({
     search: '',
     role: '',
-    status: ''
+    status: '',
   })
   const [users, setUsers] = React.useState([
     {
@@ -22,7 +22,7 @@ const MockUserManagementPage = () => {
       failedLoginCount: 0,
       lastLoginAt: '2024-01-15T10:30:00Z',
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-15T10:30:00Z'
+      updatedAt: '2024-01-15T10:30:00Z',
     },
     {
       id: '2',
@@ -34,7 +34,7 @@ const MockUserManagementPage = () => {
       failedLoginCount: 2,
       lastLoginAt: '2024-01-10T15:45:00Z',
       createdAt: '2024-01-02T00:00:00Z',
-      updatedAt: '2024-01-10T15:45:00Z'
+      updatedAt: '2024-01-10T15:45:00Z',
     },
     {
       id: '3',
@@ -46,8 +46,8 @@ const MockUserManagementPage = () => {
       failedLoginCount: 5,
       lastLoginAt: undefined,
       createdAt: '2024-01-03T00:00:00Z',
-      updatedAt: '2024-01-16T00:00:00Z'
-    }
+      updatedAt: '2024-01-16T00:00:00Z',
+    },
   ])
   const [selectedUsers, setSelectedUsers] = React.useState<string[]>([])
   const [loading, setLoading] = React.useState(false)
@@ -68,7 +68,7 @@ const MockUserManagementPage = () => {
           failedLoginCount: 0,
           lastLoginAt: '2024-01-15T10:30:00Z',
           createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-15T10:30:00Z'
+          updatedAt: '2024-01-15T10:30:00Z',
         },
         {
           id: '2',
@@ -80,7 +80,7 @@ const MockUserManagementPage = () => {
           failedLoginCount: 2,
           lastLoginAt: '2024-01-10T15:45:00Z',
           createdAt: '2024-01-02T00:00:00Z',
-          updatedAt: '2024-01-10T15:45:00Z'
+          updatedAt: '2024-01-10T15:45:00Z',
         },
         {
           id: '3',
@@ -92,21 +92,22 @@ const MockUserManagementPage = () => {
           failedLoginCount: 5,
           lastLoginAt: undefined,
           createdAt: '2024-01-03T00:00:00Z',
-          updatedAt: '2024-01-16T00:00:00Z'
-        }
+          updatedAt: '2024-01-16T00:00:00Z',
+        },
       ]
 
       // Apply filters
       if (value) {
         if (key === 'search') {
-          filteredUsers = filteredUsers.filter(user => 
-            user.email.toLowerCase().includes(value.toLowerCase()) ||
-            (user.name && user.name.toLowerCase().includes(value.toLowerCase()))
+          filteredUsers = filteredUsers.filter(
+            user =>
+              user.email.toLowerCase().includes(value.toLowerCase()) ||
+              (user.name && user.name.toLowerCase().includes(value.toLowerCase()))
           )
         } else if (key === 'role') {
           filteredUsers = filteredUsers.filter(user => user.role === value)
         } else if (key === 'status') {
-          filteredUsers = filteredUsers.filter(user => 
+          filteredUsers = filteredUsers.filter(user =>
             value === 'active' ? user.isActive : !user.isActive
           )
         }
@@ -118,174 +119,170 @@ const MockUserManagementPage = () => {
   }
 
   const handleUserSelect = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     )
   }
 
   const handleSelectAll = () => {
-    setSelectedUsers(prev => 
-      prev.length === users.length ? [] : users.map(user => user.id)
-    )
+    setSelectedUsers(prev => (prev.length === users.length ? [] : users.map(user => user.id)))
   }
 
   const filteredUsersDisplay = React.useMemo(() => {
     let result = users
     if (filters.search) {
-      result = result.filter(user =>
-        user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-        (user.name && user.name.toLowerCase().includes(filters.search.toLowerCase()))
+      result = result.filter(
+        user =>
+          user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+          (user.name && user.name.toLowerCase().includes(filters.search.toLowerCase()))
       )
     }
     if (filters.role) {
       result = result.filter(user => user.role === filters.role)
     }
     if (filters.status) {
-      result = result.filter(user =>
-        filters.status === 'active' ? user.isActive : !user.isActive
-      )
+      result = result.filter(user => (filters.status === 'active' ? user.isActive : !user.isActive))
     }
     return result
   }, [users, filters])
 
   return (
-    <div data-testid="user-management-page" className="p-6">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
-      
+    <div data-testid='user-management-page' className='p-6'>
+      <h1 className='text-2xl font-bold mb-6'>User Management</h1>
+
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6'>
+        <h2 className='text-lg font-semibold mb-4'>Filters</h2>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
           <div>
-            <label htmlFor="search-filter" className="block text-sm font-medium mb-1">
+            <label htmlFor='search-filter' className='block text-sm font-medium mb-1'>
               Search
             </label>
             <input
-              id="search-filter"
-              type="text"
+              id='search-filter'
+              type='text'
               value={filters.search}
               onChange={e => handleFilterChange('search', e.target.value)}
-              placeholder="Search by email or name..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder='Search by email or name...'
+              className='w-full px-3 py-2 border border-gray-300 rounded-md'
             />
           </div>
           <div>
-            <label htmlFor="role-filter" className="block text-sm font-medium mb-1">
+            <label htmlFor='role-filter' className='block text-sm font-medium mb-1'>
               Role
             </label>
             <select
-              id="role-filter"
+              id='role-filter'
               value={filters.role}
               onChange={e => handleFilterChange('role', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className='w-full px-3 py-2 border border-gray-300 rounded-md'
             >
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
+              <option value=''>All Roles</option>
+              <option value='admin'>Admin</option>
+              <option value='user'>User</option>
             </select>
           </div>
           <div>
-            <label htmlFor="status-filter" className="block text-sm font-medium mb-1">
+            <label htmlFor='status-filter' className='block text-sm font-medium mb-1'>
               Status
             </label>
             <select
-              id="status-filter"
+              id='status-filter'
               value={filters.status}
               onChange={e => handleFilterChange('status', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className='w-full px-3 py-2 border border-gray-300 rounded-md'
             >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value=''>All Status</option>
+              <option value='active'>Active</option>
+              <option value='inactive'>Inactive</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* User List */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">
-            Users ({filteredUsersDisplay.length})
-          </h2>
+      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden'>
+        <div className='px-6 py-4 border-b border-gray-200'>
+          <h2 className='text-lg font-semibold'>Users ({filteredUsersDisplay.length})</h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-500 mt-2">Loading users...</p>
+          <div className='p-6 text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
+            <p className='text-gray-500 mt-2'>Loading users...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+          <div className='overflow-x-auto'>
+            <table className='w-full'>
+              <thead className='bg-gray-50'>
                 <tr>
-                  <th className="px-6 py-3 text-left">
+                  <th className='px-6 py-3 text-left'>
                     <input
-                      type="checkbox"
-                      checked={selectedUsers.length === filteredUsersDisplay.length && filteredUsersDisplay.length > 0}
+                      type='checkbox'
+                      checked={
+                        selectedUsers.length === filteredUsersDisplay.length &&
+                        filteredUsersDisplay.length > 0
+                      }
                       onChange={handleSelectAll}
-                      aria-label="Select all users"
+                      aria-label='Select all users'
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase'>
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase'>
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase'>
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase'>
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className='bg-white divide-y divide-gray-200'>
                 {filteredUsersDisplay.map(user => (
                   <tr key={user.id} data-testid={`user-row-${user.id}`}>
-                    <td className="px-6 py-4">
+                    <td className='px-6 py-4'>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         checked={selectedUsers.includes(user.id)}
                         onChange={() => handleUserSelect(user.id)}
                         aria-label={`Select user ${user.email}`}
                       />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className='px-6 py-4'>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className='text-sm font-medium text-gray-900'>
                           {user.name || 'No Name'}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {user.email}
-                        </div>
+                        <div className='text-sm text-gray-500'>{user.email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.role === 'admin' 
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
+                    <td className='px-6 py-4'>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.role === 'admin'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
                         {user.role === 'admin' ? 'Admin' : 'User'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                    <td className='px-6 py-4'>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <button 
-                        className="text-blue-600 hover:text-blue-900 text-sm"
+                    <td className='px-6 py-4'>
+                      <button
+                        className='text-blue-600 hover:text-blue-900 text-sm'
                         data-testid={`view-user-${user.id}`}
                       >
                         View
@@ -301,21 +298,19 @@ const MockUserManagementPage = () => {
 
       {/* Bulk Actions */}
       {selectedUsers.length > 0 && (
-        <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-blue-800">
-              {selectedUsers.length} user(s) selected
-            </span>
-            <div className="space-x-2">
-              <button 
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-                data-testid="bulk-activate"
+        <div className='mt-6 bg-blue-50 p-4 rounded-lg'>
+          <div className='flex items-center justify-between'>
+            <span className='text-sm text-blue-800'>{selectedUsers.length} user(s) selected</span>
+            <div className='space-x-2'>
+              <button
+                className='bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700'
+                data-testid='bulk-activate'
               >
                 Activate
               </button>
-              <button 
-                className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700"
-                data-testid="bulk-deactivate"
+              <button
+                className='bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700'
+                data-testid='bulk-deactivate'
               >
                 Deactivate
               </button>
@@ -334,8 +329,8 @@ describe('User Management Integration Tests', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     })
   })
 
@@ -416,7 +411,7 @@ describe('User Management Integration Tests', () => {
       render(<MockUserManagementPage />, { queryClient })
 
       const searchInput = screen.getByLabelText('Search')
-      
+
       // Search first
       await fireEvent.change(searchInput, { target: { value: 'admin' } })
       await waitFor(() => {
@@ -463,7 +458,7 @@ describe('User Management Integration Tests', () => {
       render(<MockUserManagementPage />, { queryClient })
 
       const roleSelect = screen.getByLabelText('Role')
-      
+
       // Filter first
       await fireEvent.change(roleSelect, { target: { value: 'admin' } })
       await waitFor(() => {
@@ -571,7 +566,7 @@ describe('User Management Integration Tests', () => {
       render(<MockUserManagementPage />, { queryClient })
 
       const selectAllCheckbox = screen.getByLabelText('Select all users')
-      
+
       // Select all
       await fireEvent.click(selectAllCheckbox)
       expect(screen.getByText('3 user(s) selected')).toBeInTheDocument()

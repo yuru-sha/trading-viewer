@@ -12,12 +12,8 @@ vi.mock('@trading-viewer/ui', () => ({
     </button>
   ),
   Input: ({ value, onChange, ...props }: any) => (
-    <input 
-      value={value} 
-      onChange={(e) => onChange?.(e.target.value)}
-      {...props}
-    />
-  )
+    <input value={value} onChange={e => onChange?.(e.target.value)} {...props} />
+  ),
 }))
 
 describe('AdvancedUserFilters', () => {
@@ -25,7 +21,7 @@ describe('AdvancedUserFilters', () => {
     onApplyFilters: vi.fn(),
     onClearFilters: vi.fn(),
     isOpen: false,
-    onToggle: vi.fn()
+    onToggle: vi.fn(),
   }
 
   beforeEach(() => {
@@ -69,7 +65,7 @@ describe('AdvancedUserFilters', () => {
 
     it('should render department filter', () => {
       expect(screen.getByLabelText(/department/i)).toBeInTheDocument()
-      
+
       // Check department options
       const departmentSelect = screen.getByLabelText(/department/i)
       expect(departmentSelect).toHaveTextContent('Engineering')
@@ -186,7 +182,7 @@ describe('AdvancedUserFilters', () => {
       // Fill out some filters
       const searchInput = screen.getByLabelText(/search/i)
       const roleSelect = screen.getByLabelText(/role/i)
-      
+
       await fireEvent.change(searchInput, { target: { value: 'test@example.com' } })
       await fireEvent.change(roleSelect, { target: { value: 'admin' } })
 
@@ -196,7 +192,7 @@ describe('AdvancedUserFilters', () => {
       expect(mockProps.onApplyFilters).toHaveBeenCalledWith(
         expect.objectContaining({
           search: 'test@example.com',
-          role: 'admin'
+          role: 'admin',
         })
       )
     })
@@ -263,18 +259,36 @@ describe('AdvancedUserFilters', () => {
 
     it('should handle all filters filled out', async () => {
       // Fill out all filters
-      await fireEvent.change(screen.getByLabelText(/search/i), { target: { value: 'admin@example.com' } })
+      await fireEvent.change(screen.getByLabelText(/search/i), {
+        target: { value: 'admin@example.com' },
+      })
       await fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'admin' } })
       await fireEvent.change(screen.getByLabelText(/status/i), { target: { value: 'active' } })
-      await fireEvent.change(screen.getByLabelText(/email verified/i), { target: { value: 'true' } })
-      await fireEvent.change(screen.getByLabelText(/department/i), { target: { value: 'Engineering' } })
-      await fireEvent.change(screen.getByLabelText(/last login start/i), { target: { value: '2024-01-01' } })
-      await fireEvent.change(screen.getByLabelText(/last login end/i), { target: { value: '2024-12-31' } })
-      await fireEvent.change(screen.getByLabelText(/created start/i), { target: { value: '2023-01-01' } })
-      await fireEvent.change(screen.getByLabelText(/created end/i), { target: { value: '2024-12-31' } })
+      await fireEvent.change(screen.getByLabelText(/email verified/i), {
+        target: { value: 'true' },
+      })
+      await fireEvent.change(screen.getByLabelText(/department/i), {
+        target: { value: 'Engineering' },
+      })
+      await fireEvent.change(screen.getByLabelText(/last login start/i), {
+        target: { value: '2024-01-01' },
+      })
+      await fireEvent.change(screen.getByLabelText(/last login end/i), {
+        target: { value: '2024-12-31' },
+      })
+      await fireEvent.change(screen.getByLabelText(/created start/i), {
+        target: { value: '2023-01-01' },
+      })
+      await fireEvent.change(screen.getByLabelText(/created end/i), {
+        target: { value: '2024-12-31' },
+      })
       await fireEvent.change(screen.getByLabelText(/operator/i), { target: { value: 'lt' } })
-      await fireEvent.change(screen.getByLabelText(/failed login count/i), { target: { value: '3' } })
-      await fireEvent.change(screen.getByLabelText(/active session/i), { target: { value: 'true' } })
+      await fireEvent.change(screen.getByLabelText(/failed login count/i), {
+        target: { value: '3' },
+      })
+      await fireEvent.change(screen.getByLabelText(/active session/i), {
+        target: { value: 'true' },
+      })
       await fireEvent.change(screen.getByLabelText(/locked/i), { target: { value: 'false' } })
       await fireEvent.change(screen.getByLabelText(/timezone/i), { target: { value: 'UTC' } })
       await fireEvent.change(screen.getByLabelText(/language/i), { target: { value: 'English' } })
@@ -295,19 +309,21 @@ describe('AdvancedUserFilters', () => {
           createdEnd: '2024-12-31',
           failedLoginCount: {
             operator: 'lt',
-            value: 3
+            value: 3,
           },
           hasActiveSession: 'true',
           isLocked: 'false',
           timezone: 'UTC',
-          language: 'English'
+          language: 'English',
         })
       )
     })
 
     it('should handle partial filter combinations', async () => {
       // Fill out only some filters
-      await fireEvent.change(screen.getByLabelText(/search/i), { target: { value: 'user@example.com' } })
+      await fireEvent.change(screen.getByLabelText(/search/i), {
+        target: { value: 'user@example.com' },
+      })
       await fireEvent.change(screen.getByLabelText(/role/i), { target: { value: 'user' } })
 
       const applyButton = screen.getByRole('button', { name: /apply filters/i })
@@ -319,7 +335,7 @@ describe('AdvancedUserFilters', () => {
           role: 'user',
           status: '',
           emailVerified: '',
-          department: ''
+          department: '',
         })
       )
     })

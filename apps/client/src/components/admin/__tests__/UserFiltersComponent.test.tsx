@@ -7,40 +7,36 @@ import UserFiltersComponent from '../UserFiltersComponent'
 // Mock the AdvancedUserFilters component
 vi.mock('../AdvancedUserFilters', () => ({
   default: ({ onApplyFilters, onClearFilters, isOpen, onToggle }: any) => (
-    <div data-testid="advanced-filters">
-      <button 
-        onClick={onToggle} 
-        data-testid="toggle-advanced-filters"
-      >
+    <div data-testid='advanced-filters'>
+      <button onClick={onToggle} data-testid='toggle-advanced-filters'>
         Toggle Advanced Filters
       </button>
       {isOpen && (
-        <div data-testid="advanced-filters-panel">
-          <button 
-            onClick={() => onApplyFilters({
-              search: 'advanced search',
-              role: 'admin',
-              status: 'active',
-              emailVerified: 'true',
-              department: 'Engineering',
-              lastLoginStart: '2024-01-01',
-              lastLoginEnd: '2024-12-31',
-              createdStart: '2023-01-01',
-              createdEnd: '2024-12-31',
-              failedLoginCount: { operator: 'gt', value: 3 },
-              hasActiveSession: 'true',
-              isLocked: 'false',
-              timezone: 'UTC',
-              language: 'en'
-            })}
-            data-testid="apply-advanced-filters"
+        <div data-testid='advanced-filters-panel'>
+          <button
+            onClick={() =>
+              onApplyFilters({
+                search: 'advanced search',
+                role: 'admin',
+                status: 'active',
+                emailVerified: 'true',
+                department: 'Engineering',
+                lastLoginStart: '2024-01-01',
+                lastLoginEnd: '2024-12-31',
+                createdStart: '2023-01-01',
+                createdEnd: '2024-12-31',
+                failedLoginCount: { operator: 'gt', value: 3 },
+                hasActiveSession: 'true',
+                isLocked: 'false',
+                timezone: 'UTC',
+                language: 'en',
+              })
+            }
+            data-testid='apply-advanced-filters'
           >
             Apply Advanced Filters
           </button>
-          <button 
-            onClick={onClearFilters}
-            data-testid="clear-advanced-filters"
-          >
+          <button onClick={onClearFilters} data-testid='clear-advanced-filters'>
             Clear Advanced Filters
           </button>
         </div>
@@ -55,13 +51,13 @@ describe('UserFiltersComponent', () => {
     filters: {
       search: '',
       role: '',
-      status: ''
+      status: '',
     },
     advancedFiltersOpen: false,
     onFilterChange: vi.fn(),
     onToggleAdvancedFilters: vi.fn(),
     onApplyAdvancedFilters: vi.fn(),
-    onClearAdvancedFilters: vi.fn()
+    onClearAdvancedFilters: vi.fn(),
   }
 
   beforeEach(() => {
@@ -94,7 +90,7 @@ describe('UserFiltersComponent', () => {
       const filtersWithValues = {
         search: 'john@example.com',
         role: 'admin',
-        status: 'active'
+        status: 'active',
       }
 
       render(<UserFiltersComponent {...mockProps} filters={filtersWithValues} />)
@@ -160,7 +156,7 @@ describe('UserFiltersComponent', () => {
     it('should pass correct props to advanced filters component', () => {
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedOpen} />)
@@ -180,7 +176,7 @@ describe('UserFiltersComponent', () => {
     it('should handle advanced filters apply', async () => {
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedOpen} />)
@@ -202,14 +198,14 @@ describe('UserFiltersComponent', () => {
         hasActiveSession: 'true',
         isLocked: 'false',
         timezone: 'UTC',
-        language: 'en'
+        language: 'en',
       })
     })
 
     it('should handle advanced filters clear', async () => {
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedOpen} />)
@@ -336,7 +332,11 @@ describe('UserFiltersComponent', () => {
       expect(container).toHaveClass('dark:bg-gray-800')
 
       const searchInput = screen.getByLabelText('Search')
-      expect(searchInput).toHaveClass('dark:bg-gray-700', 'dark:text-gray-100', 'dark:border-gray-600')
+      expect(searchInput).toHaveClass(
+        'dark:bg-gray-700',
+        'dark:text-gray-100',
+        'dark:border-gray-600'
+      )
     })
   })
 
@@ -344,7 +344,7 @@ describe('UserFiltersComponent', () => {
     it('should handle email verification filter in advanced mode', async () => {
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedOpen} />)
@@ -360,7 +360,7 @@ describe('UserFiltersComponent', () => {
       // Check that advanced filters were applied
       expect(mockProps.onApplyAdvancedFilters).toHaveBeenCalledWith(
         expect.objectContaining({
-          emailVerified: 'true'
+          emailVerified: 'true',
         })
       )
     })
@@ -371,8 +371,8 @@ describe('UserFiltersComponent', () => {
         filters: {
           search: 'test@example.com',
           role: 'admin',
-          status: 'active'
-        }
+          status: 'active',
+        },
       }
 
       render(<UserFiltersComponent {...propsWithValues} />)
@@ -388,9 +388,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: 'admin@example.com' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', 'admin@example.com')
     })
 
@@ -398,9 +398,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: 'John Doe' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', 'John Doe')
     })
 
@@ -408,9 +408,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: 'example.com' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', 'example.com')
     })
 
@@ -418,9 +418,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: '' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', '')
     })
 
@@ -428,9 +428,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: 'test+filter@example.com' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', 'test+filter@example.com')
     })
 
@@ -438,9 +438,9 @@ describe('UserFiltersComponent', () => {
       render(<UserFiltersComponent {...mockProps} />)
 
       const searchInput = screen.getByPlaceholderText('Search by email or name...')
-      
+
       await fireEvent.change(searchInput, { target: { value: '田中太郎' } })
-      
+
       expect(mockProps.onFilterChange).toHaveBeenCalledWith('search', '田中太郎')
     })
   })
@@ -449,7 +449,7 @@ describe('UserFiltersComponent', () => {
     it('should show basic filters when advanced filters are closed', () => {
       const propsWithAdvancedClosed = {
         ...mockProps,
-        advancedFiltersOpen: false
+        advancedFiltersOpen: false,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedClosed} />)
@@ -464,7 +464,7 @@ describe('UserFiltersComponent', () => {
     it('should hide basic filters when advanced filters are open', () => {
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       render(<UserFiltersComponent {...propsWithAdvancedOpen} />)
@@ -477,7 +477,7 @@ describe('UserFiltersComponent', () => {
       // Test when closed
       const propsWithAdvancedClosed = {
         ...mockProps,
-        advancedFiltersOpen: false
+        advancedFiltersOpen: false,
       }
 
       const { rerender } = render(<UserFiltersComponent {...propsWithAdvancedClosed} />)
@@ -486,7 +486,7 @@ describe('UserFiltersComponent', () => {
       // Test when open
       const propsWithAdvancedOpen = {
         ...mockProps,
-        advancedFiltersOpen: true
+        advancedFiltersOpen: true,
       }
 
       rerender(<UserFiltersComponent {...propsWithAdvancedOpen} />)

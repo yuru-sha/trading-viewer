@@ -144,9 +144,9 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users).toHaveLength(2)
-      expect(response.body.data.users.every((user: any) => 
-        user.email.includes('filter-test-user')
-      )).toBe(true)
+      expect(
+        response.body.data.users.every((user: any) => user.email.includes('filter-test-user'))
+      ).toBe(true)
     })
 
     it('should filter users by name search', async () => {
@@ -158,9 +158,9 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users).toHaveLength(2)
-      expect(response.body.data.users.some((user: any) => 
-        user.name && user.name.includes('John Doe')
-      )).toBe(true)
+      expect(
+        response.body.data.users.some((user: any) => user.name && user.name.includes('John Doe'))
+      ).toBe(true)
     })
 
     it('should perform case-insensitive search', async () => {
@@ -172,9 +172,11 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users.length).toBeGreaterThan(0)
-      expect(response.body.data.users.some((user: any) => 
-        user.name && user.name.toLowerCase().includes('john')
-      )).toBe(true)
+      expect(
+        response.body.data.users.some(
+          (user: any) => user.name && user.name.toLowerCase().includes('john')
+        )
+      ).toBe(true)
     })
 
     it('should search both email and name fields', async () => {
@@ -186,14 +188,14 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users.length).toBeGreaterThan(0)
-      
-      const hasEmailMatch = response.body.data.users.some((user: any) => 
+
+      const hasEmailMatch = response.body.data.users.some((user: any) =>
         user.email.toLowerCase().includes('jane')
       )
-      const hasNameMatch = response.body.data.users.some((user: any) => 
-        user.name && user.name.toLowerCase().includes('jane')
+      const hasNameMatch = response.body.data.users.some(
+        (user: any) => user.name && user.name.toLowerCase().includes('jane')
       )
-      
+
       expect(hasEmailMatch || hasNameMatch).toBe(true)
     })
 
@@ -218,37 +220,27 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users.length).toBeGreaterThan(0)
-      expect(response.body.data.users.every((user: any) => 
-        user.email.includes('@example.com')
-      )).toBe(true)
+      expect(
+        response.body.data.users.every((user: any) => user.email.includes('@example.com'))
+      ).toBe(true)
     })
   })
 
   describe('GET /api/auth/users - Role Filter', () => {
     it('should filter users by admin role', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?role=admin')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?role=admin').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.role === 'admin'
-      )).toBe(true)
+      expect(response.body.data.users.every((user: any) => user.role === 'admin')).toBe(true)
     })
 
     it('should filter users by user role', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?role=user')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?role=user').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.role === 'user'
-      )).toBe(true)
+      expect(response.body.data.users.every((user: any) => user.role === 'user')).toBe(true)
     })
 
     it('should ignore invalid role values', async () => {
@@ -273,9 +265,7 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.isActive === true
-      )).toBe(true)
+      expect(response.body.data.users.every((user: any) => user.isActive === true)).toBe(true)
     })
 
     it('should filter users by inactive status', async () => {
@@ -286,14 +276,14 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.isActive === false
-      )).toBe(true)
-      
+      expect(response.body.data.users.every((user: any) => user.isActive === false)).toBe(true)
+
       // Should include our inactive test user
-      expect(response.body.data.users.some((user: any) => 
-        user.email === 'filter-test-inactive@example.com'
-      )).toBe(true)
+      expect(
+        response.body.data.users.some(
+          (user: any) => user.email === 'filter-test-inactive@example.com'
+        )
+      ).toBe(true)
     })
 
     it('should return all users with invalid status', async () => {
@@ -321,12 +311,15 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.role === 'admin' && 
-        user.isActive === true &&
-        (user.email.toLowerCase().includes('admin') || 
-         (user.name && user.name.toLowerCase().includes('admin')))
-      )).toBe(true)
+      expect(
+        response.body.data.users.every(
+          (user: any) =>
+            user.role === 'admin' &&
+            user.isActive === true &&
+            (user.email.toLowerCase().includes('admin') ||
+              (user.name && user.name.toLowerCase().includes('admin')))
+        )
+      ).toBe(true)
     })
 
     it('should return empty results when filters conflict', async () => {
@@ -349,11 +342,14 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.every((user: any) => 
-        user.role === 'user' &&
-        (user.email.toLowerCase().includes('doe') || 
-         (user.name && user.name.toLowerCase().includes('doe')))
-      )).toBe(true)
+      expect(
+        response.body.data.users.every(
+          (user: any) =>
+            user.role === 'user' &&
+            (user.email.toLowerCase().includes('doe') ||
+              (user.name && user.name.toLowerCase().includes('doe')))
+        )
+      ).toBe(true)
     })
   })
 
@@ -391,10 +387,7 @@ describe('User Management Filter API', () => {
 
     it('should respect limit parameter', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?limit=1')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?limit=1').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users).toHaveLength(1)
@@ -416,19 +409,16 @@ describe('User Management Filter API', () => {
   describe('GET /api/auth/users - Response Security', () => {
     it('should not expose sensitive user data', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?limit=1')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?limit=1').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       const user = response.body.data.users[0]
-      
+
       // Should not include sensitive fields
       expect(user).not.toHaveProperty('passwordHash')
       expect(user).not.toHaveProperty('resetToken')
       expect(user).not.toHaveProperty('resetTokenExpiry')
-      
+
       // Should include safe fields
       expect(user).toHaveProperty('id')
       expect(user).toHaveProperty('email')
@@ -446,13 +436,21 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       const user = response.body.data.users[0]
-      
+
       const expectedFields = [
-        'id', 'email', 'name', 'role', 'isEmailVerified', 
-        'isActive', 'failedLoginCount', 'lockedUntil', 
-        'lastLoginAt', 'createdAt', 'updatedAt'
+        'id',
+        'email',
+        'name',
+        'role',
+        'isEmailVerified',
+        'isActive',
+        'failedLoginCount',
+        'lockedUntil',
+        'lastLoginAt',
+        'createdAt',
+        'updatedAt',
       ]
-      
+
       expectedFields.forEach(field => {
         expect(user).toHaveProperty(field)
       })
@@ -462,10 +460,7 @@ describe('User Management Filter API', () => {
   describe('GET /api/auth/users - Edge Cases', () => {
     it('should handle empty search string', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?search=')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?search=').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.users.length).toBeGreaterThan(0)
@@ -474,7 +469,7 @@ describe('User Management Filter API', () => {
     it('should handle special characters in search', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
       const specialChars = ['@', '.', '-', '_', '+', '!']
-      
+
       for (const char of specialChars) {
         const response = await request(app)
           .get(`/api/auth/users?search=${encodeURIComponent(char)}`)
@@ -516,7 +511,7 @@ describe('User Management Filter API', () => {
     it('should complete search within reasonable time', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
       const startTime = Date.now()
-      
+
       const response = await request(app)
         .get('/api/auth/users?search=test')
         .set(headers)
@@ -530,7 +525,7 @@ describe('User Management Filter API', () => {
     it('should handle concurrent filter requests', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
       const requests = []
-      
+
       // Send 5 concurrent requests with different filters
       for (let i = 0; i < 5; i++) {
         requests.push(
@@ -539,9 +534,9 @@ describe('User Management Filter API', () => {
             .set(headers)
         )
       }
-      
+
       const responses = await Promise.all(requests)
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(200)
         expect(response.body.success).toBe(true)
@@ -551,9 +546,7 @@ describe('User Management Filter API', () => {
 
   describe('GET /api/auth/users - Authorization', () => {
     it('should require authentication', async () => {
-      const response = await request(app)
-        .get('/api/auth/users')
-        .expect(401)
+      const response = await request(app).get('/api/auth/users').expect(401)
 
       expect(response.body).toHaveProperty('error')
     })
@@ -561,14 +554,11 @@ describe('User Management Filter API', () => {
     it('should require admin role', async () => {
       const regularUser = await createTestUser('regular-user-filter@example.com', 'user')
       const headers = await getAuthHeaders(regularUser.accessToken)
-      
-      const response = await request(app)
-        .get('/api/auth/users')
-        .set(headers)
-        .expect(403)
+
+      const response = await request(app).get('/api/auth/users').set(headers).expect(403)
 
       expect(response.body).toHaveProperty('error')
-      
+
       // Cleanup
       await cleanupTestUser('regular-user-filter@example.com')
     })
@@ -602,13 +592,13 @@ describe('User Management Filter API', () => {
 
     it('should maintain consistent ordering', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      
+
       // Get first page
       const response1 = await request(app)
         .get('/api/auth/users?limit=2&page=1')
         .set(headers)
         .expect(200)
-      
+
       // Get second page
       const response2 = await request(app)
         .get('/api/auth/users?limit=2&page=2')
@@ -617,12 +607,12 @@ describe('User Management Filter API', () => {
 
       const page1Users = response1.body.data.users
       const page2Users = response2.body.data.users
-      
+
       // Should not have overlapping users
       const page1Ids = page1Users.map((u: any) => u.id)
       const page2Ids = page2Users.map((u: any) => u.id)
       const overlap = page1Ids.filter((id: string) => page2Ids.includes(id))
-      
+
       expect(overlap).toHaveLength(0)
     })
 
@@ -633,22 +623,21 @@ describe('User Management Filter API', () => {
         .set(headers)
         .expect(200)
 
-      const activeUserRoleUsers = response.body.data.users.filter((user: any) => 
-        user.role === 'user' && user.isActive === true
+      const activeUserRoleUsers = response.body.data.users.filter(
+        (user: any) => user.role === 'user' && user.isActive === true
       )
-      
+
       expect(response.body.data.users).toHaveLength(activeUserRoleUsers.length)
-      expect(response.body.data.pagination.totalCount).toBeGreaterThanOrEqual(response.body.data.users.length)
+      expect(response.body.data.pagination.totalCount).toBeGreaterThanOrEqual(
+        response.body.data.users.length
+      )
     })
   })
 
   describe('GET /api/auth/users - Input Validation', () => {
     it('should handle malformed page parameter', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?page=abc')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?page=abc').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.pagination.page).toBe(1) // Should default to 1
@@ -656,10 +645,7 @@ describe('User Management Filter API', () => {
 
     it('should handle malformed limit parameter', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?limit=xyz')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?limit=xyz').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.pagination.limit).toBe(20) // Should default to 20
@@ -667,10 +653,7 @@ describe('User Management Filter API', () => {
 
     it('should handle negative page numbers', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?page=-1')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?page=-1').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.pagination.page).toBeGreaterThan(0)
@@ -678,10 +661,7 @@ describe('User Management Filter API', () => {
 
     it('should handle zero limit', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?limit=0')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?limit=0').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.pagination.limit).toBeGreaterThan(0)
@@ -728,12 +708,10 @@ describe('User Management Filter API', () => {
       // This would require mocking the database connection
       // For now, we'll test that the endpoint structure is robust
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users')
-        .set(headers)
+      const response = await request(app).get('/api/auth/users').set(headers)
 
       expect(response.status).toBeOneOf([200, 500])
-      
+
       if (response.status === 200) {
         expect(response.body.success).toBe(true)
         expect(response.body.data).toHaveProperty('users')
@@ -765,7 +743,7 @@ describe('User Management Filter API', () => {
           isActive: true,
         },
         {
-          email: 'unicode-test-2@example.com', 
+          email: 'unicode-test-2@example.com',
           name: 'José García', // Spanish with accents
           role: 'user',
           isActive: true,
@@ -795,7 +773,7 @@ describe('User Management Filter API', () => {
           email: {
             in: [
               'unicode-test-1@example.com',
-              'unicode-test-2@example.com', 
+              'unicode-test-2@example.com',
               'unicode-test-3@example.com',
             ],
           },
@@ -811,9 +789,9 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.some((user: any) => 
-        user.name && user.name.includes('田中')
-      )).toBe(true)
+      expect(
+        response.body.data.users.some((user: any) => user.name && user.name.includes('田中'))
+      ).toBe(true)
     })
 
     it('should handle accented characters in search', async () => {
@@ -824,9 +802,9 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.some((user: any) => 
-        user.name && user.name.includes('García')
-      )).toBe(true)
+      expect(
+        response.body.data.users.some((user: any) => user.name && user.name.includes('García'))
+      ).toBe(true)
     })
 
     it('should handle umlauts and special European characters', async () => {
@@ -837,9 +815,9 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.data.users.some((user: any) => 
-        user.name && user.name.includes('Müller')
-      )).toBe(true)
+      expect(
+        response.body.data.users.some((user: any) => user.name && user.name.includes('Müller'))
+      ).toBe(true)
     })
   })
 
@@ -853,12 +831,12 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(Array.isArray(response.body.data.users)).toBe(true)
-      
+
       // All returned users should be verified
       response.body.data.users.forEach((user: any) => {
         expect(user.isEmailVerified).toBe(true)
       })
-      
+
       // Should find at least our verified test users
       const emails = response.body.data.users.map((user: any) => user.email)
       expect(emails).toContain('filter-test-user-1@example.com')
@@ -874,12 +852,12 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(Array.isArray(response.body.data.users)).toBe(true)
-      
+
       // All returned users should be unverified
       response.body.data.users.forEach((user: any) => {
         expect(user.isEmailVerified).toBe(false)
       })
-      
+
       // Should find our unverified test users
       const emails = response.body.data.users.map((user: any) => user.email)
       expect(emails).toContain('filter-test-user-2@example.com')
@@ -894,7 +872,7 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      
+
       // All returned users should be verified AND have user role
       response.body.data.users.forEach((user: any) => {
         expect(user.isEmailVerified).toBe(true)
@@ -913,12 +891,12 @@ describe('User Management Filter API', () => {
 
       expect(response.body.success).toBe(true)
       expect(Array.isArray(response.body.data.users)).toBe(true)
-      
+
       // All returned users should have email containing 'filter-test'
       response.body.data.users.forEach((user: any) => {
         expect(user.email.toLowerCase()).toContain('filter-test')
       })
-      
+
       expect(response.body.data.users.length).toBeGreaterThan(0)
     })
 
@@ -930,10 +908,10 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      
+
       // Should find users with name containing 'john' (case insensitive)
-      const foundUser = response.body.data.users.find((user: any) => 
-        user.name && user.name.toLowerCase().includes('john')
+      const foundUser = response.body.data.users.find(
+        (user: any) => user.name && user.name.toLowerCase().includes('john')
       )
       expect(foundUser).toBeDefined()
     })
@@ -946,21 +924,18 @@ describe('User Management Filter API', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      
+
       // Should find users with email containing 'example.com'
       response.body.data.users.forEach((user: any) => {
         expect(user.email).toContain('example.com')
       })
-      
+
       expect(response.body.data.users.length).toBeGreaterThan(0)
     })
 
     it('should handle empty search gracefully', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/users?search=')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/users?search=').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       // Empty search should return all users (no filter applied)
@@ -983,10 +958,7 @@ describe('User Management Filter API', () => {
   describe('GET /api/auth/stats - Metrics Tests', () => {
     it('should return correct user statistics', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      const response = await request(app)
-        .get('/api/auth/stats')
-        .set(headers)
-        .expect(200)
+      const response = await request(app).get('/api/auth/stats').set(headers).expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data).toHaveProperty('totalUsers')
@@ -998,7 +970,7 @@ describe('User Management Filter API', () => {
       expect(response.body.data).toHaveProperty('inactiveUsers')
 
       const stats = response.body.data
-      
+
       // Verify data types
       expect(typeof stats.totalUsers).toBe('number')
       expect(typeof stats.verifiedUsers).toBe('number')
@@ -1007,12 +979,12 @@ describe('User Management Filter API', () => {
       expect(typeof stats.regularUsers).toBe('number')
       expect(typeof stats.activeUsers).toBe('number')
       expect(typeof stats.inactiveUsers).toBe('number')
-      
+
       // Verify logical consistency
       expect(stats.totalUsers).toBe(stats.verifiedUsers + stats.unverifiedUsers)
       expect(stats.totalUsers).toBe(stats.adminUsers + stats.regularUsers)
       expect(stats.totalUsers).toBe(stats.activeUsers + stats.inactiveUsers)
-      
+
       // Verify minimum expected values based on test data
       expect(stats.totalUsers).toBeGreaterThan(0)
       expect(stats.verifiedUsers).toBeGreaterThan(0)
@@ -1021,22 +993,19 @@ describe('User Management Filter API', () => {
 
     it('should verify stats match actual data from users endpoint', async () => {
       const headers = await getAuthHeaders(adminUser.accessToken)
-      
+
       // Get stats
-      const statsResponse = await request(app)
-        .get('/api/auth/stats')
-        .set(headers)
-        .expect(200)
-      
+      const statsResponse = await request(app).get('/api/auth/stats').set(headers).expect(200)
+
       // Get all users
       const usersResponse = await request(app)
         .get('/api/auth/users?limit=100')
         .set(headers)
         .expect(200)
-      
+
       const users = usersResponse.body.data.users
       const stats = statsResponse.body.data
-      
+
       // Count actual users
       const actualVerified = users.filter((u: any) => u.isEmailVerified).length
       const actualUnverified = users.filter((u: any) => !u.isEmailVerified).length
@@ -1044,7 +1013,7 @@ describe('User Management Filter API', () => {
       const actualRegular = users.filter((u: any) => u.role === 'user').length
       const actualActive = users.filter((u: any) => u.isActive).length
       const actualInactive = users.filter((u: any) => !u.isActive).length
-      
+
       // Compare with stats
       expect(stats.totalUsers).toBe(users.length)
       expect(stats.verifiedUsers).toBe(actualVerified)

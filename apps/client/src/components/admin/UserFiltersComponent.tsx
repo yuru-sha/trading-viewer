@@ -42,7 +42,9 @@ const UserFiltersComponent: React.FC<UserFiltersComponentProps> = ({
       {/* Basic Filters - Only show when Advanced Filters are closed */}
       {!advancedFiltersOpen && (
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6'>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Basic Filters</h2>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
+            Basic Filters
+          </h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <div>
               <label

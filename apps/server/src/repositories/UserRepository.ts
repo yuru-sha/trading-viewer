@@ -126,12 +126,9 @@ export class UserRepository
       if (filter.search) {
         // For case-insensitive search in SQLite, we'll do a basic contains search
         // and let the frontend handle any case sensitivity requirements
-        where.OR = [
-          { email: { contains: filter.search } },
-          { name: { contains: filter.search } },
-        ]
+        where.OR = [{ email: { contains: filter.search } }, { name: { contains: filter.search } }]
       }
-      
+
       // Date filters
       if (filter.lastLoginStart) {
         where.lastLoginAt = { ...where.lastLoginAt, gte: new Date(filter.lastLoginStart) }
@@ -145,7 +142,7 @@ export class UserRepository
       if (filter.createdEnd) {
         where.createdAt = { ...where.createdAt, lte: new Date(filter.createdEnd) }
       }
-      
+
       // Security filters
       if (filter.failedLoginCount) {
         const { operator, value } = filter.failedLoginCount
@@ -161,14 +158,14 @@ export class UserRepository
             break
         }
       }
-      
+
       if (typeof filter.isLocked === 'boolean') {
         if (filter.isLocked) {
           where.lockedUntil = { gt: new Date() } // Currently locked
         } else {
           where.OR = [
             { lockedUntil: null },
-            { lockedUntil: { lte: new Date() } } // Lock expired
+            { lockedUntil: { lte: new Date() } }, // Lock expired
           ]
         }
       }
@@ -230,12 +227,9 @@ export class UserRepository
         where.isEmailVerified = filter.isEmailVerified
       }
       if (filter.search) {
-        where.OR = [
-          { email: { contains: filter.search } },
-          { name: { contains: filter.search } },
-        ]
+        where.OR = [{ email: { contains: filter.search } }, { name: { contains: filter.search } }]
       }
-      
+
       // Date filters
       if (filter.lastLoginStart) {
         where.lastLoginAt = { ...where.lastLoginAt, gte: new Date(filter.lastLoginStart) }
@@ -249,7 +243,7 @@ export class UserRepository
       if (filter.createdEnd) {
         where.createdAt = { ...where.createdAt, lte: new Date(filter.createdEnd) }
       }
-      
+
       // Security filters
       if (filter.failedLoginCount) {
         const { operator, value } = filter.failedLoginCount
@@ -265,14 +259,14 @@ export class UserRepository
             break
         }
       }
-      
+
       if (typeof filter.isLocked === 'boolean') {
         if (filter.isLocked) {
           where.lockedUntil = { gt: new Date() } // Currently locked
         } else {
           where.OR = [
             { lockedUntil: null },
-            { lockedUntil: { lte: new Date() } } // Lock expired
+            { lockedUntil: { lte: new Date() } }, // Lock expired
           ]
         }
       }
