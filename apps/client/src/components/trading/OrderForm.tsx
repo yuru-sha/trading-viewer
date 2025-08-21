@@ -201,7 +201,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             >
               Side
             </div>
-            <div className='flex rounded-md shadow-sm' role='group' aria-labelledby='order-side-label'>
+            <div
+              className='flex rounded-md shadow-sm'
+              role='group'
+              aria-labelledby='order-side-label'
+            >
               <button
                 type='button'
                 onClick={() => setSide('buy')}

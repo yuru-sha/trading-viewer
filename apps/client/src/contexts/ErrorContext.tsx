@@ -11,8 +11,8 @@ import {
 declare global {
   interface Window {
     errorReporter?: {
-      captureException: (error: Error, errorInfo: React.ErrorInfo) => void;
-    };
+      captureException: (error: Error, errorInfo: React.ErrorInfo) => void
+    }
   }
 }
 

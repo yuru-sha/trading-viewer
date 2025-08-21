@@ -368,7 +368,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({ ...prev, isLoading: true }))
 
       try {
-        const response = await apiClient.post<{ success: boolean; data: { user: User } }>('/auth/register', data)
+        const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
+          '/auth/register',
+          data
+        )
 
         if (response.success && response.data?.user) {
           const { user } = response.data
@@ -404,7 +407,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = useCallback(
     async (data: UpdateProfileData): Promise<void> => {
       try {
-        const response = await apiClient.put<{ success: boolean; data: { user: User } }>('/auth/profile', data)
+        const response = await apiClient.put<{ success: boolean; data: { user: User } }>(
+          '/auth/profile',
+          data
+        )
 
         if (response.success && response.data?.user) {
           const updatedUser = response.data.user

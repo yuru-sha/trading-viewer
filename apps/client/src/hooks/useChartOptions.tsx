@@ -3,7 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import type { CandlestickSeriesOption, LineSeriesOption } from 'echarts/charts'
-import type { GraphicComponentOption, GridComponentOption, YAXisComponentOption } from 'echarts/components'
+import type {
+  GraphicComponentOption,
+  GridComponentOption,
+  YAXisComponentOption,
+} from 'echarts/components'
 import type { ChartData, PriceStats } from './useChartData'
 import { UserIndicator } from '@trading-viewer/shared'
 

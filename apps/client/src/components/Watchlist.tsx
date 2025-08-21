@@ -40,45 +40,48 @@ export const Watchlist: React.FC<WatchlistProps> = ({
   const [isExpanded, setIsExpanded] = useState(true)
   const [deleteConfirm, setDeleteConfirm] = useState<{ symbol: string; name: string } | null>(null)
 
-  const fetchWatchlistData = useCallback(async (symbols: Array<{ symbol: string; name: string }>) => {
-    setLoading(true)
-    try {
-      const promises = symbols.map(async ({ symbol, name }) => {
-        try {
-          const quote = await api.market.getQuote(symbol)
-          return {
-            symbol,
-            name,
-            price: quote.c,
-            change: quote.d,
-            changePercent: quote.dp,
-            lastUpdate: Date.now(),
+  const fetchWatchlistData = useCallback(
+    async (symbols: Array<{ symbol: string; name: string }>) => {
+      setLoading(true)
+      try {
+        const promises = symbols.map(async ({ symbol, name }) => {
+          try {
+            const quote = await api.market.getQuote(symbol)
+            return {
+              symbol,
+              name,
+              price: quote.c,
+              change: quote.d,
+              changePercent: quote.dp,
+              lastUpdate: Date.now(),
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch data for ${symbol}:`, error)
+            return {
+              symbol,
+              name,
+              price: 0,
+              change: 0,
+              changePercent: 0,
+              lastUpdate: Date.now(),
+            }
           }
-        } catch (error) {
-          console.warn(`Failed to fetch data for ${symbol}:`, error)
-          return {
-            symbol,
-            name,
-            price: 0,
-            change: 0,
-            changePercent: 0,
-            lastUpdate: Date.now(),
-          }
-        }
-      })
+        })
 
-      const results = await Promise.all(promises)
-      setWatchlist(results)
+        const results = await Promise.all(promises)
+        setWatchlist(results)
 
-      // Save to localStorage
-      const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
-      localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch (error) {
-      console.error('Failed to fetch watchlist data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+        // Save to localStorage
+        const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
+        localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
+      } catch (error) {
+        console.error('Failed to fetch watchlist data:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   // Load watchlist from localStorage
   useEffect(() => {

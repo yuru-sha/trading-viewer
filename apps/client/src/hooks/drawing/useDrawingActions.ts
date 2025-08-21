@@ -10,8 +10,8 @@ import type { PriceData } from '../../utils/indicators'
 import type { DrawingAction, DrawingState } from './useDrawingState'
 
 interface ChartMouseEvent {
-  timestamp: number;
-  price: number;
+  timestamp: number
+  price: number
 }
 
 /**

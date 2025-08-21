@@ -395,9 +395,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
                   <span className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
                   </span>
-                  <p className='text-xs text-gray-600 dark:text-gray-400'>
-                    {option.description}
-                  </p>
+                  <p className='text-xs text-gray-600 dark:text-gray-400'>{option.description}</p>
                 </label>
               </div>
             ))}
@@ -423,7 +421,10 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
                   value={option.value}
                   checked={exportOptions.dateRange === option.value}
                   onChange={e =>
-                    updateExportOption('dateRange', e.target.value as LocalExportOptions['dateRange'])
+                    updateExportOption(
+                      'dateRange',
+                      e.target.value as LocalExportOptions['dateRange']
+                    )
                   }
                   className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
                 />
@@ -494,9 +495,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
                   <span className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
                   </span>
-                  <p className='text-xs text-gray-600 dark:text-gray-400'>
-                    {option.description}
-                  </p>
+                  <p className='text-xs text-gray-600 dark:text-gray-400'>{option.description}</p>
                 </label>
               </div>
             ))}

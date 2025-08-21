@@ -18,7 +18,10 @@ interface SeriesConfig {
 }
 
 // Candlestick シリーズ生成
-export function createCandlestickSeries(chartData: ChartData, config: SeriesConfig): CandlestickSeriesOption {
+export function createCandlestickSeries(
+  chartData: ChartData,
+  config: SeriesConfig
+): CandlestickSeriesOption {
   const isDarkMode = config.theme === 'dark'
 
   return {
@@ -153,7 +156,10 @@ export function createMarkLine(currentPrice?: number): MarkLineComponentOption |
 }
 
 // Period High/Low マークライン生成
-export function createPeriodMarkLines(chartData: ChartData, config: SeriesConfig): MarkLineComponentOption[] {
+export function createPeriodMarkLines(
+  chartData: ChartData,
+  config: SeriesConfig
+): MarkLineComponentOption[] {
   const markLines = []
 
   if (config.showPeriodHigh && chartData.periodHigh) {

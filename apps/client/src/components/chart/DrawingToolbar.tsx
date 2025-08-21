@@ -222,7 +222,10 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Opacity Control */}
         <div>
-          <label htmlFor='opacity-range' className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
+          <label
+            htmlFor='opacity-range'
+            className='block text-xs text-gray-700 dark:text-gray-300 mb-1'
+          >
             Opacity: {Math.round(defaultStyle.opacity * 100)}%
           </label>
           <input

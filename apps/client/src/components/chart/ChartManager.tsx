@@ -73,10 +73,7 @@ export const ChartManager = forwardRef<ChartRef, ChartManagerProps>(
     )
 
     // Get the appropriate chart component
-    const ChartComponent = useMemo(
-      () => getChartComponent(selectedVariant),
-      [selectedVariant]
-    )
+    const ChartComponent = useMemo(() => getChartComponent(selectedVariant), [selectedVariant])
 
     // Memoize chart props to prevent unnecessary re-renders
     const chartProps = useMemo(

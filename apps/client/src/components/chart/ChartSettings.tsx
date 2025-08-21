@@ -41,10 +41,7 @@ const defaultSettings: ChartSettings = {
   },
 }
 
-export const ChartSettings: React.FC<ChartSettingsProps> = ({
-  settings,
-  onSettingsChange,
-}) => {
+export const ChartSettings: React.FC<ChartSettingsProps> = ({ settings, onSettingsChange }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'style'>('general')
 
@@ -146,7 +143,10 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
                       Period High/Low Settings
                     </div>
                     <div className='flex items-center space-x-4 mb-3'>
-                      <label htmlFor='period-weeks' className='text-sm text-gray-600 dark:text-gray-300'>
+                      <label
+                        htmlFor='period-weeks'
+                        className='text-sm text-gray-600 dark:text-gray-300'
+                      >
                         Period (weeks):
                       </label>
                       <input

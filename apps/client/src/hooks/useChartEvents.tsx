@@ -6,12 +6,12 @@ import { PriceData } from '../utils/indicators'
 import { DrawingTool } from '@trading-viewer/shared'
 
 interface ChartEventHandlers {
-  handleChartClick: (params: ECElementEvent) => void;
-  handleChartMouseMove: (params: ECElementEvent) => void;
-  handleChartMouseDown: (params: ECElementEvent) => void;
-  handleChartMouseUp: (params: ECElementEvent) => void;
-  handleChartRightClick: (params: ECElementEvent) => void;
-  drawingTools: ReturnType<typeof useDrawingTools> | undefined;
+  handleChartClick: (params: ECElementEvent) => void
+  handleChartMouseMove: (params: ECElementEvent) => void
+  handleChartMouseDown: (params: ECElementEvent) => void
+  handleChartMouseUp: (params: ECElementEvent) => void
+  handleChartRightClick: (params: ECElementEvent) => void
+  drawingTools: ReturnType<typeof useDrawingTools> | undefined
 }
 
 interface ChartEventsConfig {

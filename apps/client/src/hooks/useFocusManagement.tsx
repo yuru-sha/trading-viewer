@@ -150,7 +150,6 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
     }
   }, [getFocusableElements, focusElement])
 
-
   // フォーカスを前の要素に復元
   const restoreFocusToPrevious = useCallback(() => {
     if (previousFocusRef.current && document.contains(previousFocusRef.current)) {

@@ -45,7 +45,10 @@ function calculateNiceBounds(
 }
 
 // Y 軸設定生成
-function generateYAxisConfig(priceStats: PriceStats | null, config: AxisConfig): YAXisComponentOption[] {
+function generateYAxisConfig(
+  priceStats: PriceStats | null,
+  config: AxisConfig
+): YAXisComponentOption[] {
   const isDarkMode = config.theme === 'dark'
   const baseAxisStyle = {
     axisLine: {

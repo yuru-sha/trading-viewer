@@ -31,11 +31,7 @@ export interface UseAccessibilityResult {
 }
 
 export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessibilityResult => {
-  const {
-    focusManagement = true,
-    reducedMotion = true,
-    highContrast = true,
-  } = options
+  const { focusManagement = true, reducedMotion = true, highContrast = true } = options
 
   const liveRegionRef = useRef<HTMLDivElement | null>(null)
   const skipLinkRef = useRef<HTMLAnchorElement>(null)

@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from 'react'
 
 declare global {
   interface Performance {
-    memory?: MemoryInfo;
+    memory?: MemoryInfo
   }
 }
 
@@ -118,7 +118,8 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
 
     // バンドルサイズ推定（JS ファイルの合計サイズ）
     const jsResources = resources.filter(
-      (resource: PerformanceResourceTiming) => resource.name.includes('.js') || resource.name.includes('chunk')
+      (resource: PerformanceResourceTiming) =>
+        resource.name.includes('.js') || resource.name.includes('chunk')
     )
     const totalJSSize = jsResources.reduce(
       (total: number, resource: PerformanceResourceTiming) => total + (resource.transferSize || 0),

@@ -1,9 +1,7 @@
 import React from 'react'
 import { IChartComponent, IChartFactory, ChartType, ChartConfig, ChartState } from '@shared'
 import { MarketData } from '@shared'
-import OptimizedChartContainer, {
-  OptimizedChartContainerRef,
-} from './OptimizedChartContainer'
+import OptimizedChartContainer, { OptimizedChartContainerRef } from './OptimizedChartContainer'
 import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import { PriceData } from '../../utils/indicators'
 
