@@ -82,7 +82,7 @@ describe('DatabaseService', () => {
     })
 
     it('should handle transaction rollback', async () => {
-      (mockPrismaClient.$transaction as vi.Mock).mockImplementation(async callback => {
+      ;(mockPrismaClient.$transaction as vi.Mock).mockImplementation(async callback => {
         return await callback(mockPrismaClient)
       })
 
@@ -94,7 +94,7 @@ describe('DatabaseService', () => {
 
   describe('isHealthy', () => {
     it('should return true when database is healthy', async () => {
-      (mockPrismaClient.$queryRaw as vi.Mock).mockResolvedValue([{ 1: 1 }])
+      ;(mockPrismaClient.$queryRaw as vi.Mock).mockResolvedValue([{ 1: 1 }])
 
       const result = await service.isHealthy()
 
@@ -117,7 +117,7 @@ describe('DatabaseService', () => {
 
   describe('cleanup', () => {
     it('should disconnect from database', async () => {
-      (mockPrismaClient.$disconnect as vi.Mock).mockResolvedValue(undefined)
+      ;(mockPrismaClient.$disconnect as vi.Mock).mockResolvedValue(undefined)
 
       await service.cleanup()
 
