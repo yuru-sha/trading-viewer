@@ -735,9 +735,9 @@ router.get(
   requireAdmin(),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const totalUsers = await userRepository.count()
-    const verifiedUsers = await userRepository.count({ where: { isEmailVerified: true } })
-    const adminUsers = await userRepository.count({ where: { role: 'admin' } })
-    const activeUsers = await userRepository.count({ where: { isActive: true } })
+    const verifiedUsers = await userRepository.count({ isEmailVerified: true })
+    const adminUsers = await userRepository.count({ role: 'admin' })
+    const activeUsers = await userRepository.count({ isActive: true })
 
     res.json({
       success: true,
@@ -767,43 +767,95 @@ router.get(
     const search = req.query.search as string
     const role = req.query.role as string
     const status = req.query.status as string
+    const emailVerified = req.query.emailVerified as string
+    
+    // Date filters
+    const lastLoginStart = req.query.lastLoginStart as string
+    const lastLoginEnd = req.query.lastLoginEnd as string
+    const createdStart = req.query.createdStart as string
+    const createdEnd = req.query.createdEnd as string
+    
+    // Security filters
+    const failedLoginCount = req.query.failedLoginCount as string
+    const isLocked = req.query.isLocked as string
 
-    const where: any = {}
+    const filter: any = {}
 
     if (search) {
-      where.OR = [{ email: { contains: search, mode: 'insensitive' } }]
+      filter.search = search
     }
 
     if (role && ['admin', 'user'].includes(role)) {
-      where.role = role
+      filter.role = role
     }
 
     if (status === 'active') {
-      where.isActive = true
+      filter.isActive = true
     } else if (status === 'inactive') {
-      where.isActive = false
+      filter.isActive = false
+    }
+
+    if (emailVerified === 'true') {
+      filter.isEmailVerified = true
+    } else if (emailVerified === 'false') {
+      filter.isEmailVerified = false
+    }
+    
+    // Date filters
+    if (lastLoginStart) {
+      filter.lastLoginStart = lastLoginStart
+    }
+    if (lastLoginEnd) {
+      filter.lastLoginEnd = lastLoginEnd
+    }
+    if (createdStart) {
+      filter.createdStart = createdStart
+    }
+    if (createdEnd) {
+      filter.createdEnd = createdEnd
+    }
+    
+    // Security filters
+    if (failedLoginCount) {
+      // Format: "gt:5" or "lt:3" or "eq:0"
+      const [operator, value] = failedLoginCount.split(':')
+      if (operator && value && ['gt', 'lt', 'eq'].includes(operator)) {
+        filter.failedLoginCount = {
+          operator: operator as 'gt' | 'lt' | 'eq',
+          value: parseInt(value, 10)
+        }
+      }
+    }
+    
+    if (isLocked === 'true') {
+      filter.isLocked = true
+    } else if (isLocked === 'false') {
+      filter.isLocked = false
     }
 
     const [users, totalCount] = await Promise.all([
-      userRepository.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          isEmailVerified: true,
-          isActive: true,
-          failedLoginCount: true,
-          lockedUntil: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      }),
-      userRepository.count({ where }),
+      userRepository.findMany(
+        filter,
+        {
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            isEmailVerified: true,
+            isActive: true,
+            failedLoginCount: true,
+            lockedUntil: true,
+            lastLoginAt: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }
+      ),
+      userRepository.count(filter),
     ])
 
     const totalPages = Math.ceil(totalCount / limit)

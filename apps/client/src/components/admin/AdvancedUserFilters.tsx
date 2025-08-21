@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button, Input } from '@trading-viewer/ui'
 
 interface AdvancedUserFiltersProps {
@@ -6,6 +6,11 @@ interface AdvancedUserFiltersProps {
   onClearFilters: () => void
   isOpen: boolean
   onToggle: () => void
+  initialFilters?: {
+    search?: string
+    role?: string
+    status?: string
+  }
 }
 
 export interface UserFilters {
@@ -33,11 +38,12 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
   onClearFilters,
   isOpen,
   onToggle,
+  initialFilters,
 }) => {
   const [filters, setFilters] = useState<UserFilters>({
-    search: '',
-    role: '',
-    status: '',
+    search: initialFilters?.search || '',
+    role: initialFilters?.role || '',
+    status: initialFilters?.status || '',
     emailVerified: '',
     department: '',
     lastLoginStart: '',
@@ -53,6 +59,18 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
     timezone: '',
     language: '',
   })
+
+  // Sync with initial filters when they change
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(prev => ({
+        ...prev,
+        search: initialFilters.search || '',
+        role: initialFilters.role || '',
+        status: initialFilters.status || '',
+      }))
+    }
+  }, [initialFilters])
 
   const departments = [
     'Engineering',

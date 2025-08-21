@@ -45,6 +45,19 @@ export interface UserFilter {
   isActive?: boolean
   isEmailVerified?: boolean
   search?: string
+  // Date filters
+  lastLoginStart?: string
+  lastLoginEnd?: string
+  createdStart?: string
+  createdEnd?: string
+  // Security filters
+  failedLoginCount?: {
+    operator: 'gt' | 'lt' | 'eq'
+    value: number
+  }
+  isLocked?: boolean
+  // Note: department, timezone, language are not in current schema
+  // hasActiveSession requires session management implementation
 }
 
 export class UserRepository
@@ -99,7 +112,7 @@ export class UserRepository
 
     if (filter) {
       if (filter.email) {
-        where.email = { contains: filter.email, mode: 'insensitive' }
+        where.email = { contains: filter.email }
       }
       if (filter.role) {
         where.role = filter.role
@@ -111,10 +124,53 @@ export class UserRepository
         where.isEmailVerified = filter.isEmailVerified
       }
       if (filter.search) {
+        // For case-insensitive search in SQLite, we'll do a basic contains search
+        // and let the frontend handle any case sensitivity requirements
         where.OR = [
-          { email: { contains: filter.search, mode: 'insensitive' } },
-          { name: { contains: filter.search, mode: 'insensitive' } },
+          { email: { contains: filter.search } },
+          { name: { contains: filter.search } },
         ]
+      }
+      
+      // Date filters
+      if (filter.lastLoginStart) {
+        where.lastLoginAt = { ...where.lastLoginAt, gte: new Date(filter.lastLoginStart) }
+      }
+      if (filter.lastLoginEnd) {
+        where.lastLoginAt = { ...where.lastLoginAt, lte: new Date(filter.lastLoginEnd) }
+      }
+      if (filter.createdStart) {
+        where.createdAt = { ...where.createdAt, gte: new Date(filter.createdStart) }
+      }
+      if (filter.createdEnd) {
+        where.createdAt = { ...where.createdAt, lte: new Date(filter.createdEnd) }
+      }
+      
+      // Security filters
+      if (filter.failedLoginCount) {
+        const { operator, value } = filter.failedLoginCount
+        switch (operator) {
+          case 'gt':
+            where.failedLoginCount = { gt: value }
+            break
+          case 'lt':
+            where.failedLoginCount = { lt: value }
+            break
+          case 'eq':
+            where.failedLoginCount = { equals: value }
+            break
+        }
+      }
+      
+      if (typeof filter.isLocked === 'boolean') {
+        if (filter.isLocked) {
+          where.lockedUntil = { gt: new Date() } // Currently locked
+        } else {
+          where.OR = [
+            { lockedUntil: null },
+            { lockedUntil: { lte: new Date() } } // Lock expired
+          ]
+        }
       }
     }
 
@@ -123,6 +179,7 @@ export class UserRepository
       skip: options?.skip,
       take: options?.take,
       orderBy: options?.orderBy || [{ createdAt: 'desc' }],
+      select: options?.select,
     })
   }
 
@@ -161,7 +218,7 @@ export class UserRepository
 
     if (filter) {
       if (filter.email) {
-        where.email = { contains: filter.email, mode: 'insensitive' }
+        where.email = { contains: filter.email }
       }
       if (filter.role) {
         where.role = filter.role
@@ -174,9 +231,50 @@ export class UserRepository
       }
       if (filter.search) {
         where.OR = [
-          { email: { contains: filter.search, mode: 'insensitive' } },
-          { name: { contains: filter.search, mode: 'insensitive' } },
+          { email: { contains: filter.search } },
+          { name: { contains: filter.search } },
         ]
+      }
+      
+      // Date filters
+      if (filter.lastLoginStart) {
+        where.lastLoginAt = { ...where.lastLoginAt, gte: new Date(filter.lastLoginStart) }
+      }
+      if (filter.lastLoginEnd) {
+        where.lastLoginAt = { ...where.lastLoginAt, lte: new Date(filter.lastLoginEnd) }
+      }
+      if (filter.createdStart) {
+        where.createdAt = { ...where.createdAt, gte: new Date(filter.createdStart) }
+      }
+      if (filter.createdEnd) {
+        where.createdAt = { ...where.createdAt, lte: new Date(filter.createdEnd) }
+      }
+      
+      // Security filters
+      if (filter.failedLoginCount) {
+        const { operator, value } = filter.failedLoginCount
+        switch (operator) {
+          case 'gt':
+            where.failedLoginCount = { gt: value }
+            break
+          case 'lt':
+            where.failedLoginCount = { lt: value }
+            break
+          case 'eq':
+            where.failedLoginCount = { equals: value }
+            break
+        }
+      }
+      
+      if (typeof filter.isLocked === 'boolean') {
+        if (filter.isLocked) {
+          where.lockedUntil = { gt: new Date() } // Currently locked
+        } else {
+          where.OR = [
+            { lockedUntil: null },
+            { lockedUntil: { lte: new Date() } } // Lock expired
+          ]
+        }
       }
     }
 
