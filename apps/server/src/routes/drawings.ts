@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/database'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
+import { DrawingToolRepository } from '../repositories'
 import type {
   CreateDrawingToolRequest,
   CreateDrawingToolResponse,
@@ -25,6 +26,7 @@ interface DrawingTool {
 }
 
 const router = Router()
+const drawingToolRepository = new DrawingToolRepository(prisma)
 
 // Validation schemas
 const drawingPointSchema = z.object({
@@ -90,16 +92,12 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
       })
     }
 
-    const drawingTools = await prisma.drawingTool.findMany({
-      where: {
-        symbol,
-        timeframe: timeframe as string,
-        userId: searchUserId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const drawingTools = await drawingToolRepository.findByUserIdSymbolAndTimeframe(
+      searchUserId,
+      symbol,
+      timeframe as string,
+      { orderBy: [{ createdAt: 'desc' }] }
+    )
 
     // Transform database records to API format
     const transformedTools: DrawingTool[] = drawingTools.map(tool => ({
@@ -152,18 +150,16 @@ router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res
       })
     }
 
-    const createdTool = await prisma.drawingTool.create({
-      data: {
-        userId,
-        symbol,
-        timeframe: timeframe || '1D',
-        type: tool.type,
-        points: JSON.stringify(tool.points),
-        style: JSON.stringify(tool.style),
-        text: tool.text,
-        locked: tool.locked ?? false,
-        visible: tool.visible ?? true,
-      },
+    const createdTool = await drawingToolRepository.create({
+      userId,
+      symbol,
+      timeframe: timeframe || '1D',
+      type: tool.type,
+      points: JSON.stringify(tool.points),
+      style: JSON.stringify(tool.style),
+      text: tool.text,
+      locked: tool.locked ?? false,
+      visible: tool.visible ?? true,
     })
 
     // Transform to API format
@@ -218,10 +214,7 @@ router.put('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest, r
     if (updates.locked !== undefined) updateData.locked = updates.locked
     if (updates.visible !== undefined) updateData.visible = updates.visible
 
-    const updatedTool = await prisma.drawingTool.update({
-      where: { id },
-      data: updateData,
-    })
+    const updatedTool = await drawingToolRepository.update(id, updateData)
 
     // Transform to API format
     const transformedTool: DrawingTool = {
@@ -270,9 +263,7 @@ router.delete('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest
       })
     }
 
-    await prisma.drawingTool.delete({
-      where: { id },
-    })
+    await drawingToolRepository.delete(id)
 
     const response: DeleteDrawingToolResponse = {
       status: 'success',

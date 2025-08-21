@@ -45,9 +45,14 @@ const upload = multer({
   },
 })
 
-// Database integration with Prisma
+// Database integration with Repository pattern
+import { UserRepository, WatchlistRepository, RefreshTokenRepository } from '../repositories'
 import { PrismaClient } from '@prisma/client'
+
 const prisma = new PrismaClient()
+const userRepository = new UserRepository(prisma)
+const watchlistRepository = new WatchlistRepository(prisma)
+const refreshTokenRepository = new RefreshTokenRepository(prisma)
 
 // Mock user database (in production, use proper database)
 export interface User {
@@ -135,21 +140,11 @@ const isAccountLocked = (user: User): boolean => {
 // Helper function to increment failed login attempts
 const incrementFailedLogin = async (userId: string): Promise<void> => {
   try {
-    const result = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        failedLoginCount: { increment: 1 },
-      },
-    })
+    const result = await userRepository.updateLoginCount(userId, true)
 
     // Lock account if max attempts reached
     if (result.failedLoginCount >= MAX_LOGIN_ATTEMPTS) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          lockedUntil: new Date(Date.now() + LOCK_TIME),
-        },
-      })
+      await userRepository.lockUser(userId, new Date(Date.now() + LOCK_TIME))
     }
   } catch (error) {
     console.error('Failed to increment login attempts:', error)
@@ -159,14 +154,8 @@ const incrementFailedLogin = async (userId: string): Promise<void> => {
 // Helper function to reset failed login attempts
 const resetFailedLogin = async (userId: string): Promise<void> => {
   try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        failedLoginCount: 0,
-        lockedUntil: null,
-        lastLoginAt: new Date(),
-      },
-    })
+    await userRepository.unlockUser(userId)
+    await userRepository.updateLastLogin(userId)
   } catch (error) {
     console.error('Failed to reset login attempts:', error)
   }
@@ -192,9 +181,7 @@ router.post(
     const { email, password } = req.body
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const existingUser = await userRepository.findByEmail(email)
 
     if (existingUser) {
       throw new ConflictError('User with this email already exists')
@@ -216,15 +203,13 @@ router.post(
     const passwordHash = await hashPassword(password)
 
     // Create user in database
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        role: 'user',
-        isEmailVerified: false, // In production, implement email verification
-        failedLoginCount: 0,
-        isActive: true,
-      },
+    const user = await userRepository.create({
+      email,
+      passwordHash,
+      role: 'user',
+      isEmailVerified: false, // In production, implement email verification
+      failedLoginCount: 0,
+      isActive: true,
     })
 
     // Create default watchlist with tech giants
@@ -236,13 +221,14 @@ router.post(
       { symbol: 'NVDA', name: 'NVIDIA Corporation' },
     ]
 
-    await prisma.watchlist.createMany({
-      data: defaultWatchlist.map(item => ({
+    // Create default watchlist items using repository
+    for (const item of defaultWatchlist) {
+      await watchlistRepository.create({
         userId: user.id,
         symbol: item.symbol,
         name: item.name,
-      })),
-    })
+      })
+    }
 
     // Log registration event
     securityLogger.logRequest(
@@ -289,9 +275,7 @@ router.post(
       await rateLimitAuth(email)
 
       // Find user
-      const user = await prisma.user.findUnique({
-        where: { email },
-      })
+      const user = await userRepository.findByEmail(email)
 
       if (!user) {
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'User not found')
@@ -390,9 +374,7 @@ router.post(
     )
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    const user = await userRepository.findById(userId)
     if (!user) {
       revokeRefreshToken(refreshToken)
       throw new UnauthorizedError('User not found')
@@ -462,9 +444,7 @@ router.get(
   '/me',
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-    })
+    const user = await userRepository.findById(req.user!.userId)
     if (!user) {
       throw new UnauthorizedError('User not found')
     }
@@ -515,20 +495,15 @@ router.put(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { avatar } = req.body
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-    })
+    const user = await userRepository.findById(req.user!.userId)
 
     if (!user) {
       throw new UnauthorizedError('User not found')
     }
 
     // Update profile in database
-    const updatedUser = await prisma.user.update({
-      where: { id: req.user!.userId },
-      data: {
-        // Note: avatar field doesn't exist in current schema, would need migration
-      },
+    const updatedUser = await userRepository.update(req.user!.userId, {
+      // Note: avatar field doesn't exist in current schema, would need migration
     })
 
     res.json({
@@ -557,9 +532,7 @@ router.post(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { currentPassword, newPassword } = req.body
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-    })
+    const user = await userRepository.findById(req.user!.userId)
 
     if (!user) {
       throw new UnauthorizedError('User not found')
@@ -585,11 +558,8 @@ router.post(
 
     // Hash new password and update in database
     const hashedNewPassword = await hashPassword(newPassword)
-    await prisma.user.update({
-      where: { id: req.user!.userId },
-      data: {
-        passwordHash: hashedNewPassword,
-      },
+    await userRepository.update(req.user!.userId, {
+      passwordHash: hashedNewPassword,
     })
 
     // Log password change
@@ -624,9 +594,7 @@ router.post(
     const { email } = req.body
 
     // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
+    const user = await userRepository.findByEmail(email)
 
     // Always return success to prevent email enumeration
     // but only send email if user exists
@@ -636,12 +604,9 @@ router.post(
       const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
       // Store reset token in database
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          resetToken,
-          resetTokenExpiry,
-        },
+      await userRepository.update(user.id, {
+        resetToken,
+        resetTokenExpiry,
       })
 
       // Log password reset request
@@ -673,7 +638,7 @@ router.post(
     const { token, newPassword } = req.body
 
     // Find user with valid reset token
-    const user = await prisma.user.findFirst({
+    const user = await userRepository.findFirst({
       where: {
         resetToken: token,
         resetTokenExpiry: {
@@ -695,15 +660,12 @@ router.post(
 
     // Hash new password and update in database
     const hashedNewPassword = await hashPassword(newPassword)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash: hashedNewPassword,
-        resetToken: null,
-        resetTokenExpiry: null,
-        failedLoginCount: 0,
-        lockedUntil: null,
-      },
+    await userRepository.update(user.id, {
+      passwordHash: hashedNewPassword,
+      resetToken: null,
+      resetTokenExpiry: null,
+      failedLoginCount: 0,
+      lockedUntil: null,
     })
 
     // Log successful password reset
@@ -733,9 +695,7 @@ router.delete(
   requireCSRF,
   requirePermission(ResourceType.USER_DATA, Action.DELETE, req => req.user!.userId),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-    })
+    const user = await userRepository.findById(req.user!.userId)
 
     if (!user) {
       throw new UnauthorizedError('User not found')
@@ -751,9 +711,7 @@ router.delete(
     )
 
     // Delete user from database (cascade will handle related records)
-    await prisma.user.delete({
-      where: { id: req.user!.userId },
-    })
+    await userRepository.delete(req.user!.userId)
 
     // Revoke all tokens
     revokeAllUserTokens(user.id)
@@ -776,10 +734,10 @@ router.get(
   requireAuth,
   requireAdmin(),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const totalUsers = await prisma.user.count()
-    const verifiedUsers = await prisma.user.count({ where: { isEmailVerified: true } })
-    const adminUsers = await prisma.user.count({ where: { role: 'admin' } })
-    const activeUsers = await prisma.user.count({ where: { isActive: true } })
+    const totalUsers = await userRepository.count()
+    const verifiedUsers = await userRepository.count({ where: { isEmailVerified: true } })
+    const adminUsers = await userRepository.count({ where: { role: 'admin' } })
+    const activeUsers = await userRepository.count({ where: { isActive: true } })
 
     res.json({
       success: true,
@@ -827,7 +785,7 @@ router.get(
     }
 
     const [users, totalCount] = await Promise.all([
-      prisma.user.findMany({
+      userRepository.findMany({
         where,
         skip,
         take: limit,
@@ -845,7 +803,7 @@ router.get(
           updatedAt: true,
         },
       }),
-      prisma.user.count({ where }),
+      userRepository.count({ where }),
     ])
 
     const totalPages = Math.ceil(totalCount / limit)
@@ -875,8 +833,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { userId } = req.params
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await userRepository.findById(userId, {
       select: {
         id: true,
         email: true,
@@ -923,21 +880,16 @@ router.put(
       throw new ValidationError('You cannot deactivate your own account')
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        isActive,
-        lockedUntil: null, // Clear any lockout when activating
-        failedLoginCount: 0, // Reset failed attempts when activating
-      },
+    const updatedUser = await userRepository.update(userId, {
+      isActive,
+      lockedUntil: null, // Clear any lockout when activating
+      failedLoginCount: 0, // Reset failed attempts when activating
     })
 
     // Log the action
@@ -988,18 +940,13 @@ router.put(
       throw new ValidationError('You cannot change your own role')
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { role },
-    })
+    const updatedUser = await userRepository.update(userId, { role })
 
     // Log the action
     securityLogger.logRequest(
@@ -1033,20 +980,15 @@ router.post(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { userId } = req.params
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        failedLoginCount: 0,
-        lockedUntil: null,
-      },
+    await userRepository.update(userId, {
+      failedLoginCount: 0,
+      lockedUntil: null,
     })
 
     // Log the action
@@ -1073,12 +1015,10 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
   const initializeDevUsers = async () => {
     try {
       // Create admin user if not exists
-      const adminExists = await prisma.user.findUnique({
-        where: { email: 'admin@tradingviewer.com' },
-      })
+      const adminExists = await userRepository.findByEmail('admin@tradingviewer.com')
 
       if (!adminExists) {
-        await prisma.user.create({
+        await userRepository.create({
           data: {
             email: 'admin@tradingviewer.com',
             passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
@@ -1092,12 +1032,10 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
       }
 
       // Create test user if not exists
-      const testExists = await prisma.user.findUnique({
-        where: { email: 'test@example.com' },
-      })
+      const testExists = await userRepository.findByEmail('test@example.com')
 
       if (!testExists) {
-        await prisma.user.create({
+        await userRepository.create({
           data: {
             email: 'test@example.com',
             passwordHash: await hashPassword('password123'),
@@ -1215,9 +1153,7 @@ router.post(
         }
 
         // Check if user exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: row.email.toLowerCase().trim() },
-        })
+        const existingUser = await userRepository.findByEmail(row.email.toLowerCase().trim())
 
         const userData = {
           email: row.email.toLowerCase().trim(),
@@ -1227,10 +1163,7 @@ router.post(
 
         if (existingUser) {
           // Update existing user
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: userData,
-          })
+          await userRepository.update(existingUser.id, userData)
           warnings.push(`User ${row.email} already exists - updated existing record`)
           successfulImports++
         } else {
@@ -1247,7 +1180,7 @@ router.post(
             continue
           }
 
-          await prisma.user.create({
+          await userRepository.create({
             data: {
               ...userData,
               passwordHash: await hashPassword(password),
@@ -1313,7 +1246,7 @@ router.get(
     }
 
     // Fetch users
-    const users = await prisma.user.findMany({
+    const users = await userRepository.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       select: {

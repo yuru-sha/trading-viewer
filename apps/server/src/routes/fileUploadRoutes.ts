@@ -7,9 +7,12 @@ import { ValidationError } from '../middleware/errorHandling'
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { requireAdmin } from '../middleware/authorization'
 
-// Database integration with Prisma
+// Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
+import { UserRepository } from '../repositories'
+
 const prisma = new PrismaClient()
+const userRepository = new UserRepository(prisma)
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -105,9 +108,7 @@ router.post(
         }
 
         // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email.toLowerCase() },
-        })
+        const existingUser = await userRepository.findByEmail(user.email.toLowerCase())
 
         if (existingUser) {
           results.skipped++
@@ -145,11 +146,9 @@ router.post(
         }
 
         // Create user
-        await prisma.user.create({
-          data: {
-            ...userData,
-            passwordHash,
-          },
+        await userRepository.create({
+          ...userData,
+          passwordHash,
         })
 
         results.imported++
@@ -201,7 +200,7 @@ router.get(
     }
 
     // Get users
-    const users = await prisma.user.findMany({
+    const users = await userRepository.findMany({
       where,
       select: {
         id: true,
@@ -310,8 +309,7 @@ router.post(
 
     for (const userId of userIds) {
       try {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
+        const user = await userRepository.findById(userId, {
           select: { id: true, email: true, role: true, isActive: true },
         })
 
@@ -328,10 +326,7 @@ router.post(
             if (user.isActive) {
               results.skipped++
             } else {
-              await prisma.user.update({
-                where: { id: userId },
-                data: { isActive: true },
-              })
+              await userRepository.update(userId, { isActive: true })
               results.processed++
             }
             break
@@ -340,18 +335,13 @@ router.post(
             if (!user.isActive) {
               results.skipped++
             } else {
-              await prisma.user.update({
-                where: { id: userId },
-                data: { isActive: false },
-              })
+              await userRepository.update(userId, { isActive: false })
               results.processed++
             }
             break
 
           case 'delete':
-            await prisma.user.delete({
-              where: { id: userId },
-            })
+            await userRepository.delete(userId)
             results.processed++
             break
         }

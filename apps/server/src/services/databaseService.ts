@@ -3,9 +3,19 @@ import {
   SymbolRepository,
   CandleRepository,
   UserPreferencesRepository,
+  UserRepository,
+  DrawingToolRepository,
+  PriceAlertRepository,
+  RefreshTokenRepository,
+  WatchlistRepository,
   ISymbolRepository,
   ICandleRepository,
   IUserPreferencesRepository,
+  IUserRepository,
+  IDrawingToolRepository,
+  IPriceAlertRepository,
+  IRefreshTokenRepository,
+  IWatchlistRepository,
 } from '../repositories'
 
 /**
@@ -20,6 +30,11 @@ export interface IDatabaseService {
   symbols: ISymbolRepository
   candles: ICandleRepository
   userPreferences: IUserPreferencesRepository
+  users: IUserRepository
+  drawingTools: IDrawingToolRepository
+  priceAlerts: IPriceAlertRepository
+  refreshTokens: IRefreshTokenRepository
+  watchlists: IWatchlistRepository
   startTransaction(): Promise<DatabaseTransaction>
   isHealthy(): Promise<boolean>
   cleanup(): Promise<void>
@@ -37,6 +52,11 @@ export interface DatabaseTransaction {
   symbols: ISymbolRepository
   candles: ICandleRepository
   userPreferences: IUserPreferencesRepository
+  users: IUserRepository
+  drawingTools: IDrawingToolRepository
+  priceAlerts: IPriceAlertRepository
+  refreshTokens: IRefreshTokenRepository
+  watchlists: IWatchlistRepository
   commit(): Promise<void>
   rollback(): Promise<void>
 }
@@ -54,12 +74,22 @@ export class DatabaseService implements IDatabaseService {
   public readonly symbols: ISymbolRepository
   public readonly candles: ICandleRepository
   public readonly userPreferences: IUserPreferencesRepository
+  public readonly users: IUserRepository
+  public readonly drawingTools: IDrawingToolRepository
+  public readonly priceAlerts: IPriceAlertRepository
+  public readonly refreshTokens: IRefreshTokenRepository
+  public readonly watchlists: IWatchlistRepository
 
   constructor(prisma?: PrismaClient) {
     this.prisma = prisma || new PrismaClient()
     this.symbols = new SymbolRepository(this.prisma)
     this.candles = new CandleRepository(this.prisma)
     this.userPreferences = new UserPreferencesRepository(this.prisma)
+    this.users = new UserRepository(this.prisma)
+    this.drawingTools = new DrawingToolRepository(this.prisma)
+    this.priceAlerts = new PriceAlertRepository(this.prisma)
+    this.refreshTokens = new RefreshTokenRepository(this.prisma)
+    this.watchlists = new WatchlistRepository(this.prisma)
   }
 
   async startTransaction(): Promise<DatabaseTransaction> {
@@ -68,6 +98,11 @@ export class DatabaseService implements IDatabaseService {
         symbols: new SymbolRepository(tx as PrismaClient),
         candles: new CandleRepository(tx as PrismaClient),
         userPreferences: new UserPreferencesRepository(tx as PrismaClient),
+        users: new UserRepository(tx as PrismaClient),
+        drawingTools: new DrawingToolRepository(tx as PrismaClient),
+        priceAlerts: new PriceAlertRepository(tx as PrismaClient),
+        refreshTokens: new RefreshTokenRepository(tx as PrismaClient),
+        watchlists: new WatchlistRepository(tx as PrismaClient),
         commit: async () => {
           // Transaction is automatically committed when the function returns successfully
         },

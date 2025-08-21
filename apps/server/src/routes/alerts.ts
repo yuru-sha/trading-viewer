@@ -5,8 +5,10 @@ const prisma = new PrismaClient()
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
+import { PriceAlertRepository } from '../repositories'
 
 const router = Router()
+const priceAlertRepository = new PriceAlertRepository(prisma)
 
 const CreateAlertSchema = z
   .object({
@@ -38,9 +40,8 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const alerts = await prisma.priceAlert.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
+    const alerts = await priceAlertRepository.findByUserId(userId, {
+      orderBy: [{ createdAt: 'desc' }],
     })
 
     // Map database fields to UI expected format
@@ -75,12 +76,8 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const alerts = await prisma.priceAlert.findMany({
-      where: {
-        userId,
-        symbol: symbol.toUpperCase(),
-      },
-      orderBy: { createdAt: 'desc' },
+    const alerts = await priceAlertRepository.findByUserIdAndSymbol(userId, symbol.toUpperCase(), {
+      orderBy: [{ createdAt: 'desc' }],
     })
 
     // Map database fields to UI expected format
@@ -135,18 +132,16 @@ router.post(
         // Continue with default values
       }
 
-      const alert = await prisma.priceAlert.create({
-        data: {
-          userId,
-          symbol: symbol.toUpperCase(),
-          type: condition, // Map condition to type for database compatibility
-          price: targetPrice || 0, // Use targetPrice or default to 0 for percentage alerts
-          percentageChange,
-          enabled,
-          currency,
-          exchange,
-          timezone,
-        },
+      const alert = await priceAlertRepository.create({
+        userId,
+        symbol: symbol.toUpperCase(),
+        type: condition, // Map condition to type for database compatibility
+        price: targetPrice || 0, // Use targetPrice or default to 0 for percentage alerts
+        percentageChange,
+        enabled,
+        currency,
+        exchange,
+        timezone,
       })
 
       res.status(201).json({ alert })
@@ -172,7 +167,7 @@ router.put(
       }
 
       // Check if alert belongs to user
-      const existingAlert = await prisma.priceAlert.findFirst({
+      const existingAlert = await priceAlertRepository.findFirst({
         where: { id, userId },
       })
 
@@ -180,13 +175,10 @@ router.put(
         return res.status(404).json({ error: 'Alert not found' })
       }
 
-      const updatedAlert = await prisma.priceAlert.update({
-        where: { id },
-        data: {
-          ...req.body,
-          // Reset triggeredAt when re-enabling
-          ...(req.body.enabled === true && { triggeredAt: null }),
-        },
+      const updatedAlert = await priceAlertRepository.update(id, {
+        ...req.body,
+        // Reset triggeredAt when re-enabling
+        ...(req.body.enabled === true && { triggeredAt: null }),
       })
 
       res.json({ alert: updatedAlert })
@@ -208,7 +200,7 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // Check if alert belongs to user
-    const existingAlert = await prisma.priceAlert.findFirst({
+    const existingAlert = await priceAlertRepository.findFirst({
       where: { id, userId },
     })
 
@@ -216,9 +208,7 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(404).json({ error: 'Alert not found' })
     }
 
-    await prisma.priceAlert.delete({
-      where: { id },
-    })
+    await priceAlertRepository.delete(id)
 
     res.status(204).send()
   } catch (error) {
@@ -237,7 +227,7 @@ router.put('/symbol/:symbol/disable', requireAuth, async (req: AuthenticatedRequ
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const updatedAlerts = await prisma.priceAlert.updateMany({
+    const updatedAlerts = await priceAlertRepository.updateMany({
       where: {
         userId,
         symbol: symbol.toUpperCase(),
@@ -269,14 +259,14 @@ router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res)
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const alertCount = await prisma.priceAlert.count({
+    const alertCount = await priceAlertRepository.count({
       where: {
         userId,
         symbol: symbol.toUpperCase(),
       },
     })
 
-    const alerts = await prisma.priceAlert.findMany({
+    const alerts = await priceAlertRepository.findMany({
       where: {
         userId,
         symbol: symbol.toUpperCase(),
@@ -325,7 +315,7 @@ router.put(
       const { symbols } = req.body
 
       // バルク無効化: 1 つのクエリで複数シンボルのアラートを無効化
-      const updatedAlerts = await prisma.priceAlert.updateMany({
+      const updatedAlerts = await priceAlertRepository.updateMany({
         where: {
           userId,
           symbol: {
@@ -356,10 +346,7 @@ router.post('/:id/trigger', requireAuth, async (req: AuthenticatedRequest, res) 
   try {
     const { id } = req.params
 
-    const alert = await prisma.priceAlert.update({
-      where: { id },
-      data: { triggeredAt: new Date() },
-    })
+    const alert = await priceAlertRepository.update(id, { triggeredAt: new Date() })
 
     res.json({ alert })
   } catch (error) {

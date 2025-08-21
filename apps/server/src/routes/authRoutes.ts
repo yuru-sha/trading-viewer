@@ -24,9 +24,11 @@ import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError, ConflictError } from '../middleware/errorHandling'
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { PrismaClient } from '@prisma/client'
+import { UserRepository } from '../repositories'
 
 const router = Router()
 const prisma = new PrismaClient()
+const userRepository = new UserRepository(prisma)
 
 // Validation schemas
 const registerSchema = z.object({
@@ -64,9 +66,7 @@ router.post(
     const { email, password } = req.body
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const existingUser = await userRepository.findByEmail(email)
 
     if (existingUser) {
       throw new ConflictError('User with this email already exists')
@@ -88,13 +88,11 @@ router.post(
     const hashedPassword = await hashPassword(password)
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: 'user',
-        isEmailVerified: false,
-      },
+    const user = await userRepository.create({
+      email,
+      passwordHash: hashedPassword,
+      role: 'user',
+      isEmailVerified: false,
     })
 
     // Generate tokens
@@ -135,9 +133,7 @@ router.post(
 
     try {
       // Find user
-      const user = await prisma.user.findUnique({
-        where: { email },
-      })
+      const user = await userRepository.findByEmail(email)
 
       if (!user) {
         throw new UnauthorizedError('Invalid email or password')
@@ -193,17 +189,7 @@ router.get(
   '/me',
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        isEmailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    const user = await userRepository.findById(req.user!.userId)
 
     if (!user) {
       throw new UnauthorizedError('User not found')

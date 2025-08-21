@@ -6,9 +6,12 @@ import { ValidationError } from '../middleware/errorHandling'
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
-// Database integration with Prisma
+// Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
+import { UserRepository } from '../repositories'
+
 const prisma = new PrismaClient()
+const userRepository = new UserRepository(prisma)
 
 // Validation schemas
 const updateProfileSchema = z.object({
@@ -57,8 +60,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.userId
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await userRepository.findById(userId, {
       select: {
         id: true,
         email: true,
@@ -101,9 +103,7 @@ router.put(
       throw new ValidationError('No valid fields to update')
     }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
+    const user = await userRepository.update(userId, updateData, {
       select: {
         id: true,
         email: true,
@@ -171,7 +171,7 @@ router.get(
     }
 
     const [users, totalCount] = await Promise.all([
-      prisma.user.findMany({
+      userRepository.findMany({
         where,
         skip,
         take: limitNum,
@@ -191,7 +191,7 @@ router.get(
           updatedAt: true,
         },
       }),
-      prisma.user.count({ where }),
+      userRepository.count({ where }),
     ])
 
     const totalPages = Math.ceil(totalCount / limitNum)
@@ -221,8 +221,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { userId } = req.params
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await userRepository.findById(userId, {
       select: {
         id: true,
         email: true,
@@ -267,17 +266,19 @@ router.put(
       throw new ValidationError('Cannot deactivate your own account')
     }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { isActive },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-      },
-    })
+    const user = await userRepository.update(
+      userId,
+      { isActive },
+      {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+        },
+      }
+    )
 
     // Log user status change
     securityLogger.log({
@@ -319,17 +320,19 @@ router.put(
       throw new ValidationError('Cannot change your own role')
     }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { role },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-      },
-    })
+    const user = await userRepository.update(
+      userId,
+      { role },
+      {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+        },
+      }
+    )
 
     // Log role change
     securityLogger.log({
@@ -370,8 +373,7 @@ router.delete(
     }
 
     // Get user info before deletion for logging
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await userRepository.findById(userId, {
       select: { email: true, name: true, role: true },
     })
 
@@ -380,9 +382,7 @@ router.delete(
     }
 
     // Delete user
-    await prisma.user.delete({
-      where: { id: userId },
-    })
+    await userRepository.delete(userId)
 
     // Log user deletion
     securityLogger.log({

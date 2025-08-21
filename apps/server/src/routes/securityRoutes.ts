@@ -14,9 +14,12 @@ import { ValidationError, UnauthorizedError } from '../middleware/errorHandling'
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
-// Database integration with Prisma
+// Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
+import { UserRepository } from '../repositories'
+
 const prisma = new PrismaClient()
+const userRepository = new UserRepository(prisma)
 
 // Validation schemas
 const forgotPasswordSchema = z.object({
@@ -52,9 +55,7 @@ router.post(
   asyncHandler(async (req: Request, res: Response) => {
     const { email } = req.body
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
+    const user = await userRepository.findByEmail(email)
 
     // Always return success to prevent email enumeration
     if (!user) {
@@ -81,12 +82,9 @@ router.post(
     const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
     // Save reset token to database
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetToken,
-        resetTokenExpiry,
-      },
+    await userRepository.update(user.id, {
+      resetToken,
+      resetTokenExpiry,
     })
 
     // Log password reset request
@@ -120,7 +118,7 @@ router.post(
   asyncHandler(async (req: Request, res: Response) => {
     const { token, newPassword } = req.body
 
-    const user = await prisma.user.findFirst({
+    const user = await userRepository.findFirst({
       where: {
         resetToken: token,
         resetTokenExpiry: {
@@ -147,15 +145,12 @@ router.post(
     const passwordHash = await hashPassword(newPassword)
 
     // Update password and clear reset token
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash,
-        resetToken: null,
-        resetTokenExpiry: null,
-        failedLoginCount: 0, // Reset failed login count
-        lockedUntil: null, // Unlock account if it was locked
-      },
+    await userRepository.update(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExpiry: null,
+      failedLoginCount: 0, // Reset failed login count
+      lockedUntil: null, // Unlock account if it was locked
     })
 
     // Revoke all existing tokens to force re-login
@@ -193,8 +188,7 @@ router.post(
     const { userId } = req.body
     const adminUserId = req.user!.userId
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await userRepository.findById(userId, {
       select: { id: true, email: true, lockedUntil: true },
     })
 
@@ -203,12 +197,9 @@ router.post(
     }
 
     // Unlock the account
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        failedLoginCount: 0,
-        lockedUntil: null,
-      },
+    await userRepository.update(userId, {
+      failedLoginCount: 0,
+      lockedUntil: null,
     })
 
     // Log account unlock
@@ -350,18 +341,18 @@ router.get(
     }
 
     // Get user statistics
-    const totalUsers = await prisma.user.count()
-    const activeUsers = await prisma.user.count({
+    const totalUsers = await userRepository.count()
+    const activeUsers = await userRepository.count({
       where: { isActive: true },
     })
-    const lockedUsers = await prisma.user.count({
+    const lockedUsers = await userRepository.count({
       where: {
         lockedUntil: {
           gt: new Date(),
         },
       },
     })
-    const recentLogins = await prisma.user.count({
+    const recentLogins = await userRepository.count({
       where: {
         lastLoginAt: {
           gte: startDate,

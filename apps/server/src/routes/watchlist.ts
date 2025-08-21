@@ -4,9 +4,11 @@ import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
+import { WatchlistRepository } from '../repositories'
 
 const router = Router()
 const prisma = new PrismaClient()
+const watchlistRepository = new WatchlistRepository(prisma)
 
 const AddWatchlistSchema = z.object({
   symbol: z.string().min(1),
@@ -38,9 +40,8 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const watchlist = await prisma.watchlist.findMany({
-      where: { userId },
-      orderBy: { position: 'asc' },
+    const watchlist = await watchlistRepository.findByUserId(userId, {
+      orderBy: [{ position: 'asc' }],
     })
 
     res.json({
@@ -72,14 +73,7 @@ router.post(
       const { symbol, name } = req.body
 
       // Check if already exists
-      const existing = await prisma.watchlist.findUnique({
-        where: {
-          userId_symbol: {
-            userId,
-            symbol: symbol.toUpperCase(),
-          },
-        },
-      })
+      const existing = await watchlistRepository.findByUserIdAndSymbol(userId, symbol.toUpperCase())
 
       if (existing) {
         return res.status(409).json({
@@ -104,25 +98,13 @@ router.post(
         // Continue with default values
       }
 
-      // Get the highest position for this user and add 1
-      const maxPositionItem = await prisma.watchlist.findFirst({
-        where: { userId },
-        orderBy: { position: 'desc' },
-        select: { position: true },
-      })
-
-      const newPosition = (maxPositionItem?.position ?? -1) + 1
-
-      const watchlistItem = await prisma.watchlist.create({
-        data: {
-          userId,
-          symbol: symbol.toUpperCase(),
-          name,
-          position: newPosition,
-          currency,
-          exchange,
-          timezone,
-        },
+      const watchlistItem = await watchlistRepository.create({
+        userId,
+        symbol: symbol.toUpperCase(),
+        name,
+        currency,
+        exchange,
+        timezone,
       })
 
       res.status(201).json({
@@ -155,14 +137,7 @@ router.delete(
       const { symbol } = req.body
 
       // Check if exists
-      const existing = await prisma.watchlist.findUnique({
-        where: {
-          userId_symbol: {
-            userId,
-            symbol: symbol.toUpperCase(),
-          },
-        },
-      })
+      const existing = await watchlistRepository.findByUserIdAndSymbol(userId, symbol.toUpperCase())
 
       if (!existing) {
         return res.status(404).json({
@@ -171,14 +146,7 @@ router.delete(
         })
       }
 
-      await prisma.watchlist.delete({
-        where: {
-          userId_symbol: {
-            userId,
-            symbol: symbol.toUpperCase(),
-          },
-        },
-      })
+      await watchlistRepository.removeSymbolFromWatchlist(userId, symbol.toUpperCase())
 
       res.status(204).send()
     } catch (error) {
@@ -202,14 +170,7 @@ router.delete('/:symbol', requireAuth, requireCSRF, async (req: AuthenticatedReq
     const { symbol } = req.params
 
     // Check if exists
-    const existing = await prisma.watchlist.findUnique({
-      where: {
-        userId_symbol: {
-          userId,
-          symbol: symbol.toUpperCase(),
-        },
-      },
-    })
+    const existing = await watchlistRepository.findByUserIdAndSymbol(userId, symbol.toUpperCase())
 
     if (!existing) {
       return res.status(404).json({
@@ -218,14 +179,7 @@ router.delete('/:symbol', requireAuth, requireCSRF, async (req: AuthenticatedReq
       })
     }
 
-    await prisma.watchlist.delete({
-      where: {
-        userId_symbol: {
-          userId,
-          symbol: symbol.toUpperCase(),
-        },
-      },
-    })
+    await watchlistRepository.removeSymbolFromWatchlist(userId, symbol.toUpperCase())
 
     res.json({
       success: true,
@@ -255,20 +209,21 @@ router.delete(
 
       const { symbols } = req.body
 
-      // バルク削除: 1 つのクエリで複数シンボルを削除
-      const deleteResult = await prisma.watchlist.deleteMany({
-        where: {
-          userId,
-          symbol: {
-            in: symbols.map(symbol => symbol.toUpperCase()),
-          },
-        },
-      })
+      // バルク削除: 複数シンボルを削除
+      let deletedCount = 0
+      for (const symbol of symbols) {
+        try {
+          await watchlistRepository.removeSymbolFromWatchlist(userId, symbol.toUpperCase())
+          deletedCount++
+        } catch (error) {
+          console.warn(`Failed to remove ${symbol} from watchlist:`, error)
+        }
+      }
 
       res.json({
         success: true,
-        deletedCount: deleteResult.count,
-        message: `Removed ${deleteResult.count} symbols from watchlist`,
+        deletedCount: deletedCount,
+        message: `Removed ${deletedCount} symbols from watchlist`,
         symbols: symbols.map(s => s.toUpperCase()),
       })
     } catch (error) {
@@ -297,19 +252,12 @@ router.put(
       const { items } = req.body
 
       // Update all positions in a transaction
-      const updatePromises = items.map(item =>
-        prisma.watchlist.updateMany({
-          where: {
-            userId,
-            symbol: item.symbol.toUpperCase(),
-          },
-          data: {
-            position: item.position,
-          },
-        })
-      )
+      const symbolPositions = items.map(item => ({
+        symbol: item.symbol.toUpperCase(),
+        position: item.position,
+      }))
 
-      await prisma.$transaction(updatePromises)
+      await watchlistRepository.reorderWatchlist(userId, symbolPositions)
 
       res.json({
         success: true,
