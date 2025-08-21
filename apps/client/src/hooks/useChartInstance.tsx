@@ -1,5 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import type ReactECharts from 'echarts-for-react'
+import * as echarts from 'echarts/core'
+import { PriceData } from '../utils/indicators'
 
 /**
  * ECharts インスタンス管理フック
@@ -10,7 +12,7 @@ export const useChartInstance = () => {
   const [chartReady, setChartReady] = useState(false)
 
   // ECharts instance ready callback
-  const onChartReady = useCallback((echartInstance: any) => {
+  const onChartReady = useCallback((_echartInstance: echarts.ECharts) => {
     console.log('🎯 ECharts instance ready')
     setChartReady(true)
   }, [])
@@ -21,7 +23,7 @@ export const useChartInstance = () => {
   }, [])
 
   // Convert pixel coordinates to data coordinates
-  const convertPixelToData = useCallback((offsetX: number, offsetY: number, data: any[]) => {
+  const convertPixelToData = useCallback((offsetX: number, offsetY: number, data: PriceData[]) => {
     if (!chartRef.current || !data.length) return null
 
     const chart = chartRef.current.getEchartsInstance()
@@ -42,7 +44,7 @@ export const useChartInstance = () => {
         price: price,
         dataIndex: clampedIndex,
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Coordinate conversion failed:', error)
       return null
     }
@@ -56,7 +58,7 @@ export const useChartInstance = () => {
 
       try {
         return chart.convertToPixel('grid', [dataIndex, price])
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Data to pixel conversion failed:', error)
         return null
       }
@@ -94,7 +96,7 @@ export const useChartInstance = () => {
 
         console.log('📸 Screenshot saved successfully')
         return dataURL
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Screenshot failed:', error)
         return null
       }

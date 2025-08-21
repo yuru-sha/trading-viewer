@@ -51,7 +51,7 @@ const ResetPasswordPage: React.FC = () => {
       await resetPassword({ token, newPassword })
       showSuccess('Password has been reset successfully. Please log in with your new password.')
       navigate('/login')
-    } catch (error) {
+    } catch {
       handleApiError(error, 'Password reset')
     } finally {
       setIsLoading(false)

@@ -59,14 +59,14 @@ export const useAuthStore = create<AuthState>()(
           })
 
           // User data is now persisted via httpOnly cookies on the server
-        } catch (error) {
+        } catch {
           set({
             user: null,
             isAuthenticated: false,
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Login failed',
+            error: 'Operation failed',
           })
-          throw error
+          throw new Error('Operation failed')
         }
       },
 
@@ -87,14 +87,14 @@ export const useAuthStore = create<AuthState>()(
           })
 
           // User data is now persisted via httpOnly cookies on the server
-        } catch (error) {
+        } catch {
           set({
             user: null,
             isAuthenticated: false,
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Registration failed',
+            error: 'Operation failed',
           })
-          throw error
+          throw new Error('Operation failed')
         }
       },
 
@@ -103,8 +103,8 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           await authService.logout()
-        } catch (error) {
-          console.warn('Logout API call failed:', error)
+        } catch {
+          console.warn('Operation failed')
         } finally {
           // Always clear local state regardless of API call result
           set({
@@ -134,12 +134,12 @@ export const useAuthStore = create<AuthState>()(
           })
 
           // User state is now managed via server session
-        } catch (error) {
+        } catch {
           set({
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Profile update failed',
+            error: 'Operation failed',
           })
-          throw error
+          throw new Error('Operation failed')
         }
       },
 
@@ -156,12 +156,12 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           })
-        } catch (error) {
+        } catch {
           set({
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Password change failed',
+            error: 'Operation failed',
           })
-          throw error
+          throw new Error('Operation failed')
         }
       },
 
@@ -178,12 +178,12 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           })
-        } catch (error) {
+        } catch {
           set({
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Account deletion failed',
+            error: 'Operation failed',
           })
-          throw error
+          throw new Error('Operation failed')
         }
       },
 
@@ -214,7 +214,7 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             })
           }
-        } catch (error) {
+        } catch {
           // Clear any stale data on error
           set({
             user: null,

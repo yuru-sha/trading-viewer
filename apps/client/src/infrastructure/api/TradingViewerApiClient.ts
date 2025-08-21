@@ -16,8 +16,6 @@ import {
   NewsItem,
   WatchlistItem,
   DrawingTool,
-  RequestConfig,
-  ApiResponse,
 } from '../../domain/interfaces/IMarketDataClient'
 import { api } from '../../lib/apiClient'
 
@@ -89,7 +87,7 @@ class MarketDataClient implements IMarketDataClient {
     }))
   }
 
-  async getMarketNews(symbols?: string[]): Promise<NewsItem[]> {
+  async getMarketNews(_symbols?: string[]): Promise<NewsItem[]> {
     // 現在の API にはニュース機能がないため、モックデータを返す
     return []
   }
@@ -171,7 +169,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
     symbol: string
     timeframe: string
     type: string
-    data: any
+    data: unknown
   }): Promise<DrawingTool> {
     const response = await api.drawing.createDrawingTool({
       symbol: data.symbol,
@@ -194,7 +192,7 @@ class DrawingToolsClient implements IDrawingToolsClient {
     }
   }
 
-  async updateDrawingTool(id: string, updates: any): Promise<DrawingTool> {
+  async updateDrawingTool(id: string, updates: unknown): Promise<DrawingTool> {
     const response = await api.drawing.updateDrawingTool(id, updates)
     const item = response.data
     return {
@@ -218,10 +216,10 @@ class DrawingToolsClient implements IDrawingToolsClient {
  */
 class AuthClient implements IAuthClient {
   async login(
-    email: string,
-    password: string
+    _email: string,
+    _password: string
   ): Promise<{
-    user: any
+    user: unknown
     token: string
   }> {
     // 既存の認証ロジックを統合する必要がある
@@ -233,15 +231,15 @@ class AuthClient implements IAuthClient {
     throw new Error('Not implemented - integrate with existing auth system')
   }
 
-  async register(userData: { email: string; password: string }): Promise<{
-    user: any
+  async register(_userData: { email: string; password: string }): Promise<{
+    user: unknown
     token: string
   }> {
     // 既存の認証ロジックを統合する必要がある
     throw new Error('Not implemented - integrate with existing auth system')
   }
 
-  async getCurrentUser(): Promise<any> {
+  async getCurrentUser(): Promise<User | null> {
     // 既存の認証ロジックを統合する必要がある
     throw new Error('Not implemented - integrate with existing auth system')
   }
@@ -273,7 +271,7 @@ class AppInfoClient implements IAppInfoClient {
     name: string
     version: string
     timestamp: Date
-    endpoints: Record<string, any>
+    endpoints: Record<string, unknown>
   }> {
     const response = await api.info.getInfo()
     return {
@@ -332,7 +330,7 @@ export class TradingViewerApiClient implements ITradingViewerApiClient {
     try {
       await this.appInfo.getHealthStatus()
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

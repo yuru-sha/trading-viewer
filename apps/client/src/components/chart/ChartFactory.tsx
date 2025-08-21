@@ -1,7 +1,7 @@
 import React from 'react'
 import { IChartComponent, IChartFactory, ChartType, ChartConfig, ChartState } from '@shared'
 import { MarketData } from '@shared'
-import OptimizedChartContainer from './OptimizedChartContainer'
+import OptimizedChartContainer, { OptimizedChartContainerRef } from './OptimizedChartContainer'
 import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
 import { PriceData } from '../../utils/indicators'
 
@@ -13,7 +13,7 @@ class OptimizedChartAdapter implements IChartComponent {
   private config: ChartConfig
   private state: ChartState
   private data: PriceData[] = []
-  private containerRef: React.RefObject<any>
+  private containerRef: React.RefObject<OptimizedChartContainerRef>
 
   constructor(config: ChartConfig) {
     this.config = config
@@ -70,7 +70,7 @@ class OptimizedChartAdapter implements IChartComponent {
     }
   }
 
-  resize?(width: number, height: number): void {
+  resize?(_width: number, _height: number): void {
     // OptimizedChartContainer は auto-resize に対応しているため、
     // 特別な処理は不要
   }
@@ -90,7 +90,7 @@ class OptimizedChartAdapter implements IChartComponent {
 class EChartsAdapter implements IChartComponent {
   private config: ChartConfig
   private state: ChartState
-  private data: any[] = []
+  private data: (number | string)[][] = []
 
   constructor(config: ChartConfig) {
     this.config = config

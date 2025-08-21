@@ -38,7 +38,7 @@ const INJECTION_PATTERNS = {
   LDAP_INJECTION: [
     /(\*\)|\|\||&&|\(|\)|,|;|\\|\||&)/,
     /(objectClass=\*|objectCategory=\*)/i,
-    /(\(\w+=\*\)|\(\!\w+=\*\))/,
+    /(\(\w+=\*\)|\(!\w+=\*\))/,
   ],
 
   // Command Injection patterns
@@ -51,7 +51,7 @@ const INJECTION_PATTERNS = {
 
   // Path Traversal patterns
   PATH_TRAVERSAL: [
-    /(\.\.[\/\\]|\.\.%2f|\.\.%5c|%2e%2e%2f|%2e%2e%5c)/i,
+    /(\.\.[/\\]|\.\.%2f|\.\.%5c|%2e%2e%2f|%2e%2e%5c)/i,
     /(\/etc\/passwd|\/etc\/shadow|\.ssh|\.htaccess|web\.config)/i,
     /(\\windows\\|\\system32\\|\\boot\\)/i,
   ],
@@ -120,6 +120,7 @@ export class InputSanitizer {
     if (typeof input !== 'string') return ''
 
     // Remove null bytes and other control characters
+    // eslint-disable-next-line no-control-regex
     return input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
   }
 

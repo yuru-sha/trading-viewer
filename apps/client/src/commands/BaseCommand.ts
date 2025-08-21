@@ -1,10 +1,10 @@
-import type { ICommand, CommandResult } from '@trading-viewer/shared'
+import type { ICommand } from '@trading-viewer/shared'
 
 /**
  * Abstract Base Command
  * Provides common functionality for all commands
  */
-export abstract class BaseCommand<TResult = any, TParams = any>
+export abstract class BaseCommand<TResult = unknown, TParams = unknown>
   implements ICommand<TResult, TParams>
 {
   readonly id: string
@@ -14,7 +14,7 @@ export abstract class BaseCommand<TResult = any, TParams = any>
   readonly canUndo: boolean
 
   // State management for undo functionality
-  protected previousState?: any
+  protected previousState?: unknown
   protected executed: boolean = false
 
   constructor(type: string, params: TParams, canUndo: boolean = true) {
@@ -58,8 +58,8 @@ export abstract class BaseCommand<TResult = any, TParams = any>
       this.executed = true
 
       return result
-    } catch (error) {
-      throw new Error(`Command execution failed: ${error}`)
+    } catch {
+      throw new Error('Command execution failed')
     }
   }
 
@@ -130,7 +130,7 @@ export abstract class BaseCommand<TResult = any, TParams = any>
    * Capture current state for undo functionality
    * Subclasses can override this method
    */
-  protected async captureState(): Promise<any> {
+  protected async captureState(): Promise<unknown> {
     return null
   }
 
@@ -138,7 +138,7 @@ export abstract class BaseCommand<TResult = any, TParams = any>
    * Restore previous state for undo functionality
    * Subclasses can override this method
    */
-  protected async restoreState(state: any): Promise<void> {
+  protected async restoreState(_state: unknown): Promise<void> {
     // Default implementation does nothing
   }
 

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import type ReactECharts from 'echarts-for-react'
 import { DrawingObject } from '../../components/chart/DrawingObjectsPanel'
 
 interface ChartRenderingSettings {
@@ -30,7 +31,7 @@ export const useChartRendering = (initialSettings?: Partial<ChartRenderingSettin
   ])
 
   // Chart instance ref to access chart functionality
-  const chartRef = useRef<any>(null)
+  const chartRef = useRef<ReactECharts | null>(null)
 
   // Handle object visibility toggle
   const toggleObjectVisibility = useCallback((id: string) => {

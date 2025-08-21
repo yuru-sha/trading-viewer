@@ -1,13 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type {
   ICommand,
-  ICommandInvoker,
   CommandResult,
   CommandHistoryEntry,
+  DrawingCommandParams,
+  ChartSettingsParams,
 } from '@trading-viewer/shared'
 import { CommandInvoker } from '../commands/CommandInvoker'
 import { commandFactory } from '../commands/CommandFactory'
 import { useError } from '../contexts/ErrorContext'
+import { useDrawingTools } from './drawing'
+import { IChartContext } from '../commands/ChartCommands'
 
 /**
  * Command System Hook Configuration
@@ -114,10 +117,10 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
         }
 
         return result
-      } catch (error) {
+      } catch (error: unknown) {
         const errorResult: CommandResult<T> = {
           success: false,
-          error: error instanceof Error ? error.message : String(error),
+          error: 'Operation failed',
           executionTime: 0,
           commandId: command.id,
         }
@@ -134,7 +137,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
           })
         }
 
-        throw error
+        throw new Error('Operation failed')
       } finally {
         setIsExecuting(false)
       }
@@ -187,12 +190,12 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       }
 
       return result
-    } catch (error) {
+    } catch {
       if (enableNotifications) {
         addError({
           type: 'error',
           title: 'Undo Failed',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Operation failed',
           source: 'client',
         })
       }
@@ -215,12 +218,12 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       }
 
       return result
-    } catch (error) {
+    } catch {
       if (enableNotifications) {
         addError({
           type: 'error',
           title: 'Redo Failed',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Operation failed',
           source: 'client',
         })
       }
@@ -339,7 +342,7 @@ export function useSimpleCommands() {
 /**
  * Hook for drawing commands specifically
  */
-export function useDrawingCommands(drawingContext: any) {
+export function useDrawingCommands(drawingContext: ReturnType<typeof useDrawingTools>) {
   const commandSystem = useCommandSystem()
 
   // Register drawing context
@@ -348,7 +351,7 @@ export function useDrawingCommands(drawingContext: any) {
   }, [drawingContext])
 
   const createDrawing = useCallback(
-    (params: any) => {
+    (params: DrawingCommandParams) => {
       const command = commandSystem.createCommand('CREATE_DRAWING', params)
       return commandSystem.execute(command)
     },
@@ -356,7 +359,7 @@ export function useDrawingCommands(drawingContext: any) {
   )
 
   const updateDrawing = useCallback(
-    (id: string, properties: any) => {
+    (id: string, properties: Record<string, unknown>) => {
       const command = commandSystem.createCommand('UPDATE_DRAWING', { id, properties })
       return commandSystem.execute(command)
     },
@@ -382,7 +385,7 @@ export function useDrawingCommands(drawingContext: any) {
 /**
  * Hook for chart commands specifically
  */
-export function useChartCommands(chartContext: any) {
+export function useChartCommands(chartContext: IChartContext) {
   const commandSystem = useCommandSystem()
 
   // Register chart context
@@ -391,7 +394,7 @@ export function useChartCommands(chartContext: any) {
   }, [chartContext])
 
   const updateChartSettings = useCallback(
-    (settings: any) => {
+    (settings: ChartSettingsParams) => {
       const command = commandSystem.createCommand('UPDATE_CHART_SETTINGS', settings)
       return commandSystem.execute(command)
     },
@@ -399,7 +402,7 @@ export function useChartCommands(chartContext: any) {
   )
 
   const addIndicator = useCallback(
-    (type: string, params: any) => {
+    (type: string, params: Record<string, unknown>) => {
       const command = commandSystem.createCommand('ADD_INDICATOR', { type, params })
       return commandSystem.execute(command)
     },

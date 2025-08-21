@@ -56,9 +56,19 @@ export interface DrawingTool {
   symbol: string
   timeframe: string
   type: string
-  data: any
+  data: unknown
   createdAt: Date
   updatedAt: Date
+}
+
+export interface User {
+  id: string
+  email: string
+  name?: string
+  role: 'user' | 'admin'
+  isEmailVerified: boolean
+  createdAt: string
+  avatar?: string
 }
 
 /**
@@ -111,9 +121,9 @@ export interface IDrawingToolsClient {
     symbol: string
     timeframe: string
     type: string
-    data: any
+    data: unknown
   }): Promise<DrawingTool>
-  updateDrawingTool(id: string, updates: any): Promise<DrawingTool>
+  updateDrawingTool(id: string, updates: Partial<DrawingTool>): Promise<DrawingTool>
   deleteDrawingTool(id: string): Promise<void>
 }
 
@@ -125,15 +135,15 @@ export interface IAuthClient {
     email: string,
     password: string
   ): Promise<{
-    user: any
+    user: User
     token: string
   }>
   logout(): Promise<void>
   register(userData: { email: string; password: string }): Promise<{
-    user: any
+    user: User
     token: string
   }>
-  getCurrentUser(): Promise<any>
+  getCurrentUser(): Promise<User>
   refreshToken(): Promise<string>
 }
 
@@ -150,7 +160,7 @@ export interface IAppInfoClient {
     name: string
     version: string
     timestamp: Date
-    endpoints: Record<string, any>
+    endpoints: Record<string, unknown>
   }>
   getDataSourceInfo(): Promise<{
     isMockData: boolean

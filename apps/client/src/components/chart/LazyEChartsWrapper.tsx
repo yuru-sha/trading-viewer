@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import { Loading } from '@trading-viewer/ui'
+import { EChartsTradingChartRef } from './EChartsTradingChart'
 
 // ECharts コンポーネントの動的インポート（コード分割でバンドルサイズ最適化）
 const EChartsTradingChart = lazy(() =>
@@ -53,7 +54,7 @@ export const LazyEChartsWrapper: React.FC<LazyEChartsWrapperProps> = ({ children
  * 直接使用可能な遅延ロード ECharts コンポーネント
  */
 export const LazyEChartsTradingChart = React.forwardRef<
-  any,
+  EChartsTradingChartRef,
   React.ComponentProps<typeof EChartsTradingChart>
 >((props, ref) => (
   <LazyEChartsWrapper>

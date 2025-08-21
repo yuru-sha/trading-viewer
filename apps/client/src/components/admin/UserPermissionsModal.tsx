@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
@@ -73,15 +73,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
     'API Access',
   ]
 
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchUserPermissions()
-      fetchAllPermissions()
-      fetchAllGroups()
-    }
-  }, [isOpen, userId])
-
-  const fetchUserPermissions = async () => {
+  const fetchUserPermissions = useCallback(async () => {
     if (!userId) return
 
     try {
@@ -101,9 +93,9 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
     } finally {
       setLoading(false)
     }
-  }
+  }, [showError, userId])
 
-  const fetchAllPermissions = async () => {
+  const fetchAllPermissions = useCallback(async () => {
     try {
       const response = await apiService.get<{ success: boolean; data: Permission[] }>(
         '/auth/permissions'
@@ -114,9 +106,9 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
     } catch (error) {
       console.error('Failed to fetch permissions:', error)
     }
-  }
+  }, [])
 
-  const fetchAllGroups = async () => {
+  const fetchAllGroups = useCallback(async () => {
     try {
       const response = await apiService.get<{ success: boolean; data: UserGroup[] }>('/auth/groups')
       if (response.success) {
@@ -125,7 +117,15 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
     } catch (error) {
       console.error('Failed to fetch groups:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchUserPermissions()
+      fetchAllPermissions()
+      fetchAllGroups()
+    }
+  }, [isOpen, userId, fetchUserPermissions, fetchAllPermissions, fetchAllGroups])
 
   const handleSavePermissions = async () => {
     if (!userId) return
@@ -166,9 +166,20 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
         setNewGroup({ name: '', description: '', permissions: [] })
         setActiveTab('groups')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create group:', error)
-      if (error.response?.data?.message) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data &&
+        typeof error.response.data.message === 'string'
+      ) {
         showError(error.response.data.message)
       } else {
         showError('Failed to create group')
@@ -396,20 +407,28 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
         <h4 className='text-md font-medium text-gray-900 dark:text-white mb-4'>Create New Group</h4>
         <div className='space-y-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='group-name'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Group Name *
             </label>
             <Input
+              id='group-name'
               value={newGroup.name}
               onChange={e => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
               placeholder='Enter group name'
             />
           </div>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='group-description'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Description
             </label>
             <Input
+              id='group-description'
               value={newGroup.description}
               onChange={e => setNewGroup(prev => ({ ...prev, description: e.target.value }))}
               placeholder='Enter group description'
@@ -490,7 +509,7 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'permissions' | 'groups' | 'create-group')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'

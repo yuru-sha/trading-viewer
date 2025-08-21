@@ -1,7 +1,7 @@
 import React from 'react'
 import { Icon as UIIcon, type IconProps as UIIconProps } from '@trading-viewer/ui'
 
-export interface IconProps extends UIIconProps {}
+export type IconProps = UIIconProps
 
 const Icon: React.FC<IconProps> = props => {
   return <UIIcon {...props} />

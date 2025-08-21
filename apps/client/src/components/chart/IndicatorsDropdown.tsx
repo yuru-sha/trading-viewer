@@ -4,6 +4,8 @@ import {
   INDICATOR_METADATA,
   DEFAULT_INDICATOR_CONFIGS,
   DEFAULT_INDICATOR_STYLES,
+  UserIndicator,
+  TechnicalIndicator,
 } from '@trading-viewer/shared'
 import { Icon } from '@ui'
 import {
@@ -28,8 +30,8 @@ interface IndicatorConfigModalProps {
   type: IndicatorType
   symbol: string
   onClose: () => void
-  onConfirm: (parameters: Record<string, any>) => void
-  initialParameters?: Record<string, any>
+  onConfirm: (parameters: TechnicalIndicator['parameters']) => void
+  initialParameters?: TechnicalIndicator['parameters']
 }
 
 const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
@@ -40,7 +42,7 @@ const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
 }) => {
   const metadata = INDICATOR_METADATA[type]
   const defaultConfig = DEFAULT_INDICATOR_CONFIGS[type]
-  const [parameters, setParameters] = useState<Record<string, any>>(
+  const [parameters, setParameters] = useState<TechnicalIndicator['parameters']>(
     initialParameters || defaultConfig
   )
 
@@ -51,7 +53,7 @@ const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
     onConfirm(parameters)
   }
 
-  const handleParameterChange = (key: string, value: any) => {
+  const handleParameterChange = (key: string, value: string | number) => {
     setParameters(prev => ({ ...prev, [key]: value }))
   }
 
@@ -172,7 +174,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   const [editingParametersIndicator, setEditingParametersIndicator] = useState<{
     id: string
     type: IndicatorType
-    currentParameters: Record<string, any>
+    currentParameters: TechnicalIndicator['parameters']
   } | null>(null)
 
   // ドロップダウンが閉じられた時にすべての状態をクリア
@@ -210,7 +212,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     setConfigModal({ type, symbol })
   }
 
-  const handleConfirmIndicator = async (parameters: Record<string, any>) => {
+  const handleConfirmIndicator = async (parameters: TechnicalIndicator['parameters']) => {
     if (!configModal) return
 
     console.log('🔍 Adding indicator:', {
@@ -294,7 +296,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     }
   }
 
-  const handleEditParameters = (indicator: any) => {
+  const handleEditParameters = (indicator: UserIndicator) => {
     setEditingParametersIndicator({
       id: indicator.id,
       type: indicator.type,
@@ -302,7 +304,7 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     })
   }
 
-  const handleUpdateParameters = async (parameters: Record<string, any>) => {
+  const handleUpdateParameters = async (parameters: TechnicalIndicator['parameters']) => {
     if (!editingParametersIndicator) return
 
     console.log('📊 handleUpdateParameters called:', {

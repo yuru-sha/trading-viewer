@@ -9,7 +9,6 @@ interface DrawingToolbarProps {
   snapToPrice: boolean
   toolCount: number
   onToolSelect: (tool: DrawingToolType | null) => void
-  onModeChange: (mode: DrawingMode) => void
   onStyleChange: (style: Partial<DrawingStyle>) => void
   onToggleSnap: () => void
   onClearAll: () => void
@@ -30,7 +29,6 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   snapToPrice,
   toolCount,
   onToolSelect,
-  onModeChange,
   onStyleChange,
   onToggleSnap,
   onClearAll,
@@ -176,7 +174,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Color Selection */}
         <div className='mb-3'>
-          <label className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>Color</label>
+          <div className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>Color</div>
           <div className='flex space-x-1'>
             {colorOptions.map(color => (
               <button
@@ -196,9 +194,9 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Thickness Selection */}
         <div className='mb-3'>
-          <label className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
+          <div className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
             Thickness: {defaultStyle.thickness}px
-          </label>
+          </div>
           <div className='flex space-x-1'>
             {thicknessOptions.map(thickness => (
               <button
@@ -224,10 +222,14 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Opacity Control */}
         <div>
-          <label className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
+          <label
+            htmlFor='opacity-range'
+            className='block text-xs text-gray-700 dark:text-gray-300 mb-1'
+          >
             Opacity: {Math.round(defaultStyle.opacity * 100)}%
           </label>
           <input
+            id='opacity-range'
             type='range'
             min='10'
             max='100'

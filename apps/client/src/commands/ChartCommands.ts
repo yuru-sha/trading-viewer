@@ -1,10 +1,5 @@
 import { BaseCommand } from './BaseCommand'
-import type {
-  ChartSettingsParams,
-  UpdateChartSettingsCommand,
-  AddIndicatorCommand as IAddIndicatorCommand,
-  RemoveIndicatorCommand as IRemoveIndicatorCommand,
-} from '@trading-viewer/shared'
+import type { ChartSettingsParams, UpdateChartSettingsCommand } from '@trading-viewer/shared'
 
 /**
  * Chart State Interface
@@ -14,7 +9,7 @@ interface ChartState {
   chartType: 'candlestick' | 'line' | 'area'
   indicators: Map<string, IndicatorConfig>
   theme: 'light' | 'dark'
-  settings: Record<string, any>
+  settings: Record<string, unknown>
 }
 
 /**
@@ -23,7 +18,7 @@ interface ChartState {
 interface IndicatorConfig {
   id: string
   type: string
-  params: Record<string, any>
+  params: Record<string, unknown>
   visible: boolean
   createdAt: number
 }
@@ -31,7 +26,7 @@ interface IndicatorConfig {
 /**
  * Chart Context Interface
  */
-interface IChartContext {
+export interface IChartContext {
   getChartState(): ChartState
   updateChartSettings(settings: Partial<ChartState>): void
   addIndicator(config: IndicatorConfig): string
@@ -151,14 +146,14 @@ export class ChartSettingsCommand
  * Add Indicator Command
  */
 export class AddIndicatorCommand
-  extends BaseCommand<string, { type: string; params: Record<string, any> }>
+  extends BaseCommand<string, { type: string; params: Record<string, unknown> }>
   implements AddIndicatorCommand
 {
   readonly type = 'ADD_INDICATOR'
   private context: IChartContext
   private addedIndicatorId?: string
 
-  constructor(params: { type: string; params: Record<string, any> }, context: IChartContext) {
+  constructor(params: { type: string; params: Record<string, unknown> }, context: IChartContext) {
     super('ADD_INDICATOR', params, true)
     this.context = context
   }
@@ -223,7 +218,7 @@ export class AddIndicatorCommand
     return validTypes.includes(type.toUpperCase())
   }
 
-  private validateIndicatorParams(type: string, params: Record<string, any>): boolean | string {
+  private validateIndicatorParams(type: string, params: Record<string, unknown>): boolean | string {
     switch (type.toUpperCase()) {
       case 'SMA':
       case 'EMA':
@@ -328,7 +323,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
       try {
         await command.execute()
         this.executedCommands.push(command)
-      } catch (error) {
+      } catch {
         // Rollback executed commands
         for (let i = this.executedCommands.length - 1; i >= 0; i--) {
           try {
@@ -339,7 +334,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
             console.error('Failed to rollback chart command:', undoError)
           }
         }
-        throw error
+        throw new Error('Operation failed')
       }
     }
   }
@@ -350,8 +345,8 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
       if (command.canUndo && command.undo) {
         try {
           await command.undo()
-        } catch (error) {
-          console.error(`Failed to undo chart command ${command.id}:`, error)
+        } catch {
+          console.error('Operation failed')
         }
       }
     }
@@ -365,9 +360,9 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
         } else {
           await command.execute()
         }
-      } catch (error) {
-        console.error(`Failed to redo chart command ${command.id}:`, error)
-        throw error
+      } catch {
+        console.error('Operation failed')
+        throw new Error('Operation failed')
       }
     }
   }

@@ -12,8 +12,21 @@ interface AlertNotification {
   alertId?: string
 }
 
+interface WebSocketService {
+  addEventListener(event: string, callback: (data: AlertNotificationData) => void): void
+  removeEventListener(event: string, callback: (data: AlertNotificationData) => void): void
+}
+
+interface AlertNotificationData {
+  type: 'alert_triggered'
+  alertId: string
+  symbol: string
+  condition: string
+  targetPrice: number
+}
+
 interface AlertNotificationsProps {
-  wsService?: any
+  wsService?: WebSocketService
 }
 
 const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) => {
@@ -32,7 +45,7 @@ const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) =>
   useEffect(() => {
     if (!wsService || !user) return
 
-    const handleAlertNotification = (data: any) => {
+    const handleAlertNotification = (data: AlertNotificationData) => {
       if (data.type === 'alert_triggered') {
         const notification: AlertNotification = {
           id: `alert-${data.alertId}-${Date.now()}`,
@@ -141,10 +154,17 @@ const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) =>
                 {notifications.map(notification => (
                   <div
                     key={notification.id}
+                    role='button'
+                    tabIndex={0}
                     className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
                       !notification.read ? 'bg-blue-50 dark:bg-blue-900/10' : ''
                     }`}
                     onClick={() => markAsRead(notification.id)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        markAsRead(notification.id)
+                      }
+                    }}
                   >
                     <div className='flex items-start'>
                       <div
@@ -196,7 +216,18 @@ const AlertNotifications: React.FC<AlertNotificationsProps> = ({ wsService }) =>
 
       {/* Click outside to close */}
       {showNotifications && (
-        <div className='fixed inset-0 z-40' onClick={() => setShowNotifications(false)} />
+        <div
+          role='button'
+          tabIndex={0}
+          aria-label='Close notifications'
+          className='fixed inset-0 z-40'
+          onClick={() => setShowNotifications(false)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setShowNotifications(false)
+            }
+          }}
+        />
       )}
     </div>
   )

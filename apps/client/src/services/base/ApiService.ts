@@ -1,6 +1,6 @@
 // Base API service for centralized API management
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
@@ -42,7 +42,6 @@ export class ApiService {
       headers = {},
       timeout = this.defaultTimeout,
       retries = 0,
-      requiresAuth = true,
       requiresCSRF = false,
       ...requestOptions
     } = options
@@ -98,7 +97,7 @@ export class ApiService {
 
       const data = await response.json()
       return data
-    } catch (error) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId)
 
       // Handle timeout
@@ -112,7 +111,7 @@ export class ApiService {
         return this.request<T>(endpoint, { ...options, retries: retries - 1 })
       }
 
-      throw error
+      throw new Error('Operation failed')
     }
   }
 
@@ -121,7 +120,11 @@ export class ApiService {
     return this.request<T>(endpoint, { method: 'GET', ...config })
   }
 
-  async post<T>(endpoint: string, data?: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+  async post<T>(
+    endpoint: string,
+    data?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
@@ -130,7 +133,11 @@ export class ApiService {
     })
   }
 
-  async put<T>(endpoint: string, data?: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+  async put<T>(
+    endpoint: string,
+    data?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
@@ -147,7 +154,11 @@ export class ApiService {
     })
   }
 
-  async patch<T>(endpoint: string, data?: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+  async patch<T>(
+    endpoint: string,
+    data?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
@@ -157,10 +168,12 @@ export class ApiService {
   }
 
   // Utility methods
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: unknown): boolean {
     // Retry on network errors and 5xx server errors
-    if (!error.response) return true
-    const status = error.response.status
+    if (!error || typeof error !== 'object' || !('response' in error)) return true
+    const response = (error as { response?: { status?: number } }).response
+    if (!response?.status) return true
+    const status = response.status
     return status >= 500 && status < 600
   }
 

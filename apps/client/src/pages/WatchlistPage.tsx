@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Loading, ToastContainer, useToast } from '@trading-viewer/ui'
-import { useApp, useAppActions } from '../contexts/AppContext'
+import { Button, useToast } from '@trading-viewer/ui'
 import { apiService } from '../services/base/ApiService'
 import SelectAllButton from '../components/common/SelectAllButton'
 import {
@@ -20,20 +19,6 @@ import {
 } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-interface QuoteData {
-  symbol: string
-  currentPrice: number
-  change: number
-  changePercent: number
-  high: number
-  low: number
-  open: number
-  previousClose: number
-  volume: number
-  marketCap?: number
-  timestamp: number
-}
 
 interface WatchlistItem {
   id: string
@@ -190,7 +175,7 @@ const WatchlistPage: React.FC = () => {
   const [watchlistItems, setWatchlistItems] = useState<
     Array<{ symbol: string; name: string; addedAt: string }>
   >([])
-  const { toasts, toast } = useToast()
+  const { toast } = useToast()
 
   // Sensors for drag and drop
   const sensors = useSensors(
@@ -209,16 +194,18 @@ const WatchlistPage: React.FC = () => {
     try {
       const response = await apiService.get('/watchlist')
       if (response.success && response.data.watchlist) {
-        const watchlistData = response.data.watchlist.map((item: any) => ({
-          symbol: item.symbol,
-          name: item.name,
-          addedAt: item.createdAt,
-        }))
+        const watchlistData = response.data.watchlist.map(
+          (item: { symbol: string; name: string }) => ({
+            symbol: item.symbol,
+            name: item.name,
+            addedAt: item.createdAt,
+          })
+        )
         setWatchlistItems(watchlistData)
       } else {
         setWatchlistItems([])
       }
-    } catch (error) {
+    } catch {
       console.error('Error fetching watchlist:', error)
       setError('ウォッチリストの取得に失敗しました')
       // フォールバック: 空のウォッチリストを設定
@@ -267,7 +254,7 @@ const WatchlistPage: React.FC = () => {
       }
 
       toast.success('削除完了', { message })
-    } catch (error) {
+    } catch {
       console.error('Error deleting from watchlist:', error)
       toast.error('削除に失敗しました', {
         message: 'ウォッチリストからの削除に失敗しました。再度お試しください。',
@@ -289,7 +276,7 @@ const WatchlistPage: React.FC = () => {
       } else {
         throw new Error(response.error || 'Position update failed')
       }
-    } catch (error) {
+    } catch {
       console.error('Error updating watchlist positions:', error)
       setError('ウォッチリストの順番更新に失敗しました')
       // エラー時は元の順序に戻す
@@ -365,7 +352,7 @@ const WatchlistPage: React.FC = () => {
           addedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
         }
       })
-    } catch (error) {
+    } catch {
       console.error('Batch quotes fetch error:', error)
       // エラーの場合はモックデータを使用
       return generateMockQuotes(symbols.slice(0, 10))

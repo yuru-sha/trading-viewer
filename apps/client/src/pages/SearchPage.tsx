@@ -3,7 +3,7 @@ import { Button, Input, Loading } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
-import { formatPrice, getCurrencySymbol } from '../utils/currency'
+import { getCurrencySymbol } from '../utils/currency'
 
 interface SearchResult {
   description: string
@@ -16,7 +16,7 @@ interface SearchResult {
 
 const SearchPage: React.FC = () => {
   const { state } = useApp()
-  const { setSelectedSymbol, setError, addToWatchlist, removeFromWatchlist } = useAppActions()
+  const { setError } = useAppActions()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -101,7 +101,7 @@ const SearchPage: React.FC = () => {
 
       // 409 Conflict (既に存在) の場合は情報メッセージとして扱う
       if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as any
+        const apiError = error as { response?: { status?: number } }
         if (apiError.response?.status === 409) {
           console.log(`${symbol} is already in watchlist`)
           // 既に追加済みの場合はエラーではなく、リストを更新するだけ

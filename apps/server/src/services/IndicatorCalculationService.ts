@@ -176,12 +176,12 @@ export class IndicatorCalculationService {
     candles: Candle[],
     period: number = 20,
     standardDeviations: number = 2.1
-  ): { 
-    upper2: IndicatorValue[]; 
-    upper1: IndicatorValue[]; 
-    middle: IndicatorValue[]; 
-    lower1: IndicatorValue[]; 
-    lower2: IndicatorValue[] 
+  ): {
+    upper2: IndicatorValue[]
+    upper1: IndicatorValue[]
+    middle: IndicatorValue[]
+    lower1: IndicatorValue[]
+    lower2: IndicatorValue[]
   } {
     if (candles.length < period) {
       return { upper2: [], upper1: [], middle: [], lower1: [], lower2: [] }
@@ -280,7 +280,7 @@ export class IndicatorCalculationService {
         values = this.calculateRSI(candles, parameters.period || 14)
         break
 
-      case 'macd':
+      case 'macd': {
         const macdResult = this.calculateMACD(
           candles,
           parameters.fastPeriod || 12,
@@ -291,8 +291,9 @@ export class IndicatorCalculationService {
         // In a real implementation, you might want to return all three lines
         values = macdResult.macd
         break
+      }
 
-      case 'bollinger':
+      case 'bollinger': {
         const bbResult = this.calculateBollingerBands(
           candles,
           parameters.period || 20,
@@ -301,12 +302,13 @@ export class IndicatorCalculationService {
         // Return all five bands as separate arrays
         values = {
           upper2: bbResult.upper2,
-          upper1: bbResult.upper1, 
+          upper1: bbResult.upper1,
           middle: bbResult.middle,
           lower1: bbResult.lower1,
-          lower2: bbResult.lower2
+          lower2: bbResult.lower2,
         }
         break
+      }
 
       default:
         throw new Error(`Unsupported indicator type: ${type}`)

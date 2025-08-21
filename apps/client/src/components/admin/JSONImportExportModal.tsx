@@ -111,9 +111,20 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
           showError(`Import completed with ${response.data.failedImports} errors`)
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to import users:', error)
-      if (error.response?.data?.message) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data &&
+        typeof error.response.data.message === 'string'
+      ) {
         showError(error.response.data.message)
       } else {
         showError('Failed to import users')
@@ -150,13 +161,15 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
       })
 
       // Create download link
-      const blob = new Blob([response.data], {
+      const blob = new Blob([response as unknown as BlobPart], {
         type: 'application/json',
       })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `users_export_${new Date().toISOString().split('T')[0]}.${exportOptions.format}`
+      link.download = `users_export_${new Date().toISOString().split('T')[0]}.${
+        exportOptions.format
+      }`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -222,11 +235,15 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
 
       {/* File Upload */}
       <div>
-        <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+        <label
+          htmlFor='json-file-input'
+          className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+        >
           Select JSON File
         </label>
         <div className='flex items-center space-x-3'>
           <input
+            id='json-file-input'
             ref={fileInputRef}
             type='file'
             accept='.json'
@@ -255,7 +272,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
           <li>• File must be in JSON format with array of objects</li>
           <li>• Email addresses must be unique and valid</li>
           <li>• Required fields: email, role</li>
-          <li>• Role must be either 'admin' or 'user'</li>
+          <li>• Role must be either &apos;admin&apos; or &apos;user&apos;</li>
           <li>• isActive must be boolean (true/false)</li>
           <li>• Maximum file size: 10MB</li>
           <li>• Existing users will be updated</li>
@@ -306,7 +323,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
               <div className='max-h-40 overflow-y-auto space-y-2'>
                 {importResult.errors.map((error, index) => (
                   <div key={index} className='text-sm text-red-700 dark:text-red-300'>
-                    Row {error.row}: {error.field} = "{error.value}" - {error.error}
+                    Row {error.row}: {error.field} = &quot;{error.value}&quot; - {error.error}
                   </div>
                 ))}
               </div>
@@ -352,18 +369,21 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
           <div className='space-y-2'>
             {[
               {
+                id: 'includeSecurityInfo',
                 key: 'includeSecurityInfo',
                 label: 'Security Information',
                 description: 'Login attempts, account locks',
               },
               {
+                id: 'includeActivityInfo',
                 key: 'includeActivityInfo',
                 label: 'Activity Information',
                 description: 'Last login, creation date',
               },
             ].map(option => (
-              <label key={option.key} className='flex items-start space-x-3'>
+              <div key={option.key} className='flex items-start space-x-3'>
                 <input
+                  id={option.id}
                   type='checkbox'
                   checked={exportOptions[option.key as keyof LocalExportOptions] as boolean}
                   onChange={e =>
@@ -371,15 +391,13 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
                   }
                   className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                 />
-                <div>
-                  <div className='text-sm font-medium text-gray-900 dark:text-white'>
+                <label htmlFor={option.id}>
+                  <span className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
-                  </div>
-                  <div className='text-xs text-gray-600 dark:text-gray-400'>
-                    {option.description}
-                  </div>
-                </div>
-              </label>
+                  </span>
+                  <p className='text-xs text-gray-600 dark:text-gray-400'>{option.description}</p>
+                </label>
+              </div>
             ))}
           </div>
         </div>
@@ -402,7 +420,12 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
                   name='dateRange'
                   value={option.value}
                   checked={exportOptions.dateRange === option.value}
-                  onChange={e => updateExportOption('dateRange', e.target.value as any)}
+                  onChange={e =>
+                    updateExportOption(
+                      'dateRange',
+                      e.target.value as LocalExportOptions['dateRange']
+                    )
+                  }
                   className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
                 />
                 <span className='text-sm text-gray-900 dark:text-white'>{option.label}</span>
@@ -413,20 +436,28 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
           {exportOptions.dateRange === 'custom' && (
             <div className='grid grid-cols-2 gap-3 mt-3'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='customStartDate'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Start Date
                 </label>
                 <Input
+                  id='customStartDate'
                   type='date'
                   value={exportOptions.customStartDate || ''}
                   onChange={e => updateExportOption('customStartDate', e.target.value)}
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='customEndDate'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   End Date
                 </label>
                 <Input
+                  id='customEndDate'
                   type='date'
                   value={exportOptions.customEndDate || ''}
                   onChange={e => updateExportOption('customEndDate', e.target.value)}
@@ -442,29 +473,31 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
           <div className='space-y-2'>
             {[
               {
+                id: 'format-json',
                 value: 'json',
                 label: 'JSON (JavaScript Object Notation)',
                 description: 'Structured data format for APIs and development',
               },
             ].map(option => (
-              <label key={option.value} className='flex items-start space-x-2'>
+              <div key={option.value} className='flex items-start space-x-2'>
                 <input
+                  id={option.id}
                   type='radio'
                   name='format'
                   value={option.value}
                   checked={exportOptions.format === option.value}
-                  onChange={e => updateExportOption('format', e.target.value as any)}
+                  onChange={e =>
+                    updateExportOption('format', e.target.value as LocalExportOptions['format'])
+                  }
                   className='mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
                 />
-                <div>
-                  <div className='text-sm font-medium text-gray-900 dark:text-white'>
+                <label htmlFor={option.id}>
+                  <span className='text-sm font-medium text-gray-900 dark:text-white'>
                     {option.label}
-                  </div>
-                  <div className='text-xs text-gray-600 dark:text-gray-400'>
-                    {option.description}
-                  </div>
-                </div>
-              </label>
+                  </span>
+                  <p className='text-xs text-gray-600 dark:text-gray-400'>{option.description}</p>
+                </label>
+              </div>
             ))}
           </div>
         </div>
@@ -491,7 +524,7 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'import' | 'export')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'

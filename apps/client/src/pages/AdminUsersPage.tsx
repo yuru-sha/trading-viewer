@@ -98,20 +98,6 @@ const AdminUsersPage: React.FC = () => {
     },
   })
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='text-center'>
-          <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
-          <p className='text-gray-600 dark:text-gray-300'>
-            You need administrator privileges to access this page.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   const fetchUsers = async () => {
     try {
       setLoading(true)
@@ -164,9 +150,11 @@ const AdminUsersPage: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchUsers()
-    fetchStats()
-  }, [pagination.page, filters, advancedFilters])
+    if (user?.role === 'admin') {
+      fetchUsers()
+      fetchStats()
+    }
+  }, [user, pagination.page, filters, advancedFilters])
 
   const handleUserAction = async (
     userId: string,
@@ -177,7 +165,7 @@ const AdminUsersPage: React.FC = () => {
     setActionLoading(userId)
     try {
       let endpoint: string
-      let data: any
+      let data: { isActive: boolean } | { role: string } | Record<string, never>
 
       switch (action) {
         case 'activate':
@@ -323,6 +311,20 @@ const AdminUsersPage: React.FC = () => {
       ...prev,
       jsonModal: true,
     }))
+  }
+
+  // Redirect if not admin
+  if (user?.role !== 'admin') {
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='text-center'>
+          <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
+          <p className='text-gray-600 dark:text-gray-300'>
+            You need administrator privileges to access this page.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

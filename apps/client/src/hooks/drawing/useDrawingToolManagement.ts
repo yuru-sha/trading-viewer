@@ -73,8 +73,8 @@ export const useDrawingToolManagement = (
         const tools = JSON.parse(jsonData) as DrawingTool[]
         dispatch({ type: 'LOAD_TOOLS', payload: tools })
         return true
-      } catch (error) {
-        console.error('Failed to import drawing tools:', error)
+      } catch {
+        console.error('Operation failed')
         return false
       }
     },

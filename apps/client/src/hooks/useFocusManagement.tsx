@@ -28,7 +28,7 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const focusableElementsRef = useRef<HTMLElement[]>([])
 
-  const { trapFocus = false, restoreFocus = true, autoFocus = false, skipLinks = true } = config
+  const { trapFocus = false, restoreFocus = true, autoFocus = false } = config
 
   // フォーカス可能な要素のセレクター (WCAG 準拠)
   const focusableSelectors = [
@@ -94,7 +94,7 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
       if (announcement) {
         announceToScreenReader(`Focused: ${announcement}`)
       }
-    } catch (error) {
+    } catch {
       console.warn('Failed to focus element:', element, error)
     }
   }, [])
@@ -150,78 +150,6 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
     }
   }, [getFocusableElements, focusElement])
 
-  // キーボードイベントハンドラー
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) return
-
-      const { key, shiftKey, ctrlKey, altKey, metaKey } = event
-
-      // 修飾キー同時押しの場合はスキップ
-      if (ctrlKey || altKey || metaKey) return
-
-      switch (key) {
-        case 'Tab':
-          if (trapFocus) {
-            event.preventDefault()
-            shiftKey ? focusPrevious() : focusNext()
-          }
-          break
-
-        case 'ArrowDown':
-        case 'ArrowRight':
-          // 垂直/水平ナビゲーション
-          if (event.target && isInNavigationContext(event.target as HTMLElement)) {
-            event.preventDefault()
-            focusNext()
-          }
-          break
-
-        case 'ArrowUp':
-        case 'ArrowLeft':
-          if (event.target && isInNavigationContext(event.target as HTMLElement)) {
-            event.preventDefault()
-            focusPrevious()
-          }
-          break
-
-        case 'Home':
-          if (event.target && isInNavigationContext(event.target as HTMLElement)) {
-            event.preventDefault()
-            focusFirst()
-          }
-          break
-
-        case 'End':
-          if (event.target && isInNavigationContext(event.target as HTMLElement)) {
-            event.preventDefault()
-            focusLast()
-          }
-          break
-
-        case 'Escape':
-          // フォーカストラップからの脱出
-          if (trapFocus && restoreFocus) {
-            restoreFocusToPrevious()
-          }
-          break
-      }
-    },
-    [trapFocus, focusNext, focusPrevious, focusFirst, focusLast, restoreFocus]
-  )
-
-  // ナビゲーション対象の要素かチェック
-  const isInNavigationContext = (element: HTMLElement): boolean => {
-    const navigationRoles = ['navigation', 'menu', 'menubar', 'listbox', 'tree', 'tablist']
-    const role = element.getAttribute('role')
-
-    return (
-      navigationRoles.includes(role || '') ||
-      element.closest('[role="navigation"], nav, [role="menu"], [role="menubar"]') !== null ||
-      element.closest('.navigation, .menu, .tabs') !== null
-    )
-  }
-
   // フォーカスを前の要素に復元
   const restoreFocusToPrevious = useCallback(() => {
     if (previousFocusRef.current && document.contains(previousFocusRef.current)) {
@@ -249,10 +177,10 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
     }
 
     // キーボードリスナー追加
-    document.addEventListener('keydown', handleKeyDown, true)
+    document.addEventListener('keydown', () => ({}), true)
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown, true)
+      document.removeEventListener('keydown', () => ({}), true)
 
       // フォーカス復元
       if (restoreFocus) {
@@ -263,7 +191,6 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
     trapFocus,
     autoFocus,
     restoreFocus,
-    handleKeyDown,
     getFocusableElements,
     focusElement,
     restoreFocusToPrevious,

@@ -82,7 +82,7 @@ export const useSymbolManagement = (
         if (symbol !== state.selectedSymbol) {
           setSelectedSymbol(symbol)
         }
-      } catch (error) {
+      } catch {
         console.error('Failed to fetch chart data:', error)
         setError(error instanceof Error ? error.message : 'Failed to load chart data')
       } finally {
@@ -124,7 +124,7 @@ export const useSymbolManagement = (
       try {
         const dataSourceInfo = await api.market.getDataSource()
         setDataSource(dataSourceInfo)
-      } catch (error) {
+      } catch {
         console.error('Failed to fetch data source info:', error)
       }
     }

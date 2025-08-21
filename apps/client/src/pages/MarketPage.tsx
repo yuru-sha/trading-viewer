@@ -35,8 +35,8 @@ const MarketPage: React.FC = () => {
   const [marketData, setMarketData] = useState<MarketData[]>([])
   const [loading, setLoading] = useState(true)
   const [dataCache, setDataCache] = useState<
-    Record<MarketTab, { data: MarketData[]; timestamp: number }>
-  >({} as any)
+    Partial<Record<MarketTab, { data: MarketData[]; timestamp: number }>>
+  >({})
 
   // Define market categories
   const marketTabs = [
@@ -296,7 +296,7 @@ const MarketPage: React.FC = () => {
         }))
 
         setMarketData(validQuotes)
-      } catch (error) {
+      } catch {
         console.error('Failed to fetch market data:', error)
         setError(error instanceof Error ? error.message : 'Failed to load market data')
       } finally {

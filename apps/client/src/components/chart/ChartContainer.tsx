@@ -10,21 +10,12 @@ import { useChartRendering } from '../../hooks/chart/useChartRendering'
 import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
 import { useIndicators } from '../../hooks/useIndicators'
 
-interface TechnicalIndicators {
-  sma?: { enabled: boolean; periods: number[] }
-  ema?: { enabled: boolean; periods: number[] }
-  rsi?: { enabled: boolean; period: number }
-  macd?: { enabled: boolean; fastPeriod: number; slowPeriod: number; signalPeriod: number }
-  bollingerBands?: { enabled: boolean; period: number; standardDeviations: number }
-}
-
 interface ChartContainerProps {
   symbol: string
   data: PriceData[]
   currentPrice?: number
   isLoading?: boolean
   isRealTime?: boolean
-  onSymbolChange?: (symbol: string) => void
   className?: string
   chartType?: 'candle' | 'line' | 'area'
   timeframe?: string
@@ -61,7 +52,6 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
       currentPrice,
       isLoading = false,
       isRealTime = false,
-      onSymbolChange,
       className = '',
       chartType = 'candle',
       timeframe,
@@ -140,7 +130,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
     }, [])
 
     // 十字カーソルの移動を処理
-    const handleCrosshairMove = useCallback((price: number, time: number) => {
+    const handleCrosshairMove = useCallback((_price: number, _time: number) => {
       // カーソル位置の価格表示
       // 必要に応じてここで価格表示の処理を行う
     }, [])
@@ -174,9 +164,12 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
               d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
             />
           </svg>
-          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>チャートデータがありません</h3>
+          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>
+            チャートデータがありません
+          </h3>
           <p className='text-sm text-gray-500 dark:text-gray-400 text-center max-w-md'>
-            {symbol} の価格データがありません。この銘柄はサポートされていないか、市場データが一時的に利用できない可能性があります。
+            {symbol}{' '}
+            の価格データがありません。この銘柄はサポートされていないか、市場データが一時的に利用できない可能性があります。
           </p>
         </div>
       )

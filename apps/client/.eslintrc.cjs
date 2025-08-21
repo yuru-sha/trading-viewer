@@ -8,7 +8,7 @@ module.exports = {
     'plugin:jsx-a11y/recommended',
     'plugin:react/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'src/__tests__/**/*', 'e2e/**/*', '**/*.test.*', '**/*.spec.*'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {

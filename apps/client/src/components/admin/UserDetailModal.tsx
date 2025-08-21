@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
@@ -71,13 +71,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
     { code: 'de', name: 'German' },
   ]
 
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchUserDetails()
-    }
-  }, [isOpen, userId])
-
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     if (!userId) return
 
     try {
@@ -102,7 +96,13 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, showError])
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchUserDetails()
+    }
+  }, [isOpen, userId, fetchUserDetails])
 
   const handleSave = async () => {
     if (!userId) return
@@ -220,11 +220,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </h4>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='displayName'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Display Name
                   </label>
                   {isEditing ? (
                     <Input
+                      id='displayName'
                       value={formData.name || ''}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
                       placeholder='Enter display name (optional)'
@@ -236,10 +240,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   )}
                 </div>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='email'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Email
                   </label>
-                  <p className='text-sm text-gray-900 dark:text-gray-100'>{user.email}</p>
+                  <p id='email' className='text-sm text-gray-900 dark:text-gray-100'>
+                    {user.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -251,11 +260,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </h4>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='timezone'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Timezone
                   </label>
                   {isEditing ? (
                     <select
+                      id='timezone'
                       value={formData.timezone || 'UTC'}
                       onChange={e => setFormData({ ...formData, timezone: e.target.value })}
                       className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -273,11 +286,15 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   )}
                 </div>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='language'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Language
                   </label>
                   {isEditing ? (
                     <select
+                      id='language'
                       value={formData.language || 'en'}
                       onChange={e => setFormData({ ...formData, language: e.target.value })}
                       className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -305,10 +322,14 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 </h4>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                    <label
+                      htmlFor='role'
+                      className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                    >
                       Role
                     </label>
                     <select
+                      id='role'
                       value={formData.role || user.role}
                       onChange={e =>
                         setFormData({ ...formData, role: e.target.value as 'admin' | 'user' })
@@ -320,10 +341,14 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                    <label
+                      htmlFor='status'
+                      className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                    >
                       Status
                     </label>
                     <select
+                      id='status'
                       value={
                         formData.isActive !== undefined
                           ? formData.isActive.toString()
@@ -349,35 +374,47 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
               </h4>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='createdAt'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Created At
                   </label>
-                  <p className='text-sm text-gray-900 dark:text-gray-100'>
+                  <p id='createdAt' className='text-sm text-gray-900 dark:text-gray-100'>
                     {formatDate(user.createdAt)}
                   </p>
                 </div>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='lastLogin'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Last Login
                   </label>
-                  <p className='text-sm text-gray-900 dark:text-gray-100'>
+                  <p id='lastLogin' className='text-sm text-gray-900 dark:text-gray-100'>
                     {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Never'}
                   </p>
                 </div>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  <label
+                    htmlFor='failedLoginAttempts'
+                    className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                  >
                     Failed Login Attempts
                   </label>
-                  <p className='text-sm text-gray-900 dark:text-gray-100'>
+                  <p id='failedLoginAttempts' className='text-sm text-gray-900 dark:text-gray-100'>
                     {user.failedLoginCount}
                   </p>
                 </div>
                 {isUserLocked(user) && (
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                    <label
+                      htmlFor='lockedUntil'
+                      className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                    >
                       Locked Until
                     </label>
-                    <p className='text-sm text-red-600 dark:text-red-400'>
+                    <p id='lockedUntil' className='text-sm text-red-600 dark:text-red-400'>
                       {formatDate(user.lockedUntil!)}
                     </p>
                   </div>

@@ -161,7 +161,7 @@ describe('useDrawingPersistence', () => {
         })
       )
 
-      // Mock localStorage.setItem to throw error
+      // Mock localStorage.setItem to throw new Error("Operation failed")
       vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
         throw new Error('Storage quota exceeded')
       })

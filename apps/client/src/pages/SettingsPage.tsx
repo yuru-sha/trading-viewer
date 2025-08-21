@@ -55,7 +55,7 @@ const SettingsPage: React.FC = () => {
         newPassword: '',
         confirmPassword: '',
       })
-    } catch (error) {
+    } catch {
       console.error('Password change failed:', error)
     } finally {
       setIsChangingPassword(false)
@@ -71,7 +71,7 @@ const SettingsPage: React.FC = () => {
         name: profileForm.name,
       })
       showSuccess('Profile updated successfully')
-    } catch (error) {
+    } catch {
       console.error('Profile update failed:', error)
     } finally {
       setIsUpdatingProfile(false)

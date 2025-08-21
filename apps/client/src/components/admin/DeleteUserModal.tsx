@@ -98,13 +98,20 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
       showSuccess(`User ${deleteTypeText} successfully`)
       onUserDeleted()
       handleClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete user:', error)
-      if (error.response?.data?.message) {
-        showError(error.response.data.message)
-      } else {
-        showError('Failed to delete user')
-      }
+      const errorMessage =
+        error instanceof Error &&
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object' &&
+        'message' in error.response.data
+          ? String(error.response.data.message)
+          : 'Failed to delete user'
+      showError(errorMessage)
     } finally {
       setDeleting(false)
     }
@@ -176,12 +183,21 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
               </h4>
               <div className='space-y-3'>
                 <div
+                  role='radio'
+                  aria-checked={deleteData.deleteType === 'soft'}
+                  tabIndex={0}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     deleteData.deleteType === 'soft'
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                   }`}
                   onClick={() => handleDeleteTypeChange('soft')}
+                  onKeyDown={e => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault()
+                      handleDeleteTypeChange('soft')
+                    }
+                  }}
                 >
                   <div className='flex items-start'>
                     <input
@@ -196,7 +212,9 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
                           Soft Delete (Recommended)
                         </h5>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor('soft')}`}
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(
+                            'soft'
+                          )}`}
                         >
                           Reversible
                         </span>
@@ -209,12 +227,21 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
                 </div>
 
                 <div
+                  role='radio'
+                  aria-checked={deleteData.deleteType === 'hard'}
+                  tabIndex={0}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     deleteData.deleteType === 'hard'
                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                   }`}
                   onClick={() => handleDeleteTypeChange('hard')}
+                  onKeyDown={e => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault()
+                      handleDeleteTypeChange('hard')
+                    }
+                  }}
                 >
                   <div className='flex items-start'>
                     <input
@@ -229,7 +256,9 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
                           Hard Delete (Permanent)
                         </h5>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor('hard')}`}
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(
+                            'hard'
+                          )}`}
                         >
                           Irreversible
                         </span>
@@ -245,10 +274,14 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
 
             {/* Deletion Reason */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label
+                htmlFor='deletion-reason'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
                 Deletion Reason *
               </label>
               <select
+                id='deletion-reason'
                 value={deleteData.reason}
                 onChange={e => handleReasonChange(e.target.value)}
                 className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -265,13 +298,17 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
 
             {/* Email Confirmation */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                Type user's email to confirm:{' '}
+              <label
+                htmlFor='delete-email-confirmation'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
+                Type user&apos;s email to confirm:{' '}
                 <code className='text-sm bg-gray-100 dark:bg-gray-800 px-1 rounded'>
                   {user.email}
                 </code>
               </label>
               <input
+                id='delete-email-confirmation'
                 type='email'
                 value={deleteData.email}
                 onChange={e => handleEmailChange(e.target.value)}

@@ -1,5 +1,3 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
-import { Loading } from '@trading-viewer/ui'
 import { PriceData } from '../../utils/indicators'
 import { DrawingToolType, UserIndicator } from '@trading-viewer/shared'
 

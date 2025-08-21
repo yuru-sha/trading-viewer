@@ -8,7 +8,7 @@ import React, {
   useEffect,
 } from 'react'
 import { Loading } from '@trading-viewer/ui'
-import { LazyEChartsTradingChart } from './LazyEChartsWrapper'
+import { LazyEChartsTradingChart, EChartsTradingChartRef } from './LazyEChartsWrapper'
 import LeftDrawingToolbar, { LeftDrawingToolbarRef } from './LeftDrawingToolbar'
 import DrawingContextMenu from './DrawingContextMenu'
 import { PriceData } from '../../utils/indicators'
@@ -17,14 +17,6 @@ import { useChartDataManager } from '../../hooks/chart/useChartDataManager'
 import { useChartRendering } from '../../hooks/chart/useChartRendering'
 import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
 import { useIndicators } from '../../hooks/useIndicators'
-
-interface TechnicalIndicators {
-  sma?: { enabled: boolean; periods: number[] }
-  ema?: { enabled: boolean; periods: number[] }
-  rsi?: { enabled: boolean; period: number }
-  macd?: { enabled: boolean; fastPeriod: number; slowPeriod: number; signalPeriod: number }
-  bollingerBands?: { enabled: boolean; period: number; standardDeviations: number }
-}
 
 interface OptimizedChartContainerProps {
   symbol: string
@@ -102,7 +94,7 @@ export const OptimizedChartContainer = memo(
         currentPrice,
         isLoading = false,
         isRealTime = false,
-        onSymbolChange,
+        onSymbolChange: _onSymbolChange,
         className = '',
         chartType = 'candle',
         timeframe = '1D',
@@ -116,7 +108,7 @@ export const OptimizedChartContainer = memo(
     ) => {
       // Refs
       const leftToolbarRef = useRef<LeftDrawingToolbarRef>(null)
-      const chartRef = useRef<any>(null)
+      const chartRef = useRef<EChartsTradingChartRef>(null)
 
       // Memoized chart data processing
       const processedData = useMemo(() => {
@@ -138,7 +130,7 @@ export const OptimizedChartContainer = memo(
       }, [currentPrice, processedData])
 
       // Chart data manager with memoization
-      const dataManager = useChartDataManager({
+      useChartDataManager({
         symbol,
         data: processedData,
         timeframe,
@@ -146,7 +138,7 @@ export const OptimizedChartContainer = memo(
       })
 
       // Chart rendering manager with performance optimizations
-      const renderingManager = useChartRendering({
+      useChartRendering({
         chartType,
         showGridlines,
         showPeriodHigh,
@@ -171,14 +163,6 @@ export const OptimizedChartContainer = memo(
           drawingManager.selectTool?.(tool)
         },
         [drawingManager]
-      )
-
-      const handleSymbolChange = useCallback(
-        (newSymbol: string) => {
-          console.log('📊 Symbol changing to:', newSymbol)
-          onSymbolChange?.(newSymbol)
-        },
-        [onSymbolChange]
       )
 
       const handleCrosshairMove = useCallback((price: number | null, time: number | null) => {

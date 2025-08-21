@@ -12,7 +12,7 @@ interface UseAlertsOptions {
 export const useAlerts = ({
   symbol,
   currentPrice,
-  checkInterval = 5000, // Check every 5 seconds
+  checkInterval: _checkInterval = 5000, // Check every 5 seconds
   onAlertTriggered,
 }: UseAlertsOptions) => {
   const [alerts, setAlerts] = useState<PriceAlert[]>([])
@@ -27,15 +27,17 @@ export const useAlerts = ({
       setIsLoading(true)
       const response = await api.get(`/api/alerts/${symbol}`)
       if (response.ok && response.data?.alerts) {
-        const serverAlerts = response.data.alerts.map((alert: any) => ({
-          ...alert,
-          createdAt: new Date(alert.createdAt),
-          triggeredAt: alert.triggeredAt ? new Date(alert.triggeredAt) : undefined,
-        }))
+        const serverAlerts = response.data.alerts.map(
+          (alert: { createdAt: string; triggeredAt?: string }) => ({
+            ...alert,
+            createdAt: new Date(alert.createdAt),
+            triggeredAt: alert.triggeredAt ? new Date(alert.triggeredAt) : undefined,
+          })
+        )
         setAlerts(serverAlerts)
       }
-    } catch (error) {
-      console.error('Failed to load alerts:', error)
+    } catch {
+      console.error('Operation failed')
     } finally {
       setIsLoading(false)
     }
@@ -101,8 +103,8 @@ export const useAlerts = ({
         // Update local state
         setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, triggeredAt: new Date() } : a)))
       }
-    } catch (error) {
-      console.error('Failed to trigger alert:', error)
+    } catch {
+      console.error('Operation failed')
     }
   }, [])
 
@@ -123,8 +125,8 @@ export const useAlerts = ({
           setAlerts(prev => [...prev, newAlert])
           return newAlert
         }
-      } catch (error) {
-        console.error('Failed to create alert:', error)
+      } catch {
+        console.error('Operation failed')
       }
       return null
     },
@@ -139,8 +141,8 @@ export const useAlerts = ({
         setAlerts(prev => prev.filter(alert => alert.id !== id))
         notifiedAlertsRef.current.delete(id)
       }
-    } catch (error) {
-      console.error('Failed to delete alert:', error)
+    } catch {
+      console.error('Operation failed')
     }
   }, [])
 
@@ -171,8 +173,8 @@ export const useAlerts = ({
             notifiedAlertsRef.current.delete(id)
           }
         }
-      } catch (error) {
-        console.error('Failed to toggle alert:', error)
+      } catch {
+        console.error('Operation failed')
       }
     },
     [alerts]
@@ -187,8 +189,8 @@ export const useAlerts = ({
       await Promise.all(deletePromises)
       setAlerts([])
       notifiedAlertsRef.current.clear()
-    } catch (error) {
-      console.error('Failed to clear alerts:', error)
+    } catch {
+      console.error('Operation failed')
     }
   }, [alerts])
 
@@ -203,8 +205,8 @@ export const useAlerts = ({
 
       // Clear from notified set
       triggeredAlerts.forEach(alert => notifiedAlertsRef.current.delete(alert.id))
-    } catch (error) {
-      console.error('Failed to clear triggered alerts:', error)
+    } catch {
+      console.error('Operation failed')
     }
   }, [alerts])
 

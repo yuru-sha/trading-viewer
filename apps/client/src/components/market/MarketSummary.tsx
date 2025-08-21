@@ -37,7 +37,9 @@ interface MarketSummaryProps {
   activeCategory: 'indices' | 'stocks' | 'crypto' | 'futures' | 'forex' | 'bonds' | 'etf'
 }
 
-export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) => {
+export const MarketSummary: React.FC<MarketSummaryProps> = ({
+  activeCategory: _activeCategory,
+}) => {
   const [gainers, setGainers] = useState<RankingItem[]>([])
   const [losers, setLosers] = useState<RankingItem[]>([])
   const [mostActive, setMostActive] = useState<RankingItem[]>([])
@@ -99,7 +101,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
             quarter: 'Q3 2024',
           },
         ])
-      } catch (error) {
+      } catch {
         // Failed to fetch ranking data
       } finally {
         setLoading(false)
@@ -115,7 +117,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
         setIndicesLoading(true)
         const indicesRes = await api.market.getIndices()
         setIndices(indicesRes.data)
-      } catch (error) {
+      } catch {
         // Failed to fetch indices data
       } finally {
         setIndicesLoading(false)
@@ -175,7 +177,7 @@ export const MarketSummary: React.FC<MarketSummaryProps> = ({ activeCategory }) 
         </div>
       ) : (
         <div className='space-y-3'>
-          {items.map((item, index) => (
+          {items.map(item => (
             <div
               key={item.symbol}
               className='flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer'

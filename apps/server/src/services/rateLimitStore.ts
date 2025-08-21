@@ -326,7 +326,6 @@ export class EnhancedRateLimiter {
 
 // Export singleton instances
 let rateLimitStore: RateLimitStore
-let enhancedRateLimiter: EnhancedRateLimiter
 
 // Initialize based on environment
 if (process.env.REDIS_URL) {
@@ -341,7 +340,7 @@ if (process.env.REDIS_URL) {
   rateLimitStore = new InMemoryRateLimitStore()
 }
 
-enhancedRateLimiter = new EnhancedRateLimiter(rateLimitStore, {
+const enhancedRateLimiter = new EnhancedRateLimiter(rateLimitStore, {
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
   maxAttempts: parseInt(process.env.RATE_LIMIT_MAX_ATTEMPTS || '5'),
   lockoutDuration: parseInt(process.env.RATE_LIMIT_LOCKOUT_MS || '1800000'),

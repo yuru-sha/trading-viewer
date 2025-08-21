@@ -9,6 +9,7 @@
     "rootDir": "./src",
     "noEmit": false,
     "noEmitOnError": false,
+    "isolatedModules": false,
 
     // Server-specific overrides for build compatibility
     // Temporarily disable all strict checks for successful build
@@ -21,6 +22,8 @@
     "noImplicitReturns": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
+    "noImplicitReturns": false,
+    "noImplicitAny": false,
 
     // Node.js specific
     "types": ["node"]

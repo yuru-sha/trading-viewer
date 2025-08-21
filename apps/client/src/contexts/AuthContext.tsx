@@ -7,22 +7,12 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useErrorHandlers } from './ErrorContext'
 import { clearCSRFToken, setAuthErrorCallback } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
+import type { User } from '../domain/interfaces/IMarketDataClient'
 
 // Types
-export interface User {
-  id: string
-  email: string
-  name?: string
-  role: 'user' | 'admin'
-  isEmailVerified: boolean
-  createdAt: string
-  avatar?: string
-}
-
 export interface AuthTokens {
   accessToken: string
   refreshToken: string
@@ -119,7 +109,7 @@ class AuthApiClient {
 
   constructor(
     private onAuthError: () => void,
-    private handleApiError: (error: any, context?: string) => void
+    private handleApiError: (error: unknown, context?: string) => void
   ) {}
 
   // CSRF token management
@@ -157,7 +147,7 @@ class AuthApiClient {
       }
 
       throw new Error('Invalid CSRF token response')
-    } catch (error) {
+    } catch {
       this.csrfToken = null
       throw error
     }
@@ -189,7 +179,7 @@ class AuthApiClient {
           ...config.headers,
           'x-csrf-token': csrfToken,
         }
-      } catch (error) {
+      } catch {
         // If CSRF token fetch fails, proceed without it (will likely get 403)
         console.warn('Failed to get CSRF token:', error)
       }
@@ -232,7 +222,7 @@ class AuthApiClient {
 
       // Handle empty response (204 No Content)
       if (response.status === 204 || response.headers.get('content-length') === '0') {
-        return {} as any
+        return {} as T
       }
 
       // Parse JSON response
@@ -242,9 +232,9 @@ class AuthApiClient {
       }
 
       // Return empty object for non-JSON responses
-      return {} as any
-    } catch (error) {
-      if (!(error as any).response) {
+      return {} as T
+    } catch (error: unknown) {
+      if (error instanceof Error && 'response' in error) {
         // Network error
         throw error
       }
@@ -252,7 +242,7 @@ class AuthApiClient {
     }
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: Record<string, unknown> | unknown[]): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
@@ -263,7 +253,7 @@ class AuthApiClient {
     return this.request<T>(endpoint, { method: 'GET' })
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: Record<string, unknown> | unknown[]): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
@@ -284,7 +274,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     tokens: null,
   })
 
-  const { handleApiError, handleNetworkError } = useErrorHandlers()
+  const { handleApiError } = useErrorHandlers()
 
   // Clear auth state
   const clearAuth = useCallback(() => {
@@ -312,7 +302,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         clearAuth()
       }
-    } catch (error) {
+    } catch {
       clearAuth()
     }
   }, [clearAuth])
@@ -363,7 +353,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           throw new Error('Invalid login response')
         }
-      } catch (error) {
+      } catch (error: unknown) {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         handleApiError(error, 'login')
         throw error
@@ -378,7 +368,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthState(prev => ({ ...prev, isLoading: true }))
 
       try {
-        const response = await apiClient.post<any>('/auth/register', data)
+        const response = await apiClient.post<{ success: boolean; data: { user: User } }>(
+          '/auth/register',
+          data
+        )
 
         if (response.success && response.data?.user) {
           const { user } = response.data
@@ -390,7 +383,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             tokens: null,
           })
         }
-      } catch (error) {
+      } catch (error: unknown) {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         handleApiError(error, 'registration')
         throw error
@@ -403,7 +396,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout')
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('Logout API call failed:', error)
     } finally {
       clearAuth()
@@ -414,7 +407,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = useCallback(
     async (data: UpdateProfileData): Promise<void> => {
       try {
-        const response = await apiClient.put<any>('/auth/profile', data)
+        const response = await apiClient.put<{ success: boolean; data: { user: User } }>(
+          '/auth/profile',
+          data
+        )
 
         if (response.success && response.data?.user) {
           const updatedUser = response.data.user
@@ -424,7 +420,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             user: updatedUser,
           }))
         }
-      } catch (error) {
+      } catch (error: unknown) {
         handleApiError(error, 'profile update')
         throw error
       }
@@ -438,7 +434,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         await apiClient.post('/auth/change-password', data)
         clearAuth()
-      } catch (error) {
+      } catch (error: unknown) {
         handleApiError(error, 'password change')
         throw error
       }
@@ -451,7 +447,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await apiClient.delete('/auth/account')
       clearAuth()
-    } catch (error) {
+    } catch (error: unknown) {
       handleApiError(error, 'account deletion')
       throw error
     }
@@ -467,7 +463,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         })
-      } catch (error) {
+      } catch (error: unknown) {
         handleApiError(error, 'password reset request')
         throw error
       }
@@ -490,7 +486,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const errorData = await response.json().catch(() => ({}))
           throw { response: { status: response.status, data: errorData } }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         handleApiError(error, 'password reset')
         throw error
       }
@@ -518,7 +514,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
           await apiClient.refreshCSRFToken()
           console.log('🔐 CSRF token initialized on app startup')
-        } catch (csrfError) {
+        } catch (csrfError: unknown) {
           console.warn('Failed to initialize CSRF token on startup:', csrfError)
         }
       } else {

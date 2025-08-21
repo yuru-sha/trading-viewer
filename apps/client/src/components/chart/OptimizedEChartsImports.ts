@@ -122,7 +122,7 @@ export const enableWebGLRenderer = async () => {
 }
 
 // メモリ管理用のヘルパー
-export const disposeChart = (chart: any) => {
+export const disposeChart = (chart: unknown) => {
   if (chart && typeof chart.dispose === 'function') {
     chart.dispose()
   }

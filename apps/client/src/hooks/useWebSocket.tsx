@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useAppActions } from '../contexts/AppContext'
 
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'ping' | 'error' | 'quote' | 'candle'
   symbol?: string
-  data?: any
+  data?: QuoteData | { error: string }
   timestamp?: number
 }
 
@@ -57,7 +56,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [lastQuote, setLastQuote] = useState<any>(null)
+  const [lastQuote, setLastQuote] = useState<QuoteData | null>(null)
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectAttemptsRef = useRef(0)
@@ -156,7 +155,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
               }
               break
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Failed to parse WebSocket message:', error)
         }
       }
@@ -196,7 +195,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         }
       }
 
-      ws.onerror = event => {
+      ws.onerror = _event => {
         console.error('WebSocket error event:', {
           readyState: ws.readyState,
           url: config.url,
@@ -210,7 +209,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         }
         setIsConnecting(false)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to create WebSocket:', error)
       setError('Failed to create connection')
       setIsConnecting(false)

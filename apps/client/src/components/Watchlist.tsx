@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { api } from '../lib/apiClient'
 import ConfirmDialog from './common/ConfirmDialog'
@@ -18,6 +18,18 @@ interface WatchlistProps {
   className?: string
 }
 
+// Default watchlist symbols
+const defaultSymbols = [
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+  { symbol: 'MSFT', name: 'Microsoft Corporation' },
+  { symbol: 'TSLA', name: 'Tesla, Inc.' },
+  { symbol: 'AMZN', name: 'Amazon.com Inc.' },
+  { symbol: 'META', name: 'Meta Platforms Inc.' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation' },
+  { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
+]
+
 export const Watchlist: React.FC<WatchlistProps> = ({
   currentSymbol,
   onSymbolSelect,
@@ -28,17 +40,48 @@ export const Watchlist: React.FC<WatchlistProps> = ({
   const [isExpanded, setIsExpanded] = useState(true)
   const [deleteConfirm, setDeleteConfirm] = useState<{ symbol: string; name: string } | null>(null)
 
-  // Default watchlist symbols
-  const defaultSymbols = [
-    { symbol: 'AAPL', name: 'Apple Inc.' },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-    { symbol: 'MSFT', name: 'Microsoft Corporation' },
-    { symbol: 'TSLA', name: 'Tesla, Inc.' },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.' },
-    { symbol: 'META', name: 'Meta Platforms Inc.' },
-    { symbol: 'NVDA', name: 'NVIDIA Corporation' },
-    { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
-  ]
+  const fetchWatchlistData = useCallback(
+    async (symbols: Array<{ symbol: string; name: string }>) => {
+      setLoading(true)
+      try {
+        const promises = symbols.map(async ({ symbol, name }) => {
+          try {
+            const quote = await api.market.getQuote(symbol)
+            return {
+              symbol,
+              name,
+              price: quote.c,
+              change: quote.d,
+              changePercent: quote.dp,
+              lastUpdate: Date.now(),
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch data for ${symbol}:`, error)
+            return {
+              symbol,
+              name,
+              price: 0,
+              change: 0,
+              changePercent: 0,
+              lastUpdate: Date.now(),
+            }
+          }
+        })
+
+        const results = await Promise.all(promises)
+        setWatchlist(results)
+
+        // Save to localStorage
+        const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
+        localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
+      } catch (error) {
+        console.error('Failed to fetch watchlist data:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   // Load watchlist from localStorage
   useEffect(() => {
@@ -54,76 +97,7 @@ export const Watchlist: React.FC<WatchlistProps> = ({
     } else {
       fetchWatchlistData(defaultSymbols)
     }
-  }, [])
-
-  // Fetch price data for watchlist symbols
-  const fetchWatchlistData = async (symbols: Array<{ symbol: string; name: string }>) => {
-    setLoading(true)
-    try {
-      const promises = symbols.map(async ({ symbol, name }) => {
-        try {
-          const quote = await api.market.getQuote(symbol)
-          return {
-            symbol,
-            name,
-            price: quote.c,
-            change: quote.d,
-            changePercent: quote.dp,
-            lastUpdate: Date.now(),
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch data for ${symbol}:`, error)
-          return {
-            symbol,
-            name,
-            price: 0,
-            change: 0,
-            changePercent: 0,
-            lastUpdate: Date.now(),
-          }
-        }
-      })
-
-      const results = await Promise.all(promises)
-      setWatchlist(results)
-
-      // Save to localStorage
-      const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
-      localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch (error) {
-      console.error('Failed to fetch watchlist data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Add symbol to watchlist
-  const addToWatchlist = async (symbol: string, name: string) => {
-    if (watchlist.find(item => item.symbol === symbol)) {
-      return // Already in watchlist
-    }
-
-    try {
-      const quote = await api.market.getQuote(symbol)
-      const newItem: WatchlistSymbol = {
-        symbol,
-        name,
-        price: quote.c,
-        change: quote.d,
-        changePercent: quote.dp,
-        lastUpdate: Date.now(),
-      }
-
-      const updatedWatchlist = [...watchlist, newItem]
-      setWatchlist(updatedWatchlist)
-
-      // Save to localStorage
-      const symbolsToSave = updatedWatchlist.map(item => ({ symbol: item.symbol, name: item.name }))
-      localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-    } catch (error) {
-      console.error('Failed to add symbol to watchlist:', error)
-    }
-  }
+  }, [fetchWatchlistData])
 
   // Remove symbol from watchlist
   const removeFromWatchlist = (symbol: string) => {
@@ -239,10 +213,17 @@ export const Watchlist: React.FC<WatchlistProps> = ({
               {watchlist.map(item => (
                 <div
                   key={item.symbol}
+                  role='button'
+                  tabIndex={0}
                   className={`p-3 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
                     currentSymbol === item.symbol ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                   onClick={() => onSymbolSelect(item.symbol)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onSymbolSelect(item.symbol)
+                    }
+                  }}
                 >
                   <div className='flex items-center justify-between'>
                     <div className='flex-1 min-w-0'>

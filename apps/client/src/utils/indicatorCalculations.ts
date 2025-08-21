@@ -44,8 +44,8 @@ export function calculateRSI(prices: number[], period: number): number[] {
   }
 
   const rsi: number[] = []
-  let gains: number[] = []
-  let losses: number[] = []
+  const gains: number[] = []
+  const losses: number[] = []
 
   // 初期期間の上昇と下降を計算
   for (let i = 1; i <= period; i++) {
@@ -175,12 +175,12 @@ export function calculateBollingerBands(
   standardDeviations: number = 2.1
 ) {
   if (prices.length < period) {
-    return { 
-      upperBand2: [], 
-      upperBand1: [], 
-      middleBand: [], 
-      lowerBand1: [], 
-      lowerBand2: [] 
+    return {
+      upperBand2: [],
+      upperBand1: [],
+      middleBand: [],
+      lowerBand1: [],
+      lowerBand2: [],
     }
   }
 

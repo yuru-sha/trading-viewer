@@ -32,8 +32,8 @@ const createFetchIndicators =
     try {
       const csrfToken = await getCSRFToken()
       headers['x-csrf-token'] = csrfToken
-    } catch (error) {
-      console.warn('⚠️ createFetchIndicators: Failed to get CSRF token:', error)
+    } catch {
+      console.warn('Operation failed')
     }
 
     const response = await fetch(url, {
@@ -92,7 +92,7 @@ const createIndicator = async (indicator: CreateIndicatorRequest): Promise<UserI
 
   if (!response.ok) {
     const error = await response.json()
-    console.error('❌ createIndicator: API error:', error)
+    console.error('Operation failed')
     throw new Error(error.error || 'Failed to create indicator')
   }
 
@@ -162,7 +162,7 @@ const calculateIndicator = async (request: CalculateIndicatorRequest): Promise<I
 
   if (!response.ok) {
     const error = await response.json()
-    console.error('❌ calculateIndicator: API error:', error)
+    console.error('Operation failed')
     throw new Error(error.error || 'Failed to calculate indicator')
   }
 
@@ -254,8 +254,8 @@ export const useCreateIndicator = () => {
 
       console.log('🔍 useCreateIndicator: Queries invalidated')
     },
-    onError: error => {
-      console.error('❌ useCreateIndicator: Error creating indicator:', error)
+    onError: () => {
+      console.error('Operation failed')
     },
   })
 }
@@ -315,11 +315,11 @@ export const useAddIndicator = () => {
     type: IndicatorType,
     symbol: string,
     timeframe: string = 'D',
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     options?: {
       name?: string
       visible?: boolean
-      style?: Record<string, any>
+      style?: Record<string, unknown>
     }
   ) => {
     console.log('🔍 useAddIndicator: Starting to add indicator:', {
@@ -353,9 +353,9 @@ export const useAddIndicator = () => {
       console.log('✅ useAddIndicator: Creation successful:', indicator)
 
       return { indicator, calculation }
-    } catch (error) {
-      console.error('❌ useAddIndicator: Error occurred:', error)
-      throw error
+    } catch {
+      console.error('Operation failed')
+      throw new Error('Operation failed')
     }
   }
 

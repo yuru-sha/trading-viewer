@@ -138,8 +138,8 @@ export const createTradingViewerOnboarding = (): OnboardingStep[] => [
     content: (
       <div>
         <p className='mb-3'>
-          TradingViewer is your comprehensive trading analysis platform. Let's take a quick tour to
-          get you started.
+          TradingViewer is your comprehensive trading analysis platform. Let&apos;s take a quick
+          tour to get you started.
         </p>
         <div className='bg-blue-50 dark:bg-blue-900 p-3 rounded-md text-xs'>
           💡 <strong>Tip:</strong> You can skip this tour at any time by pressing ESC or clicking
@@ -230,10 +230,10 @@ export const createTradingViewerOnboarding = (): OnboardingStep[] => [
   },
   {
     id: 'complete',
-    title: "You're all set!",
+    title: 'You&apos;re all set!',
     content: (
       <div>
-        <p className='mb-3'>🎉 Congratulations! You've completed the TradingViewer tour.</p>
+        <p className='mb-3'>🎉 Congratulations! You&apos;ve completed the TradingViewer tour.</p>
         <div className='bg-green-50 dark:bg-green-900 p-3 rounded-md text-xs'>
           <strong>Next steps:</strong>
           <ul className='list-disc list-inside mt-2 space-y-1'>

@@ -137,16 +137,16 @@ export class UserManager {
 
     try {
       return await authService.updateProfile(sanitizedData)
-    } catch (error) {
+    } catch {
       // Business logic for handling update errors
-      console.error('Profile update failed:', error)
+      console.error('Operation failed')
 
       // Attempt recovery if possible
       try {
         await errorRecoveryManager.attemptRecovery(error, 'profile update')
         // Retry once after recovery
         return await authService.updateProfile(sanitizedData)
-      } catch (recoveryError) {
+      } catch {
         throw error // Re-throw original error if recovery fails
       }
     }
@@ -176,9 +176,9 @@ export class UserManager {
 
     try {
       await authService.changePassword(data)
-    } catch (error) {
-      console.error('Password change failed:', error)
-      throw error
+    } catch {
+      console.error('Operation failed')
+      throw new Error('Operation failed')
     }
   }
 

@@ -36,7 +36,7 @@ const UserProfile: React.FC = () => {
     try {
       await updateProfile(profileForm)
       showSuccess('プロフィールを更新しました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -74,7 +74,7 @@ const UserProfile: React.FC = () => {
         newPassword: passwordForm.newPassword,
       })
       showSuccess('パスワードを変更しました。再度ログインしてください。')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -93,7 +93,7 @@ const UserProfile: React.FC = () => {
     try {
       await deleteAccount()
       showWarning('アカウントが削除されました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     } finally {
       setIsLoading(false)
@@ -104,7 +104,7 @@ const UserProfile: React.FC = () => {
     try {
       await logout()
       showSuccess('ログアウトしました')
-    } catch (error) {
+    } catch {
       // Error handled by context
     }
   }
@@ -147,10 +147,11 @@ const UserProfile: React.FC = () => {
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>
+                    <label htmlFor='email' className='block text-sm font-medium text-gray-700'>
                       メールアドレス
                     </label>
                     <input
+                      id='email'
                       type='email'
                       value={user.email}
                       disabled
@@ -160,8 +161,11 @@ const UserProfile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>ロール</label>
+                    <label htmlFor='role' className='block text-sm font-medium text-gray-700'>
+                      ロール
+                    </label>
                     <input
+                      id='role'
                       type='text'
                       value={user.role === 'admin' ? '管理者' : 'ユーザー'}
                       disabled
@@ -170,8 +174,14 @@ const UserProfile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>表示名</label>
+                    <label
+                      htmlFor='displayName'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      表示名
+                    </label>
                     <input
+                      id='displayName'
                       type='text'
                       value={profileForm.name}
                       onChange={e => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
@@ -201,10 +211,14 @@ const UserProfile: React.FC = () => {
 
                 <form onSubmit={handlePasswordChange} className='space-y-4'>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>
+                    <label
+                      htmlFor='currentPassword'
+                      className='block text-sm font-medium text-gray-700'
+                    >
                       現在のパスワード
                     </label>
                     <input
+                      id='currentPassword'
                       type='password'
                       value={passwordForm.currentPassword}
                       onChange={e =>
@@ -220,10 +234,14 @@ const UserProfile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>
+                    <label
+                      htmlFor='newPassword'
+                      className='block text-sm font-medium text-gray-700'
+                    >
                       新しいパスワード
                     </label>
                     <input
+                      id='newPassword'
                       type='password'
                       value={passwordForm.newPassword}
                       onChange={e =>
@@ -239,10 +257,14 @@ const UserProfile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700'>
+                    <label
+                      htmlFor='confirmPassword'
+                      className='block text-sm font-medium text-gray-700'
+                    >
                       新しいパスワード（確認）
                     </label>
                     <input
+                      id='confirmPassword'
                       type='password'
                       value={passwordForm.confirmPassword}
                       onChange={e =>

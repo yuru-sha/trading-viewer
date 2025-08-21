@@ -1,5 +1,11 @@
 import { useEffect, useCallback, useRef } from 'react'
 
+declare global {
+  interface Performance {
+    memory?: MemoryInfo
+  }
+}
+
 interface PerformanceMetrics {
   // Core Web Vitals
   largestContentfulPaint?: number
@@ -53,14 +59,14 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
       // Largest Contentful Paint (LCP)
       new PerformanceObserver(list => {
         const entries = list.getEntries()
-        const lastEntry = entries[entries.length - 1] as any
+        const lastEntry = entries[entries.length - 1] as PerformanceEntry
         metricsRef.current.largestContentfulPaint = lastEntry.startTime
       }).observe({ entryTypes: ['largest-contentful-paint'] })
 
       // First Input Delay (FID)
       new PerformanceObserver(list => {
         const entries = list.getEntries()
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEventTiming) => {
           metricsRef.current.firstInputDelay = entry.processingStart - entry.startTime
         })
       }).observe({ entryTypes: ['first-input'] })
@@ -68,7 +74,7 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
       // Cumulative Layout Shift (CLS)
       new PerformanceObserver(list => {
         let clsValue = 0
-        list.getEntries().forEach((entry: any) => {
+        list.getEntries().forEach((entry: LayoutShift) => {
           if (!entry.hadRecentInput) {
             clsValue += entry.value
           }
@@ -79,7 +85,7 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
       // First Contentful Paint (FCP)
       new PerformanceObserver(list => {
         const entries = list.getEntries()
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformancePaintTiming) => {
           if (entry.name === 'first-contentful-paint') {
             metricsRef.current.firstContentfulPaint = entry.startTime
           }
@@ -107,15 +113,16 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
   const collectResourceMetrics = useCallback(() => {
     if (!('performance' in window)) return
 
-    const resources = performance.getEntriesByType('resource')
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
     metricsRef.current.resourceCount = resources.length
 
     // バンドルサイズ推定（JS ファイルの合計サイズ）
     const jsResources = resources.filter(
-      (resource: any) => resource.name.includes('.js') || resource.name.includes('chunk')
+      (resource: PerformanceResourceTiming) =>
+        resource.name.includes('.js') || resource.name.includes('chunk')
     )
     const totalJSSize = jsResources.reduce(
-      (total: number, resource: any) => total + (resource.transferSize || 0),
+      (total: number, resource: PerformanceResourceTiming) => total + (resource.transferSize || 0),
       0
     )
     metricsRef.current.bundleSize = totalJSSize
@@ -124,7 +131,7 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
   // メモリ使用量収集
   const collectMemoryMetrics = useCallback(() => {
     if ('memory' in performance) {
-      metricsRef.current.memoryUsage = (performance as any).memory
+      metricsRef.current.memoryUsage = performance.memory
     }
   }, [])
 

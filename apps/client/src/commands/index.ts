@@ -69,7 +69,7 @@ export type {
  */
 export function createCommandSystem(options?: {
   maxHistorySize?: number
-  contexts?: Record<string, any>
+  contexts?: Record<string, unknown>
 }) {
   const { maxHistorySize = 100, contexts = {} } = options || {}
 
