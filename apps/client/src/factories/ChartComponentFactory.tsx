@@ -1,19 +1,20 @@
 import React from 'react'
 import { CHART_TYPES } from '@trading-viewer/shared'
+import type { PriceData } from '../utils/indicators'
 
 // Chart component interfaces
 export interface ChartProps {
   symbol: string
-  data: any[]
+  data: PriceData[]
   width?: number
   height?: number
-  onDataUpdate?: (data: any) => void
+  onDataUpdate?: (data: PriceData[]) => void
   className?: string
 }
 
 export interface IChart {
   render(): React.ReactElement
-  updateData(data: any[]): void
+  updateData(data: PriceData[]): void
   getType(): string
   destroy?(): void
 }
@@ -34,7 +35,7 @@ export abstract class BaseChart implements IChart {
 
   abstract render(): React.ReactElement
 
-  updateData(data: any[]): void {
+  updateData(data: PriceData[]): void {
     this.props.data = data
     if (this.props.onDataUpdate) {
       this.props.onDataUpdate(data)

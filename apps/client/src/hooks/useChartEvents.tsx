@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useRef } from 'react'
+import type { ECElementEvent } from 'echarts/core'
 import type useDrawingTools from './useDrawingTools'
 import type { useChartInstance } from './useChartInstance'
 import { PriceData } from '../utils/indicators'
+import { DrawingTool } from '@trading-viewer/shared'
+
+interface ChartEventHandlers {
+  handleChartClick: (params: ECElementEvent) => void;
+  handleChartMouseMove: (params: ECElementEvent) => void;
+  handleChartMouseDown: (params: ECElementEvent) => void;
+  handleChartMouseUp: (params: ECElementEvent) => void;
+  handleChartRightClick: (params: ECElementEvent) => void;
+  drawingTools: ReturnType<typeof useDrawingTools> | undefined;
+}
 
 interface ChartEventsConfig {
   enableDrawingTools: boolean
@@ -45,7 +56,7 @@ export const useChartEvents = (
     [config.data]
   )
 
-  const handlersRef = useRef<any>({})
+  const handlersRef = useRef<Partial<ChartEventHandlers>>({})
   const lastMouseMoveTime = useRef(0)
   const drawingToolsRef = useRef(drawingTools)
   const currentSelectedToolRef = useRef<string | null>(null) // 選択状態を即座に追跡
@@ -81,7 +92,7 @@ export const useChartEvents = (
 
   // Chart click handler
   const handleChartClick = useCallback(
-    (params: any) => {
+    (params: ECElementEvent) => {
       console.log('🎯 Chart clicked:', params)
 
       // Call the onChartClick callback if provided
@@ -100,7 +111,7 @@ export const useChartEvents = (
       )
       if (dataPoint) {
         // First, find if we clicked on any tool (line)
-        const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
+        const clickedTool = currentTools.getVisibleTools?.()?.find((tool: DrawingTool) => {
           if (!tool.points || tool.points.length < 1) {
             return false
           }
@@ -233,7 +244,7 @@ export const useChartEvents = (
               )
               return distance <= tolerance
             }
-          } catch {
+          } catch (error: unknown) {
             console.error('🎯 Error checking tool click:', error)
           }
           return false
@@ -259,7 +270,7 @@ export const useChartEvents = (
               // For single-point lines, any click on the line is considered a body click
             } else {
               // Handle detection for two-point lines (trendlines, etc.)
-              let clickedHandle: { tool: any; handleType: 'start' | 'end' } | null = null
+              let clickedHandle: { tool: DrawingTool; handleType: 'start' | 'end' } | null = null
               const chart = chartInstance.chartRef.current?.getEchartsInstance()
 
               if (chart) {
@@ -303,7 +314,7 @@ export const useChartEvents = (
                       }
                     }
                   }
-                } catch {
+                } catch (error: unknown) {
                   console.error('🎯 Error checking handle click:', error)
                 }
               }
@@ -394,7 +405,7 @@ export const useChartEvents = (
 
   // Chart mouse move handler
   const handleChartMouseMove = useCallback(
-    (params: any) => {
+    (params: ECElementEvent) => {
       // ドラッグ関連の場合はスロットリングを無視
       const currentState = drawingToolsStateRef.current
       const isDragRelated = currentState.isMouseDown || currentState.isDragging
@@ -541,7 +552,7 @@ export const useChartEvents = (
 
   // Chart mouse down handler - for starting drag operations
   const handleChartMouseDown = useCallback(
-    (params: any) => {
+    (params: ECElementEvent) => {
       const currentTools = drawingTools
       if (!config.enableDrawingTools || !currentTools) {
         return
@@ -780,7 +791,7 @@ export const useChartEvents = (
               )
             }
           }
-        } catch {
+        } catch (error: unknown) {
           console.error('🎯 Error in handleChartMouseDown:', error)
         }
       }
@@ -790,7 +801,7 @@ export const useChartEvents = (
 
   // Chart mouse up handler
   const handleChartMouseUp = useCallback(
-    (params: any) => {
+    (params: ECElementEvent) => {
       const currentTools = drawingTools
       if (!config.enableDrawingTools || !currentTools) {
         return
@@ -855,7 +866,7 @@ export const useChartEvents = (
 
   // Chart right click handler for context menu
   const handleChartRightClick = useCallback(
-    (params: any) => {
+    (params: ECElementEvent) => {
       console.log('🎯 Chart right clicked:', params)
 
       const currentTools = drawingTools
@@ -874,7 +885,7 @@ export const useChartEvents = (
       }
 
       // Find if clicking on a drawing tool
-      const clickedTool = currentTools.getVisibleTools?.()?.find((tool: any) => {
+      const clickedTool = currentTools.getVisibleTools?.()?.find((tool: DrawingTool) => {
         if (!tool.points || tool.points.length < 1) {
           return false
         }
@@ -957,7 +968,7 @@ export const useChartEvents = (
               return distance <= tolerance
             }
           }
-        } catch {
+        } catch (error: unknown) {
           console.error('🎯 Error checking drawing tool click:', error)
         }
         return false
@@ -1159,7 +1170,7 @@ export const useChartEvents = (
           } else {
             console.error('🎯 handleChartMouseMove is undefined in handlersRef')
           }
-        } catch {
+        } catch (error: unknown) {
           console.error('🎯 Error calling handleChartMouseMove:', error)
         }
       } else {

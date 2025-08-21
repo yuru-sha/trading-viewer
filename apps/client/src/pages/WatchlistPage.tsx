@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Loading, ToastContainer, useToast } from '@trading-viewer/ui'
-import { useApp, useAppActions } from '../contexts/AppContext'
+import { Button, useToast } from '@trading-viewer/ui'
 import { apiService } from '../services/base/ApiService'
 import SelectAllButton from '../components/common/SelectAllButton'
 import {
@@ -20,20 +19,6 @@ import {
 } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-interface QuoteData {
-  symbol: string
-  currentPrice: number
-  change: number
-  changePercent: number
-  high: number
-  low: number
-  open: number
-  previousClose: number
-  volume: number
-  marketCap?: number
-  timestamp: number
-}
 
 interface WatchlistItem {
   id: string
@@ -190,7 +175,7 @@ const WatchlistPage: React.FC = () => {
   const [watchlistItems, setWatchlistItems] = useState<
     Array<{ symbol: string; name: string; addedAt: string }>
   >([])
-  const { toasts, toast } = useToast()
+  const { toast } = useToast()
 
   // Sensors for drag and drop
   const sensors = useSensors(

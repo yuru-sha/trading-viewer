@@ -254,7 +254,7 @@ export const useCreateIndicator = () => {
 
       console.log('🔍 useCreateIndicator: Queries invalidated')
     },
-    onError: error => {
+    onError: () => {
       console.error('Operation failed')
     },
   })

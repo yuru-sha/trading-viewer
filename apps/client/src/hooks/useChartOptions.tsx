@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
+import type { EChartsOption, SeriesOption } from 'echarts'
+import type { CandlestickSeriesOption, LineSeriesOption } from 'echarts/charts'
+import type { GraphicComponentOption, GridComponentOption, YAXisComponentOption } from 'echarts/components'
 import type { ChartData, PriceStats } from './useChartData'
 import { UserIndicator } from '@trading-viewer/shared'
-import { useIndicators } from './useIndicators'
-import { useIndicatorCalculations } from './useIndicatorCalculations'
 
 interface ChartOptionsConfig {
   chartType: 'candle' | 'line' | 'area'
@@ -16,7 +17,7 @@ interface ChartOptionsConfig {
   symbol?: string
   timeframe?: string
   currentPrice?: number
-  graphicElements: any[]
+  graphicElements: GraphicComponentOption[]
   showPeriodHigh?: boolean
   showPeriodLow?: boolean
   indicators?: UserIndicator[]
@@ -139,8 +140,8 @@ export function useChartOptions(
     )
 
     // Dynamically calculate grid heights and positions
-    const gridConfigs: any[] = []
-    const yAxes: any[] = []
+    const gridConfigs: GridComponentOption[] = []
+    const yAxes: YAXisComponentOption[] = []
     const seriesMapping: Record<string, number> = {}
     let currentTop = 2 // Start with a 2% top margin
 
@@ -259,7 +260,7 @@ export function useChartOptions(
       max: 'dataMax',
     }))
 
-    const baseOption: any = {
+    const baseOption: EChartsOption = {
       backgroundColor: config.colors?.background || (isDarkMode ? '#1f2937' : '#ffffff'),
       animation: false,
       legend: {
@@ -298,7 +299,7 @@ export function useChartOptions(
           filterMode: 'filter',
         },
       ],
-      series: [] as any[],
+      series: [] as SeriesOption[],
       graphic: config.graphicElements,
     }
 
@@ -411,310 +412,6 @@ export function useChartOptions(
   return { option }
 }
 
-// Y 軸設定生成
-/**
- * キリの良い間隔を計算する関数
- * 価格差とグリッド数に基づいて、xxx.00, xxx.50 のようなキリの良い値を返す
- */
-function calculateNiceInterval(range: number, targetSplits: number): number {
-  const rawInterval = range / targetSplits
-
-  // 基本単位を決定（0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100 など）
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)))
-  const normalizedInterval = rawInterval / magnitude
-
-  let niceInterval: number
-
-  if (normalizedInterval <= 1) {
-    niceInterval = 1
-  } else if (normalizedInterval <= 2.5) {
-    niceInterval = 2.5
-  } else if (normalizedInterval <= 5) {
-    niceInterval = 5
-  } else {
-    niceInterval = 10
-  }
-
-  return niceInterval * magnitude
-}
-
-/**
- * キリの良い境界値を計算する関数
- * 価格を xxx.00, xxx.50 のような値に丸める
- */
-function calculateNiceBounds(
-  min: number,
-  max: number,
-  interval: number
-): { niceMin: number; niceMax: number } {
-  const niceMin = Math.floor(min / interval) * interval
-  const niceMax = Math.ceil(max / interval) * interval
-
-  return { niceMin, niceMax }
-}
-
-function generateYAxisConfig(
-  config: ChartOptionsConfig,
-  isDarkMode: boolean,
-  priceStats: PriceStats | null,
-  currentPrice?: number,
-  indicators: UserIndicator[] = []
-) {
-  const baseYAxisConfig = {
-    scale: true,
-    position: 'right' as const,
-    axisLine: { lineStyle: { color: isDarkMode ? '#4b5563' : '#d1d5db' } },
-    axisTick: { show: false },
-    splitLine: {
-      show: true,
-      lineStyle: {
-        color: isDarkMode ? '#374151' : '#e5e7eb',
-        width: 1,
-        type: 'solid' as const,
-        opacity: 0.6, // グリッド線の透明度を調整
-      },
-    },
-
-    axisPointer:
-      config.enableDrawingTools && config.activeDrawingTool && config.activeDrawingTool !== 'select'
-        ? {
-            show: false,
-          }
-        : {
-            label: {
-              formatter: (params: any) => {
-                return params.value.toFixed(2)
-              },
-              backgroundColor: isDarkMode ? '#4b5563' : '#6b7280',
-              borderColor: isDarkMode ? '#374151' : '#d1d5db',
-              color: isDarkMode ? '#f9fafb' : '#111827',
-              fontSize: 11,
-            },
-          },
-    min: (value: any) => {
-      if (!priceStats) return value.min
-      // 安値を確実に含むように調整
-      const padding = (priceStats.high - priceStats.low) * 0.05
-      return Math.min(value.min, priceStats.low - padding)
-    },
-    max: (value: any) => {
-      if (!priceStats) return value.max
-      // 高値を確実に含むように調整
-      const padding = (priceStats.high - priceStats.low) * 0.05
-      return Math.max(value.max, priceStats.high + padding)
-    },
-    splitNumber: 10, // グリッド線の数を調整
-    interval: priceStats ? calculateNiceInterval(priceStats.high - priceStats.low, 10) : undefined, // キリの良い間隔を計算
-    // Y 軸の目盛りを明示的に指定し、重要な価格レベルを含める
-    ...(priceStats && {
-      type: 'value',
-      scale: true, // 自動スケーリングを有効化
-      splitNumber: 10, // 目盛り数を指定
-      interval: calculateNiceInterval(priceStats.high - priceStats.low, 10), // キリの良い間隔
-      min: (() => {
-        const allLows = [priceStats.low, priceStats.periodLow].filter(
-          (val): val is number => typeof val === 'number'
-        )
-        const minLow = allLows.length > 0 ? Math.min(...allLows) : priceStats.low
-        const range = priceStats.high - priceStats.low
-        const paddedMin = minLow - range * 0.05
-        const interval = calculateNiceInterval(range, 10)
-        const { niceMin } = calculateNiceBounds(paddedMin, priceStats.high, interval)
-        return niceMin
-      })(),
-      max: (() => {
-        const allHighs = [priceStats.high, priceStats.periodHigh].filter(
-          (val): val is number => typeof val === 'number'
-        )
-        const maxHigh = allHighs.length > 0 ? Math.max(...allHighs) : priceStats.high
-        const range = priceStats.high - priceStats.low
-        const paddedMax = maxHigh + range * 0.05
-        const interval = calculateNiceInterval(range, 10)
-        const { niceMax } = calculateNiceBounds(priceStats.low, paddedMax, interval)
-        return niceMax
-      })(),
-      splitLine: {
-        show: true,
-        lineStyle: {
-          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-          width: 1,
-          type: 'solid' as const,
-          opacity: 0.6, // グリッド線を少し薄くして視認性向上
-        },
-      },
-      axisLabel: {
-        color: isDarkMode ? '#9ca3af' : '#6b7280',
-        inside: false,
-        margin: 8,
-        fontSize: 11,
-        formatter: (value: number) => {
-          const currentValue = currentPrice || priceStats.close
-          const tolerance = 1.0
-
-          // 現在値の判定のみ（52 週高値・安値は markLine で表示）
-          if (Math.abs(value - currentValue) <= tolerance) {
-            return `{current|${value.toFixed(2)}}`
-          }
-
-          return value.toFixed(2)
-        },
-        rich: {
-          current: {
-            color: '#ffffff',
-            backgroundColor: '#10b981', // 現在値は緑
-            padding: [2, 4],
-            borderRadius: 2,
-          },
-        },
-      },
-    }),
-  }
-
-  // RSI と MACD が表示されているかを確認
-  const hasRSI = indicators.some(
-    indicator => indicator.type === 'rsi' && indicator.visible === true
-  )
-  const hasMACD = indicators.some(
-    indicator => indicator.type === 'macd' && indicator.visible === true
-  )
-
-  const yAxisArray = [baseYAxisConfig]
-
-  if (config.showVolume) {
-    // Volume 用の yAxis
-    yAxisArray.push({
-      scale: true,
-      position: 'right' as const,
-      gridIndex: 1,
-      splitNumber: 6, // ボリュームチャートのグリッド線も調整
-      axisLabel: { show: false },
-      axisLine: { show: false },
-      splitLine: {
-        show: true,
-        lineStyle: {
-          color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-          width: 1,
-          type: 'solid' as const,
-          opacity: 0.4, // ボリュームのグリッド線はさらに薄く
-        },
-      },
-      min: 'dataMin' as const,
-      max: 'dataMax' as const,
-    })
-
-    // RSI 用の yAxis (Volume ON 時は gridIndex: 2)
-    if (hasRSI) {
-      yAxisArray.push({
-        scale: true,
-        position: 'right' as const,
-        gridIndex: 2,
-        splitNumber: 4,
-        axisLabel: {
-          show: true,
-          color: isDarkMode ? '#9ca3af' : '#6b7280',
-          fontSize: 10,
-        },
-        axisLine: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-            width: 1,
-            type: 'solid' as const,
-            opacity: 0.3,
-          },
-        },
-        min: 0,
-        max: 100,
-      })
-    }
-
-    // MACD 用の yAxis (Volume ON 時は gridIndex: 3、RSI がない場合は gridIndex: 2)
-    if (hasMACD) {
-      yAxisArray.push({
-        scale: true,
-        position: 'right' as const,
-        gridIndex: hasRSI ? 3 : 2,
-        splitNumber: 4,
-        axisLabel: {
-          show: true,
-          color: isDarkMode ? '#9ca3af' : '#6b7280',
-          fontSize: 10,
-        },
-        axisLine: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-            width: 1,
-            type: 'solid' as const,
-            opacity: 0.3,
-          },
-        },
-        min: 'dataMin' as const,
-        max: 'dataMax' as const,
-      })
-    }
-  } else {
-    // Volume OFF 時
-    // RSI 用の yAxis (Volume OFF 時は gridIndex: 1)
-    if (hasRSI) {
-      yAxisArray.push({
-        scale: true,
-        position: 'right' as const,
-        gridIndex: 1,
-        splitNumber: 4,
-        axisLabel: {
-          show: true,
-          color: isDarkMode ? '#9ca3af' : '#6b7280',
-          fontSize: 10,
-        },
-        axisLine: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-            width: 1,
-            type: 'solid' as const,
-            opacity: 0.3,
-          },
-        },
-        min: 0,
-        max: 100,
-      })
-    }
-
-    // MACD 用の yAxis (Volume OFF 時は gridIndex: 2、RSI がない場合は gridIndex: 1)
-    if (hasMACD) {
-      yAxisArray.push({
-        scale: true,
-        position: 'right' as const,
-        gridIndex: hasRSI ? 2 : 1,
-        splitNumber: 4,
-        axisLabel: {
-          show: true,
-          color: isDarkMode ? '#9ca3af' : '#6b7280',
-          fontSize: 10,
-        },
-        axisLine: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: config.colors?.grid || (isDarkMode ? '#374151' : '#e5e7eb'),
-            width: 1,
-            type: 'solid' as const,
-            opacity: 0.3,
-          },
-        },
-        min: 'dataMin' as const,
-        max: 'dataMax' as const,
-      })
-    }
-  }
-
-  return yAxisArray
-}
-
 // Candlestick series creation
 function createCandlestickSeries(
   chartData: ChartData,
@@ -730,8 +427,8 @@ function createCandlestickSeries(
     grid: string
     background: string
   }
-) {
-  const candlestickSeries: any = {
+): CandlestickSeriesOption {
+  const candlestickSeries: CandlestickSeriesOption = {
     name: symbol || 'Price',
     type: 'candlestick',
     data: chartData.values,
@@ -833,10 +530,10 @@ function createLineSeries(
   currentPrice?: number,
   showPeriodHigh?: boolean,
   showPeriodLow?: boolean
-) {
+): LineSeriesOption {
   // 🚨 GEMINI FIX: ラインチャート用にデータ形式を正規化
   // ローソク足データ [始値, 高値, 安値, 終値] から終値のみを抽出
-  const lineData = chartData.values.map((item: any) => {
+  const lineData = chartData.values.map((item: number[] | number) => {
     if (Array.isArray(item) && item.length >= 4) {
       // ローソク足形式の場合、終値（インデックス 3）を使用
       return item[3] // 終値
@@ -857,7 +554,7 @@ function createLineSeries(
     convertedSample: lineData.slice(0, 3),
   })
 
-  const lineSeries: any = {
+  const lineSeries: LineSeriesOption = {
     name: symbol || 'Price',
     type: 'line',
     data: lineData, // 正規化されたデータを使用
@@ -885,10 +582,10 @@ function createAreaSeries(
   currentPrice?: number,
   showPeriodHigh?: boolean,
   showPeriodLow?: boolean
-) {
+): LineSeriesOption {
   // 🚨 GEMINI FIX: エリアチャート用にデータ形式を正規化
   // ローソク足データ [始値, 高値, 安値, 終値] から終値のみを抽出
-  const areaData = chartData.values.map((item: any) => {
+  const areaData = chartData.values.map((item: number[] | number) => {
     if (Array.isArray(item) && item.length >= 4) {
       // ローソク足形式の場合、終値（インデックス 3）を使用
       return item[3] // 終値
@@ -909,7 +606,7 @@ function createAreaSeries(
     convertedSample: areaData.slice(0, 3),
   })
 
-  const areaSeries: any = {
+  const areaSeries: LineSeriesOption = {
     name: symbol || 'Price',
     type: 'line',
     data: areaData, // 正規化されたデータを使用
@@ -1021,12 +718,12 @@ function createMarkLine(
 function createIndicatorSeries(
   chartData: ChartData,
   indicators: UserIndicator[],
-  calculations: Record<string, any> = {},
+  calculations: Record<string, { values: { value: number }[] }> = {},
   config: ChartOptionsConfig,
   seriesMapping: Record<string, number>
 ) {
   console.log('📊 Creating indicator series with mapping:', seriesMapping)
-  const series: any[] = []
+  const series: SeriesOption[] = []
 
   indicators.forEach(indicator => {
     console.log('🔍 Processing indicator:', {
@@ -1054,7 +751,7 @@ function createIndicatorSeries(
 
     if (calculationResult && calculationResult.values) {
       // API 計算結果を使用
-      indicatorData = calculationResult.values.map((item: any) => item.value)
+      indicatorData = calculationResult.values.map((item: { value: number }) => item.value)
       console.log('✅ Using API calculation for', indicator.name, indicatorData.length, 'points')
     } else {
       // フォールバックでローカル計算
@@ -1076,7 +773,7 @@ function createIndicatorSeries(
     // インジケーターのタイプに応じてシリーズを作成
     switch (indicator.type) {
       case 'sma':
-      case 'ema':
+      case 'ema': {
         // メインチャートに表示（gridIndex: 0, xAxisIndex: 0, yAxisIndex: 0）
         const lineSeriesConfig = {
           name: indicator.name,
@@ -1095,8 +792,9 @@ function createIndicatorSeries(
         console.log('📊 Adding line series for', indicator.name)
         series.push(lineSeriesConfig)
         break
+      }
 
-      case 'bollinger':
+      case 'bollinger': {
         // ボリンジャーバンドはメインチャートに表示
         if (indicatorData.length === 5) {
           const [upper2, upper1, middle, lower1, lower2] = indicatorData
@@ -1159,8 +857,9 @@ function createIndicatorSeries(
           series.push(...bollingerSeries)
         }
         break
+      }
 
-      case 'rsi':
+      case 'rsi': {
         const rsiGridIndex = seriesMapping['rsi']
         if (rsiGridIndex === undefined) {
           console.error('❌ RSI grid index not found in seriesMapping')
@@ -1219,8 +918,9 @@ function createIndicatorSeries(
           }
         )
         break
+      }
 
-      case 'macd':
+      case 'macd': {
         const macdGridIndex = seriesMapping['macd']
         if (macdGridIndex === undefined) {
           console.error('❌ MACD grid index not found in seriesMapping')
@@ -1259,7 +959,7 @@ function createIndicatorSeries(
               type: 'bar',
               data: macdData.map(d => d[2]),
               itemStyle: {
-                color: params => (params.value >= 0 ? '#22c55e' : '#ef4444'),
+                color: (params: { value: number }) => (params.value >= 0 ? '#22c55e' : '#ef4444'),
               },
               xAxisIndex: macdGridIndex,
               yAxisIndex: macdGridIndex,
@@ -1278,6 +978,7 @@ function createIndicatorSeries(
           )
         }
         break
+      }
 
       default:
         console.log('⚠️ Unknown indicator type:', indicator.type)
@@ -1321,7 +1022,7 @@ function calculateIndicatorFromData(
     console.log('🔍 Indicator Debug Info:', debugInfo)
 
     // 🚨 GEMINI FIX: 堅牢な価格抽出（ローソク足とライン両方に対応）
-    const prices = chartData.values.map((item: any) => {
+    const prices = chartData.values.map((item: number[] | number | { close: number }) => {
       if (Array.isArray(item) && item.length >= 4) {
         // ローソク足形式 [始値, 高値, 安値, 終値] の場合、終値を使用
         return item[3]
@@ -1357,7 +1058,7 @@ function calculateIndicatorFromData(
         return calculateSMA(prices, period)
       case 'ema':
         return calculateEMA(prices, period)
-      case 'bollinger':
+      case 'bollinger': {
         // ボリンジャーバンドの実装（±1σ, ±2σの 4 本線 + 中央線）
         const sma = calculateSMA(prices, period)
 
@@ -1395,7 +1096,8 @@ function calculateIndicatorFromData(
 
         // createIndicatorSeries が期待する形式で返す: [upper2σ, upper1σ, middle, lower1σ, lower2σ]
         return [upper2, upper1, middle, lower1, lower2]
-      case 'rsi':
+      }
+      case 'rsi': {
         // RSI の実装（0-100 の範囲）
         console.log(
           '🔍 RSI Calculation: Starting with prices length:',
@@ -1427,7 +1129,8 @@ function calculateIndicatorFromData(
         console.log('🔍 RSI Final values length:', rsiValues.length)
         console.log('🔍 RSI Sample final values:', rsiValues.slice(-10))
         return rsiValues
-      case 'macd':
+      }
+      case 'macd': {
         // MACD の実装（MACD ライン、シグナルライン、ヒストグラム）
         console.log('🔍 MACD Calculation: Starting with prices length:', prices.length)
         const macdData = calculateMACD(prices, 12, 26, 9) // デフォルトパラメータ
@@ -1463,6 +1166,7 @@ function calculateIndicatorFromData(
         console.log('🔍 MACD Final values length:', macdValues.length)
         console.log('🔍 MACD Sample final values:', macdValues.slice(-5))
         return macdValues
+      }
       default:
         return []
     }

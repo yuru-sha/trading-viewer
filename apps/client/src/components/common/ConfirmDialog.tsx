@@ -1,6 +1,4 @@
 import React from 'react'
-import { Button } from '@trading-viewer/ui'
-import Icon from '../Icon'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -25,9 +23,9 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   message,
   confirmText = 'Delete',
   cancelText = 'Cancel',
-  confirmVariant = 'danger',
-  icon,
-  iconColor = 'text-red-500',
+  confirmVariant: _confirmVariant = 'danger',
+  icon: _icon,
+  iconColor: _iconColor = 'text-red-500',
   details,
   isLoading = false,
 }) => {

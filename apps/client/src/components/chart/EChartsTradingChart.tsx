@@ -1,5 +1,6 @@
 import React, { useEffect, forwardRef, useImperativeHandle } from 'react'
 import ReactECharts from 'echarts-for-react'
+import { GraphicComponentOption } from 'echarts/components'
 import { useApp } from '../../contexts/AppContext'
 import { PriceData } from '../../utils/indicators'
 import { getCompanyName } from '../../data/symbolMapping'
@@ -136,7 +137,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
         return []
       }
 
-      const elements: any[] = []
+      const elements: GraphicComponentOption[] = []
       const visibleTools = drawingTools.tools.filter(tool => tool.visible !== false)
 
       // プレビュー描画を表示（描画中の場合）

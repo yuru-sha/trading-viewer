@@ -2,9 +2,13 @@ import React, { useState } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { Order, Position, TradingSimulation, TradingQuote } from '@trading-viewer/shared'
 import OrderForm from './OrderForm'
-// import PositionsTable from './PositionsTable'
-// import OrdersTable from './OrdersTable'
-// import PortfolioSummary from './PortfolioSummary'
+import PositionsTable from './PositionsTable'
+import OrdersTable from './OrdersTable'
+import PortfolioSummary from './PortfolioSummary'
+
+interface PerformanceMetrics {
+  [key: string]: unknown
+}
 
 interface TradingPanelProps {
   simulation: TradingSimulation | null
@@ -13,7 +17,7 @@ interface TradingPanelProps {
   quotes: Record<string, TradingQuote>
   portfolioValue: number
   unrealizedPnL: number
-  performanceMetrics: any
+  performanceMetrics: PerformanceMetrics
   onCreateOrder: (orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => void
   onCancelOrder: (orderId: string) => void
   onExecuteOrder: (orderId: string, price: number) => void
@@ -208,7 +212,7 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
                       type: 'market',
                       timeInForce: 'day',
                       simulationId: simulation.id,
-                    } as any)
+                    })
                   }
                 }}
               />
@@ -306,10 +310,14 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
 
             <div className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='simulation-name-input'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Simulation Name
                 </label>
                 <input
+                  id='simulation-name-input'
                   type='text'
                   value={newSimName}
                   onChange={e => setNewSimName(e.target.value)}
@@ -319,12 +327,16 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='starting-balance-input'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Starting Balance
                 </label>
                 <div className='relative'>
                   <span className='absolute left-3 top-2 text-gray-500'>$</span>
                   <input
+                    id='starting-balance-input'
                     type='number'
                     value={newSimBalance}
                     onChange={e => setNewSimBalance(Number(e.target.value))}

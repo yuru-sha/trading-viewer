@@ -8,6 +8,14 @@ import {
   type ErrorClassification,
 } from '../utils/errorRecovery'
 
+declare global {
+  interface Window {
+    errorReporter?: {
+      captureException: (error: Error, errorInfo: React.ErrorInfo) => void;
+    };
+  }
+}
+
 export interface ErrorInfo {
   id: string
   type: 'error' | 'warning' | 'info'
@@ -161,7 +169,7 @@ export const useErrorHandlers = () => {
   const { addError } = useError()
 
   const handleApiError = useCallback(
-    async (error: any, context?: string) => {
+    async (error: unknown, context?: string) => {
       // エラーを分類
       const classification = classifyError(error)
 
@@ -308,7 +316,7 @@ export const useErrorHandlers = () => {
   )
 
   const handleWebSocketError = useCallback(
-    (error: any, context?: string) => {
+    (error: unknown, context?: string) => {
       const title = 'リアルタイム接続エラー'
       let message = 'リアルタイムデータの接続に問題があります。'
 
@@ -332,7 +340,7 @@ export const useErrorHandlers = () => {
   )
 
   const handleNetworkError = useCallback(
-    (error: any, context?: string) => {
+    (error: unknown, context?: string) => {
       return addError({
         type: 'error',
         title: 'ネットワークエラー',
@@ -406,11 +414,8 @@ interface ErrorBoundaryState {
   error?: Error
 }
 
-export class ErrorBoundary extends React.Component<
-  React.PropsWithChildren<{}>,
-  ErrorBoundaryState
-> {
-  constructor(props: React.PropsWithChildren<{}>) {
+export class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBoundaryState> {
+  constructor(props: React.PropsWithChildren) {
     super(props)
     this.state = { hasError: false }
   }
@@ -423,8 +428,8 @@ export class ErrorBoundary extends React.Component<
     console.error('React Error Boundary caught an error:', error, errorInfo)
 
     // You could send this to an error reporting service here
-    if (typeof window !== 'undefined' && (window as any).errorReporter) {
-      ;(window as any).errorReporter.captureException(error, {
+    if (typeof window !== 'undefined' && window.errorReporter) {
+      window.errorReporter.captureException(error, {
         tags: { source: 'react' },
         extra: errorInfo,
       })
