@@ -113,7 +113,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
-.vscode/settings.json
+.vscode/
 
 # Database
 *.db
