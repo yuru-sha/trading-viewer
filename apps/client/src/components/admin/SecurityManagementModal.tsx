@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
@@ -66,14 +66,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
     { id: 'devices', label: 'Trusted Devices', icon: '📱' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
   ]
-
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchSecuritySettings()
-    }
-  }, [isOpen, userId])
-
-  const fetchSecuritySettings = async () => {
+  const fetchSecuritySettings = useCallback(async () => {
     if (!userId) return
 
     try {
@@ -85,13 +78,19 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       if (response.success) {
         setSecuritySettings(response.data)
       }
-    } catch {
+    } catch (error) {
       console.error('Failed to fetch security settings:', error)
       showError('Failed to load security settings')
     } finally {
       setLoading(false)
     }
-  }
+  }, [showError, userId])
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchSecuritySettings()
+    }
+  }, [isOpen, userId, fetchSecuritySettings])
 
   const handleToggle2FA = async () => {
     if (!userId || !securitySettings) return
@@ -117,7 +116,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`Two-factor authentication ${newStatus ? 'enabled' : 'disabled'} successfully`)
-    } catch {
+    } catch (error) {
       console.error('Failed to toggle 2FA:', error)
       showError(`Failed to ${newStatus ? 'enable' : 'disable'} two-factor authentication`)
     } finally {
@@ -151,7 +150,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
         setNewIPRestriction({ ipAddress: '', subnet: '', description: '' })
         showSuccess('IP restriction added successfully')
       }
-    } catch {
+    } catch (error) {
       console.error('Failed to add IP restriction:', error)
       showError('Failed to add IP restriction')
     } finally {
@@ -180,7 +179,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`IP restriction ${!isActive ? 'enabled' : 'disabled'}`)
-    } catch {
+    } catch (error) {
       console.error('Failed to toggle IP restriction:', error)
       showError('Failed to update IP restriction')
     } finally {
@@ -207,7 +206,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('IP restriction removed successfully')
-    } catch {
+    } catch (error) {
       console.error('Failed to remove IP restriction:', error)
       showError('Failed to remove IP restriction')
     } finally {
@@ -232,7 +231,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Trusted device revoked successfully')
-    } catch {
+    } catch (error) {
       console.error('Failed to revoke trusted device:', error)
       showError('Failed to revoke trusted device')
     } finally {
@@ -263,7 +262,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Notification settings updated')
-    } catch {
+    } catch (error) {
       console.error('Failed to update notification settings:', error)
       showError('Failed to update notification settings')
     } finally {
@@ -526,14 +525,15 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
             key={key}
             className='flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg'
           >
-            <div>
-              <label className='text-sm font-medium text-gray-900 dark:text-white'>{label}</label>
+            <label htmlFor={key} className='flex-grow cursor-pointer'>
+              <span className='text-sm font-medium text-gray-900 dark:text-white'>{label}</span>
               <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                 Send email notifications when this security event occurs
               </p>
-            </div>
-            <label className='relative inline-flex items-center cursor-pointer'>
+            </label>
+            <div className='relative inline-flex items-center cursor-pointer'>
               <input
+                id={key}
                 type='checkbox'
                 checked={
                   securitySettings?.securityNotifications[
@@ -550,7 +550,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
                 className='sr-only peer'
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
+            </div>
           </div>
         ))}
       </div>
@@ -566,7 +566,7 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as '2fa' | 'ip' | 'devices' | 'notifications')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'

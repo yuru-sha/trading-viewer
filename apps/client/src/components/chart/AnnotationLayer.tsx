@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { ChartAnnotation, AnnotationType, ChartBounds } from '@trading-viewer/shared'
 import { Button } from '@trading-viewer/ui'
 
@@ -7,7 +6,6 @@ interface AnnotationLayerProps {
   annotations: ChartAnnotation[]
   chartBounds: ChartBounds
   selectedAnnotationId: string | null
-  isEditing: boolean
   showAnnotations: boolean
   onAnnotationSelect?: (id: string | null) => void
   onAnnotationUpdate?: (id: string, updates: Partial<ChartAnnotation>) => void
@@ -31,7 +29,6 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
   annotations,
   chartBounds,
   selectedAnnotationId,
-  isEditing,
   showAnnotations,
   onAnnotationSelect,
   onAnnotationUpdate,
@@ -140,17 +137,15 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
       const annotation = annotations.find(a => a.id === dragState.annotationId)
       if (!annotation) return
 
-      let newPosition: ChartAnnotation['position']
-
       switch (annotation.position.anchor) {
-        case 'price':
+        case 'price': {
           const timestamp =
             chartBounds.startTimestamp +
             (x / chartBounds.width) * (chartBounds.endTimestamp - chartBounds.startTimestamp)
           const price =
             chartBounds.maxPrice -
             (y / chartBounds.height) * (chartBounds.maxPrice - chartBounds.minPrice)
-          newPosition = {
+          const newPosition: ChartAnnotation['position'] = {
             ...annotation.position,
             anchorTimestamp: timestamp,
             anchorPrice: price,
@@ -161,22 +156,25 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
             position: newPosition,
           })
           break
-        case 'chart':
-          newPosition = {
+        }
+        case 'chart': {
+          const newPosition: ChartAnnotation['position'] = {
             ...annotation.position,
             x: (x / chartBounds.width) * 100,
             y: (y / chartBounds.height) * 100,
           }
           onAnnotationMove?.(annotation.id, newPosition)
           break
-        default:
-          newPosition = {
+        }
+        default: {
+          const newPosition: ChartAnnotation['position'] = {
             ...annotation.position,
             x,
             y,
           }
           onAnnotationMove?.(annotation.id, newPosition)
           break
+        }
       }
     },
     [dragState, annotations, chartBounds, onAnnotationUpdate, onAnnotationMove]

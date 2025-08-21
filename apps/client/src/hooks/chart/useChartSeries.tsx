@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
+import type { CandlestickSeriesOption, LineSeriesOption, BarSeriesOption } from 'echarts/charts'
+import type { MarkLineComponentOption } from 'echarts/components'
 import type { ChartData } from '../useChartData'
-import { UserIndicator } from '@trading-viewer/shared'
 
 /**
  * チャートシリーズ生成フック
@@ -17,7 +18,7 @@ interface SeriesConfig {
 }
 
 // Candlestick シリーズ生成
-export function createCandlestickSeries(chartData: ChartData, config: SeriesConfig): any {
+export function createCandlestickSeries(chartData: ChartData, config: SeriesConfig): CandlestickSeriesOption {
   const isDarkMode = config.theme === 'dark'
 
   return {
@@ -39,13 +40,13 @@ export function createCandlestickSeries(chartData: ChartData, config: SeriesConf
 }
 
 // Line シリーズ生成
-export function createLineSeries(chartData: ChartData, config: SeriesConfig): any {
+export function createLineSeries(chartData: ChartData, config: SeriesConfig): LineSeriesOption {
   const isDarkMode = config.theme === 'dark'
 
   return {
     type: 'line',
     name: 'Close',
-    data: chartData.ohlc.map(([time, open, high, low, close]) => [time, close]),
+    data: chartData.ohlc.map(([time, _open, _high, _low, close]) => [time, close]),
     lineStyle: {
       color: isDarkMode ? '#42a5f5' : '#1976d2',
       width: 2,
@@ -56,13 +57,13 @@ export function createLineSeries(chartData: ChartData, config: SeriesConfig): an
 }
 
 // Area シリーズ生成
-export function createAreaSeries(chartData: ChartData, config: SeriesConfig): any {
+export function createAreaSeries(chartData: ChartData, config: SeriesConfig): LineSeriesOption {
   const isDarkMode = config.theme === 'dark'
 
   return {
     type: 'line',
     name: 'Close',
-    data: chartData.ohlc.map(([time, open, high, low, close]) => [time, close]),
+    data: chartData.ohlc.map(([time, _open, _high, _low, close]) => [time, close]),
     lineStyle: {
       color: isDarkMode ? '#42a5f5' : '#1976d2',
       width: 2,
@@ -92,7 +93,7 @@ export function createAreaSeries(chartData: ChartData, config: SeriesConfig): an
 }
 
 // Volume シリーズ生成
-export function createVolumeSeries(chartData: ChartData, config: SeriesConfig): any {
+export function createVolumeSeries(chartData: ChartData, config: SeriesConfig): BarSeriesOption {
   const isDarkMode = config.theme === 'dark'
 
   return {
@@ -102,7 +103,7 @@ export function createVolumeSeries(chartData: ChartData, config: SeriesConfig): 
     yAxisIndex: 1,
     data: chartData.volume,
     itemStyle: {
-      color: function (params: any) {
+      color: function (params: { dataIndex: number }) {
         const ohlcData = chartData.ohlc[params.dataIndex]
         if (ohlcData) {
           const [, open, , , close] = ohlcData
@@ -123,7 +124,7 @@ export function createVolumeSeries(chartData: ChartData, config: SeriesConfig): 
 }
 
 // Mark Line (現在価格ライン) 生成
-export function createMarkLine(currentPrice?: number): any {
+export function createMarkLine(currentPrice?: number): MarkLineComponentOption | null {
   if (!currentPrice) return null
 
   return {
@@ -152,7 +153,7 @@ export function createMarkLine(currentPrice?: number): any {
 }
 
 // Period High/Low マークライン生成
-export function createPeriodMarkLines(chartData: ChartData, config: SeriesConfig): any[] {
+export function createPeriodMarkLines(chartData: ChartData, config: SeriesConfig): MarkLineComponentOption[] {
   const markLines = []
 
   if (config.showPeriodHigh && chartData.periodHigh) {

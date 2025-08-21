@@ -4,7 +4,6 @@ import { Button } from '@trading-viewer/ui'
 export interface ChartSettingsProps {
   settings: ChartSettings
   onSettingsChange: (settings: ChartSettings) => void
-  className?: string
 }
 
 export interface ChartSettings {
@@ -45,7 +44,6 @@ const defaultSettings: ChartSettings = {
 export const ChartSettings: React.FC<ChartSettingsProps> = ({
   settings,
   onSettingsChange,
-  className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'style'>('general')
@@ -107,7 +105,7 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'general' | 'style')}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -125,12 +123,13 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
             <div className='space-y-4'>
               {/* Display Options */}
               <div className='space-y-2'>
-                <label className='block text-sm font-medium text-gray-600 dark:text-gray-300'>
+                <div className='block text-sm font-medium text-gray-600 dark:text-gray-300'>
                   Display Options
-                </label>
+                </div>
                 <div className='space-y-2'>
-                  <label className='flex items-center'>
+                  <label htmlFor='show-gridlines' className='flex items-center'>
                     <input
+                      id='show-gridlines'
                       type='checkbox'
                       checked={settings.showGridlines}
                       onChange={e => updateSettings({ showGridlines: e.target.checked })}
@@ -143,14 +142,15 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
 
                   {/* Period Settings */}
                   <div className='mt-4'>
-                    <label className='block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2'>
+                    <div className='block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2'>
                       Period High/Low Settings
-                    </label>
+                    </div>
                     <div className='flex items-center space-x-4 mb-3'>
-                      <label className='text-sm text-gray-600 dark:text-gray-300'>
+                      <label htmlFor='period-weeks' className='text-sm text-gray-600 dark:text-gray-300'>
                         Period (weeks):
                       </label>
                       <input
+                        id='period-weeks'
                         type='number'
                         value={settings.periodWeeks}
                         onChange={e =>
@@ -164,8 +164,9 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
                         placeholder='52'
                       />
                     </div>
-                    <label className='flex items-center mb-2'>
+                    <label htmlFor='show-period-high' className='flex items-center mb-2'>
                       <input
+                        id='show-period-high'
                         type='checkbox'
                         checked={settings.showPeriodHigh}
                         onChange={e => updateSettings({ showPeriodHigh: e.target.checked })}
@@ -175,8 +176,9 @@ export const ChartSettings: React.FC<ChartSettingsProps> = ({
                         Show {settings.periodWeeks}W High
                       </span>
                     </label>
-                    <label className='flex items-center'>
+                    <label htmlFor='show-period-low' className='flex items-center'>
                       <input
+                        id='show-period-low'
                         type='checkbox'
                         checked={settings.showPeriodLow}
                         onChange={e => updateSettings({ showPeriodLow: e.target.checked })}

@@ -35,8 +35,8 @@ const MarketPage: React.FC = () => {
   const [marketData, setMarketData] = useState<MarketData[]>([])
   const [loading, setLoading] = useState(true)
   const [dataCache, setDataCache] = useState<
-    Record<MarketTab, { data: MarketData[]; timestamp: number }>
-  >({} as any)
+    Partial<Record<MarketTab, { data: MarketData[]; timestamp: number }>>
+  >({})
 
   // Define market categories
   const marketTabs = [

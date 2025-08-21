@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from '@trading-viewer/ui'
+import React, { useState, useEffect, useCallback } from 'react'
 import Icon from '../Icon'
-import { apiClient } from '../../lib/apiClient'
 import { useAuth } from '../../contexts/AuthContext'
-import SymbolSearch from '../SymbolSearch'
-import { formatPrice } from '../../utils/currency'
 
 interface PriceAlert {
   id: string
@@ -92,21 +88,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
   const [currentPriceInfo, setCurrentPriceInfo] = useState<CurrentPriceInfo | null>(null)
   const [loadingCurrentPrice, setLoadingCurrentPrice] = useState(false)
 
-  // Fetch watchlist when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchWatchlist()
-    }
-  }, [isOpen])
-
-  // Fetch current price when symbol changes
-  useEffect(() => {
-    if (formData.symbol && isOpen) {
-      fetchCurrentPrice(formData.symbol)
-    }
-  }, [formData.symbol, isOpen])
-
-  const fetchWatchlist = async () => {
+  const fetchWatchlist = useCallback(async () => {
     try {
       setLoadingWatchlist(true)
       const response = await requestWithAuth('/api/watchlist')
@@ -128,34 +110,51 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
     } finally {
       setLoadingWatchlist(false)
     }
-  }
+  }, [requestWithAuth])
 
-  const fetchCurrentPrice = async (symbol: string) => {
-    if (!symbol.trim()) {
-      setCurrentPriceInfo(null)
-      return
-    }
-
-    try {
-      setLoadingCurrentPrice(true)
-      const response = await requestWithAuth(`/api/market/quote/${symbol.toUpperCase()}`)
-      const result = await response.json()
-
-      if (result.c !== undefined) {
-        setCurrentPriceInfo({
-          price: result.c,
-          currency: 'USD',
-        })
-      } else {
+  const fetchCurrentPrice = useCallback(
+    async (symbol: string) => {
+      if (!symbol.trim()) {
         setCurrentPriceInfo(null)
+        return
       }
-    } catch (err) {
-      console.error('Failed to fetch current price:', err)
-      setCurrentPriceInfo(null)
-    } finally {
-      setLoadingCurrentPrice(false)
+
+      try {
+        setLoadingCurrentPrice(true)
+        const response = await requestWithAuth(`/api/market/quote/${symbol.toUpperCase()}`)
+        const result = await response.json()
+
+        if (result.c !== undefined) {
+          setCurrentPriceInfo({
+            price: result.c,
+            currency: 'USD',
+          })
+        } else {
+          setCurrentPriceInfo(null)
+        }
+      } catch (err) {
+        console.error('Failed to fetch current price:', err)
+        setCurrentPriceInfo(null)
+      } finally {
+        setLoadingCurrentPrice(false)
+      }
+    },
+    [requestWithAuth]
+  )
+
+  // Fetch watchlist when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchWatchlist()
     }
-  }
+  }, [isOpen, fetchWatchlist])
+
+  // Fetch current price when symbol changes
+  useEffect(() => {
+    if (formData.symbol && isOpen) {
+      fetchCurrentPrice(formData.symbol)
+    }
+  }, [formData.symbol, isOpen, fetchCurrentPrice])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,7 +162,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
     setError(null)
 
     try {
-      const payload: any = {
+      const payload: Partial<PriceAlert> = {
         symbol: formData.symbol.toUpperCase(),
         condition: formData.condition,
         enabled: true,
@@ -202,8 +201,15 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
         alertType: 'price',
       })
       setCurrentPriceInfo(null)
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to create alert')
+    } catch (err: unknown) {
+      if (err instanceof Error && 'response' in err) {
+        const response = err.response as { data?: { message?: string } }
+        setError(response?.data?.message || err.message || 'Failed to create alert')
+      } else if (err instanceof Error) {
+        setError(err.message || 'Failed to create alert')
+      } else {
+        setError('Failed to create alert')
+      }
     } finally {
       setLoading(false)
     }
@@ -220,8 +226,16 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
       <div className='flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0'>
         {/* Background overlay */}
         <div
+          role='button'
+          tabIndex={0}
+          aria-label='Close create alert modal'
           className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity'
           onClick={onClose}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onClose()
+            }
+          }}
         />
 
         {/* Modal */}
@@ -241,7 +255,10 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
           <form onSubmit={handleSubmit} className='space-y-4'>
             {/* Symbol Selection */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label
+                htmlFor='symbol-select'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
                 Symbol
               </label>
 
@@ -256,6 +273,7 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
               ) : watchlist.length > 0 ? (
                 // Watchlist dropdown
                 <select
+                  id='symbol-select'
                   value={formData.symbol}
                   onChange={e => handleInputChange('symbol', e.target.value)}
                   className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
@@ -302,10 +320,10 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
             )}
 
             {/* Alert Type Selection */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
+            <fieldset>
+              <legend className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
                 Alert Type
-              </label>
+              </legend>
               <div className='flex space-x-4'>
                 <label className='flex items-center'>
                   <input
@@ -334,14 +352,18 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
                   </span>
                 </label>
               </div>
-            </div>
+            </fieldset>
 
             {/* Condition Selection */}
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              <label
+                htmlFor='condition-select'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'
+              >
                 Condition
               </label>
               <select
+                id='condition-select'
                 value={formData.condition}
                 onChange={e => handleInputChange('condition', e.target.value)}
                 className='block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500'
@@ -356,10 +378,14 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
             {/* Price Target or Percentage Change */}
             {formData.alertType === 'price' ? (
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='target-price'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Target Price ($)
                 </label>
                 <input
+                  id='target-price'
                   type='number'
                   step='0.01'
                   min='0'
@@ -372,10 +398,14 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
               </div>
             ) : (
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='percentage-change'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Percentage Change (%)
                 </label>
                 <input
+                  id='percentage-change'
                   type='number'
                   step='0.1'
                   value={formData.percentageChange}

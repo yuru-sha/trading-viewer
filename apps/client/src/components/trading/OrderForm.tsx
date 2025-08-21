@@ -80,7 +80,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
 
     if (errors.length > 0) return
 
-    const orderData: any = {
+    const orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'> = {
       symbol: symbol.toUpperCase(),
       side,
       quantity,
@@ -171,10 +171,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         {/* Symbol Input */}
         <div className='grid grid-cols-2 gap-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='symbol-input'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Symbol
             </label>
             <input
+              id='symbol-input'
               type='text'
               value={symbol}
               onChange={e => setSymbol(e.target.value.toUpperCase())}
@@ -191,10 +195,13 @@ export const OrderForm: React.FC<OrderFormProps> = ({
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <div
+              id='order-side-label'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Side
-            </label>
-            <div className='flex rounded-md shadow-sm'>
+            </div>
+            <div className='flex rounded-md shadow-sm' role='group' aria-labelledby='order-side-label'>
               <button
                 type='button'
                 onClick={() => setSide('buy')}
@@ -223,10 +230,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({
 
         {/* Order Type */}
         <div>
-          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+          <label
+            htmlFor='order-type-select'
+            className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+          >
             Order Type
           </label>
           <select
+            id='order-type-select'
             value={orderType}
             onChange={e => setOrderType(e.target.value as OrderType)}
             className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700'
@@ -245,10 +256,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         {/* Quantity */}
         <div className='grid grid-cols-2 gap-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='quantity-input'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Quantity
             </label>
             <input
+              id='quantity-input'
               type='number'
               value={quantity}
               onChange={e => setQuantity(Number(e.target.value))}
@@ -265,10 +280,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='time-in-force-select'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Time in Force
             </label>
             <select
+              id='time-in-force-select'
               value={timeInForce}
               onChange={e => setTimeInForce(e.target.value as 'day' | 'gtc')}
               className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700'
@@ -282,12 +301,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         {/* Price Fields based on Order Type */}
         {orderType === 'limit' && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='limit-price-input'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Limit Price
             </label>
             <div className='relative'>
               <span className='absolute left-3 top-2 text-gray-500'>$</span>
               <input
+                id='limit-price-input'
                 type='number'
                 value={price}
                 onChange={e => setPrice(Number(e.target.value))}
@@ -302,12 +325,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({
 
         {orderType === 'stop' && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='stop-price-input'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Stop Price
             </label>
             <div className='relative'>
               <span className='absolute left-3 top-2 text-gray-500'>$</span>
               <input
+                id='stop-price-input'
                 type='number'
                 value={stopPrice}
                 onChange={e => setStopPrice(Number(e.target.value))}
@@ -323,12 +350,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         {orderType === 'stop_limit' && (
           <div className='grid grid-cols-2 gap-4'>
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+              <label
+                htmlFor='stop-limit-stop-price-input'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+              >
                 Stop Price
               </label>
               <div className='relative'>
                 <span className='absolute left-3 top-2 text-gray-500'>$</span>
                 <input
+                  id='stop-limit-stop-price-input'
                   type='number'
                   value={stopPrice}
                   onChange={e => setStopPrice(Number(e.target.value))}
@@ -341,12 +372,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             </div>
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+              <label
+                htmlFor='stop-limit-limit-price-input'
+                className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+              >
                 Limit Price
               </label>
               <div className='relative'>
                 <span className='absolute left-3 top-2 text-gray-500'>$</span>
                 <input
+                  id='stop-limit-limit-price-input'
                   type='number'
                   value={limitPrice}
                   onChange={e => setLimitPrice(Number(e.target.value))}
@@ -362,12 +397,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({
 
         {orderType === 'trailing_stop' && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='trail-amount-input'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Trail Amount ($)
             </label>
             <div className='relative'>
               <span className='absolute left-3 top-2 text-gray-500'>$</span>
               <input
+                id='trail-amount-input'
                 type='number'
                 value={trailAmount}
                 onChange={e => setTrailAmount(Number(e.target.value))}

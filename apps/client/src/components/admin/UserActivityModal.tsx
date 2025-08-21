@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
@@ -73,13 +73,37 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
     { id: 'security', label: 'Security Events', count: securityEvents.length },
   ]
 
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchData()
+  const fetchLoginHistory = useCallback(async () => {
+    if (!userId) return
+    const response = await apiService.get<{ success: boolean; data: LoginHistory[] }>(
+      `/auth/users/${userId}/login-history?limit=50`
+    )
+    if (response.success) {
+      setLoginHistory(response.data)
     }
-  }, [isOpen, userId, activeTab])
+  }, [userId])
 
-  const fetchData = async () => {
+  const fetchActiveSessions = useCallback(async () => {
+    if (!userId) return
+    const response = await apiService.get<{ success: boolean; data: ActiveSession[] }>(
+      `/auth/users/${userId}/sessions`
+    )
+    if (response.success) {
+      setActiveSessions(response.data)
+    }
+  }, [userId])
+
+  const fetchSecurityEvents = useCallback(async () => {
+    if (!userId) return
+    const response = await apiService.get<{ success: boolean; data: SecurityEvent[] }>(
+      `/auth/users/${userId}/security-events?limit=50`
+    )
+    if (response.success) {
+      setSecurityEvents(response.data)
+    }
+  }, [userId])
+
+  const fetchData = useCallback(async () => {
     if (!userId) return
 
     try {
@@ -96,40 +120,19 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
           await fetchSecurityEvents()
           break
       }
-    } catch {
+    } catch (error) {
       console.error('Failed to fetch data:', error)
       showError('Failed to load user activity data')
     } finally {
       setLoading(false)
     }
-  }
+  }, [activeTab, fetchActiveSessions, fetchLoginHistory, fetchSecurityEvents, showError, userId])
 
-  const fetchLoginHistory = async () => {
-    const response = await apiService.get<{ success: boolean; data: LoginHistory[] }>(
-      `/auth/users/${userId}/login-history?limit=50`
-    )
-    if (response.success) {
-      setLoginHistory(response.data)
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchData()
     }
-  }
-
-  const fetchActiveSessions = async () => {
-    const response = await apiService.get<{ success: boolean; data: ActiveSession[] }>(
-      `/auth/users/${userId}/sessions`
-    )
-    if (response.success) {
-      setActiveSessions(response.data)
-    }
-  }
-
-  const fetchSecurityEvents = async () => {
-    const response = await apiService.get<{ success: boolean; data: SecurityEvent[] }>(
-      `/auth/users/${userId}/security-events?limit=50`
-    )
-    if (response.success) {
-      setSecurityEvents(response.data)
-    }
-  }
+  }, [isOpen, userId, activeTab, fetchData])
 
   const handleTerminateSession = async (sessionId: string) => {
     if (!window.confirm('Are you sure you want to terminate this session?')) {
@@ -141,7 +144,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/sessions/${sessionId}`)
       showSuccess('Session terminated successfully')
       fetchActiveSessions()
-    } catch {
+    } catch (error) {
       console.error('Failed to terminate session:', error)
       showError('Failed to terminate session')
     } finally {
@@ -159,7 +162,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/users/${userId}/sessions`)
       showSuccess('All sessions terminated successfully')
       fetchActiveSessions()
-    } catch {
+    } catch (error) {
       console.error('Failed to terminate all sessions:', error)
       showError('Failed to terminate all sessions')
     } finally {
@@ -184,7 +187,10 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
     return ipAddress
   }
 
-  const getDeviceInfo = (userAgent: string, deviceInfo?: any) => {
+  const getDeviceInfo = (
+    userAgent: string,
+    deviceInfo?: { browser: string; os: string; device: string }
+  ) => {
     if (deviceInfo) {
       return `${deviceInfo.browser} on ${deviceInfo.os}`
     }
@@ -385,7 +391,7 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'history' | 'sessions' | 'security')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'

@@ -1,4 +1,4 @@
-import React, { useState, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react'
+import React, { useState, useImperativeHandle, forwardRef } from 'react'
 import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
@@ -11,7 +11,6 @@ interface LeftDrawingToolbarProps {
   onToggleObjectVisibility?: (id: string) => void
   onRemoveObject?: (id: string) => void
   onChangeObjectColor?: (id: string, color: string) => void
-  onCloseObjectsPanel?: () => void
   className?: string
 }
 
@@ -28,7 +27,6 @@ export const LeftDrawingToolbar = forwardRef<LeftDrawingToolbarRef, LeftDrawingT
       onToggleObjectVisibility,
       onRemoveObject,
       onChangeObjectColor,
-      onCloseObjectsPanel,
       className = '',
     },
     ref

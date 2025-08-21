@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useApp, useAppActions } from '../../contexts/AppContext'
 import { useAuth } from '../../contexts/AuthContext'
 import Icon from '../Icon'

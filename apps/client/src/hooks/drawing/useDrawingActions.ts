@@ -3,10 +3,16 @@ import type {
   DrawingTool,
   DrawingToolType,
   DrawingMode,
-  DrawingStyle,
   DrawingPoint,
 } from '@trading-viewer/shared'
+import type { ECharts } from 'echarts'
+import type { PriceData } from '../../utils/indicators'
 import type { DrawingAction, DrawingState } from './useDrawingState'
+
+interface ChartMouseEvent {
+  timestamp: number;
+  price: number;
+}
 
 /**
  * Hook for drawing tool actions and operations
@@ -72,7 +78,7 @@ export const useDrawingActions = (
 
   // Start drawing operation
   const startDrawing = useCallback(
-    (event: any) => {
+    (event: ChartMouseEvent) => {
       console.log('🎯 startDrawing called with event:', event)
 
       if (!state.activeToolType) {
@@ -114,7 +120,7 @@ export const useDrawingActions = (
 
   // Update drawing in progress
   const updateDrawing = useCallback(
-    (event: any) => {
+    (event: ChartMouseEvent) => {
       console.log('🎯 updateDrawing called:', {
         isDrawing: state.isDrawing,
         hasCurrentDrawing: !!currentDrawingRef.current,
@@ -282,7 +288,7 @@ export const useDrawingActions = (
 
   // Update drag position - ドラッグ中のリアルタイム座標更新
   const updateDrag = useCallback(
-    (x: number, y: number, chartInstance?: any, data?: any) => {
+    (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
       console.log('🎯 updateDrag called:', {
         x,
         y,
@@ -388,7 +394,7 @@ export const useDrawingActions = (
 
   // End dragging and apply changes
   const endDrag = useCallback(
-    (event: any, currentTool?: DrawingTool | null) => {
+    (event: ChartMouseEvent, currentTool?: DrawingTool | null) => {
       console.log('🎯 endDrag called:', event)
 
       // If called with null tool, just reset state (for simple clicks that didn't become drags)

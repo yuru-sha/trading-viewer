@@ -12,7 +12,7 @@ interface UseAlertsOptions {
 export const useAlerts = ({
   symbol,
   currentPrice,
-  checkInterval = 5000, // Check every 5 seconds
+  checkInterval: _checkInterval = 5000, // Check every 5 seconds
   onAlertTriggered,
 }: UseAlertsOptions) => {
   const [alerts, setAlerts] = useState<PriceAlert[]>([])

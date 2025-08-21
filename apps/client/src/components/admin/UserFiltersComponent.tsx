@@ -39,10 +39,14 @@ const UserFiltersComponent: React.FC<UserFiltersComponentProps> = ({
         <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>Basic Filters</h2>
         <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='search-basic-filter'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Search
             </label>
             <input
+              id='search-basic-filter'
               type='text'
               value={filters.search}
               onChange={e => onFilterChange('search', e.target.value)}
@@ -51,10 +55,14 @@ const UserFiltersComponent: React.FC<UserFiltersComponentProps> = ({
             />
           </div>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='role-basic-filter'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Role
             </label>
             <select
+              id='role-basic-filter'
               value={filters.role}
               onChange={e => onFilterChange('role', e.target.value)}
               className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -65,10 +73,14 @@ const UserFiltersComponent: React.FC<UserFiltersComponentProps> = ({
             </select>
           </div>
           <div>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+            <label
+              htmlFor='status-basic-filter'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+            >
               Status
             </label>
             <select
+              id='status-basic-filter'
               value={filters.status}
               onChange={e => onFilterChange('status', e.target.value)}
               className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'

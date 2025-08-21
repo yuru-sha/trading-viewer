@@ -1,13 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type {
   ICommand,
-  ICommandInvoker,
   CommandResult,
   CommandHistoryEntry,
+  DrawingCommandParams,
+  ChartSettingsParams,
 } from '@trading-viewer/shared'
 import { CommandInvoker } from '../commands/CommandInvoker'
 import { commandFactory } from '../commands/CommandFactory'
 import { useError } from '../contexts/ErrorContext'
+import { useDrawingTools } from './drawing'
+import { IChartContext } from '../commands/ChartCommands'
 
 /**
  * Command System Hook Configuration
@@ -114,7 +117,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
         }
 
         return result
-      } catch {
+      } catch (error: unknown) {
         const errorResult: CommandResult<T> = {
           success: false,
           error: 'Operation failed',
@@ -339,7 +342,7 @@ export function useSimpleCommands() {
 /**
  * Hook for drawing commands specifically
  */
-export function useDrawingCommands(drawingContext: any) {
+export function useDrawingCommands(drawingContext: ReturnType<typeof useDrawingTools>) {
   const commandSystem = useCommandSystem()
 
   // Register drawing context
@@ -348,7 +351,7 @@ export function useDrawingCommands(drawingContext: any) {
   }, [drawingContext])
 
   const createDrawing = useCallback(
-    (params: any) => {
+    (params: DrawingCommandParams) => {
       const command = commandSystem.createCommand('CREATE_DRAWING', params)
       return commandSystem.execute(command)
     },
@@ -356,7 +359,7 @@ export function useDrawingCommands(drawingContext: any) {
   )
 
   const updateDrawing = useCallback(
-    (id: string, properties: any) => {
+    (id: string, properties: Record<string, unknown>) => {
       const command = commandSystem.createCommand('UPDATE_DRAWING', { id, properties })
       return commandSystem.execute(command)
     },
@@ -382,7 +385,7 @@ export function useDrawingCommands(drawingContext: any) {
 /**
  * Hook for chart commands specifically
  */
-export function useChartCommands(chartContext: any) {
+export function useChartCommands(chartContext: IChartContext) {
   const commandSystem = useCommandSystem()
 
   // Register chart context
@@ -391,7 +394,7 @@ export function useChartCommands(chartContext: any) {
   }, [chartContext])
 
   const updateChartSettings = useCallback(
-    (settings: any) => {
+    (settings: ChartSettingsParams) => {
       const command = commandSystem.createCommand('UPDATE_CHART_SETTINGS', settings)
       return commandSystem.execute(command)
     },
@@ -399,7 +402,7 @@ export function useChartCommands(chartContext: any) {
   )
 
   const addIndicator = useCallback(
-    (type: string, params: any) => {
+    (type: string, params: Record<string, unknown>) => {
       const command = commandSystem.createCommand('ADD_INDICATOR', { type, params })
       return commandSystem.execute(command)
     },

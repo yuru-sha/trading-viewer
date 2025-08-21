@@ -1,5 +1,6 @@
 import React, { useEffect, forwardRef, useImperativeHandle } from 'react'
 import ReactECharts from 'echarts-for-react'
+import { GraphicComponentOption } from 'echarts/components'
 import { useApp } from '../../contexts/AppContext'
 import { PriceData } from '../../utils/indicators'
 import { getCompanyName } from '../../data/symbolMapping'
@@ -8,7 +9,11 @@ import { useChartInstance } from '../../hooks/useChartInstance'
 import { useChartData } from '../../hooks/useChartData'
 import { useChartEvents } from '../../hooks/useChartEvents'
 import { useChartOptions } from '../../hooks/useChartOptions'
-import { UserIndicator } from '@trading-viewer/shared'
+import { UserIndicator, DrawingTool } from '@trading-viewer/shared'
+
+export interface EChartsTradingChartRef {
+  takeScreenshot: (filename?: string) => void
+}
 
 interface EChartsTradingChartProps {
   data: PriceData[]
@@ -38,7 +43,7 @@ interface EChartsTradingChartProps {
   }
 }
 
-export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
+export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTradingChartProps>(
   (
     {
       data,
@@ -132,7 +137,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
         return []
       }
 
-      const elements: any[] = []
+      const elements: GraphicComponentOption[] = []
       const visibleTools = drawingTools.tools.filter(tool => tool.visible !== false)
 
       // プレビュー描画を表示（描画中の場合）
@@ -258,24 +263,20 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
                 }
               }
             }
-          } catch {
+          } catch (error) {
             console.error('🎨 Failed to convert coordinates for preview:', error)
           }
         }
       }
 
       // 完成した描画ツールを表示
-      visibleTools.forEach((tool: any) => {
+      visibleTools.forEach((tool: DrawingTool) => {
         if (chartInstance.chartRef.current) {
           const chart = chartInstance.chartRef.current.getEchartsInstance()
           if (!chart) return
 
           // 選択中のツールかどうか判定
           const isSelected = drawingTools?.selectedToolId === tool.id
-
-          // ドラッグ中のツールかどうか判定
-          const isDraggingThisTool =
-            drawingTools?.isDragging && drawingTools?.dragState?.toolId === tool.id
 
           try {
             // Trendline の処理
@@ -570,7 +571,7 @@ export const EChartsTradingChart = forwardRef<any, EChartsTradingChartProps>(
                 }
               }
             }
-          } catch {
+          } catch (error) {
             console.error(`🎨 Failed to convert coordinates for ${tool.type}:`, error)
           }
         }

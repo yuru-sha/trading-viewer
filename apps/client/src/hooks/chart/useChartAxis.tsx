@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import type { ChartData, PriceStats } from '../useChartData'
+import type { YAXisComponentOption, XAXisComponentOption } from 'echarts/components'
+import type { PriceStats } from '../useChartData'
 
 /**
  * チャート軸設定フック
@@ -44,7 +45,7 @@ function calculateNiceBounds(
 }
 
 // Y 軸設定生成
-function generateYAxisConfig(priceStats: PriceStats | null, config: AxisConfig): any[] {
+function generateYAxisConfig(priceStats: PriceStats | null, config: AxisConfig): YAXisComponentOption[] {
   const isDarkMode = config.theme === 'dark'
   const baseAxisStyle = {
     axisLine: {
@@ -168,7 +169,7 @@ function generateYAxisConfig(priceStats: PriceStats | null, config: AxisConfig):
 }
 
 // X 軸設定生成
-function generateXAxisConfig(config: AxisConfig): any {
+function generateXAxisConfig(config: AxisConfig): XAXisComponentOption {
   const isDarkMode = config.theme === 'dark'
 
   return {

@@ -27,8 +27,13 @@ export interface ErrorClassification {
 
 // エラー分類器
 export const classifyError = (error: unknown): ErrorClassification => {
+  const errorLike = error as {
+    code?: string
+    message?: string
+    response?: { status: number; data?: { message?: string; error?: string } }
+  }
   // Network errors
-  if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('fetch')) {
+  if (errorLike?.code === 'NETWORK_ERROR' || errorLike?.message?.includes('fetch')) {
     return {
       category: 'network',
       severity: 'medium',
@@ -39,8 +44,8 @@ export const classifyError = (error: unknown): ErrorClassification => {
   }
 
   // HTTP errors
-  if (error?.response?.status) {
-    const status = error.response.status
+  if (errorLike?.response?.status) {
+    const status = errorLike.response.status
 
     switch (status) {
       case 401:
@@ -55,8 +60,8 @@ export const classifyError = (error: unknown): ErrorClassification => {
       case 403:
         // CSRF errors are recoverable
         if (
-          error.response.data?.message?.includes('CSRF') ||
-          error.response.data?.error?.includes('CSRF')
+          errorLike.response.data?.message?.includes('CSRF') ||
+          errorLike.response.data?.error?.includes('CSRF')
         ) {
           return {
             category: 'csrf',
@@ -221,7 +226,7 @@ export class ErrorRecoveryManager {
   private retryAttempts = new Map<string, number>()
   private maxRetries = 3
 
-  async attemptRecovery(error: any, _context?: string): Promise<boolean> {
+  async attemptRecovery(error: unknown, _context?: string): Promise<boolean> {
     const classification = classifyError(error)
 
     if (!classification.isRecoverable) {
@@ -307,7 +312,7 @@ export const errorRecoveryManager = new ErrorRecoveryManager()
 export interface ErrorReport {
   id: string
   timestamp: Date
-  error: any
+  error: unknown
   classification: ErrorClassification
   context?: string
   userAgent: string
@@ -317,26 +322,37 @@ export interface ErrorReport {
   recoverySuccessful?: boolean
 }
 
-export const createErrorReport = (error: any, context?: string, userId?: string): ErrorReport => ({
-  id: crypto.randomUUID(),
-  timestamp: new Date(),
-  error: {
-    message: error?.message || 'Unknown error',
-    stack: error?.stack,
-    response: error?.response
-      ? {
-          status: error.response.status,
-          data: error.response.data,
-        }
-      : undefined,
-  },
-  classification: classifyError(error),
-  context,
-  userAgent: navigator.userAgent,
-  url: window.location.href,
-  userId,
-  recoveryAttempted: false,
-})
+export const createErrorReport = (
+  error: unknown,
+  context?: string,
+  userId?: string
+): ErrorReport => {
+  const errorLike = error as {
+    message?: string
+    stack?: string
+    response?: { status: number; data: unknown }
+  }
+  return {
+    id: crypto.randomUUID(),
+    timestamp: new Date(),
+    error: {
+      message: errorLike?.message || 'Unknown error',
+      stack: errorLike?.stack,
+      response: errorLike?.response
+        ? {
+            status: errorLike.response.status,
+            data: errorLike.response.data,
+          }
+        : undefined,
+    },
+    classification: classifyError(error),
+    context,
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+    userId,
+    recoveryAttempted: false,
+  }
+}
 
 // エラーレポートの送信（将来的にサーバーに送信する場合）
 export const reportError = async (report: ErrorReport): Promise<void> => {

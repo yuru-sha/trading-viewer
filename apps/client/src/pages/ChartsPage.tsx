@@ -31,7 +31,6 @@ const ChartsPageContent: React.FC = () => {
     setShowFooter,
     watchlistState,
     watchlistActions,
-    alertState,
     alertActions,
     takeScreenshot,
     saveTemplate,

@@ -3,7 +3,7 @@ import { Button, Input, Loading } from '@trading-viewer/ui'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
-import { formatPrice, getCurrencySymbol } from '../utils/currency'
+import { getCurrencySymbol } from '../utils/currency'
 
 interface SearchResult {
   description: string
@@ -16,7 +16,7 @@ interface SearchResult {
 
 const SearchPage: React.FC = () => {
   const { state } = useApp()
-  const { setSelectedSymbol, setError, addToWatchlist, removeFromWatchlist } = useAppActions()
+  const { setError } = useAppActions()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ const SearchPage: React.FC = () => {
       if (response.success && response.data?.watchlist) {
         setWatchlistItems(response.data.watchlist)
       }
-    } catch {
+    } catch (error) {
       console.error('Error fetching watchlist:', error)
     }
   }
@@ -49,7 +49,7 @@ const SearchPage: React.FC = () => {
       } else {
         setError(`Failed to remove ${symbol} from watchlist`)
       }
-    } catch {
+    } catch (error) {
       console.error('Error removing from watchlist:', error)
       setError(error instanceof Error ? error.message : 'Failed to remove from watchlist')
     }
@@ -69,7 +69,7 @@ const SearchPage: React.FC = () => {
       const results = await api.market.searchSymbols({ q: query, limit: 20 })
       setSearchResults(results.symbols || [])
       setHasSearched(true)
-    } catch {
+    } catch (error) {
       console.error('Search failed:', error)
       setError(error instanceof Error ? error.message : 'Search failed')
       setSearchResults([])
@@ -96,12 +96,12 @@ const SearchPage: React.FC = () => {
       } else {
         setError(`Failed to add ${symbol} to watchlist`)
       }
-    } catch {
+    } catch (error) {
       console.error('Error adding to watchlist:', error)
 
       // 409 Conflict (既に存在) の場合は情報メッセージとして扱う
       if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as any
+        const apiError = error as { response?: { status?: number } }
         if (apiError.response?.status === 409) {
           console.log(`${symbol} is already in watchlist`)
           // 既に追加済みの場合はエラーではなく、リストを更新するだけ

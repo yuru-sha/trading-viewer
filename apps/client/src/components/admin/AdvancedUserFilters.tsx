@@ -175,20 +175,28 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
             </h3>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='search-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Search
                 </label>
                 <Input
+                  id='search-filter'
                   value={filters.search}
                   onChange={e => handleFilterChange('search', e.target.value)}
                   placeholder='Name, email, or ID...'
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='role-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Role
                 </label>
                 <select
+                  id='role-filter'
                   value={filters.role}
                   onChange={e => handleFilterChange('role', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -199,10 +207,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='status-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Status
                 </label>
                 <select
+                  id='status-filter'
                   value={filters.status}
                   onChange={e => handleFilterChange('status', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -213,10 +225,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='email-verified-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Email Verified
                 </label>
                 <select
+                  id='email-verified-filter'
                   value={filters.emailVerified}
                   onChange={e => handleFilterChange('emailVerified', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -236,10 +252,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
             </h3>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='department-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Department
                 </label>
                 <select
+                  id='department-filter'
                   value={filters.department}
                   onChange={e => handleFilterChange('department', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -260,40 +280,56 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
             <h3 className='text-md font-medium text-gray-900 dark:text-white mb-3'>Date Filters</h3>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='last-login-from-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Last Login From
                 </label>
                 <Input
+                  id='last-login-from-filter'
                   type='date'
                   value={filters.lastLoginStart}
                   onChange={e => handleFilterChange('lastLoginStart', e.target.value)}
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='last-login-to-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Last Login To
                 </label>
                 <Input
+                  id='last-login-to-filter'
                   type='date'
                   value={filters.lastLoginEnd}
                   onChange={e => handleFilterChange('lastLoginEnd', e.target.value)}
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='created-from-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Created From
                 </label>
                 <Input
+                  id='created-from-filter'
                   type='date'
                   value={filters.createdStart}
                   onChange={e => handleFilterChange('createdStart', e.target.value)}
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='created-to-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Created To
                 </label>
                 <Input
+                  id='created-to-filter'
                   type='date'
                   value={filters.createdEnd}
                   onChange={e => handleFilterChange('createdEnd', e.target.value)}
@@ -309,11 +345,15 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
             </h3>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='failed-login-count-value-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Failed Login Count
                 </label>
                 <div className='flex space-x-2'>
                   <select
+                    id='failed-login-count-operator-filter'
                     value={filters.failedLoginCount.operator}
                     onChange={e => handleFailedLoginCountChange('operator', e.target.value)}
                     className='w-20 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm'
@@ -323,6 +363,7 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                     <option value='eq'>{'='}</option>
                   </select>
                   <Input
+                    id='failed-login-count-value-filter'
                     type='number'
                     value={filters.failedLoginCount.value || ''}
                     onChange={e =>
@@ -337,10 +378,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </div>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='account-locked-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Account Locked
                 </label>
                 <select
+                  id='account-locked-filter'
                   value={filters.isLocked}
                   onChange={e => handleFilterChange('isLocked', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -351,10 +396,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='has-active-session-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Has Active Session
                 </label>
                 <select
+                  id='has-active-session-filter'
                   value={filters.hasActiveSession}
                   onChange={e => handleFilterChange('hasActiveSession', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -374,10 +423,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
             </h3>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='timezone-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Timezone
                 </label>
                 <select
+                  id='timezone-filter'
                   value={filters.timezone}
                   onChange={e => handleFilterChange('timezone', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
@@ -391,10 +444,14 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label
+                  htmlFor='language-filter'
+                  className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
+                >
                   Language
                 </label>
                 <select
+                  id='language-filter'
                   value={filters.language}
                   onChange={e => handleFilterChange('language', e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'

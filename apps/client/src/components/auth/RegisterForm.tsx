@@ -75,6 +75,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
 
     setIsSubmitting(true)
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = formData
       await register(registerData)
       showSuccess('アカウントが正常に作成されました')

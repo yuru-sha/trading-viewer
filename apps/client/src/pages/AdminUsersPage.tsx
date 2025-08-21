@@ -98,20 +98,6 @@ const AdminUsersPage: React.FC = () => {
     },
   })
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='text-center'>
-          <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
-          <p className='text-gray-600 dark:text-gray-300'>
-            You need administrator privileges to access this page.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   const fetchUsers = async () => {
     try {
       setLoading(true)
@@ -144,7 +130,7 @@ const AdminUsersPage: React.FC = () => {
         setUsers(response.data.users)
         setPagination(response.data.pagination)
       }
-    } catch {
+    } catch (error) {
       console.error('Failed to fetch users:', error)
       showError('Failed to load users')
     } finally {
@@ -158,15 +144,17 @@ const AdminUsersPage: React.FC = () => {
       if (response.success) {
         setStats(response.data)
       }
-    } catch {
+    } catch (error) {
       console.error('Failed to fetch stats:', error)
     }
   }
 
   useEffect(() => {
-    fetchUsers()
-    fetchStats()
-  }, [pagination.page, filters, advancedFilters])
+    if (user?.role === 'admin') {
+      fetchUsers()
+      fetchStats()
+    }
+  }, [user, pagination.page, filters, advancedFilters])
 
   const handleUserAction = async (
     userId: string,
@@ -177,7 +165,7 @@ const AdminUsersPage: React.FC = () => {
     setActionLoading(userId)
     try {
       let endpoint: string
-      let data: any
+      let data: { isActive: boolean } | { role: string } | Record<string, never>
 
       switch (action) {
         case 'activate':
@@ -211,7 +199,7 @@ const AdminUsersPage: React.FC = () => {
       showSuccess(`User ${action}d successfully`)
       fetchUsers()
       fetchStats()
-    } catch {
+    } catch (error) {
       console.error(`Failed to ${action} user:`, error)
       showError(`Failed to ${action} user`)
     } finally {
@@ -323,6 +311,20 @@ const AdminUsersPage: React.FC = () => {
       ...prev,
       jsonModal: true,
     }))
+  }
+
+  // Redirect if not admin
+  if (user?.role !== 'admin') {
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='text-center'>
+          <h1 className='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
+          <p className='text-gray-600 dark:text-gray-300'>
+            You need administrator privileges to access this page.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

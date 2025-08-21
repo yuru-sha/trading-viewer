@@ -310,7 +310,6 @@ const LoginPage: React.FC = () => {
                     setIsLogin(true)
                   }}
                   className='p-3 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-left'
-                  role='button'
                   aria-label='Auto-fill with test account'
                 >
                   <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
@@ -326,7 +325,6 @@ const LoginPage: React.FC = () => {
                     setIsLogin(true)
                   }}
                   className='p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left border border-blue-200 dark:border-blue-800'
-                  role='button'
                   aria-label='Auto-fill with admin account'
                 >
                   <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>
@@ -393,7 +391,7 @@ const LoginPage: React.FC = () => {
                 Reset Password
               </h2>
               <p className='text-gray-600 dark:text-gray-400'>
-                Enter your email address and we'll send you a reset link
+                Enter your email address and we&apos;ll send you a reset link
               </p>
             </div>
 
