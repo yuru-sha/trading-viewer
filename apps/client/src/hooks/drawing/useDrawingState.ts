@@ -4,7 +4,6 @@ import type {
   DrawingToolType,
   DrawingMode,
   DrawingStyle,
-  DrawingPoint,
 } from '@trading-viewer/shared'
 
 // Drawing state types
@@ -194,7 +193,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
         isDrawing: false,
       }
 
-    case 'MOUSE_DOWN':
+    case 'MOUSE_DOWN': {
       console.log('🎯 MOUSE_DOWN reducer processing:', action.payload)
       const newState = {
         ...state,
@@ -211,6 +210,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
         dragState: newState.dragState,
       })
       return newState
+    }
 
     case 'START_DRAG':
       return {

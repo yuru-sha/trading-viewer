@@ -42,7 +42,6 @@ export class ApiService {
       headers = {},
       timeout = this.defaultTimeout,
       retries = 0,
-      _requiresAuth = true,
       requiresCSRF = false,
       ...requestOptions
     } = options

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@trading-viewer/ui'
 import Icon from '../components/Icon'
 import { useAuth } from '../contexts/AuthContext'
-import { apiClient } from '../lib/apiClient'
 import CreateAlertModal from '../components/alerts/CreateAlertModal'
 import { formatPrice } from '../utils/currency'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -46,8 +45,10 @@ const AlertsPage: React.FC = () => {
       const response = await requestWithAuth('/api/alerts')
       const data = await response.json()
       setAlerts(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch alerts')
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message || 'Failed to fetch alerts' : 'Failed to fetch alerts'
+      )
     } finally {
       setLoading(false)
     }
@@ -78,10 +79,9 @@ const AlertsPage: React.FC = () => {
       )
 
       setError(null)
-    } catch (err: any) {
-      setError(
-        err.message || `Failed to ${newEnabled ? 'enable' : 'disable'} alert for ${alert.symbol}`
-      )
+    } catch (err) {
+      const fallback = `Failed to ${newEnabled ? 'enable' : 'disable'} alert for ${alert.symbol}`
+      setError(err instanceof Error ? err.message || fallback : fallback)
     } finally {
       setTogglingAlertId(null)
     }
@@ -97,8 +97,9 @@ const AlertsPage: React.FC = () => {
       setAlerts(prev => prev.filter(a => a.id !== alert.id))
       setError(null)
       setDeleteConfirm(null)
-    } catch (err: any) {
-      setError(err.message || `Failed to delete alert for ${alert.symbol}`)
+    } catch (err) {
+      const fallback = `Failed to delete alert for ${alert.symbol}`
+      setError(err instanceof Error ? err.message || fallback : fallback)
     } finally {
       setDeletingAlertId(null)
     }
@@ -154,7 +155,7 @@ const AlertsPage: React.FC = () => {
             method: 'DELETE',
           })
           return { success: true, alertId }
-        } catch (err) {
+        } catch {
           failedDeletes.push(alertId)
           return { success: false, alertId }
         }
@@ -173,7 +174,7 @@ const AlertsPage: React.FC = () => {
       } else {
         setError(null)
       }
-    } catch (err: any) {
+    } catch {
       setError('Failed to delete selected alerts')
     } finally {
       setBulkDeleting(false)

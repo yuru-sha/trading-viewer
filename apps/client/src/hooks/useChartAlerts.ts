@@ -11,7 +11,7 @@ interface AlertActions {
   handleAlertSuccess: () => void
 }
 
-export const useChartAlerts = (currentSymbol: string): [AlertState, AlertActions] => {
+export const useChartAlerts = (_currentSymbol: string): [AlertState, AlertActions] => {
   const { isAuthenticated } = useAuth()
   const [showCreateAlertModal, setShowCreateAlertModal] = useState(false)
 

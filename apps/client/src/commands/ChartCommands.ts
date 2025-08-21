@@ -26,7 +26,7 @@ interface IndicatorConfig {
 /**
  * Chart Context Interface
  */
-interface IChartContext {
+export interface IChartContext {
   getChartState(): ChartState
   updateChartSettings(settings: Partial<ChartState>): void
   addIndicator(config: IndicatorConfig): string

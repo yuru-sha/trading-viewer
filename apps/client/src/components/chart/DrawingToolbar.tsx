@@ -174,7 +174,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Color Selection */}
         <div className='mb-3'>
-          <label className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>Color</label>
+          <div className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>Color</div>
           <div className='flex space-x-1'>
             {colorOptions.map(color => (
               <button
@@ -194,9 +194,9 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
         {/* Thickness Selection */}
         <div className='mb-3'>
-          <label className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
+          <div className='block text-xs text-gray-700 dark:text-gray-300 mb-1'>
             Thickness: {defaultStyle.thickness}px
-          </label>
+          </div>
           <div className='flex space-x-1'>
             {thicknessOptions.map(thickness => (
               <button

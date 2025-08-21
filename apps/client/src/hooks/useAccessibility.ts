@@ -24,21 +24,20 @@ export interface UseAccessibilityResult {
   prefersHighContrast: boolean
 
   // Skip links
-  skipLinkRef: React.RefObject<HTMLAnchorElement>
+  skipLinkRef: React.MutableRefObject<HTMLAnchorElement | null>
 
   // Live region for announcements
-  liveRegionRef: React.RefObject<HTMLDivElement>
+  liveRegionRef: React.MutableRefObject<HTMLDivElement | null>
 }
 
 export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessibilityResult => {
   const {
-    announcePageChanges = true,
     focusManagement = true,
     reducedMotion = true,
     highContrast = true,
   } = options
 
-  const liveRegionRef = useRef<HTMLDivElement>(null)
+  const liveRegionRef = useRef<HTMLDivElement | null>(null)
   const skipLinkRef = useRef<HTMLAnchorElement>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
 
@@ -58,7 +57,7 @@ export const useAccessibility = (options: AccessibilityOptions = {}): UseAccessi
       liveRegion.style.height = '1px'
       liveRegion.style.overflow = 'hidden'
       document.body.appendChild(liveRegion)
-      ;(liveRegionRef as any).current = liveRegion
+      liveRegionRef.current = liveRegion
     }
 
     return () => {

@@ -94,7 +94,7 @@ export const OptimizedChartContainer = memo(
         currentPrice,
         isLoading = false,
         isRealTime = false,
-        onSymbolChange,
+        onSymbolChange: _onSymbolChange,
         className = '',
         chartType = 'candle',
         timeframe = '1D',
@@ -130,7 +130,7 @@ export const OptimizedChartContainer = memo(
       }, [currentPrice, processedData])
 
       // Chart data manager with memoization
-      const _dataManager = useChartDataManager({
+      useChartDataManager({
         symbol,
         data: processedData,
         timeframe,
@@ -138,7 +138,7 @@ export const OptimizedChartContainer = memo(
       })
 
       // Chart rendering manager with performance optimizations
-      const _renderingManager = useChartRendering({
+      useChartRendering({
         chartType,
         showGridlines,
         showPeriodHigh,
