@@ -233,7 +233,7 @@ export const createTradingViewerOnboarding = (): OnboardingStep[] => [
     title: 'You&apos;re all set!',
     content: (
       <div>
-        <p className='mb-3'>🎉 Congratulations! You've completed the TradingViewer tour.</p>
+        <p className='mb-3'>🎉 Congratulations! You&apos;ve completed the TradingViewer tour.</p>
         <div className='bg-green-50 dark:bg-green-900 p-3 rounded-md text-xs'>
           <strong>Next steps:</strong>
           <ul className='list-disc list-inside mt-2 space-y-1'>
