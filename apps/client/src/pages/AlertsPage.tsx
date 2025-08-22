@@ -181,6 +181,9 @@ const AlertsPage: React.FC = () => {
     }
   }
 
+  // Calculate active alerts count
+  const activeAlertsCount = alerts.filter(alert => alert.enabled && !alert.triggeredAt).length
+
   // Group alerts by symbol (always grouped)
   const groupedAlerts = alerts.reduce(
     (groups, alert) => {
@@ -346,7 +349,7 @@ const AlertsPage: React.FC = () => {
       <div className='mb-8'>
         <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Price Alerts</h1>
         <p className='mt-2 text-gray-600 dark:text-gray-400'>
-          {alerts.length} alert{alerts.length !== 1 ? 's' : ''} active
+          {activeAlertsCount} alert{activeAlertsCount !== 1 ? 's' : ''} active
         </p>
       </div>
 
