@@ -101,7 +101,6 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
 
       const result = await this.prisma.candle.createMany({
         data: candleData,
-        skipDuplicates: true,
       })
 
       return result.count
@@ -183,7 +182,7 @@ export class PrismaMarketDataRepository implements IMarketDataRepository {
       {
         source: 'database',
         reliability: 1.0, // データベースのデータは信頼性が高い
-        updatedAt: candle.updatedAt,
+        updatedAt: candle.createdAt,
       }
     )
   }

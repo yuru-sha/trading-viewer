@@ -43,7 +43,7 @@ interface ImportUser {
   isActive?: boolean
 }
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 
 // POST /api/auth/users/import (admin only)
 router.post(
@@ -162,7 +162,7 @@ router.post(
 
     // Log import operation
     securityLogger.log({
-      type: SecurityEventType.BULK_USER_IMPORT,
+      eventType: SecurityEventType.BULK_USER_IMPORT,
       severity: SecuritySeverity.INFO,
       message: 'Bulk user import completed',
       userId: adminUserId,
@@ -193,32 +193,20 @@ router.get(
     const adminUserId = req.user!.userId
     const { format = 'json', includeInactive = 'false' } = req.query
 
-    // Build where clause
-    const where: any = {}
+    // Build filter
+    const filter: any = {}
     if (includeInactive === 'false') {
-      where.isActive = true
+      filter.isActive = true
     }
 
     // Get users
-    const users = await userRepository.findMany({
-      where,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-        isEmailVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
+    const users = await userRepository.findMany(filter, {
+      orderBy: [{ createdAt: 'desc' }],
     })
 
     // Log export operation
     securityLogger.log({
-      type: SecurityEventType.USER_DATA_EXPORT,
+      eventType: SecurityEventType.USER_DATA_EXPORT,
       severity: SecuritySeverity.WARNING,
       message: 'User data exported by admin',
       userId: adminUserId,
@@ -309,9 +297,7 @@ router.post(
 
     for (const userId of userIds) {
       try {
-        const user = await userRepository.findById(userId, {
-          select: { id: true, email: true, role: true, isActive: true },
-        })
+        const user = await userRepository.findById(userId)
 
         if (!user) {
           results.errors.push({
@@ -355,7 +341,7 @@ router.post(
 
     // Log bulk action
     securityLogger.log({
-      type: SecurityEventType.BULK_USER_ACTION,
+      eventType: SecurityEventType.BULK_USER_ACTION,
       severity: SecuritySeverity.WARNING,
       message: `Bulk ${action} action performed by admin`,
       userId: adminUserId,

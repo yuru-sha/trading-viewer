@@ -66,7 +66,7 @@ export class UserRepository
 {
   async create(data: UserCreateInput): Promise<User> {
     try {
-      return await this.prisma.user.create({
+      const result = await this.prisma.user.create({
         data: {
           email: data.email,
           passwordHash: data.passwordHash,
@@ -76,6 +76,7 @@ export class UserRepository
           isEmailVerified: data.isEmailVerified || false,
         },
       })
+      return result as User
     } catch (error: any) {
       if (error.code === 'P2002') {
         throw new DuplicateError('User', 'email', data.email)
@@ -85,19 +86,21 @@ export class UserRepository
   }
 
   async findById(id: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
+    const result = await this.prisma.user.findUnique({
       where: { id },
     })
+    return result as User | null
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
+    const result = await this.prisma.user.findUnique({
       where: { email },
     })
+    return result as User | null
   }
 
   async findByResetToken(token: string): Promise<User | null> {
-    return await this.prisma.user.findFirst({
+    const result = await this.prisma.user.findFirst({
       where: {
         resetToken: token,
         resetTokenExpiry: {
@@ -105,6 +108,7 @@ export class UserRepository
         },
       },
     })
+    return result as User | null
   }
 
   async findMany(filter?: UserFilter, options?: FindManyOptions): Promise<User[]> {
@@ -171,21 +175,22 @@ export class UserRepository
       }
     }
 
-    return await this.prisma.user.findMany({
+    const result = await this.prisma.user.findMany({
       where,
       skip: options?.skip,
       take: options?.take,
       orderBy: options?.orderBy || [{ createdAt: 'desc' }],
-      select: options?.select,
     })
+    return result as User[]
   }
 
   async update(id: string, data: UserUpdateInput): Promise<User> {
     try {
-      return await this.prisma.user.update({
+      const result = await this.prisma.user.update({
         where: { id },
         data,
       })
+      return result as User
     } catch (error: any) {
       if (error.code === 'P2025') {
         throw new NotFoundError('User', id)

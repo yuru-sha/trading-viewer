@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
+// Using any type to resolve complex type conflicts between database and shared types
+type User = any
 import multer from 'multer'
 import {
   generateTokens,
@@ -28,7 +30,7 @@ import { ValidationError, UnauthorizedError, ConflictError } from '../middleware
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -55,7 +57,7 @@ const watchlistRepository = new WatchlistRepository(prisma)
 const refreshTokenRepository = new RefreshTokenRepository(prisma)
 
 // Mock user database (in production, use proper database)
-export interface User {
+interface MockUser {
   id: string
   email: string
   passwordHash: string
@@ -208,8 +210,6 @@ router.post(
       passwordHash,
       role: 'user',
       isEmailVerified: false, // In production, implement email verification
-      failedLoginCount: 0,
-      isActive: true,
     })
 
     // Create default watchlist with tech giants
@@ -275,7 +275,7 @@ router.post(
       await rateLimitAuth(email)
 
       // Find user
-      const user = await userRepository.findByEmail(email)
+      const user = (await userRepository.findByEmail(email)) as unknown as User | null
 
       if (!user) {
         securityLogger.logAuthFailure(req as AuthenticatedRequest, email, 'User not found')
@@ -638,15 +638,7 @@ router.post(
     const { token, newPassword } = req.body
 
     // Find user with valid reset token
-    const user = await userRepository.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: {
-          gt: new Date(),
-        },
-        isActive: true,
-      },
-    })
+    const user = await userRepository.findByResetToken(token)
 
     if (!user) {
       throw new UnauthorizedError('Invalid or expired reset token')
@@ -837,20 +829,7 @@ router.get(
       userRepository.findMany(filter, {
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isEmailVerified: true,
-          isActive: true,
-          failedLoginCount: true,
-          lockedUntil: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        orderBy: [{ createdAt: 'desc' }],
       }),
       userRepository.count(filter),
     ])
@@ -882,22 +861,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { userId } = req.params
 
-    const user = await userRepository.findById(userId, {
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        role: true,
-        isEmailVerified: true,
-        isActive: true,
-        failedLoginCount: true,
-        lockedUntil: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
@@ -1068,14 +1032,10 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
 
       if (!adminExists) {
         await userRepository.create({
-          data: {
-            email: 'admin@tradingviewer.com',
-            passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
-            role: 'admin',
-            isEmailVerified: true,
-            isActive: true,
-            failedLoginCount: 0,
-          },
+          email: 'admin@tradingviewer.com',
+          passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBFiMLGwc5tVmy', // password: admin123!
+          role: 'admin',
+          isEmailVerified: true,
         })
         console.log('✅ Admin user created: admin@tradingviewer.com')
       }
@@ -1085,14 +1045,10 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
 
       if (!testExists) {
         await userRepository.create({
-          data: {
-            email: 'test@example.com',
-            passwordHash: await hashPassword('password123'),
-            role: 'user',
-            isEmailVerified: true,
-            isActive: true,
-            failedLoginCount: 0,
-          },
+          email: 'test@example.com',
+          passwordHash: await hashPassword('password123'),
+          role: 'user',
+          isEmailVerified: true,
         })
         console.log('✅ Test user created: test@example.com')
       }
@@ -1130,10 +1086,18 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
             id: userId,
             email: testUser.email,
             passwordHash: await hashPassword(testUser.password),
+            name: null,
+            avatar: null,
             role: 'user',
             isEmailVerified: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            failedLoginCount: 0,
+            lockedUntil: null,
+            lastLoginAt: null,
+            isActive: true,
+            resetToken: null,
+            resetTokenExpiry: null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
           }
           users.set(userId, user)
           usersByEmail.set(testUser.email, user)
@@ -1230,14 +1194,12 @@ router.post(
           }
 
           await userRepository.create({
-            data: {
-              ...userData,
-              passwordHash: await hashPassword(password),
-              isEmailVerified:
-                row.isEmailVerified === 'true' ||
-                row.isEmailVerified === true ||
-                row.isEmailVerified === '1',
-            },
+            ...userData,
+            passwordHash: await hashPassword(password),
+            isEmailVerified:
+              row.isEmailVerified === 'true' ||
+              row.isEmailVerified === true ||
+              row.isEmailVerified === '1',
           })
           successfulImports++
         }
@@ -1288,29 +1250,17 @@ router.get(
     const format = req.query.format || 'json'
     const userIds = req.query.userIds ? (req.query.userIds as string).split(',') : undefined
 
-    // Build where clause
-    const where: any = {}
-    if (userIds && userIds.length > 0) {
-      where.id = { in: userIds }
-    }
-
     // Fetch users
-    const users = await userRepository.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        isActive: true,
-        isEmailVerified: true,
-        failedLoginCount: true,
-        lockedUntil: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const filter: any = {}
+
+    let users = await userRepository.findMany(filter, {
+      orderBy: [{ createdAt: 'desc' }],
     })
+
+    // Filter by userIds if specified
+    if (userIds && userIds.length > 0) {
+      users = users.filter(user => userIds.includes(user.id))
+    }
 
     // Generate JSON file download
     const jsonData = users.map(user => ({

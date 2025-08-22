@@ -3,10 +3,10 @@ import { z } from 'zod'
 import { UserIndicatorRepository } from '../repositories/UserIndicatorRepository.js'
 import { IndicatorCalculationService } from '../services/IndicatorCalculationService.js'
 import { prisma } from '../lib/database.js'
-import { requireAuth } from '../middleware/auth.js'
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { validateRequest } from '../middleware/validation.js'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 
 console.log('🔍 Initializing indicators router...')
 
@@ -71,7 +71,7 @@ const calculateIndicatorSchema = z.object({
 // GET /api/indicators - Get all indicators for authenticated user
 router.get(
   '/',
-  (req, res, next) => {
+  (req: AuthenticatedRequest, res, next) => {
     console.log('🔍 Indicators route hit - before auth:', {
       url: req.url,
       method: req.method,
@@ -82,7 +82,7 @@ router.get(
     next()
   },
   requireAuth,
-  (req, res, next) => {
+  (req: AuthenticatedRequest, res, next) => {
     console.log('🔍 After auth middleware - before validation:', {
       userId: req.user?.userId,
       userExists: !!req.user,
@@ -90,7 +90,7 @@ router.get(
     next()
   },
   validateRequest(querySchema, 'query'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       console.log('🔍 Indicators API called:', {
         userId: req.user?.userId,
@@ -152,75 +152,85 @@ router.get(
 )
 
 // GET /api/indicators/:id - Get specific indicator
-router.get('/:id', requireAuth, validateRequest(paramsSchema, 'params'), async (req, res) => {
-  try {
-    const userId = req.user!.userId
-    const { id } = req.params
+router.get(
+  '/:id',
+  requireAuth,
+  validateRequest(paramsSchema, 'params'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user!.userId
+      const { id } = req.params
 
-    const indicator = await userIndicatorRepository.findById(id)
+      const indicator = await userIndicatorRepository.findById(id)
 
-    if (!indicator || indicator.userId !== userId) {
-      return res.status(404).json({
+      if (!indicator || indicator.userId !== userId) {
+        return res.status(404).json({
+          success: false,
+          error: 'Indicator not found',
+        })
+      }
+
+      const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
+
+      res.json({
+        success: true,
+        data: parsedIndicator,
+      })
+    } catch (error) {
+      console.error('Error fetching indicator:', error)
+      res.status(500).json({
         success: false,
-        error: 'Indicator not found',
+        error: 'Failed to fetch indicator',
       })
     }
-
-    const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
-
-    res.json({
-      success: true,
-      data: parsedIndicator,
-    })
-  } catch (error) {
-    console.error('Error fetching indicator:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch indicator',
-    })
   }
-})
+)
 
 // POST /api/indicators - Create new indicator
-router.post('/', requireAuth, validateRequest(createIndicatorSchema, 'body'), async (req, res) => {
-  try {
-    const userId = req.user!.userId
-    const indicatorData = req.body
+router.post(
+  '/',
+  requireAuth,
+  validateRequest(createIndicatorSchema, 'body'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user!.userId
+      const indicatorData = req.body
 
-    // Check if indicator with same name already exists for this user/symbol/timeframe
-    const existing = await userIndicatorRepository.findByUserIdSymbolTimeframeAndName(
-      userId,
-      indicatorData.symbol,
-      indicatorData.timeframe || 'D',
-      indicatorData.name
-    )
+      // Check if indicator with same name already exists for this user/symbol/timeframe
+      const existing = await userIndicatorRepository.findByUserIdSymbolTimeframeAndName(
+        userId,
+        indicatorData.symbol,
+        indicatorData.timeframe || 'D',
+        indicatorData.name
+      )
 
-    if (existing) {
-      return res.status(400).json({
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          error: 'Indicator with this name already exists for this symbol and timeframe',
+        })
+      }
+
+      const indicator = await userIndicatorRepository.create({
+        userId,
+        ...indicatorData,
+      })
+
+      const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
+
+      res.status(201).json({
+        success: true,
+        data: parsedIndicator,
+      })
+    } catch (error) {
+      console.error('Error creating indicator:', error)
+      res.status(500).json({
         success: false,
-        error: 'Indicator with this name already exists for this symbol and timeframe',
+        error: 'Failed to create indicator',
       })
     }
-
-    const indicator = await userIndicatorRepository.create({
-      userId,
-      ...indicatorData,
-    })
-
-    const parsedIndicator = userIndicatorRepository.parseIndicator(indicator)
-
-    res.status(201).json({
-      success: true,
-      data: parsedIndicator,
-    })
-  } catch (error) {
-    console.error('Error creating indicator:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create indicator',
-    })
   }
-})
+)
 
 // PUT /api/indicators/:id - Update indicator
 router.put(
@@ -228,7 +238,7 @@ router.put(
   requireAuth,
   validateRequest(paramsSchema, 'params'),
   validateRequest(updateIndicatorSchema, 'body'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.userId
       const { id } = req.params
@@ -277,34 +287,39 @@ router.put(
 )
 
 // DELETE /api/indicators/:id - Delete indicator
-router.delete('/:id', requireAuth, validateRequest(paramsSchema, 'params'), async (req, res) => {
-  try {
-    const userId = req.user!.userId
-    const { id } = req.params
+router.delete(
+  '/:id',
+  requireAuth,
+  validateRequest(paramsSchema, 'params'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user!.userId
+      const { id } = req.params
 
-    // Check if indicator exists and belongs to user
-    const existing = await userIndicatorRepository.findById(id)
-    if (!existing || existing.userId !== userId) {
-      return res.status(404).json({
+      // Check if indicator exists and belongs to user
+      const existing = await userIndicatorRepository.findById(id)
+      if (!existing || existing.userId !== userId) {
+        return res.status(404).json({
+          success: false,
+          error: 'Indicator not found',
+        })
+      }
+
+      await userIndicatorRepository.delete(id)
+
+      res.json({
+        success: true,
+        message: 'Indicator deleted successfully',
+      })
+    } catch (error) {
+      console.error('Error deleting indicator:', error)
+      res.status(500).json({
         success: false,
-        error: 'Indicator not found',
+        error: 'Failed to delete indicator',
       })
     }
-
-    await userIndicatorRepository.delete(id)
-
-    res.json({
-      success: true,
-      message: 'Indicator deleted successfully',
-    })
-  } catch (error) {
-    console.error('Error deleting indicator:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete indicator',
-    })
   }
-})
+)
 
 // PUT /api/indicators/positions - Update indicator positions
 router.put(
@@ -315,7 +330,7 @@ router.put(
     'query'
   ),
   validateRequest(updatePositionsSchema, 'body'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.userId
       const { symbol, timeframe } = req.query
@@ -365,7 +380,7 @@ router.post(
   '/calculate',
   requireAuth,
   validateRequest(calculateIndicatorSchema, 'body'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       const { symbol, type, parameters } = req.body
 

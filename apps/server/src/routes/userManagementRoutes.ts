@@ -51,7 +51,7 @@ const createUserResponse = (user: any) => ({
   createdAt: user.createdAt,
 })
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 
 // GET /api/auth/profile
 router.get(
@@ -60,19 +60,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.userId
 
-    const user = await userRepository.findById(userId, {
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        role: true,
-        isEmailVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
@@ -103,23 +91,11 @@ router.put(
       throw new ValidationError('No valid fields to update')
     }
 
-    const user = await userRepository.update(userId, updateData, {
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        role: true,
-        isEmailVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    const user = await userRepository.update(userId, updateData)
 
     // Log profile update
     securityLogger.log({
-      type: SecurityEventType.PROFILE_UPDATED,
+      eventType: SecurityEventType.PROFILE_UPDATED,
       severity: SecuritySeverity.INFO,
       message: 'User profile updated successfully',
       userId,
@@ -171,27 +147,8 @@ router.get(
     }
 
     const [users, totalCount] = await Promise.all([
-      userRepository.findMany({
-        where,
-        skip,
-        take: limitNum,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          avatar: true,
-          role: true,
-          isEmailVerified: true,
-          isActive: true,
-          failedLoginCount: true,
-          lockedUntil: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      }),
-      userRepository.count({ where }),
+      userRepository.findMany(where),
+      userRepository.count(where),
     ])
 
     const totalPages = Math.ceil(totalCount / limitNum)
@@ -221,22 +178,7 @@ router.get(
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { userId } = req.params
 
-    const user = await userRepository.findById(userId, {
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        role: true,
-        isEmailVerified: true,
-        isActive: true,
-        failedLoginCount: true,
-        lockedUntil: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
@@ -266,23 +208,11 @@ router.put(
       throw new ValidationError('Cannot deactivate your own account')
     }
 
-    const user = await userRepository.update(
-      userId,
-      { isActive },
-      {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-        },
-      }
-    )
+    const user = await userRepository.update(userId, { isActive })
 
     // Log user status change
     securityLogger.log({
-      type: SecurityEventType.USER_STATUS_CHANGED,
+      eventType: SecurityEventType.USER_STATUS_CHANGE,
       severity: SecuritySeverity.WARNING,
       message: `User ${isActive ? 'activated' : 'deactivated'} by admin`,
       userId,
@@ -320,23 +250,11 @@ router.put(
       throw new ValidationError('Cannot change your own role')
     }
 
-    const user = await userRepository.update(
-      userId,
-      { role },
-      {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-        },
-      }
-    )
+    const user = await userRepository.update(userId, { role })
 
     // Log role change
     securityLogger.log({
-      type: SecurityEventType.USER_ROLE_CHANGED,
+      eventType: SecurityEventType.USER_ROLE_CHANGED,
       severity: SecuritySeverity.HIGH,
       message: `User role changed to ${role} by admin`,
       userId,
@@ -373,9 +291,7 @@ router.delete(
     }
 
     // Get user info before deletion for logging
-    const user = await userRepository.findById(userId, {
-      select: { email: true, name: true, role: true },
-    })
+    const user = await userRepository.findById(userId)
 
     if (!user) {
       throw new ValidationError('User not found')
@@ -386,7 +302,7 @@ router.delete(
 
     // Log user deletion
     securityLogger.log({
-      type: SecurityEventType.USER_DELETED,
+      eventType: SecurityEventType.USER_DELETED,
       severity: SecuritySeverity.HIGH,
       message: 'User deleted by admin',
       userId,

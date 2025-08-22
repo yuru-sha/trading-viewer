@@ -1,7 +1,7 @@
 import express from 'express'
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 
-const router = express.Router()
+const router: express.Router = express.Router()
 const yahooFinanceService = getYahooFinanceService()
 
 /**

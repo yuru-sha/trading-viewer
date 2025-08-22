@@ -6,7 +6,7 @@ import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/au
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 import { WatchlistRepository } from '../repositories'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 const prisma = new PrismaClient()
 const watchlistRepository = new WatchlistRepository(prisma)
 

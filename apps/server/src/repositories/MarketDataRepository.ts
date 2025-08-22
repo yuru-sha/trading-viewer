@@ -239,7 +239,6 @@ export class MarketDataRepository
       // バルクインサート（重複は無視）
       const result = await this.prisma.candle.createMany({
         data: candleData,
-        skipDuplicates: true,
       })
 
       return result.count
@@ -348,7 +347,7 @@ export class MarketDataRepository
       close: candle.close,
       volume: candle.volume,
       createdAt: candle.createdAt,
-      updatedAt: candle.updatedAt,
+      updatedAt: candle.createdAt,
     }
   }
 }

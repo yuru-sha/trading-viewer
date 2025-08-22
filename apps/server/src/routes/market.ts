@@ -10,7 +10,7 @@ import {
   QuoteParamsRequest,
 } from '../middleware/validation'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 
 // Check data source configuration
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'
@@ -319,7 +319,7 @@ const searchMockSymbols = (query: string, limit: number = 10) => {
 }
 
 // Symbol search endpoint
-router.get('/search', validateSymbolSearch, async (req: SymbolSearchRequest, res: Response) => {
+router.get('/search', validateSymbolSearch, async (req: any, res: Response) => {
   try {
     const { q, limit } = req.validated
 
@@ -476,95 +476,87 @@ router.get('/quotes', async (req, res: Response) => {
 })
 
 // Real-time quote endpoint (single symbol)
-router.get(
-  '/quote/:symbol',
-  validateQuoteParams,
-  async (req: QuoteParamsRequest, res: Response) => {
-    try {
-      const { symbol } = req.validated
+router.get('/quote/:symbol', validateQuoteParams, async (req: any, res: Response) => {
+  try {
+    const { symbol } = req.validated
 
-      // Use mock or real data based on configuration (no mixing)
-      if (USE_MOCK_DATA) {
-        const mockQuote = generateMockQuote(symbol.toUpperCase())
-        res.json(mockQuote)
-        return
-      }
-
-      // Use Yahoo Finance API
-      const yahooService = getYahooFinanceService()
-      const quote = await yahooService.getQuote(symbol.toUpperCase())
-
-      // Convert Yahoo Finance format to expected format
-      const responseQuote = {
-        c: quote.currentPrice,
-        d: quote.change,
-        dp: quote.changePercent,
-        h: quote.high,
-        l: quote.low,
-        o: quote.open,
-        pc: quote.previousClose,
-        t: Math.floor(quote.timestamp / 1000),
-      }
-
-      res.json(responseQuote)
-    } catch (error) {
-      console.error('Quote fetch error:', error)
-
-      if ((error as ApiError).code) {
-        const apiError = error as ApiError
-        return res.status(apiError.statusCode).json(apiError)
-      }
-
-      res.status(500).json({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error',
-        statusCode: 500,
-      } as ApiError)
+    // Use mock or real data based on configuration (no mixing)
+    if (USE_MOCK_DATA) {
+      const mockQuote = generateMockQuote(symbol.toUpperCase())
+      res.json(mockQuote)
+      return
     }
+
+    // Use Yahoo Finance API
+    const yahooService = getYahooFinanceService()
+    const quote = await yahooService.getQuote(symbol.toUpperCase())
+
+    // Convert Yahoo Finance format to expected format
+    const responseQuote = {
+      c: quote.currentPrice,
+      d: quote.change,
+      dp: quote.changePercent,
+      h: quote.high,
+      l: quote.low,
+      o: quote.open,
+      pc: quote.previousClose,
+      t: Math.floor(quote.timestamp / 1000),
+    }
+
+    res.json(responseQuote)
+  } catch (error) {
+    console.error('Quote fetch error:', error)
+
+    if ((error as ApiError).code) {
+      const apiError = error as ApiError
+      return res.status(apiError.statusCode).json(apiError)
+    }
+
+    res.status(500).json({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal server error',
+      statusCode: 500,
+    } as ApiError)
   }
-)
+})
 
 // Historical candle data endpoint
-router.get(
-  '/candles/:symbol',
-  validateCandleParams,
-  async (req: CandleParamsRequest, res: Response) => {
-    try {
-      const { symbol, resolution, from, to } = req.validated
+router.get('/candles/:symbol', validateCandleParams, async (req: any, res: Response) => {
+  try {
+    const { symbol, resolution, from, to } = req.validated
 
-      // Use mock or real data based on configuration (no mixing)
-      if (USE_MOCK_DATA) {
-        const mockCandleData = generateMockCandleData(symbol.toUpperCase(), resolution, from, to)
-        res.json(mockCandleData)
-        return
-      }
-
-      // Use Yahoo Finance API
-      const yahooService = getYahooFinanceService()
-      const candleData = await yahooService.getCandlesWithResolution(
-        symbol.toUpperCase(),
-        resolution,
-        from,
-        to
-      )
-
-      res.json(candleData)
-    } catch (error) {
-      console.error('Candle data fetch error:', error)
-
-      if ((error as ApiError).code) {
-        const apiError = error as ApiError
-        return res.status(apiError.statusCode).json(apiError)
-      }
-
-      res.status(500).json({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error',
-        statusCode: 500,
-      } as ApiError)
+    // Use mock or real data based on configuration (no mixing)
+    if (USE_MOCK_DATA) {
+      const mockCandleData = generateMockCandleData(symbol.toUpperCase(), resolution, from, to)
+      res.json(mockCandleData)
+      return
     }
+
+    // Use Yahoo Finance API
+    const yahooService = getYahooFinanceService()
+    const candleData = await yahooService.getCandlesWithResolution(
+      symbol.toUpperCase(),
+      resolution,
+      from,
+      to
+    )
+
+    res.json(candleData)
+  } catch (error) {
+    console.error('Candle data fetch error:', error)
+
+    if ((error as ApiError).code) {
+      const apiError = error as ApiError
+      return res.status(apiError.statusCode).json(apiError)
+    }
+
+    res.status(500).json({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal server error',
+      statusCode: 500,
+    } as ApiError)
   }
-)
+})
 
 // Data source info endpoint
 router.get('/data-source', (_req: Request, res: Response) => {

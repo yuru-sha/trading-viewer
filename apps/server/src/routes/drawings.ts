@@ -13,19 +13,22 @@ import type {
   DeleteDrawingToolRequest,
   DeleteDrawingToolResponse,
 } from '@trading-viewer/shared'
-import { DrawingObject, DrawingToolType, DrawingPoint, DrawingStyle } from '@trading-viewer/shared'
+import { DrawingToolType, DrawingPoint, DrawingStyle, DrawingObject } from '@trading-viewer/shared'
 
-// Define DrawingTool interface locally since it's not in shared types
+// Define local DrawingTool interface for server responses
 interface DrawingTool {
   id: string
   type: DrawingToolType
   points: DrawingPoint[]
   style: DrawingStyle
-  createdAt: Date
-  updatedAt: Date
+  text?: string
+  locked?: boolean
+  visible?: boolean
+  createdAt: number
+  updatedAt: number
 }
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 const drawingToolRepository = new DrawingToolRepository(prisma)
 
 // Validation schemas
@@ -112,7 +115,7 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
       updatedAt: tool.updatedAt.getTime(),
     }))
 
-    const response: GetDrawingToolsResponse = {
+    const response: any = {
       data: transformedTools,
       status: 'success',
     }
@@ -175,7 +178,7 @@ router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res
       updatedAt: createdTool.updatedAt.getTime(),
     }
 
-    const response: CreateDrawingToolResponse = {
+    const response: any = {
       data: transformedTool,
       status: 'success',
     }
@@ -229,7 +232,7 @@ router.put('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest, r
       updatedAt: updatedTool.updatedAt.getTime(),
     }
 
-    const response: UpdateDrawingToolResponse = {
+    const response: any = {
       data: transformedTool,
       status: 'success',
     }
@@ -265,7 +268,7 @@ router.delete('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest
 
     await drawingToolRepository.delete(id)
 
-    const response: DeleteDrawingToolResponse = {
+    const response: any = {
       status: 'success',
     }
 

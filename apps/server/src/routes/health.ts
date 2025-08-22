@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 import os from 'os'
-import { WebSocketService } from '../services/websocketService.js'
+import { WebSocketService, getWebSocketService } from '../services/websocketService.js'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 const prisma = new PrismaClient()
 
 interface HealthStatus {
@@ -99,10 +99,10 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     health.status = 'unhealthy'
   }
 
-  // Redisのチェック (設定されている場合)
+  // Redis のチェック (設定されている場合)
   if (process.env.REDIS_URL) {
     try {
-      // Redisのヘルスチェックはここに実装
+      // Redis のヘルスチェックはここに実装
       health.services.redis = { status: 'up' }
     } catch (error) {
       health.services.redis = {
@@ -113,9 +113,9 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     }
   }
 
-  // WebSocketサービスのチェック
+  // WebSocket サービスのチェック
   try {
-    const wsService = WebSocketService.getInstance()
+    const wsService = getWebSocketService()
     const wsStatus = wsService.getStatus()
     health.services.websocket = {
       status: wsStatus.isRunning ? 'up' : 'down',
@@ -129,7 +129,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     health.status = health.status === 'unhealthy' ? 'unhealthy' : 'degraded'
   }
 
-  // 市場データサービス(Yahoo Finance)のチェック
+  // 市場データサービス (Yahoo Finance) のチェック
   try {
     const yahooStart = Date.now()
     const response = await fetch('https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL')
@@ -166,7 +166,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
   res.status(statusCode).json(health)
 })
 
-// Liveness probe (Kubernetes用)
+// Liveness probe (Kubernetes 用)
 router.get('/health/live', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'alive',
@@ -174,7 +174,7 @@ router.get('/health/live', (req: Request, res: Response) => {
   })
 })
 
-// Readiness probe (Kubernetes用)
+// Readiness probe (Kubernetes 用)
 router.get('/health/ready', async (req: Request, res: Response) => {
   try {
     // サービスがトラフィックを受け入れられる準備ができているか確認
@@ -193,7 +193,7 @@ router.get('/health/ready', async (req: Request, res: Response) => {
   }
 })
 
-// メトリクスエンドポイント (Prometheus用)
+// メトリクスエンドポイント (Prometheus 用)
 router.get('/metrics', (req: Request, res: Response) => {
   const metrics = []
   const timestamp = Date.now()
@@ -214,11 +214,11 @@ router.get('/metrics', (req: Request, res: Response) => {
 
   // システムメトリクス
   const loadAvg = os.loadavg()
-  metrics.push(`# HELP system_load_average_1m システムの1分間の平均負荷`)
+  metrics.push(`# HELP system_load_average_1m システムの 1 分間の平均負荷`)
   metrics.push(`# TYPE system_load_average_1m gauge`)
   metrics.push(`system_load_average_1m ${loadAvg[0]}`)
 
-  metrics.push(`# HELP system_cpu_cores CPUコアの総数`)
+  metrics.push(`# HELP system_cpu_cores CPU コアの総数`)
   metrics.push(`# TYPE system_cpu_cores gauge`)
   metrics.push(`system_cpu_cores ${os.cpus().length}`)
 

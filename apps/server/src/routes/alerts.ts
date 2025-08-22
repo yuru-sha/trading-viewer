@@ -167,12 +167,12 @@ router.put(
       }
 
       // Check if alert belongs to user
-      const existingAlert = await priceAlertRepository.findFirst({
-        where: { id, userId },
-      })
-
-      if (!existingAlert) {
-        return res.status(404).json({ error: 'Alert not found' })
+      const existingAlert = await priceAlertRepository.findById(id)
+      if (!existingAlert || existingAlert.userId !== userId) {
+        return res.status(404).json({
+          success: false,
+          error: 'Alert not found',
+        })
       }
 
       const updatedAlert = await priceAlertRepository.update(id, {
@@ -200,11 +200,8 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // Check if alert belongs to user
-    const existingAlert = await priceAlertRepository.findFirst({
-      where: { id, userId },
-    })
-
-    if (!existingAlert) {
+    const existingAlert = await priceAlertRepository.findById(id)
+    if (!existingAlert || existingAlert.userId !== userId) {
       return res.status(404).json({ error: 'Alert not found' })
     }
 
@@ -227,21 +224,26 @@ router.put('/symbol/:symbol/disable', requireAuth, async (req: AuthenticatedRequ
       return res.status(401).json({ error: 'User not authenticated' })
     }
 
-    const updatedAlerts = await priceAlertRepository.updateMany({
-      where: {
-        userId,
-        symbol: symbol.toUpperCase(),
-        enabled: true, // Only disable currently enabled alerts
-      },
-      data: {
-        enabled: false,
-      },
-    })
+    // First get the alert IDs to disable
+    const alertsToDisable = await priceAlertRepository.findByUserIdAndSymbol(
+      userId,
+      symbol.toUpperCase(),
+      {
+        orderBy: [{ createdAt: 'desc' }],
+      }
+    )
+
+    const enabledAlertIds = alertsToDisable.filter(alert => alert.enabled).map(alert => alert.id)
+
+    const disabledCount =
+      enabledAlertIds.length > 0
+        ? await priceAlertRepository.bulkUpdateStatus(enabledAlertIds, false)
+        : 0
 
     res.json({
       success: true,
-      disabledCount: updatedAlerts.count,
-      message: `Disabled ${updatedAlerts.count} alerts for ${symbol.toUpperCase()}`,
+      disabledCount: disabledCount,
+      message: `Disabled ${disabledCount} alerts for ${symbol.toUpperCase()}`,
     })
   } catch (error) {
     console.error('Error disabling symbol alerts:', error)
@@ -260,27 +262,19 @@ router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res)
     }
 
     const alertCount = await priceAlertRepository.count({
-      where: {
-        userId,
-        symbol: symbol.toUpperCase(),
-      },
+      userId,
+      symbol: symbol.toUpperCase(),
     })
 
-    const alerts = await priceAlertRepository.findMany({
-      where: {
+    const alerts = await priceAlertRepository.findMany(
+      {
         userId,
         symbol: symbol.toUpperCase(),
       },
-      select: {
-        id: true,
-        type: true,
-        price: true,
-        percentageChange: true,
-        enabled: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+      {
+        orderBy: [{ createdAt: 'desc' }],
+      }
+    )
 
     res.json({
       symbol: symbol.toUpperCase(),
@@ -314,24 +308,24 @@ router.put(
 
       const { symbols } = req.body
 
-      // バルク無効化: 1 つのクエリで複数シンボルのアラートを無効化
-      const updatedAlerts = await priceAlertRepository.updateMany({
-        where: {
-          userId,
-          symbol: {
-            in: symbols.map(symbol => symbol.toUpperCase()),
-          },
-          enabled: true, // 現在有効なアラートのみ対象
-        },
-        data: {
-          enabled: false,
-        },
+      // バルク無効化: 複数シンボルのアラートを無効化
+      const alertsToDisable = await priceAlertRepository.findMany({
+        userId,
       })
+
+      const enabledAlertIds = alertsToDisable
+        .filter(alert => alert.enabled && symbols.map(s => s.toUpperCase()).includes(alert.symbol))
+        .map(alert => alert.id)
+
+      const disabledCount =
+        enabledAlertIds.length > 0
+          ? await priceAlertRepository.bulkUpdateStatus(enabledAlertIds, false)
+          : 0
 
       res.json({
         success: true,
-        disabledCount: updatedAlerts.count,
-        message: `Disabled ${updatedAlerts.count} alerts for ${symbols.length} symbols`,
+        disabledCount: disabledCount,
+        message: `Disabled ${disabledCount} alerts for ${symbols.length} symbols`,
         symbols: symbols.map(s => s.toUpperCase()),
       })
     } catch (error) {

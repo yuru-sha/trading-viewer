@@ -167,7 +167,8 @@ export class RedisManager {
         return null
       }
 
-      return await redisClient.get(key)
+      const result = await redisClient.get(key)
+      return result ? result.toString() : null
     } catch (error) {
       logError('Redis: Failed to get key', error as Error, { key })
       return null
@@ -184,7 +185,7 @@ export class RedisManager {
       }
 
       const result = await redisClient.del(key)
-      return result > 0
+      return Number(result) > 0
     } catch (error) {
       logError('Redis: Failed to delete key', error as Error, { key })
       return false
@@ -201,7 +202,7 @@ export class RedisManager {
       }
 
       const result = await redisClient.exists(key)
-      return result > 0
+      return Number(result) > 0
     } catch (error) {
       logError('Redis: Failed to check key existence', error as Error, { key })
       return false
@@ -234,7 +235,8 @@ export class RedisManager {
         return []
       }
 
-      return await redisClient.keys(pattern)
+      const result = await redisClient.keys(pattern)
+      return result.map(key => key.toString())
     } catch (error) {
       logError('Redis: Failed to get keys', error as Error, { pattern })
       return []
@@ -250,7 +252,8 @@ export class RedisManager {
         return null
       }
 
-      return await redisClient.incr(key)
+      const result = await redisClient.incr(key)
+      return Number(result)
     } catch (error) {
       logError('Redis: Failed to increment key', error as Error, { key })
       return null
@@ -285,7 +288,8 @@ export class RedisManager {
         return keys.map(() => null)
       }
 
-      return await redisClient.mGet(keys)
+      const result = await redisClient.mGet(keys)
+      return result.map(value => (value ? value.toString() : null))
     } catch (error) {
       logError('Redis: Failed to get multiple keys', error as Error, { keyCount: keys.length })
       return keys.map(() => null)

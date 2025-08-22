@@ -26,7 +26,7 @@ import { securityLogger, SecurityEventType, SecuritySeverity } from '../services
 import { PrismaClient } from '@prisma/client'
 import { UserRepository } from '../repositories'
 
-const router: import("express").Router = Router()
+const router: import('express').Router = Router()
 const prisma = new PrismaClient()
 const userRepository = new UserRepository(prisma)
 
@@ -74,14 +74,14 @@ router.post(
 
     // Validate email
     const emailValidation = validateEmail(email)
-    if (!emailValidation.isValid) {
-      throw new ValidationError(emailValidation.message || 'Invalid email')
+    if (!emailValidation.valid) {
+      throw new ValidationError(emailValidation.errors.join(', ') || 'Invalid email')
     }
 
     // Validate password
     const passwordValidation = validatePassword(password)
-    if (!passwordValidation.isValid) {
-      throw new ValidationError(passwordValidation.message || 'Invalid password')
+    if (!passwordValidation.valid) {
+      throw new ValidationError(passwordValidation.errors.join(', ') || 'Invalid password')
     }
 
     // Hash password
@@ -96,12 +96,19 @@ router.post(
     })
 
     // Generate tokens
-    const tokens = await generateTokens(user.id, user.email, user.role)
-
-    // Security logging
-    securityLogger.log(SecurityEventType.USER_REGISTRATION, SecuritySeverity.INFO, {
+    const tokens = await generateTokens({
       userId: user.id,
       email: user.email,
+      role: user.role as 'user' | 'admin',
+    })
+
+    // Security logging
+    securityLogger.log({
+      eventType: SecurityEventType.REGISTER,
+      message: `New user registered: ${user.email}`,
+      severity: SecuritySeverity.INFO,
+      userId: user.id,
+      userEmail: user.email,
       userAgent: req.get('User-Agent'),
       ipAddress: req.ip,
     })
@@ -140,21 +147,28 @@ router.post(
       }
 
       // Verify password
-      const isValidPassword = await comparePassword(password, user.password)
+      const isValidPassword = await comparePassword(password, user.passwordHash)
       if (!isValidPassword) {
         throw new UnauthorizedError('Invalid email or password')
       }
 
       // Generate tokens
-      const tokens = await generateTokens(user.id, user.email, user.role)
+      const tokens = await generateTokens({
+        userId: user.id,
+        email: user.email,
+        role: user.role as 'user' | 'admin',
+      })
 
       // Clear any existing rate limit attempts on successful login
       await clearAuthAttempts(req.ip)
 
       // Security logging
-      securityLogger.log(SecurityEventType.LOGIN_SUCCESS, SecuritySeverity.INFO, {
+      securityLogger.log({
+        eventType: SecurityEventType.LOGIN_SUCCESS,
+        message: `User logged in: ${user.email}`,
+        severity: SecuritySeverity.INFO,
         userId: user.id,
-        email: user.email,
+        userEmail: user.email,
       })
 
       // Set cookies
@@ -173,11 +187,14 @@ router.post(
       })
     } catch (error) {
       // Security logging for failed attempts
-      securityLogger.log(SecurityEventType.LOGIN_FAILURE, SecuritySeverity.WARNING, {
-        email,
+      securityLogger.log({
+        eventType: SecurityEventType.LOGIN_FAILURE,
+        message: `Login failed for ${email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        severity: SecuritySeverity.WARNING,
+        userEmail: email,
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
-        error: error instanceof Error ? error.message : 'Unknown error',
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' },
       })
       throw error
     }

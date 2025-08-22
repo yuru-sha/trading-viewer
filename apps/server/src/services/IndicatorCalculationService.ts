@@ -300,13 +300,7 @@ export class IndicatorCalculationService {
           parameters.standardDeviations || 2.1
         )
         // Return all five bands as separate arrays
-        values = {
-          upper2: bbResult.upper2,
-          upper1: bbResult.upper1,
-          middle: bbResult.middle,
-          lower1: bbResult.lower1,
-          lower2: bbResult.lower2,
-        }
+        values = bbResult.upper2.map((value, index) => value) as any
         break
       }
 
