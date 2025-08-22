@@ -17,7 +17,7 @@ export const Icon: React.FC<IconProps> = ({ name, size = 16, className, color })
     return null
   }
 
-  return <IconComponent size={size} className={cn(className)} color={color} />
+  return <IconComponent size={size} className={cn(className)} color={color ?? 'currentColor'} />
 }
 
 export default Icon

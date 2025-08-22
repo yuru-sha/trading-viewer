@@ -26,9 +26,8 @@ export const useToast = () => {
         id,
         type,
         title,
-        message: options.message,
-        duration: options.duration,
         onClose: removeToast,
+        ...options,
       }
 
       setToasts(prev => [...prev, toast])
