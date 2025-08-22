@@ -1,16 +1,16 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { Icon } from '../Icon'
 
-// Mock lucide-react icons using importOriginal approach
-vi.mock('lucide-react', async importOriginal => {
+// Mock lucide-react icons
+vi.mock('lucide-react', () => {
   return {
-    Search: ({ size, className, color }: any) => (
+    Search: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
       <svg data-testid='search-icon' width={size} height={size} className={className} color={color}>
         <circle />
       </svg>
     ),
-    Heart: ({ size, className, color }: any) => (
+    Heart: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
       <svg data-testid='heart-icon' width={size} height={size} className={className} color={color}>
         <path />
       </svg>

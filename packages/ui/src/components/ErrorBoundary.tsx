@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react'
+import React, { Component, ErrorInfo, ReactNode } from 'react'
 
 interface Props {
   children: ReactNode
@@ -22,8 +22,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-
     if (this.props.onError) {
       this.props.onError(error, errorInfo)
     }
@@ -78,7 +76,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
           </h3>
 
           <p className='mt-2 text-sm text-gray-600 dark:text-gray-400'>
-            We're sorry, but something unexpected happened. Please try again.
+            We&apos;re sorry, but something unexpected happened. Please try again.
           </p>
 
           {error && (

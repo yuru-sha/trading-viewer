@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { ToastProps } from '../components/Toast'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
@@ -8,7 +8,9 @@ interface ToastOptions {
   message?: string
 }
 
-interface Toast extends Omit<ToastProps, 'onClose'> {}
+interface Toast extends Omit<ToastProps, 'onClose'> {
+  onClose?: (id: string) => void
+}
 
 export const useToast = () => {
   const [toasts, setToasts] = useState<Toast[]>([])

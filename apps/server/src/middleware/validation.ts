@@ -53,7 +53,7 @@ export function validateRequest<T extends z.ZodTypeAny>(
       }
 
       // Add validated data to request object
-      ;(req as any).validated = result.data
+      (req as any).validated = result.data
       next()
     } catch (error) {
       return res.status(500).json({
@@ -104,7 +104,7 @@ export function validateCombined(paramsSchema: z.ZodTypeAny, querySchema: z.ZodT
       }
 
       // Combine validated data
-      ;(req as any).validated = {
+      (req as any).validated = {
         ...paramsResult.data,
         ...queryResult.data,
       }

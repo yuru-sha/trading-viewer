@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch",
-    "lint": "echo 'Lint check passed - no JavaScript files to check'",
+    "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",
