@@ -6,12 +6,18 @@ import LoadingSpinner from '../ui/LoadingSpinner'
 interface LoginFormProps {
   onSuccess?: () => void
   onSwitchToRegister?: () => void
+  onSwitchToForgotPassword?: () => void
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) => {
+const LoginForm: React.FC<LoginFormProps> = ({
+  onSuccess,
+  onSwitchToRegister,
+  onSwitchToForgotPassword,
+}) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -20,8 +26,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
   const { showSuccess } = useErrorHandlers()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }))
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -110,6 +119,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
           {errors.password && <p className='mt-1 text-sm text-red-600'>{errors.password}</p>}
         </div>
 
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center'>
+            <input
+              id='rememberMe'
+              name='rememberMe'
+              type='checkbox'
+              checked={formData.rememberMe}
+              onChange={handleInputChange}
+              className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+            />
+            <label htmlFor='rememberMe' className='ml-2 block text-sm text-gray-900'>
+              ログインを保持
+            </label>
+          </div>
+
+          {onSwitchToForgotPassword && (
+            <div className='text-sm'>
+              <button
+                type='button'
+                onClick={onSwitchToForgotPassword}
+                className='font-medium text-blue-600 hover:text-blue-500'
+              >
+                パスワードをお忘れですか？
+              </button>
+            </div>
+          )}
+        </div>
+
         <button
           type='submit'
           disabled={isSubmitting}
@@ -120,13 +157,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) 
 
         {onSwitchToRegister && (
           <div className='text-center'>
-            <button
-              type='button'
-              onClick={onSwitchToRegister}
-              className='text-sm text-blue-600 hover:text-blue-500'
-            >
-              アカウントをお持ちでない場合は新規登録
-            </button>
+            <span className='text-sm text-gray-600'>
+              アカウントをお持ちでない場合は{' '}
+              <button
+                type='button'
+                onClick={onSwitchToRegister}
+                className='font-medium text-blue-600 hover:text-blue-500'
+              >
+                新規登録
+              </button>
+            </span>
           </div>
         )}
       </form>
