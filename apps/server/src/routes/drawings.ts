@@ -25,7 +25,7 @@ interface DrawingTool {
   updatedAt: Date
 }
 
-const router = Router()
+const router: import("express").Router = Router()
 const drawingToolRepository = new DrawingToolRepository(prisma)
 
 // Validation schemas

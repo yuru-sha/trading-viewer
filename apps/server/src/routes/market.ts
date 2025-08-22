@@ -10,7 +10,7 @@ import {
   QuoteParamsRequest,
 } from '../middleware/validation'
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // Check data source configuration
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true'

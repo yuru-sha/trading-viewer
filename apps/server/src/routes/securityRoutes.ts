@@ -46,7 +46,7 @@ function generateResetToken(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // POST /api/auth/forgot-password
 router.post(

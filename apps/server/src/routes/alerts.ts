@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, type Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
@@ -7,7 +7,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../services/yahooFinanceService.js'
 import { PriceAlertRepository } from '../repositories'
 
-const router = Router()
+const router: ExpressRouter = Router()
 const priceAlertRepository = new PriceAlertRepository(prisma)
 
 const CreateAlertSchema = z

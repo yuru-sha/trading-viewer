@@ -148,3 +148,6 @@ data/*
 # Kiro directories and files
 .kiro/
 .playwright-mcp/
+
+# Temporary cookies file
+cookies.txt

@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import os from 'os'
 import { WebSocketService } from '../services/websocketService.js'
 
-const router = Router()
+const router: import("express").Router = Router()
 const prisma = new PrismaClient()
 
 interface HealthStatus {

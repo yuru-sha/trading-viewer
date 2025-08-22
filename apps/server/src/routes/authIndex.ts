@@ -12,7 +12,7 @@ import authRoutes from './authRoutes'
  * パフォーマンス改善とメンテナビリティ向上のため
  */
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // 基本認証ルート
 router.use('/', authRoutes)

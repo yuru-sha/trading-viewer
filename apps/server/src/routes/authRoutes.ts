@@ -26,7 +26,7 @@ import { securityLogger, SecurityEventType, SecuritySeverity } from '../services
 import { PrismaClient } from '@prisma/client'
 import { UserRepository } from '../repositories'
 
-const router = Router()
+const router: import("express").Router = Router()
 const prisma = new PrismaClient()
 const userRepository = new UserRepository(prisma)
 

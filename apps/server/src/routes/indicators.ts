@@ -6,7 +6,7 @@ import { prisma } from '../lib/database.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validateRequest } from '../middleware/validation.js'
 
-const router = Router()
+const router: import("express").Router = Router()
 
 console.log('🔍 Initializing indicators router...')
 

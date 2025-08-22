@@ -51,7 +51,7 @@ const createUserResponse = (user: any) => ({
   createdAt: user.createdAt,
 })
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // GET /api/auth/profile
 router.get(

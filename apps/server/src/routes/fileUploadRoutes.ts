@@ -43,7 +43,7 @@ interface ImportUser {
   isActive?: boolean
 }
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // POST /api/auth/users/import (admin only)
 router.post(

@@ -28,7 +28,7 @@ import { ValidationError, UnauthorizedError, ConflictError } from '../middleware
 import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
-const router = Router()
+const router: import("express").Router = Router()
 
 // Multer configuration for file uploads
 const upload = multer({
