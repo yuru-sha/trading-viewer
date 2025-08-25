@@ -1,0 +1,87 @@
+{
+  "name": "@trading-viewer/root",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TradingViewer - Modern financial charting application",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @trading-viewer/server dev\" \"pnpm --filter @trading-viewer/client dev\"",
+    "dev:client": "pnpm --filter @trading-viewer/client dev",
+    "dev:server": "pnpm --filter @trading-viewer/server dev",
+    "build": "pnpm --recursive --filter=!@trading-viewer/root run build",
+    "test": "pnpm --recursive --filter=!@trading-viewer/root run test",
+    "test:unit": "pnpm --recursive --filter=!@trading-viewer/root run test:unit",
+    "test:integration": "pnpm --recursive --filter=!@trading-viewer/root run test:integration",
+    "test:e2e": "pnpm --filter @trading-viewer/client test:e2e",
+    "lint": "pnpm --recursive --filter=!@trading-viewer/root run lint",
+    "lint:fix": "pnpm --recursive --filter=!@trading-viewer/root run lint:fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "type-check": "pnpm --recursive --filter=!@trading-viewer/root run type-check",
+    "quality-check": "pnpm deps:analyze && pnpm lint && pnpm type-check && pnpm test:unit",
+    "security:audit": "pnpm audit --audit-level moderate",
+    "security:scan": "pnpm security:audit && pnpm security:test",
+    "security:test": "pnpm --recursive --filter=!@trading-viewer/root run security:test",
+    "security:deps": "pnpm dlx audit-ci --config audit-ci.json",
+    "clean": "pnpm --recursive --filter=!@trading-viewer/root run clean && rm -rf node_modules",
+    "reset": "pnpm clean && pnpm install",
+    "build:prod": "pnpm build && pnpm --filter @trading-viewer/client build && pnpm --filter @trading-viewer/server build",
+    "build:docker": "docker-compose build",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:production": "./scripts/deploy.sh production",
+    "db:generate": "pnpm --filter @trading-viewer/server db:generate",
+    "db:migrate": "pnpm --filter @trading-viewer/server db:migrate",
+    "db:seed": "pnpm --filter @trading-viewer/server db:seed",
+    "db:reset": "pnpm --filter @trading-viewer/server db:reset",
+    "db:studio": "pnpm --filter @trading-viewer/server db:studio",
+    "analyze:bundle": "node scripts/analyze-bundle.js",
+    "analyze:bundle:client": "pnpm --filter @trading-viewer/client analyze:bundle",
+    "analyze:bundle:size": "pnpm --filter @trading-viewer/client build && npx vite-bundle-analyzer apps/client/dist",
+    "analyze:deps": "pnpm list --depth=1 --json",
+    "analyze:deps:duplicates": "pnpm list --depth=0 | grep -E '^[├└]─' | sort | uniq -d",
+    "deps:check": "madge --circular --extensions ts,tsx --exclude 'dist|build' apps/*/src packages/*/src",
+    "deps:graph": "madge --image deps.svg --extensions ts,tsx --exclude 'dist|build' apps/*/src packages/*/src",
+    "deps:analyze": "pnpm deps:check && echo '✅ No circular dependencies found'",
+    "deps:cruise": "dependency-cruiser --validate apps packages",
+    "deps:cruise:graph": "dependency-cruiser --output-type dot apps packages | dot -T svg > dependency-graph.svg",
+    "deps:monitor": "pnpm deps:check && pnpm deps:complexity && pnpm deps:security",
+    "deps:complexity": "madge --summary --extensions ts,tsx --exclude 'dist|build' apps/*/src packages/*/src",
+    "deps:security": "pnpm audit --audit-level moderate --json | jq '.vulnerabilities | length' || echo '0'",
+    "deps:metrics": "echo '📊 Dependency Metrics:' && pnpm deps:complexity && pnpm analyze:deps:duplicates",
+    "deps:watch": "nodemon --watch 'apps/**/*.ts' --watch 'packages/**/*.ts' --exec 'pnpm deps:check'",
+    "security:audit:schedule": "pnpm audit --audit-level moderate"
+  },
+  "devDependencies": {
+    "@lhci/cli": "^0.12.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "concurrently": "^8.2.0",
+    "dependency-cruiser": "^17.0.1",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^10.1.8",
+    "madge": "^8.0.0",
+    "prettier": "^3.1.0",
+    "prisma": "^5.6.0",
+    "vite-bundle-analyzer": "^1.2.1",
+    "vitest-mock-extended": "^3.1.0",
+    "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "author": "yuru-sha",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuru-sha/trading-viewer"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild@<=0.24.2": ">=0.25.0"
+    }
+  }
+}

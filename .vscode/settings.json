@@ -1,0 +1,6 @@
+{
+    "typescript.autoClosingTags": false,
+    "editor.codeActionsOnSave": [
+        "source.addMissingImports"
+    ]
+}

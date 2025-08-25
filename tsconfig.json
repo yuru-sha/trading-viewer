@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@trading-viewer/shared": ["./packages/shared/src"],
+      "@trading-viewer/shared/*": ["./packages/shared/src/*"],
+      "@trading-viewer/ui": ["./packages/ui/src"],
+      "@trading-viewer/ui/*": ["./packages/ui/src/*"]
+    }
+  },
+  "references": [
+    { "path": "./apps/client" },
+    { "path": "./apps/server" },
+    { "path": "./packages/shared" },
+    { "path": "./packages/ui" }
+  ],
+  "files": [],
+  "include": []
+}

@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Symbol {
+  id            String   @id @default(cuid())
+  symbol        String   @unique
+  description   String
+  displaySymbol String   @map("display_symbol")
+  type          String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  candles       Candle[]
+
+  @@map("symbols")
+}
+
+model Candle {
+  id        String   @id @default(cuid())
+  symbol    String
+  timestamp Int
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  symbolRef Symbol   @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@unique([symbol, timestamp])
+  @@index([symbol, timestamp])
+  @@map("candles")
+}
+
+model UserPreferences {
+  id         String   @id @default(cuid())
+  userId     String   @unique @map("user_id")
+  theme      String   @default("dark")
+  chartType  String   @default("candlestick") @map("chart_type")
+  timeframe  String   @default("1D")
+  indicators String   @default("[]")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("user_preferences")
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  passwordHash     String         @default("") @map("password_hash")
+  name             String?
+  avatar           String?
+  role             String         @default("user")
+  isEmailVerified  Boolean        @default(false) @map("is_email_verified")
+  failedLoginCount Int            @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?      @map("locked_until")
+  lastLoginAt      DateTime?      @map("last_login_at")
+  isActive         Boolean        @default(true) @map("is_active")
+  resetToken       String?        @map("reset_token")
+  resetTokenExpiry DateTime?      @map("reset_token_expiry")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  drawingTools     DrawingTool[]
+  refreshTokens    RefreshToken[]
+  priceAlerts      PriceAlert[]
+  watchlists       Watchlist[]
+  userIndicators   UserIndicator[]
+  savedCharts      SavedChart[]
+
+  @@index([failedLoginCount])
+  @@index([lockedUntil])
+  @@index([isActive])
+  @@index([resetToken])
+  @@index([resetTokenExpiry])
+  @@map("users")
+}
+
+model DrawingTool {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  symbol         String
+  timeframe      String    @default("1D")
+  type           String
+  points         String
+  style          String
+  text           String?
+  locked         Boolean   @default(false)
+  visible        Boolean   @default(true)
+  expiresAt      DateTime? @map("expires_at")
+  lastAccessedAt DateTime  @default(now()) @map("last_accessed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol, timeframe])
+  @@index([expiresAt])
+  @@index([lastAccessedAt])
+  @@map("drawing_tools")
+}
+
+model PriceAlert {
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  symbol            String
+  type              String    // 'above', 'below', 'crosses'
+  price             Float
+  percentageChange  Float?    @map("percentage_change")
+  message           String?
+  enabled           Boolean   @default(true)
+  currency          String?   @default("USD")
+  exchange          String?
+  timezone          String?
+  triggeredAt       DateTime? @map("triggered_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, symbol])
+  @@index([enabled])
+  @@index([userId, enabled])
+  @@index([symbol, enabled])
+  @@index([triggeredAt])
+  @@index([type, enabled])
+  @@map("price_alerts")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([userId])
+  @@index([isRevoked])
+  @@map("refresh_tokens")
+}
+
+model Watchlist {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  symbol       String
+  name         String
+  position     Int      @default(0)
+  currency     String?  @default("USD")
+  exchange     String?
+  timezone     String?
+  addedAt      DateTime @default(now()) @map("added_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@index([userId])
+  @@index([symbol])
+  @@index([userId, position])
+  @@map("watchlists")
+}
+
+model UserIndicator {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  symbol      String
+  timeframe   String   @default("D")  // D, W, M, 1, 5, 15, 30, 60, 240 etc.
+  type        String   // 'sma', 'ema', 'rsi', 'macd', etc.
+  name        String   // User-defined name for the indicator
+  parameters  String   // JSON string of indicator parameters
+  visible     Boolean  @default(true)
+  style       String?  // JSON string of style configuration (color, line width, etc.)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, timeframe, name])
+  @@index([userId, symbol, timeframe])
+  @@index([type])
+  @@map("user_indicators")
+}
+
+model SavedChart {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  symbol        String
+  timeframe     String
+  name          String
+  description   String?
+  chartType     String   @map("chart_type")
+  indicators    String   // JSON string of indicators configuration
+  drawingTools  String   // JSON string of drawing tools data
+  chartSettings String   @map("chart_settings")  // JSON string of chart settings
+  isDefault     Boolean  @default(false) @map("is_default")
+  position      Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, timeframe, name])
+  @@index([userId, symbol, timeframe])
+  @@index([isDefault])
+  @@index([userId, position])
+  @@map("saved_charts")
+}

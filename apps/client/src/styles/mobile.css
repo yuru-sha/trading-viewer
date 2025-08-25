@@ -1,0 +1,239 @@
+/* Mobile-specific styles and utilities */
+
+/* Safe area support for iOS devices */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch-friendly interaction classes */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+.prevent-zoom {
+  touch-action: pan-x pan-y;
+}
+
+/* Mobile-first responsive breakpoints */
+@media (max-width: 640px) {
+  .mobile-stack > * + * {
+    margin-top: 1rem;
+  }
+  
+  .mobile-full {
+    width: 100% !important;
+  }
+  
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .tablet-stack > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .tablet-full {
+    width: 100% !important;
+  }
+  
+  .tablet-hidden {
+    display: none !important;
+  }
+}
+
+/* High DPI mobile displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  .mobile-crisp {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    padding: 0.5rem !important;
+  }
+  
+  .landscape-small-text {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Better mobile scrolling */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Mobile chart optimizations */
+.chart-mobile {
+  width: 100%;
+  height: 60vh;
+  min-height: 300px;
+  max-height: 500px;
+}
+
+@media (max-width: 640px) {
+  .chart-mobile {
+    height: 50vh;
+    min-height: 250px;
+  }
+}
+
+/* Gesture feedback */
+.gesture-feedback {
+  transition: transform 0.1s ease-out;
+}
+
+.gesture-feedback:active {
+  transform: scale(0.95);
+}
+
+/* Loading states for mobile */
+.mobile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 2rem;
+}
+
+/* Mobile-friendly form elements */
+.mobile-input {
+  font-size: 16px; /* Prevents zoom on iOS */
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Dark mode mobile adjustments */
+@media (prefers-color-scheme: dark) {
+  .mobile-dark-bg {
+    background-color: #111827;
+  }
+  
+  .mobile-dark-text {
+    color: #f9fafb;
+  }
+}
+
+/* PWA-specific styles */
+@media (display-mode: standalone) {
+  .pwa-padding-top {
+    padding-top: 2rem;
+  }
+}
+
+/* Fix for mobile viewport height issues */
+.mobile-full-height {
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+/* Improve touch scrolling performance */
+.mobile-container {
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Mobile navigation transitions */
+.mobile-nav-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bottom sheet style for mobile modals */
+.mobile-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  z-index: 50;
+}
+
+.mobile-modal.open {
+  transform: translateY(0);
+}
+
+/* Swipe indicator */
+.swipe-indicator {
+  position: relative;
+}
+
+.swipe-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 0.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.125rem;
+}
+
+/* Mobile chart crosshair */
+.mobile-crosshair {
+  pointer-events: none;
+  position: absolute;
+  z-index: 10;
+}
+
+.mobile-crosshair-line {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.mobile-crosshair-vertical {
+  width: 1px;
+  height: 100%;
+}
+
+.mobile-crosshair-horizontal {
+  height: 1px;
+  width: 100%;
+}

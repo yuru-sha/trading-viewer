@@ -1,0 +1,77 @@
+/**
+ * Application limits and thresholds
+ * Centralized management of all numeric limits
+ */
+
+// Rate limiting
+export const RATE_LIMITS = {
+  API_REQUESTS_PER_MINUTE: 100,
+  WEBSOCKET_MESSAGES_PER_SECOND: 10,
+  SEARCH_QUERIES_PER_MINUTE: 60,
+  FILE_UPLOAD_SIZE_MB: 10,
+} as const
+
+// Data limits
+export const DATA_LIMITS = {
+  MAX_CANDLES_PER_REQUEST: 1000,
+  MAX_SYMBOLS_SEARCH_RESULTS: 50,
+  MAX_CHART_HISTORY_DAYS: 365,
+  MAX_WATCHLIST_ITEMS: 100,
+} as const
+
+// UI limits
+export const UI_LIMITS = {
+  MAX_ERROR_NOTIFICATIONS: 10,
+  MAX_CHART_ANNOTATIONS: 50,
+  MAX_DRAWING_TOOLS: 100,
+  MAX_INDICATOR_OVERLAYS: 10,
+} as const
+
+// Memory limits
+export const MEMORY_LIMITS = {
+  MAX_CACHE_SIZE_MB: 100,
+  MAX_WEBSOCKET_BUFFER_SIZE: 1024 * 1024, // 1MB
+  MAX_LOG_ENTRIES: 1000,
+} as const
+
+// Performance thresholds
+export const PERFORMANCE_THRESHOLDS = {
+  SLOW_QUERY_MS: 1000,
+  MEMORY_WARNING_MB: 500,
+  CPU_WARNING_PERCENT: 80,
+  NETWORK_TIMEOUT_MS: 10000,
+} as const
+
+// Business rules
+export const BUSINESS_LIMITS = {
+  MIN_TRADE_AMOUNT: 0.01,
+  MAX_TRADE_AMOUNT: 1_000_000,
+  MAX_OPEN_POSITIONS: 100,
+  MAX_PORTFOLIO_VALUE: 10_000_000,
+} as const
+
+// Validation limits
+export const VALIDATION_LIMITS = {
+  USERNAME_MIN_LENGTH: 3,
+  USERNAME_MAX_LENGTH: 30,
+  PASSWORD_MIN_LENGTH: 8,
+  PASSWORD_MAX_LENGTH: 128,
+  EMAIL_MAX_LENGTH: 254,
+  SYMBOL_MAX_LENGTH: 10,
+} as const
+
+// Pool sizes
+export const POOL_SIZES = {
+  DATABASE_CONNECTION_POOL: 10,
+  WEBSOCKET_CONNECTION_POOL: 100,
+  CACHE_POOL_SIZE: 1000,
+  WORKER_THREAD_POOL: 4,
+} as const
+
+// Retry limits
+export const RETRY_LIMITS = {
+  MAX_API_RETRIES: 3,
+  MAX_DATABASE_RETRIES: 2,
+  MAX_WEBSOCKET_RECONNECTS: 5,
+  EXPONENTIAL_BACKOFF_MAX_DELAY_MS: 30_000, // 30 seconds
+} as const
