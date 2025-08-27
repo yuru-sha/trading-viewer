@@ -326,14 +326,17 @@ pnpm deps:watch
 The application includes demo accounts for testing. The login screen provides these accounts:
 
 **Regular User**
+
 - Email: `test@example.com`
 - Password: `password123`
 
-**Administrator**  
+**Administrator**
+
 - Email: `admin@tradingviewer.com`
 - Password: `Admin123!`
 
 These accounts are created by running:
+
 ```bash
 node scripts/create-test-user.js
 node scripts/create-admin-user.js

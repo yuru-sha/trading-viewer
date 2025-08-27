@@ -35,10 +35,10 @@ const SaveChartModal: React.FC<SaveChartModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Basic validation
     const newErrors: Record<string, string> = {}
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Chart name is required'
     } else if (formData.name.length > 100) {
@@ -84,9 +84,7 @@ const SaveChartModal: React.FC<SaveChartModalProps> = ({
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4'>
         {/* Header */}
         <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
-          <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
-            Save Chart
-          </h3>
+          <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>Save Chart</h3>
           <button
             onClick={handleClose}
             className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
