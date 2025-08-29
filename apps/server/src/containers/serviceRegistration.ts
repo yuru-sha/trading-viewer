@@ -1,5 +1,5 @@
 import { container, registerService } from './ServiceContainer'
-import type { ISymbolService, IQuoteService, ICandleDataService } from '../services/interfaces'
+import type { ISymbolService, IQuoteService, ICandleDataService } from '../application/services/interfaces'
 
 /**
  * Service registration configuration

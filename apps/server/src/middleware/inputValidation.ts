@@ -3,7 +3,7 @@ import { ZodSchema, ZodError } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 import { AuthenticatedRequest } from './auth'
 import { ValidationError } from './errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../application/services/securityLogger'
 
 // Injection attack patterns
 const INJECTION_PATTERNS = {

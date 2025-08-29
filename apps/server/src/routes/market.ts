@@ -1,5 +1,5 @@
 import { Router, Response, Request } from 'express'
-import { getYahooFinanceService } from '../services/yahooFinanceService'
+import { getYahooFinanceService } from '../application/services/yahooFinanceService'
 import { ApiError } from '@trading-viewer/shared'
 import {
   validateSymbolSearch,

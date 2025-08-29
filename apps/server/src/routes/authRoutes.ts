@@ -22,9 +22,9 @@ import {
 } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError, ConflictError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../application/services/securityLogger'
 import { PrismaClient } from '@prisma/client'
-import { UserRepository } from '../repositories'
+import { UserRepository } from '../infrastructure/repositories'
 
 const router: import('express').Router = Router()
 const prisma = new PrismaClient()

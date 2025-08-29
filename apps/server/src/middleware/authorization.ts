@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { AuthenticatedRequest } from './auth'
 import { ForbiddenError, UnauthorizedError } from './errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
 
 // Resource types in the system
 export enum ResourceType {

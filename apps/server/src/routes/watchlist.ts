@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
-import { getYahooFinanceService } from '../services/yahooFinanceService.js'
-import { WatchlistRepository } from '../repositories'
+import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
+import { WatchlistRepository } from '../infrastructure/repositories'
 
 const router: import('express').Router = Router()
 const prisma = new PrismaClient()

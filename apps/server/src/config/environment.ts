@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
 
 // Load environment variables
 dotenv.config()

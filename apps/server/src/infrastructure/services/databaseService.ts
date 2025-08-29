@@ -16,7 +16,7 @@ import {
   IPriceAlertRepository,
   IRefreshTokenRepository,
   IWatchlistRepository,
-} from '../repositories'
+} from '../infrastructure/repositories'
 
 /**
  * 取引データ用のコアデータベースサービスインターフェースです。

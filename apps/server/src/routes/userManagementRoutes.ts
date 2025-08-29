@@ -3,12 +3,12 @@ import { z } from 'zod'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../application/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
 // Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
-import { UserRepository } from '../repositories'
+import { UserRepository } from '../infrastructure/repositories'
 
 const prisma = new PrismaClient()
 const userRepository = new UserRepository(prisma)

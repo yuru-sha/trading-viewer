@@ -1,5 +1,5 @@
 import express from 'express'
-import { getYahooFinanceService } from '../services/yahooFinanceService.js'
+import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
 
 const router: express.Router = express.Router()
 const yahooFinanceService = getYahooFinanceService()
