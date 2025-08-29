@@ -4,7 +4,7 @@ import multer from 'multer'
 import { requireAuth, requireCSRF, AuthenticatedRequest, hashPassword } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../application/services/securityLogger'
+import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
 import { requireAdmin } from '../middleware/authorization'
 
 // Database integration with Repository pattern
