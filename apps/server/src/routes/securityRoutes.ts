@@ -11,7 +11,11 @@ import {
 } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
+import {
+  securityLogger,
+  SecurityEventType,
+  SecuritySeverity,
+} from '../infrastructure/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
 // Database integration with Repository pattern

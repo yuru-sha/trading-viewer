@@ -3,7 +3,11 @@ import { z } from 'zod'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
+import {
+  securityLogger,
+  SecurityEventType,
+  SecuritySeverity,
+} from '../infrastructure/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
 // Database integration with Repository pattern

@@ -22,7 +22,11 @@ import {
 } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError, ConflictError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../infrastructure/services/securityLogger'
+import {
+  securityLogger,
+  SecurityEventType,
+  SecuritySeverity,
+} from '../infrastructure/services/securityLogger'
 import { PrismaClient } from '@prisma/client'
 import { UserRepository } from '../infrastructure/repositories'
 

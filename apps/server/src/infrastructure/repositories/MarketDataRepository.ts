@@ -1,7 +1,7 @@
 /**
  * 統合された市場データリポジトリ
  * Repository パターンで外部プロバイダーとローカルストレージを統合
- * 
+ *
  * TODO: This file needs refactoring for Clean Architecture compliance
  * Temporarily disabled to resolve type-check errors during Clean Architecture migration
  */

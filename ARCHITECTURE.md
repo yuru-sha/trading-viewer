@@ -9,21 +9,25 @@ TradingViewer は Clean Architecture 原則に基づく多層アーキテクチ�
 ### ✅ 完了済み機能
 
 **ドメイン層**
+
 - User, Symbol, Watchlist エンティティの実装
 - リポジトリインターフェースの定義（IUserRepository, ISymbolRepository, IWatchlistRepository）
 - イミュータブルなエンティティ設計と Factory パターン
 
 **インフラストラクチャ層**
+
 - Prisma ベースリポジトリ実装の完全移行
 - トークン管理サービス（tokenStore, securityLogger）
 - 外部依存サービスの適切な分離
 
 **アプリケーション層**
+
 - インディケーター計算サービス
 - WebSocket リアルタイム通信サービス
 - 認証・認可ミドルウェア
 
 **動作検証済み**
+
 - JWT 認証システム
 - マーケットデータ API（Yahoo Finance 連携）
 - チャート描画機能

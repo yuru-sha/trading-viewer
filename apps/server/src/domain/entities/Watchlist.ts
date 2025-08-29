@@ -9,12 +9,7 @@ export class Watchlist {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    id: string,
-    userId: string,
-    name: string,
-    isDefault: boolean = false
-  ): Watchlist {
+  static create(id: string, userId: string, name: string, isDefault: boolean = false): Watchlist {
     return new Watchlist(id, userId, name, [], isDefault, new Date(), new Date())
   }
 
@@ -36,7 +31,7 @@ export class Watchlist {
 
   removeSymbol(symbol: string): Watchlist {
     const filteredSymbols = this.symbols.filter(s => s !== symbol)
-    
+
     if (filteredSymbols.length === this.symbols.length) {
       return this
     }

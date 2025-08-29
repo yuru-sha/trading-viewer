@@ -46,12 +46,7 @@ export class Symbol {
     )
   }
 
-  updateInfo(
-    name?: string,
-    sector?: string,
-    industry?: string,
-    marketCap?: number
-  ): Symbol {
+  updateInfo(name?: string, sector?: string, industry?: string, marketCap?: number): Symbol {
     return new Symbol(
       this.symbol,
       name ?? this.name,
