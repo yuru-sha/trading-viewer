@@ -11,12 +11,16 @@ import {
 } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
 import { ValidationError, UnauthorizedError } from '../middleware/errorHandling'
-import { securityLogger, SecurityEventType, SecuritySeverity } from '../services/securityLogger'
+import {
+  securityLogger,
+  SecurityEventType,
+  SecuritySeverity,
+} from '../infrastructure/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
 
 // Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
-import { UserRepository } from '../repositories'
+import { UserRepository } from '../infrastructure/repositories'
 
 const prisma = new PrismaClient()
 const userRepository = new UserRepository(prisma)

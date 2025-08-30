@@ -1,6 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync, statSync, renameSync } from 'fs'
 import path from 'path'
-import { AuthenticatedRequest } from '../middleware/auth'
+import { AuthenticatedRequest } from '../../middleware/auth'
 
 // Security event types
 export enum SecurityEventType {

@@ -1,4 +1,4 @@
-import { getDatabaseService } from './databaseService'
+import { getDatabaseService } from '../../infrastructure/services/databaseService'
 import { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from '@trading-viewer/shared'
 
 export interface ICacheService {

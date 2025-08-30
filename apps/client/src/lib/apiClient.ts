@@ -1,4 +1,12 @@
-import { SaveChartRequest, GetChartsRequest, SavedChart, GetChartsResponse, SaveChartResponse, UpdateChartRequest, UpdateChartResponse } from '@shared'
+import {
+  SaveChartRequest,
+  GetChartsRequest,
+  SavedChart,
+  GetChartsResponse,
+  SaveChartResponse,
+  UpdateChartRequest,
+  UpdateChartResponse,
+} from '@shared'
 
 // Type definitions
 interface NormalizedSymbol {
@@ -383,15 +391,22 @@ export const chartApi = {
   },
 
   // Set chart as default
-  setAsDefault: async (id: string): Promise<{ success: boolean; data: SavedChart; message: string }> => {
+  setAsDefault: async (
+    id: string
+  ): Promise<{ success: boolean; data: SavedChart; message: string }> => {
     return apiRequest(`/charts/${id}/default`, {
       method: 'PUT',
     })
   },
 
   // Get default chart for symbol/timeframe
-  getDefaultChart: async (symbol: string, timeframe: string): Promise<{ success: boolean; data: SavedChart }> => {
-    return apiRequest(`/charts/default/${encodeURIComponent(symbol)}/${encodeURIComponent(timeframe)}`)
+  getDefaultChart: async (
+    symbol: string,
+    timeframe: string
+  ): Promise<{ success: boolean; data: SavedChart }> => {
+    return apiRequest(
+      `/charts/default/${encodeURIComponent(symbol)}/${encodeURIComponent(timeframe)}`
+    )
   },
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button } from '@trading-viewer/ui'
+import { Button, Icon } from '@trading-viewer/ui'
 import { Order, Position, TradingSimulation, TradingQuote } from '@trading-viewer/shared'
 import OrderForm from './OrderForm'
 import PositionsTable from './PositionsTable'
@@ -56,16 +56,16 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
   const [newSimBalance, setNewSimBalance] = useState(100000)
 
   const tabs = [
-    { id: 'trade' as TabType, label: 'Trade', icon: '📈' },
-    { id: 'positions' as TabType, label: 'Positions', icon: '💼', badge: positions.length },
+    { id: 'trade' as TabType, label: 'Trade', icon: 'TrendingUp' },
+    { id: 'positions' as TabType, label: 'Positions', icon: 'Database', badge: positions.length },
     {
       id: 'orders' as TabType,
       label: 'Orders',
-      icon: '📋',
+      icon: 'BookOpen',
       badge: orders.filter(o => o.status === 'pending').length,
     },
-    { id: 'portfolio' as TabType, label: 'Portfolio', icon: '📊' },
-    { id: 'settings' as TabType, label: 'Settings', icon: '⚙️' },
+    { id: 'portfolio' as TabType, label: 'Portfolio', icon: 'BarChart3' },
+    { id: 'settings' as TabType, label: 'Settings', icon: 'Settings' },
   ]
 
   const handleCreateSimulation = () => {
@@ -107,11 +107,16 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
             {simulation && (
               <p className='text-sm text-gray-600 dark:text-gray-400'>
                 {simulation.name} •{' '}
-                {simulation.status === 'running'
-                  ? '🟢 Active'
-                  : simulation.status === 'completed'
-                    ? '✅ Completed'
-                    : '⏸️ Failed'}
+                {simulation.status === 'running' ? (
+                  '🟢 Active'
+                ) : simulation.status === 'completed' ? (
+                  '✅ Completed'
+                ) : (
+                  <>
+                    <Icon name='Pause' className='w-4 h-4 inline mr-1' />
+                    Failed
+                  </>
+                )}
               </p>
             )}
           </div>
@@ -186,7 +191,7 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
         {!simulation && activeTab !== 'settings' ? (
           <div className='text-center py-12'>
             <div className='space-y-4'>
-              <div className='text-6xl'>📊</div>
+              <Icon name='BarChart3' size={72} />
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
                 No Active Simulation
               </h3>

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../lib/database'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
-import { DrawingToolRepository } from '../repositories'
+import { DrawingToolRepository } from '../infrastructure/repositories'
 import type {
   CreateDrawingToolRequest,
   CreateDrawingToolResponse,

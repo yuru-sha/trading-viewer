@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 import os from 'os'
-import { WebSocketService, getWebSocketService } from '../services/websocketService.js'
+import { WebSocketService, getWebSocketService } from '../application/services/websocketService.js'
 
 const router: import('express').Router = Router()
 const prisma = new PrismaClient()

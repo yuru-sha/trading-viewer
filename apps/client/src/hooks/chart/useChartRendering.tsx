@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
-import type ReactECharts from 'echarts-for-react'
 import { DrawingObject } from '../../components/chart/DrawingObjectsPanel'
+import { EChartsTradingChartRef } from '../../components/chart/EChartsTradingChart'
 
 interface ChartRenderingSettings {
   showVolume: boolean
@@ -31,7 +31,7 @@ export const useChartRendering = (initialSettings?: Partial<ChartRenderingSettin
   ])
 
   // Chart instance ref to access chart functionality
-  const chartRef = useRef<ReactECharts | null>(null)
+  const chartRef = useRef<EChartsTradingChartRef | null>(null)
 
   // Handle object visibility toggle
   const toggleObjectVisibility = useCallback((id: string) => {
@@ -52,8 +52,8 @@ export const useChartRendering = (initialSettings?: Partial<ChartRenderingSettin
 
   // Take screenshot functionality
   const takeScreenshot = useCallback((filename?: string) => {
-    if ((chartRef.current as any)?.takeScreenshot) {
-      return (chartRef.current as any).takeScreenshot(filename)
+    if (chartRef.current?.takeScreenshot) {
+      return chartRef.current.takeScreenshot(filename)
     } else {
       console.warn('Chart instance not available for screenshot')
       return null

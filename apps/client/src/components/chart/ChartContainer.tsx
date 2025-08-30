@@ -130,7 +130,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
     }, [])
 
     // 十字カーソルの移動を処理
-    const handleCrosshairMove = useCallback((_price: number, _time: number) => {
+    const handleCrosshairMove = useCallback((_price: number | null, _time: number | null) => {
       // カーソル位置の価格表示
       // 必要に応じてここで価格表示の処理を行う
     }, [])

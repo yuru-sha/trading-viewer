@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loading } from '@trading-viewer/ui'
+import { Loading, Icon } from '@trading-viewer/ui'
 import { useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { useWebSocket } from '../hooks/useWebSocket'
@@ -40,15 +40,15 @@ const MarketPage: React.FC = () => {
 
   // Define market categories
   const marketTabs = [
-    { id: 'indices' as MarketTab, label: 'Indices', icon: '📊' },
+    { id: 'indices' as MarketTab, label: 'Indices', icon: 'BarChart3' },
     { id: 'stocks-japan' as MarketTab, label: 'Japan Stocks', icon: '🇯🇵' },
     { id: 'stocks-world' as MarketTab, label: 'World Stocks', icon: '🌍' },
     { id: 'crypto' as MarketTab, label: 'Crypto', icon: '₿' },
-    { id: 'futures' as MarketTab, label: 'Futures', icon: '📈' },
+    { id: 'futures' as MarketTab, label: 'Futures', icon: 'TrendingUp' },
     { id: 'fx' as MarketTab, label: 'FX', icon: '💱' },
     { id: 'bonds' as MarketTab, label: 'Bonds', icon: '🏦' },
-    { id: 'etf' as MarketTab, label: 'ETF', icon: '📦' },
-    { id: 'economics' as MarketTab, label: 'Economics', icon: '📉' },
+    { id: 'etf' as MarketTab, label: 'ETF', icon: 'Package' },
+    { id: 'economics' as MarketTab, label: 'Economics', icon: 'TrendingDown' },
   ]
 
   // WebSocket for real-time updates
@@ -520,7 +520,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Volume */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      📊 Top Volume
+                      <Icon name='BarChart3' className='w-5 h-5 inline mr-2' />
+                      Top Volume
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -558,7 +559,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Volatility */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      ⚡ Top Volatility
+                      <Icon name='Zap' className='w-5 h-5 inline mr-2' />
+                      Top Volatility
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -596,7 +598,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Gainers */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      📈 Top Gainers
+                      <Icon name='TrendingUp' className='w-5 h-5 inline mr-2' />
+                      Top Gainers
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -622,7 +625,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Losers */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      📉 Top Losers
+                      <Icon name='TrendingDown' className='w-5 h-5 inline mr-2' />
+                      Top Losers
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData

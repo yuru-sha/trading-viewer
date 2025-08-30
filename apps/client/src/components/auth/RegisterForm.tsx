@@ -80,7 +80,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
 
     setIsSubmitting(true)
     setRegisterError('') // Clear previous register error
-    
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = formData
@@ -90,7 +90,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
     } catch (error: any) {
       // Handle specific registration errors
       let errorMessage = 'アカウント作成に失敗しました。'
-      
+
       if (error?.response?.status === 400) {
         errorMessage = '入力データに問題があります。'
       } else if (error?.response?.status === 409) {
@@ -100,7 +100,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
       } else if (error?.message) {
         errorMessage = error.message
       }
-      
+
       setRegisterError(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -139,7 +139,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
                   className='inline-flex rounded-md bg-red-50 dark:bg-red-900/20 p-1.5 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50 dark:focus:ring-offset-red-900'
                 >
                   <span className='sr-only'>閉じる</span>
-                  <svg className='h-5 w-5' viewBox='0 0 20 20' fill='currentColor' aria-hidden='true'>
+                  <svg
+                    className='h-5 w-5'
+                    viewBox='0 0 20 20'
+                    fill='currentColor'
+                    aria-hidden='true'
+                  >
                     <path d='M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z' />
                   </svg>
                 </button>

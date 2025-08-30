@@ -61,7 +61,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
   onTimeframeDropdownToggle,
   onChartTypeDropdownToggle,
   onIndicatorsDropdownToggle,
-  onSaveTemplate,
+  onSaveTemplate: _onSaveTemplate,
   onToggleFullscreen,
   onTakeScreenshot,
   chartSettings,
@@ -86,7 +86,9 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
     []
   )
   const [showSaveChartModal, setShowSaveChartModal] = useState(false)
-  const [existingCharts, setExistingCharts] = useState<Array<{ name: string; isDefault: boolean }>>([])
+  const [existingCharts, setExistingCharts] = useState<Array<{ name: string; isDefault: boolean }>>(
+    []
+  )
   const [isSaving, setIsSaving] = useState(false)
 
   // Fetch watchlist symbols on mount
@@ -124,7 +126,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
       alert('Please log in to save charts')
       return
     }
-    
+
     // Fetch existing charts for this symbol/timeframe
     fetchExistingCharts()
     setShowSaveChartModal(true)
@@ -136,7 +138,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
         symbol: currentSymbol,
         timeframe: selectedTimeframe,
       })
-      
+
       if (response.success && response.data) {
         setExistingCharts(
           response.data.charts.map(chart => ({
@@ -155,7 +157,7 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
     try {
       setIsSaving(true)
       const response = await api.charts.saveChart(data)
-      
+
       if (response.success) {
         setShowSaveChartModal(false)
         alert('Chart saved successfully!')

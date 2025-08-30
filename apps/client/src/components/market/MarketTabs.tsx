@@ -1,4 +1,5 @@
 import React from 'react'
+import { Icon } from '@trading-viewer/ui'
 
 export type MarketCategory = 'indices' | 'stocks' | 'crypto' | 'futures' | 'forex' | 'bonds' | 'etf'
 
@@ -9,13 +10,13 @@ interface MarketTabsProps {
 
 export const MarketTabs: React.FC<MarketTabsProps> = ({ activeCategory, onCategoryChange }) => {
   const tabs: { key: MarketCategory; label: string; icon: string }[] = [
-    { key: 'indices', label: 'Indices', icon: '📈' },
-    { key: 'stocks', label: 'Stocks', icon: '📊' },
+    { key: 'indices', label: 'Indices', icon: 'TrendingUp' },
+    { key: 'stocks', label: 'Stocks', icon: 'BarChart3' },
     { key: 'crypto', label: 'Crypto', icon: '₿' },
-    { key: 'futures', label: 'Futures', icon: '⏰' },
+    { key: 'futures', label: 'Futures', icon: 'Clock' },
     { key: 'forex', label: 'Forex', icon: '💱' },
-    { key: 'bonds', label: 'Bonds', icon: '📝' },
-    { key: 'etf', label: 'ETF', icon: '📦' },
+    { key: 'bonds', label: 'Bonds', icon: 'BookOpen' },
+    { key: 'etf', label: 'ETF', icon: 'Package' },
   ]
 
   return (
@@ -34,7 +35,11 @@ export const MarketTabs: React.FC<MarketTabsProps> = ({ activeCategory, onCatego
               }
             `}
           >
-            <span>{tab.icon}</span>
+            {tab.icon.length === 1 ? (
+              <span>{tab.icon}</span>
+            ) : (
+              <Icon name={tab.icon} className='w-4 h-4' />
+            )}
             <span>{tab.label}</span>
           </button>
         ))}

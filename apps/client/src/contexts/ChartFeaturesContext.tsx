@@ -104,15 +104,15 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
     try {
       setIsLoadingChart(true)
       const response = await api.charts.getDefaultChart(currentSymbol, selectedTimeframe)
-      
+
       if (response.success && response.data) {
         const chartData = response.data
-        
+
         // Parse and apply chart settings
         try {
           const savedSettings = JSON.parse(chartData.chartSettings)
           const savedIndicators = JSON.parse(chartData.indicators)
-          
+
           // Apply settings to chart
           handleSettingsChange({
             ...chartSettings,
@@ -129,7 +129,7 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
           console.error('Error parsing saved chart data:', parseError)
         }
       }
-    } catch (error) {
+    } catch {
       // No default chart found or error - this is not necessarily an error
       console.log('No default chart found for', currentSymbol, selectedTimeframe)
     } finally {

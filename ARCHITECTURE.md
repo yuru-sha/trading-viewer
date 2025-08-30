@@ -4,6 +4,36 @@
 
 TradingViewer は Clean Architecture 原則に基づく多層アーキテクチャを採用しています。ビジネスロジックとインフラストラクチャの明確な分離により、保守性、テスタビリティ、拡張性を確保しています。
 
+## 実装完了状況
+
+### ✅ 完了済み機能
+
+**ドメイン層**
+
+- User, Symbol, Watchlist エンティティの実装
+- リポジトリインターフェースの定義（IUserRepository, ISymbolRepository, IWatchlistRepository）
+- イミュータブルなエンティティ設計と Factory パターン
+
+**インフラストラクチャ層**
+
+- Prisma ベースリポジトリ実装の完全移行
+- トークン管理サービス（tokenStore, securityLogger）
+- 外部依存サービスの適切な分離
+
+**アプリケーション層**
+
+- インディケーター計算サービス
+- WebSocket リアルタイム通信サービス
+- 認証・認可ミドルウェア
+
+**動作検証済み**
+
+- JWT 認証システム
+- マーケットデータ API（Yahoo Finance 連携）
+- チャート描画機能
+- WebSocket リアルタイム更新
+- 技術指標計算
+
 ## アーキテクチャ原則
 
 ### 1. 依存関係の方向性
@@ -23,17 +53,21 @@ UI → Application → Domain ← Infrastructure
 ```
 apps/server/src/
 ├── domain/                    # ドメイン層（コアビジネスロジック）
-│   ├── entities/             # エンティティ
-│   ├── services/             # ドメインサービス
-│   └── interfaces/           # リポジトリ・サービスインターフェース
+│   ├── entities/             # エンティティ（User, Symbol, Watchlist）
+│   ├── value-objects/        # 値オブジェクト
+│   ├── repositories/         # リポジトリインターフェース
+│   └── interfaces/           # ドメインサービスインターフェース
+├── application/              # アプリケーション層
+│   └── services/            # アプリケーションサービス（IndicatorCalculation 等）
 ├── infrastructure/           # インフラストラクチャ層
 │   ├── providers/           # 外部 API プロバイダー
+│   ├── services/            # 外部依存サービス（tokenStore, encryption 等）
 │   ├── cache/               # キャッシュ実装
-│   └── repositories/        # データアクセス実装
-├── routes/                  # API ルート（アプリケーション層）
-├── middleware/              # ミドルウェア
-├── services/                # レガシーサービス（移行中）
-└── repositories/            # レガシーリポジトリ（移行中）
+│   └── repositories/        # データアクセス実装（Prisma）
+├── presentation/             # プレゼンテーション層
+│   └── routes/              # API ルート・コントローラー
+├── containers/               # DI コンテナ
+└── middleware/              # ミドルウェア
 ```
 
 #### Client 側アーキテクチャ
@@ -309,17 +343,17 @@ Browser Cache → InMemory Cache → Database → External API
 
 ## 移行戦略
 
-### Phase 1: インフラストラクチャ分離 ✅
+### Phase 1: ドメイン層基盤構築 ✅
 
-- ドメイン層の設計・実装
-- インフラストラクチャ層の分離
-- Client 側 API 抽象化
+- ドメインエンティティの実装（User, Symbol, Watchlist）
+- リポジトリインターフェースの定義
+- Clean Architecture フォルダ構造の確立
 
-### Phase 2: レガシーコード移行
+### Phase 2: インフラストラクチャ分離完了 ✅
 
-- 既存サービスのドメイン層移行
-- API ルートのリファクタリング
-- テストカバレッジ向上
+- 全サービス・リポジトリのレイヤー別移行完了
+- Dependency Injection コンテナの実装
+- インポートパス修正と動作検証完了
 
 ### Phase 3: 機能拡張
 

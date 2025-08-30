@@ -1,5 +1,4 @@
 import { container, registerService } from './ServiceContainer'
-import type { ISymbolService, IQuoteService, ICandleDataService } from '../services/interfaces'
 
 /**
  * Service registration configuration
@@ -208,7 +207,7 @@ export function registerApplicationServices(): void {
         getMultipleSymbols: async (symbols: string[]) => {
           return Promise.all(symbols.map(s => symbolRepo.findBySymbol(s)))
         },
-      } as ISymbolService
+      }
     },
     [
       SERVICE_NAMES.SYMBOL_REPOSITORY,
@@ -248,7 +247,7 @@ export function registerApplicationServices(): void {
           // Check if cached quote is older than threshold
           return false // Simplified implementation
         },
-      } as IQuoteService
+      }
     },
     [SERVICE_NAMES.MARKET_DATA_ADAPTER, SERVICE_NAMES.CACHE_SERVICE, SERVICE_NAMES.LOGGER]
   )
@@ -300,7 +299,7 @@ export function registerApplicationServices(): void {
           const data = await cacheService.getCandleData(symbol, resolution, from, to)
           return data !== null && data.t.length > 0
         },
-      } as ICandleDataService
+      }
     },
     [
       SERVICE_NAMES.CANDLE_REPOSITORY,

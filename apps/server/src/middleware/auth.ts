@@ -8,7 +8,7 @@ import {
   RefreshTokenStore,
   CSRFTokenStore,
   RateLimitStore,
-} from '../services/tokenStore.js'
+} from '../infrastructure/services/tokenStore.js'
 
 // JWT payload interface
 export interface JWTPayload {

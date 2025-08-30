@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
-import { getYahooFinanceService } from '../services/yahooFinanceService.js'
-import { PriceAlertRepository } from '../repositories'
+import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
+import { PriceAlertRepository } from '../infrastructure/repositories'
 
 const router: ExpressRouter = Router()
 const priceAlertRepository = new PriceAlertRepository(prisma)

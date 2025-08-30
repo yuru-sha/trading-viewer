@@ -8,7 +8,7 @@ import drawingRoutes from './drawings.js'
 import indicatorRoutes from './indicators.js'
 import chartRoutes from './charts.js'
 import { marketDataLimiter, sensitiveLimiter } from '../middleware/rateLimiting.js'
-import { getWebSocketService } from '../services/websocketService.js'
+import { getWebSocketService } from '../application/services/websocketService.js'
 
 export function setupRoutes(app: Application): void {
   // API routes with specific rate limiting

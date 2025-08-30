@@ -1,4 +1,4 @@
-import { config } from '../config/environment'
+import { config } from '../../config/environment'
 import { securityLogger, SecurityEventType, SecuritySeverity } from './securityLogger'
 
 // Security configuration validation rules
