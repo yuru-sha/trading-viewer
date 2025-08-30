@@ -3,8 +3,15 @@ import { render } from '@testing-library/react'
 import { Icon } from '../Icon'
 
 // Mock lucide-react icons
-vi.mock('lucide-react', () => {
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal()
   return {
+    ...actual,
+    Home: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
+      <svg data-testid='home-icon' width={size} height={size} className={className} color={color}>
+        <rect />
+      </svg>
+    ),
     Search: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
       <svg data-testid='search-icon' width={size} height={size} className={className} color={color}>
         <circle />
@@ -13,6 +20,16 @@ vi.mock('lucide-react', () => {
     Heart: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
       <svg data-testid='heart-icon' width={size} height={size} className={className} color={color}>
         <path />
+      </svg>
+    ),
+    Menu: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
+      <svg data-testid='menu-icon' width={size} height={size} className={className} color={color}>
+        <rect />
+      </svg>
+    ),
+    X: ({ size, className, color }: { size?: number; className?: string; color?: string }) => (
+      <svg data-testid='x-icon' width={size} height={size} className={className} color={color}>
+        <line />
       </svg>
     ),
   }

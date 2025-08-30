@@ -166,7 +166,7 @@ export const createRecoveryStrategies = (): Record<string, RecoveryStrategy> => 
           const cacheNames = await caches.keys()
           await Promise.all(cacheNames.map(name => caches.delete(name)))
         }
-        localStorage.clear()
+        // Clear temporary session data only
         sessionStorage.clear()
         return true
       } catch {
@@ -195,11 +195,10 @@ export const createRecoveryStrategies = (): Record<string, RecoveryStrategy> => 
     name: '再認証',
     description: '認証状態をリセットして再ログインします',
     action: async () => {
-      // Clear all auth-related storage
-      localStorage.removeItem('auth_user')
+      // Clear session storage (if any temporary data exists)
       sessionStorage.clear()
 
-      // Clear auth cookies by redirecting to logout
+      // Clear auth cookies by redirecting to logout (main auth mechanism)
       window.location.href = '/api/auth/logout'
       return true
     },

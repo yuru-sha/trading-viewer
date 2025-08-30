@@ -1,12 +1,12 @@
 import { api } from '../apiClient'
-import { vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 // Mock fetch globally
 global.fetch = vi.fn()
 
 const mockFetch = global.fetch as any
 
-describe.skip('API Client', () => {
+describe('API Client', () => {
   beforeEach(() => {
     mockFetch.mockClear()
   })
@@ -30,10 +30,18 @@ describe.skip('API Client', () => {
           json: async () => mockResponse,
         } as Response)
 
-        const result = await api.market.searchSymbols('apple')
+        const result = await api.market.searchSymbols({ q: 'apple' })
 
-        expect(mockFetch).toHaveBeenCalledWith('/api/market/symbols/search?q=apple')
-        expect(result).toEqual(mockResponse.data)
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:8000/api/market/search?q=apple',
+          expect.objectContaining({
+            credentials: 'include',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
+        )
+        expect(result).toEqual(mockResponse)
       })
 
       it('should handle search errors', async () => {
@@ -43,7 +51,7 @@ describe.skip('API Client', () => {
           statusText: 'Internal Server Error',
         } as Response)
 
-        await expect(api.market.searchSymbols('invalid')).rejects.toThrow('HTTP error! status: 500')
+        await expect(api.market.searchSymbols({ q: 'invalid' })).rejects.toThrow('HTTP 500: Internal Server Error')
       })
     })
 
@@ -63,8 +71,16 @@ describe.skip('API Client', () => {
 
         const result = await api.market.getQuote('AAPL')
 
-        expect(mockFetch).toHaveBeenCalledWith('/api/market/quote/AAPL')
-        expect(result).toEqual(mockQuote)
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:8000/api/market/quote/AAPL',
+          expect.objectContaining({
+            credentials: 'include',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
+        )
+        expect(result).toEqual({ data: mockQuote })
       })
 
       it('should handle quote errors', async () => {
@@ -74,7 +90,7 @@ describe.skip('API Client', () => {
           statusText: 'Not Found',
         } as Response)
 
-        await expect(api.market.getQuote('INVALID')).rejects.toThrow('HTTP error! status: 404')
+        await expect(api.market.getQuote('INVALID')).rejects.toThrow('HTTP 404: Not Found')
       })
     })
 
@@ -105,9 +121,15 @@ describe.skip('API Client', () => {
         const result = await api.market.getCandleData(params)
 
         expect(mockFetch).toHaveBeenCalledWith(
-          `/api/market/candles?symbol=AAPL&resolution=D&from=1640995200&to=1641168000`
+          'http://localhost:8000/api/market/candles/AAPL?resolution=D&from=1640995200&to=1641168000',
+          expect.objectContaining({
+            credentials: 'include',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
         )
-        expect(result).toEqual(mockCandleData)
+        expect(result).toEqual({ data: mockCandleData })
       })
 
       it('should handle candle data errors', async () => {
@@ -124,81 +146,66 @@ describe.skip('API Client', () => {
           to: 1641168000,
         }
 
-        await expect(api.market.getCandleData(params)).rejects.toThrow('HTTP error! status: 400')
+        await expect(api.market.getCandleData(params)).rejects.toThrow('HTTP 400: Bad Request')
       })
     })
 
-    describe('getCompanyProfile', () => {
-      it('should get company profile successfully', async () => {
-        const mockProfile = {
-          name: 'Apple Inc.',
-          ticker: 'AAPL',
-          country: 'US',
-          currency: 'USD',
-          exchange: 'NASDAQ',
-          ipo: '1980-12-12',
-          marketCapitalization: 3000000,
-          shareOutstanding: 16000000,
-          weburl: 'https://www.apple.com',
+    describe('getRateLimit', () => {
+      it('should get rate limit info successfully', async () => {
+        const mockRateLimit = {
+          limit: 1000,
+          remaining: 950,
+          resetTime: 1640999800,
+          canMakeRequest: true,
+          timeUntilReset: 3600
         }
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: mockProfile }),
+          json: async () => mockRateLimit,
         } as Response)
 
-        const result = await api.market.getCompanyProfile('AAPL')
+        const result = await api.market.getRateLimit()
 
-        expect(mockFetch).toHaveBeenCalledWith('/api/market/company-profile/AAPL')
-        expect(result).toEqual(mockProfile)
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:8000/api/market/rate-limit',
+          expect.objectContaining({
+            credentials: 'include',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
+        )
+        expect(result).toEqual(mockRateLimit)
       })
     })
 
-    describe('getMarketNews', () => {
-      it('should get market news successfully', async () => {
-        const mockNews = [
-          {
-            id: 1,
-            headline: 'Apple reports strong quarterly results',
-            summary: 'Apple Inc. reported better than expected...',
-            url: 'https://example.com/news/1',
-            datetime: 1640995200,
-            source: 'Reuters',
-          },
-        ]
+    describe('getDataSource', () => {
+      it('should get data source info successfully', async () => {
+        const mockDataSource = {
+          isMockData: false,
+          provider: 'Yahoo Finance',
+          status: 'active',
+          description: 'Real-time market data'
+        }
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: mockNews }),
+          json: async () => mockDataSource,
         } as Response)
 
-        const result = await api.market.getMarketNews('AAPL')
+        const result = await api.market.getDataSource()
 
-        expect(mockFetch).toHaveBeenCalledWith('/api/market/news/AAPL')
-        expect(result).toEqual(mockNews)
-      })
-
-      it('should get general market news when no symbol provided', async () => {
-        const mockNews = [
-          {
-            id: 1,
-            headline: 'Market closes higher',
-            summary: 'Stock market closed higher today...',
-            url: 'https://example.com/news/1',
-            datetime: 1640995200,
-            source: 'Bloomberg',
-          },
-        ]
-
-        mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ data: mockNews }),
-        } as Response)
-
-        const result = await api.market.getMarketNews()
-
-        expect(mockFetch).toHaveBeenCalledWith('/api/market/news')
-        expect(result).toEqual(mockNews)
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://localhost:8000/api/market/data-source',
+          expect.objectContaining({
+            credentials: 'include',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
+        )
+        expect(result).toEqual(mockDataSource)
       })
     })
   })

@@ -33,8 +33,8 @@ export class AuthService {
       requiresCSRF: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Login failed')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Login failed')
     }
 
     return response.data
@@ -50,8 +50,8 @@ export class AuthService {
       requiresCSRF: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Registration failed')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Registration failed')
     }
 
     return response.data
@@ -70,8 +70,8 @@ export class AuthService {
       requiresCSRF: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Token refresh failed')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Token refresh failed')
     }
 
     return response.data
@@ -81,8 +81,8 @@ export class AuthService {
   async getCurrentUser(): Promise<User> {
     const response = await this.api.get<{ user: User }>('/auth/me')
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Failed to get user data')
+    if (!response || !response.success || !response.data || !response.data.user) {
+      throw new Error(response?.error || 'Failed to get user data')
     }
 
     return response.data.user
@@ -91,8 +91,8 @@ export class AuthService {
   async updateProfile(data: UpdateProfileData): Promise<User> {
     const response = await this.api.put<{ user: User }>('/auth/profile', data)
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Profile update failed')
+    if (!response || !response.success || !response.data || !response.data.user) {
+      throw new Error(response?.error || 'Profile update failed')
     }
 
     return response.data.user
@@ -101,16 +101,16 @@ export class AuthService {
   async changePassword(data: ChangePasswordData): Promise<void> {
     const response = await this.api.post('/auth/change-password', data)
 
-    if (!response.success) {
-      throw new Error(response.error || 'Password change failed')
+    if (!response || !response.success) {
+      throw new Error(response?.error || 'Password change failed')
     }
   }
 
   async deleteAccount(): Promise<void> {
     const response = await this.api.delete('/auth/account')
 
-    if (!response.success) {
-      throw new Error(response.error || 'Account deletion failed')
+    if (!response || !response.success) {
+      throw new Error(response?.error || 'Account deletion failed')
     }
   }
 
@@ -120,8 +120,8 @@ export class AuthService {
       requiresCSRF: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Failed to get CSRF token')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Failed to get CSRF token')
     }
 
     // Update API service with the new token
@@ -143,7 +143,7 @@ export class AuthService {
   async ensureCSRFToken(): Promise<void> {
     try {
       await this.getCSRFToken()
-    } catch {
+    } catch (error: unknown) {
       console.warn('Operation failed', error)
     }
   }
@@ -164,8 +164,8 @@ export class AuthService {
       regularUsers: number
     }>('/auth/stats')
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Failed to get auth stats')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Failed to get auth stats')
     }
 
     return response.data
@@ -178,8 +178,8 @@ export class AuthService {
       requiresCSRF: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Failed to seed test users')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Failed to seed test users')
     }
 
     return response.data
@@ -190,8 +190,8 @@ export class AuthService {
       requiresAuth: false,
     })
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || 'Failed to get test users')
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.error || 'Failed to get test users')
     }
 
     return response.data

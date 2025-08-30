@@ -74,6 +74,11 @@ export const formatPrice = (
  * Format percentage change
  */
 export const formatPercentage = (percentage: number): string => {
+  // Handle special cases where sign is not meaningful
+  if (isNaN(percentage)) {
+    return 'NaN%'
+  }
+  
   const sign = percentage >= 0 ? '+' : ''
   return `${sign}${percentage.toFixed(2)}%`
 }

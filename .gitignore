@@ -126,6 +126,7 @@ Thumbs.db
 __snapshots__/
 test-results/
 playwright-report/
+visual.spec.ts-snapshots/
 
 # Monorepo specific
 .turbo

@@ -150,7 +150,7 @@ class AuthApiClient {
       }
 
       throw new Error('Invalid CSRF token response')
-    } catch {
+    } catch (error: unknown) {
       this.csrfToken = null
       throw error
     }
@@ -182,7 +182,7 @@ class AuthApiClient {
           ...config.headers,
           'x-csrf-token': csrfToken,
         }
-      } catch {
+      } catch (error: unknown) {
         // If CSRF token fetch fails, proceed without it (will likely get 403)
         console.warn('Failed to get CSRF token:', error)
       }
