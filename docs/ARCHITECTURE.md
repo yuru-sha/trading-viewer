@@ -54,7 +54,6 @@ UI → Application → Domain ← Infrastructure
 apps/server/src/
 ├── domain/                    # ドメイン層（コアビジネスロジック）
 │   ├── entities/             # エンティティ（User, Symbol, Watchlist）
-│   ├── value-objects/        # 値オブジェクト
 │   ├── repositories/         # リポジトリインターフェース
 │   └── interfaces/           # ドメインサービスインターフェース
 ├── application/              # アプリケーション層
@@ -64,8 +63,7 @@ apps/server/src/
 │   ├── services/            # 外部依存サービス（tokenStore, encryption 等）
 │   ├── cache/               # キャッシュ実装
 │   └── repositories/        # データアクセス実装（Prisma）
-├── presentation/             # プレゼンテーション層
-│   └── routes/              # API ルート・コントローラー
+├── routes/                   # API ルート・コントローラー
 ├── containers/               # DI コンテナ
 └── middleware/              # ミドルウェア
 ```
@@ -75,8 +73,7 @@ apps/server/src/
 ```
 apps/client/src/
 ├── domain/                   # ドメイン層
-│   ├── interfaces/          # API クライアントインターフェース
-│   └── entities/            # クライアント側エンティティ
+│   └── interfaces/          # API クライアントインターフェース
 ├── infrastructure/          # インフラストラクチャ層
 │   └── api/                 # API クライアント実装
 ├── components/              # UI コンポーネント

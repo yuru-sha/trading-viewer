@@ -101,6 +101,8 @@ pnpm type-check
 
 # 包括的な品質チェック
 pnpm quality-check
+# 注: 現在、サーバーの単体テストにおけるモジュール解決の問題により、このコマンドは失敗する可能性があります。
+# 回避策として、`pnpm lint`、`pnpm type-check`、`pnpm test:unit`を個別にお使いください。
 ```
 
 ### データベース操作
