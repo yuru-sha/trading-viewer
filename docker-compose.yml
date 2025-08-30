@@ -1,0 +1,101 @@
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-tv_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password_change_me}
+      POSTGRES_DB: ${DB_NAME:-trading_viewer}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - trading_viewer_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tv_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "${REDIS_PORT:-6379}"  # 内部アクセスのみ（セキュリティ強化）
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - trading_viewer_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express Backend Server
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 8000
+      DATABASE_URL: postgresql://${DB_USER:-tv_user}:${DB_PASSWORD:-password_change_me}@postgres:5432/${DB_NAME:-trading_viewer}
+      REDIS_URL: redis://redis:6379
+      USE_MOCK_DATA: ${USE_MOCK_DATA:-false}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${SERVER_PORT:-8000}:8000"
+    networks:
+      - trading_viewer_network
+    restart: unless-stopped
+    volumes:
+      - ./logs/backend:/app/logs
+
+  # React Frontend Client
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      - server
+    ports:
+      - "${CLIENT_PORT:-80}:80"
+    networks:
+      - trading_viewer_network
+    restart: unless-stopped
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+
+  # Database migrations (run once)
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-tv_user}:${DB_PASSWORD:-password_change_me}@postgres:5432/${DB_NAME:-trading_viewer}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - trading_viewer_network
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+
+networks:
+  trading_viewer_network:
+    driver: bridge
+
+volumes: {}
