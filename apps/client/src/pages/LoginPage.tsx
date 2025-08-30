@@ -318,7 +318,8 @@ const LoginPage: React.FC = () => {
                   aria-label='Auto-fill with test account'
                 >
                   <div className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                    <Icon name="User" className="w-4 h-4 inline mr-2" />Regular User
+                    <Icon name='User' className='w-4 h-4 inline mr-2' />
+                    Regular User
                   </div>
                   <div className='text-xs text-gray-500 dark:text-gray-400'>test@example.com</div>
                 </button>
@@ -333,7 +334,8 @@ const LoginPage: React.FC = () => {
                   aria-label='Auto-fill with admin account'
                 >
                   <div className='text-xs font-medium text-blue-700 dark:text-blue-300 mb-1'>
-                    <Icon name="Users" className="w-4 h-4 inline mr-2" />Administrator
+                    <Icon name='Users' className='w-4 h-4 inline mr-2' />
+                    Administrator
                   </div>
                   <div className='text-xs text-blue-600 dark:text-blue-400'>
                     admin@tradingviewer.com
@@ -354,19 +356,19 @@ const LoginPage: React.FC = () => {
             <p className='text-xl mb-8'>Analyze markets with professional trading tools</p>
             <div className='grid grid-cols-2 gap-4 max-w-md mx-auto'>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                <Icon name="BarChart3" size={48} className="mb-2 mx-auto" />
+                <Icon name='BarChart3' size={48} className='mb-2 mx-auto' />
                 <div className='text-sm font-medium'>Advanced Chart Analysis</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                <Icon name="Zap" size={48} className="mb-2 mx-auto" />
+                <Icon name='Zap' size={48} className='mb-2 mx-auto' />
                 <div className='text-sm font-medium'>Real-time Updates</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                <Icon name="Target" size={48} className="mb-2 mx-auto" />
+                <Icon name='Target' size={48} className='mb-2 mx-auto' />
                 <div className='text-sm font-medium'>Technical Indicators</div>
               </div>
               <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                <Icon name="Bell" size={48} className="mb-2 mx-auto" />
+                <Icon name='Bell' size={48} className='mb-2 mx-auto' />
                 <div className='text-sm font-medium'>Price Alerts</div>
               </div>
             </div>

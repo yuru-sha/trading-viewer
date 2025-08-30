@@ -143,9 +143,9 @@ export const createTradingViewerOnboarding = (): OnboardingStep[] => [
           tour to get you started.
         </p>
         <div className='bg-blue-50 dark:bg-blue-900 p-3 rounded-md text-xs'>
-          <Icon name="Lightbulb" className="w-4 h-4 inline mr-1" />
-          <strong>Tip:</strong> You can skip this tour at any time by pressing ESC or clicking
-          the X button.
+          <Icon name='Lightbulb' className='w-4 h-4 inline mr-1' />
+          <strong>Tip:</strong> You can skip this tour at any time by pressing ESC or clicking the X
+          button.
         </div>
       </div>
     ),

@@ -6,22 +6,23 @@ UI 表示で使用されている絵文字を Lucide React アイコンに置き
 
 ### 現在の UI 表示用絵文字使用箇所
 
-| 絵文字 | 現在の使用箇所 | 使用数 | 置き換え推奨度 |
-|--------|--------------|--------|-------------|
-| `📊` | タブアイコン、チャート表示 | 20+ | ⭐⭐⭐ 高 |
-| `📈` | トレード、上昇トレンド | 10+ | ⭐⭐⭐ 高 |
-| `📉` | 下降トレンド | 5+ | ⭐⭐⭐ 高 |
-| `📦` | ETF、パッケージ | 3+ | ⭐⭐ 中 |
-| `⚡` | パフォーマンス、高速 | 3+ | ⭐⭐⭐ 高 |
-| `⚙️` | 設定メニュー | 3+ | ⭐⭐⭐ 高 |
-| `💡` | ヒント・ Tips | 1+ | ⭐⭐ 中 |
-| `⏸️` | 停止・失敗 | 1+ | ⭐⭐⭐ 高 |
+| 絵文字 | 現在の使用箇所             | 使用数 | 置き換え推奨度 |
+| ------ | -------------------------- | ------ | -------------- |
+| `📊`   | タブアイコン、チャート表示 | 20+    | ⭐⭐⭐ 高      |
+| `📈`   | トレード、上昇トレンド     | 10+    | ⭐⭐⭐ 高      |
+| `📉`   | 下降トレンド               | 5+     | ⭐⭐⭐ 高      |
+| `📦`   | ETF、パッケージ            | 3+     | ⭐⭐ 中        |
+| `⚡`   | パフォーマンス、高速       | 3+     | ⭐⭐⭐ 高      |
+| `⚙️`   | 設定メニュー               | 3+     | ⭐⭐⭐ 高      |
+| `💡`   | ヒント・ Tips              | 1+     | ⭐⭐ 中        |
+| `⏸️`   | 停止・失敗                 | 1+     | ⭐⭐⭐ 高      |
 
 ## 🔄 具体的な置き換え提案
 
 ### 1. タブ・ナビゲーション系（高優先度）
 
 #### MarketPage.tsx
+
 ```tsx
 // 現在
 const MARKET_TABS = [
@@ -41,6 +42,7 @@ const MARKET_TABS = [
 ```
 
 #### TradingPanel.tsx
+
 ```tsx
 // 現在
 const TABS = [
@@ -58,6 +60,7 @@ const TABS = [
 ```
 
 #### MarketTabs.tsx
+
 ```tsx
 // 現在
 const marketTabs = [
@@ -77,6 +80,7 @@ const marketTabs = [
 ### 2. インライン表示（中優先度）
 
 #### MarketPage.tsx - セクションヘッダー
+
 ```tsx
 // 現在
 <h3>📊 Top Volume</h3>
@@ -92,6 +96,7 @@ const marketTabs = [
 ```
 
 #### LoginPage.tsx - 機能紹介
+
 ```tsx
 // 現在
 <div className='text-3xl mb-2'>📊</div>
@@ -103,6 +108,7 @@ const marketTabs = [
 ```
 
 #### AssetCard.tsx - アクションボタン
+
 ```tsx
 // 現在
 📈
@@ -116,15 +122,26 @@ const marketTabs = [
 ### 3. ステータス表示（高優先度）
 
 #### TradingPanel.tsx
+
 ```tsx
 // 現在
-{status === 'failed' && '⏸️ Failed'}
+{
+  status === 'failed' && '⏸️ Failed'
+}
 
 // 提案
-{status === 'failed' && <><Icon name="Pause" className="w-4 h-4 inline mr-1" />Failed</>}
+{
+  status === 'failed' && (
+    <>
+      <Icon name='Pause' className='w-4 h-4 inline mr-1' />
+      Failed
+    </>
+  )
+}
 ```
 
 #### AnnotationPanel.tsx
+
 ```tsx
 // 現在
 { id: 'settings', label: 'Settings', icon: '⚙️' }
@@ -136,6 +153,7 @@ const marketTabs = [
 ### 4. Tips ・ヒント表示
 
 #### useOnboarding.tsx
+
 ```tsx
 // 現在
 💡 <strong>Tip:</strong> You can skip this tour...
@@ -153,10 +171,10 @@ const marketTabs = [
 // 新しく追加が必要なアイコン
 import {
   // 既存のインポートに追加
-  Package,     // 📦 の置き換え
-  Lightbulb,   // 💡 の置き換え
+  Package, // 📦 の置き換え
+  Lightbulb, // 💡 の置き換え
   // 既存のアイコンで対応可能：
-  // TrendingUp (📈), TrendingDown (📉), BarChart3 (📊), 
+  // TrendingUp (📈), TrendingDown (📉), BarChart3 (📊),
   // Zap (⚡), Settings (⚙️), Pause (⏸️)
 } from 'lucide-react'
 ```
@@ -164,23 +182,27 @@ import {
 ## 🛠️ 実装手順
 
 ### Phase 1: アイコン追加
+
 1. `packages/ui/src/components/Icon.tsx`に Package, Lightbulb を追加
 2. iconMap に追加
 3. UI パッケージ再ビルド
 
 ### Phase 2: 高優先度ファイルの置き換え
+
 1. `MarketPage.tsx` - タブアイコン
 2. `TradingPanel.tsx` - タブアイコン
 3. `MarketTabs.tsx` - タブアイコン
 4. `TradingPanel.tsx` - ステータス表示
 
 ### Phase 3: 中優先度ファイルの置き換え
+
 1. `MarketPage.tsx` - セクションヘッダー
 2. `LoginPage.tsx` - 機能紹介アイコン
 3. `AssetCard.tsx` - アクションボタン
 4. `useOnboarding.tsx` - Tips 表示
 
 ### Phase 4: テスト・検証
+
 1. 各画面でアイコンが正しく表示されることを確認
 2. レスポンシブ対応の確認
 3. ダークモード対応の確認
@@ -188,19 +210,23 @@ import {
 ## ✅ メリット
 
 ### 1. 一貫性の向上
+
 - プロジェクト全体で統一されたアイコンライブラリ使用
 - サイズ、色、スタイルの統一
 
 ### 2. カスタマイズ性
+
 - アイコンサイズの柔軟な調整
 - 色のカスタマイズ（currentColor 対応）
 - アニメーション効果の追加可能
 
 ### 3. アクセシビリティ
+
 - スクリーンリーダー対応
 - 適切なセマンティクス
 
 ### 4. メンテナンス性
+
 - TypeScript 型定義による型安全性
 - 統一された API
 - バージョン管理の簡素化
@@ -208,14 +234,17 @@ import {
 ## ⚠️ 注意点
 
 ### 1. 視覚的な変化
+
 - 絵文字の色彩豊かな表現からモノクロアイコンへ
 - ユーザーの慣れ親しんだ UI 要素の変更
 
 ### 2. 段階的移行の推奨
+
 - 一度に全て変更せず、重要度の高い箇所から段階的に実施
 - ユーザーフィードバックを収集しながら進行
 
 ### 3. ログ出力は除外
+
 - `console.log`内の絵文字はそのまま維持
 - 開発者向けの情報なので視認性を優先
 

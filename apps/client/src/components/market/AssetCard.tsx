@@ -187,7 +187,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
                     }`}
                     title='Area Chart'
                   >
-                    <Icon name="TrendingUp" className="w-4 h-4" />
+                    <Icon name='TrendingUp' className='w-4 h-4' />
                   </button>
                   <button
                     onClick={e => {
@@ -201,7 +201,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
                     }`}
                     title='Candle Chart'
                   >
-                    <Icon name="BarChart3" className="w-4 h-4" />
+                    <Icon name='BarChart3' className='w-4 h-4' />
                   </button>
                 </div>
                 <button

@@ -160,7 +160,7 @@ export const loadEChartsExtensions = {
       console.warn('❌ Failed to load statistical charts:', error)
       return false
     }
-  }
+  },
 }
 
 // パフォーマンス監視付きチャート初期化
@@ -168,18 +168,17 @@ export const createOptimizedChart = (
   container: HTMLElement,
   options: {
     dataSize?: number
-    enableAnimations?: boolean
     theme?: string
   } = {}
 ) => {
-  const { dataSize = 0, enableAnimations = true, theme = 'default' } = options
+  const { dataSize = 0, theme = 'default' } = options
 
   const performanceConfig = getOptimizedEChartsConfig(dataSize)
-  
+
   console.log(`📊 Creating chart with ${dataSize} data points`)
-  
+
   const startTime = performance.now()
-  
+
   const chart = echarts.init(container, theme, {
     renderer: 'canvas',
     useDirtyRect: true, // パフォーマンス最適化
@@ -189,7 +188,7 @@ export const createOptimizedChart = (
   })
 
   const initTime = performance.now() - startTime
-  
+
   if (initTime > 50) {
     console.warn(`🐌 Slow chart initialization: ${initTime.toFixed(2)}ms`)
   }
@@ -232,35 +231,35 @@ const sampleByLTTB = <T extends Record<string, any>>(data: T[], maxPoints: numbe
 
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
-  
+
   // 最初と最後のポイントは必ず含める
   sampled.push(data[0])
-  
+
   for (let i = 1; i < maxPoints - 1; i++) {
     const bucketStart = i * bucketSize
     const bucketEnd = Math.min((i + 1) * bucketSize, data.length)
-    
+
     let maxArea = 0
     let selectedPoint = data[bucketStart]
-    
+
     for (let j = bucketStart; j < bucketEnd; j++) {
       const area = calculateTriangleArea(
         sampled[sampled.length - 1],
         data[j],
         data[Math.min(bucketEnd, data.length - 1)]
       )
-      
+
       if (area > maxArea) {
         maxArea = area
         selectedPoint = data[j]
       }
     }
-    
+
     sampled.push(selectedPoint)
   }
-  
+
   sampled.push(data[data.length - 1])
-  
+
   return sampled
 }
 
@@ -272,7 +271,7 @@ const calculateTriangleArea = (a: any, b: any, c: any): number => {
   const y2 = b.close || b.value || 0
   const x3 = c.timestamp || c.time || 0
   const y3 = c.close || c.value || 0
-  
+
   return Math.abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2)
 }
 
@@ -280,16 +279,16 @@ const calculateTriangleArea = (a: any, b: any, c: any): number => {
 const sampleByAverage = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
-  
+
   for (let i = 0; i < maxPoints; i++) {
     const start = i * bucketSize
     const end = Math.min(start + bucketSize, data.length)
-    
+
     if (start < data.length) {
       sampled.push(data[Math.floor((start + end) / 2)])
     }
   }
-  
+
   return sampled
 }
 
@@ -297,14 +296,14 @@ const sampleByAverage = <T extends Record<string, any>>(data: T[], maxPoints: nu
 const sampleByMax = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
-  
+
   for (let i = 0; i < maxPoints; i++) {
     const start = i * bucketSize
     const end = Math.min(start + bucketSize, data.length)
-    
+
     let maxPoint = data[start]
     let maxValue = maxPoint?.close || maxPoint?.value || 0
-    
+
     for (let j = start; j < end; j++) {
       const currentValue = data[j]?.close || data[j]?.value || 0
       if (currentValue > maxValue) {
@@ -312,10 +311,10 @@ const sampleByMax = <T extends Record<string, any>>(data: T[], maxPoints: number
         maxPoint = data[j]
       }
     }
-    
+
     sampled.push(maxPoint)
   }
-  
+
   return sampled
 }
 
@@ -323,14 +322,14 @@ const sampleByMax = <T extends Record<string, any>>(data: T[], maxPoints: number
 const sampleByMin = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
-  
+
   for (let i = 0; i < maxPoints; i++) {
     const start = i * bucketSize
     const end = Math.min(start + bucketSize, data.length)
-    
+
     let minPoint = data[start]
     let minValue = minPoint?.close || minPoint?.value || Infinity
-    
+
     for (let j = start; j < end; j++) {
       const currentValue = data[j]?.close || data[j]?.value || Infinity
       if (currentValue < minValue) {
@@ -338,10 +337,10 @@ const sampleByMin = <T extends Record<string, any>>(data: T[], maxPoints: number
         minPoint = data[j]
       }
     }
-    
+
     sampled.push(minPoint)
   }
-  
+
   return sampled
 }
 

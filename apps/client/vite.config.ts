@@ -78,7 +78,7 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
+        manualChunks: id => {
           // React 関連の基本ライブラリ
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
             return 'vendor'
@@ -89,7 +89,7 @@ export default defineConfig({
             return 'charts-core'
           }
           if (id.includes('echarts/charts') || id.includes('echarts/components')) {
-            return 'charts-components' 
+            return 'charts-components'
           }
           if (id.includes('echarts/renderers') || id.includes('echarts/features')) {
             return 'charts-features'
@@ -120,7 +120,11 @@ export default defineConfig({
           }
 
           // Development 用ライブラリを分離（プロダクションでは除外）
-          if (id.includes('@testing-library') || id.includes('vitest') || id.includes('playwright')) {
+          if (
+            id.includes('@testing-library') ||
+            id.includes('vitest') ||
+            id.includes('playwright')
+          ) {
             return 'dev-tools'
           }
 
@@ -162,13 +166,13 @@ export default defineConfig({
     minify: 'esbuild', // terser の代わりに esbuild を使用（より高速）
     target: 'es2020',
     sourcemap: false, // プロダクション用ビルドでソースマップを無効化
-    
+
     // Tree-shaking の最適化
     treeshake: {
       preset: 'smallest',
       moduleSideEffects: false,
     },
-    
+
     // 圧縮最適化設定
     cssCodeSplit: true,
     assetsInlineLimit: 4096, // 4KB 未満のアセットはインライン化

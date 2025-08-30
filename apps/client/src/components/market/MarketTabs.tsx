@@ -38,7 +38,7 @@ export const MarketTabs: React.FC<MarketTabsProps> = ({ activeCategory, onCatego
             {tab.icon.length === 1 ? (
               <span>{tab.icon}</span>
             ) : (
-              <Icon name={tab.icon} className="w-4 h-4" />
+              <Icon name={tab.icon} className='w-4 h-4' />
             )}
             <span>{tab.label}</span>
           </button>

@@ -520,7 +520,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Volume */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      <Icon name="BarChart3" className="w-5 h-5 inline mr-2" />Top Volume
+                      <Icon name='BarChart3' className='w-5 h-5 inline mr-2' />
+                      Top Volume
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -558,7 +559,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Volatility */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      <Icon name="Zap" className="w-5 h-5 inline mr-2" />Top Volatility
+                      <Icon name='Zap' className='w-5 h-5 inline mr-2' />
+                      Top Volatility
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -596,7 +598,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Gainers */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      <Icon name="TrendingUp" className="w-5 h-5 inline mr-2" />Top Gainers
+                      <Icon name='TrendingUp' className='w-5 h-5 inline mr-2' />
+                      Top Gainers
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData
@@ -622,7 +625,8 @@ const MarketPage: React.FC = () => {
                   {/* Top Losers */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
                     <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      <Icon name="TrendingDown" className="w-5 h-5 inline mr-2" />Top Losers
+                      <Icon name='TrendingDown' className='w-5 h-5 inline mr-2' />
+                      Top Losers
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData

@@ -107,11 +107,16 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
             {simulation && (
               <p className='text-sm text-gray-600 dark:text-gray-400'>
                 {simulation.name} •{' '}
-                {simulation.status === 'running'
-                  ? '🟢 Active'
-                  : simulation.status === 'completed'
-                    ? '✅ Completed'
-                    : <><Icon name="Pause" className="w-4 h-4 inline mr-1" />Failed</>}
+                {simulation.status === 'running' ? (
+                  '🟢 Active'
+                ) : simulation.status === 'completed' ? (
+                  '✅ Completed'
+                ) : (
+                  <>
+                    <Icon name='Pause' className='w-4 h-4 inline mr-1' />
+                    Failed
+                  </>
+                )}
               </p>
             )}
           </div>
@@ -186,7 +191,7 @@ export const TradingPanel: React.FC<TradingPanelProps> = ({
         {!simulation && activeTab !== 'settings' ? (
           <div className='text-center py-12'>
             <div className='space-y-4'>
-              <Icon name="BarChart3" size={72} />
+              <Icon name='BarChart3' size={72} />
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
                 No Active Simulation
               </h3>
