@@ -27,7 +27,7 @@ TradingViewer は、TradingView のクローンとして開発された現代的
 
 ## 技術スタック
 
-- **フロントエンド**: React 18, TypeScript, Vite, TailwindCSS, TradingView Lightweight Charts
+- **フロントエンド**: React 18, TypeScript, Vite, TailwindCSS, Apache ECharts
 - **バックエンド**: Express.js, TypeScript (ESM), Prisma ORM, PostgreSQL
 - **外部 API**: Yahoo Finance API
 - **リアルタイム**: WebSocket 接続によるライブデータストリーミング
