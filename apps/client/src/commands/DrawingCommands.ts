@@ -1,4 +1,5 @@
 import { BaseCommand } from './BaseCommand'
+import { log } from '../services/logger'
 import type {
   DrawingCommandParams,
   CreateDrawingCommand,
@@ -283,7 +284,10 @@ export class BatchDrawingCommand extends BaseCommand<
               await this.executedCommands[i].undo!()
             }
           } catch (undoError) {
-            console.error('Failed to rollback command during batch execution:', undoError)
+            log.system.error(
+              'Failed to rollback drawing command during batch execution',
+              undoError instanceof Error ? undoError : new Error(String(undoError))
+            )
           }
         }
         throw new Error('Operation failed')
@@ -299,7 +303,7 @@ export class BatchDrawingCommand extends BaseCommand<
         try {
           command.undo()
         } catch {
-          console.error('Operation failed')
+          log.system.error('Drawing command batch undo operation failed')
         }
       }
     }
@@ -316,7 +320,7 @@ export class BatchDrawingCommand extends BaseCommand<
           await command.execute()
         }
       } catch {
-        console.error('Operation failed')
+        log.system.error('Drawing command batch redo operation failed')
         throw new Error('Operation failed')
       }
     }

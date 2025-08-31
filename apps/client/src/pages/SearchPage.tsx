@@ -5,6 +5,7 @@ import { useApp, useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
 import { getCurrencySymbol } from '../utils/currency'
+import { log } from '../services/logger'
 
 interface SearchResult {
   description: string
@@ -40,7 +41,7 @@ const SearchPage: React.FC = () => {
         setWatchlistItems((response.data as { watchlist: WatchlistItem[] }).watchlist)
       }
     } catch {
-      console.error('Error fetching watchlist:', error)
+      log.business.error('Error fetching watchlist')
     }
   }
 
@@ -51,12 +52,12 @@ const SearchPage: React.FC = () => {
       if (response.success) {
         // ウォッチリストを再取得して表示を更新
         await fetchWatchlist()
-        console.log(`Removed ${symbol} from watchlist`)
+        log.business.info('Symbol removed from watchlist', { symbol })
       } else {
         setError(`Failed to remove ${symbol} from watchlist`)
       }
     } catch {
-      console.error('Error removing from watchlist:', error)
+      log.business.error('Error removing symbol from watchlist', { symbol })
       setError(error instanceof Error ? error.message : 'Failed to remove from watchlist')
     }
   }
@@ -76,7 +77,7 @@ const SearchPage: React.FC = () => {
       setSearchResults(results.symbols || [])
       setHasSearched(true)
     } catch {
-      console.error('Search failed:', error)
+      log.business.error('Symbol search failed', { query })
       setError(error instanceof Error ? error.message : 'Search failed')
       setSearchResults([])
       setHasSearched(true)
@@ -98,18 +99,18 @@ const SearchPage: React.FC = () => {
         setError(null)
         // ウォッチリストを再取得して表示を更新
         await fetchWatchlist()
-        console.log(`Added ${symbol} to watchlist`)
+        log.business.info('Symbol added to watchlist', { symbol })
       } else {
         setError(`Failed to add ${symbol} to watchlist`)
       }
     } catch {
-      console.error('Error adding to watchlist:', error)
+      log.business.error('Error adding symbol to watchlist', { symbol })
 
       // 409 Conflict (既に存在) の場合は情報メッセージとして扱う
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as { response?: { status?: number } }
         if (apiError.response?.status === 409) {
-          console.log(`${symbol} is already in watchlist`)
+          log.business.info('Symbol already in watchlist', { symbol })
           // 既に追加済みの場合はエラーではなく、リストを更新するだけ
           await fetchWatchlist()
           setError(null) // エラーメッセージをクリア

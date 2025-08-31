@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface LoginHistory {
   id: string
@@ -120,8 +121,12 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
           await fetchSecurityEvents()
           break
       }
-    } catch {
-      console.error('Failed to fetch data:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch data', error, {
+        operation: 'fetch_user_activity',
+        userId,
+        activeTab,
+      })
       showError('Failed to load user activity data')
     } finally {
       setLoading(false)
@@ -144,8 +149,11 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/sessions/${sessionId}`)
       showSuccess('Session terminated successfully')
       fetchActiveSessions()
-    } catch {
-      console.error('Failed to terminate session:', error)
+    } catch (error) {
+      log.auth.error('Failed to terminate session', error, {
+        operation: 'terminate_session',
+        sessionId,
+      })
       showError('Failed to terminate session')
     } finally {
       setActionLoading(null)
@@ -162,8 +170,11 @@ const UserActivityModal: React.FC<UserActivityModalProps> = ({ isOpen, onClose, 
       await apiService.delete(`/auth/users/${userId}/sessions`)
       showSuccess('All sessions terminated successfully')
       fetchActiveSessions()
-    } catch {
-      console.error('Failed to terminate all sessions:', error)
+    } catch (error) {
+      log.auth.error('Failed to terminate all sessions', error, {
+        operation: 'terminate_all_sessions',
+        userId,
+      })
       showError('Failed to terminate all sessions')
     } finally {
       setActionLoading(null)

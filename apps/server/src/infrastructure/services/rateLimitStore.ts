@@ -1,4 +1,5 @@
 import { securityLogger, SecurityEventType, SecuritySeverity } from './securityLogger'
+import { log } from '../../infrastructure/services/logger'
 
 // Rate limit store interface
 export interface RateLimitStore {
@@ -86,7 +87,7 @@ export class RedisRateLimitStore implements RateLimitStore {
 
   constructor(redisClient?: any) {
     if (!redisClient) {
-      console.warn('Redis client not provided, using in-memory fallback')
+      log.system.warn('Redis client not provided, using in-memory fallback')
       // In production, you would initialize Redis client here
       // this.redisClient = new Redis(process.env.REDIS_URL)
     } else {
@@ -330,13 +331,13 @@ let rateLimitStore: RateLimitStore
 // Initialize based on environment
 if (process.env.REDIS_URL) {
   // In production with Redis
-  console.log('🔴 Using Redis for rate limiting')
+  log.system.info('🔴 Using Redis for rate limiting')
   // const redisClient = new Redis(process.env.REDIS_URL)
   // rateLimitStore = new RedisRateLimitStore(redisClient)
   rateLimitStore = new InMemoryRateLimitStore() // Fallback for now
 } else {
   // Development or no Redis
-  console.log('💾 Using in-memory store for rate limiting')
+  log.system.info('💾 Using in-memory store for rate limiting')
   rateLimitStore = new InMemoryRateLimitStore()
 }
 

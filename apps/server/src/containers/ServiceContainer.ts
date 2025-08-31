@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { ENVIRONMENTS } from '@trading-viewer/shared'
+import { log } from '../infrastructure/services/logger'
 
 /**
  * Service lifetime definitions
@@ -85,12 +86,15 @@ export class ServiceContainer {
     lifetime: ServiceLifetime = ServiceLifetime.Transient
   ): this {
     if (this.disposed) {
+      log.system.error(
+        `Service registration failed: Cannot register service '${name}' in disposed container`
+      )
       throw new Error('Cannot register services in disposed container')
     }
 
     if (this.services.has(name)) {
       if (process.env.NODE_ENV === ENVIRONMENTS.DEVELOPMENT) {
-        console.warn(`Service '${name}' is already registered. Overwriting.`)
+        log.system.warn(`Service '${name}' is already registered. Overwriting.`)
       }
     }
 
@@ -109,6 +113,9 @@ export class ServiceContainer {
    */
   registerInstance<T>(name: string, instance: T): this {
     if (this.disposed) {
+      log.system.error(
+        `Service instance registration failed: Cannot register instance '${name}' in disposed container`
+      )
       throw new Error('Cannot register services in disposed container')
     }
 
@@ -129,11 +136,17 @@ export class ServiceContainer {
    */
   resolve<T>(name: string, scopeId?: string): T {
     if (this.disposed) {
+      log.system.error(
+        `Service resolution failed: Cannot resolve service '${name}' from disposed container`
+      )
       throw new Error('Cannot resolve services from disposed container')
     }
 
     // Check for circular dependencies
     if (this.resolutionStack.includes(name)) {
+      log.system.error(
+        `Circular dependency detected: ${this.resolutionStack.join(' -> ')} -> ${name}`
+      )
       throw new Error(
         `Circular dependency detected: ${this.resolutionStack.join(' -> ')} -> ${name}`
       )
@@ -141,6 +154,7 @@ export class ServiceContainer {
 
     const descriptor = this.services.get(name)
     if (!descriptor) {
+      log.system.error(`Service resolution failed: Service '${name}' is not registered`)
       throw new Error(`Service '${name}' is not registered`)
     }
 
@@ -181,7 +195,7 @@ export class ServiceContainer {
         try {
           instance.dispose()
         } catch (error) {
-          console.error(`Error disposing scoped service '${name}':`, error)
+          log.system.error(`Error disposing scoped service '${name}':`, error)
         }
       }
     }
@@ -222,7 +236,7 @@ export class ServiceContainer {
         try {
           instance.dispose()
         } catch (error) {
-          console.error(`Error disposing singleton service '${name}':`, error)
+          log.system.error(`Error disposing singleton service '${name}':`, error)
         }
       }
     }

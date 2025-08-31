@@ -1,4 +1,5 @@
 // Base API service for centralized API management
+import { log } from '../logger'
 
 export interface ApiResponse<T = unknown> {
   success: boolean
@@ -57,14 +58,12 @@ export class ApiService {
     // Add CSRF token for state-changing operations
     if (requiresCSRF && this.csrfToken) {
       requestHeaders['x-csrf-token'] = this.csrfToken
-      console.log(
-        '🔐 ApiService sending CSRF token:',
-        this.csrfToken.substring(0, 8) + '...',
-        'for',
-        endpoint
-      )
+      log.system.debug('Sending CSRF token for API request', {
+        endpoint,
+        csrfTokenPreview: this.csrfToken.substring(0, 8) + '...',
+      })
     } else if (requiresCSRF) {
-      console.warn('🔐 CSRF token required but not available for', endpoint)
+      log.system.warn('CSRF token required but not available', { endpoint })
     }
 
     const config: RequestInit = {
@@ -102,6 +101,7 @@ export class ApiService {
 
       // Handle timeout
       if (error instanceof DOMException && error.name === 'AbortError') {
+        log.api.error(`API request timeout: ${endpoint}`)
         throw new Error('Request timeout')
       }
 
@@ -111,6 +111,10 @@ export class ApiService {
         return this.request<T>(endpoint, { ...options, retries: retries - 1 })
       }
 
+      log.api.error(
+        `API request failed: ${endpoint}`,
+        error instanceof Error ? error : new Error(String(error))
+      )
       throw new Error('Operation failed')
     }
   }

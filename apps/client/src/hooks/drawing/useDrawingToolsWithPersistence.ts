@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useDrawingTools } from './index'
 import { useDrawingPersistence, type DrawingPersistenceOptions } from './useDrawingPersistence'
+import { log } from '../../services/logger'
 
 /**
  * Enhanced drawing tools hook with localStorage persistence
@@ -14,9 +15,10 @@ export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOption
   // When symbol or timeframe changes, restore tools for that combination
   useEffect(() => {
     if (options.symbol) {
-      console.log(
-        `🔄 Symbol/timeframe changed to: ${options.symbol}:${options.timeframe || '1D'}, restoring drawings...`
-      )
+      log.business.info('Restoring drawings for symbol/timeframe change', {
+        symbol: options.symbol,
+        timeframe: options.timeframe || '1D',
+      })
       persistence.restoreForSymbolAndTimeframe(options.symbol, options.timeframe)
     }
   }, [options.symbol, options.timeframe]) // Re-run when symbol or timeframe changes

@@ -1,7 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { AuthService } from '../AuthService'
 import type { ApiService } from '../base/ApiService'
-import type { User, LoginCredentials, RegisterData, UpdateProfileData, ChangePasswordData } from '../../contexts/AuthContext'
+import type {
+  User,
+  LoginCredentials,
+  RegisterData,
+  UpdateProfileData,
+  ChangePasswordData,
+} from '../../contexts/AuthContext'
 
 // Mock ApiService
 const mockApiService = {
@@ -9,7 +15,7 @@ const mockApiService = {
   post: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
-  setCSRFToken: vi.fn()
+  setCSRFToken: vi.fn(),
 } as unknown as ApiService
 
 describe('AuthService', () => {
@@ -23,13 +29,13 @@ describe('AuthService', () => {
     isEmailVerified: true,
     role: 'user',
     createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z',
   }
 
   const mockAuthResponse = {
     user: mockUser,
     accessTokenExpiresAt: '2024-12-31T23:59:59.000Z',
-    refreshTokenExpiresAt: '2025-01-31T23:59:59.000Z'
+    refreshTokenExpiresAt: '2025-01-31T23:59:59.000Z',
   }
 
   beforeEach(() => {
@@ -47,20 +53,20 @@ describe('AuthService', () => {
     const credentials: LoginCredentials = {
       email: 'test@example.com',
       password: 'password123',
-      rememberMe: true
+      rememberMe: true,
     }
 
     it('should login successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: true,
-        data: mockAuthResponse
+        data: mockAuthResponse,
       })
 
       const result = await authService.login(credentials)
 
       expect(mockApiService.post).toHaveBeenCalledWith('/auth/login', credentials, {
         requiresAuth: false,
-        requiresCSRF: false
+        requiresCSRF: false,
       })
       expect(result).toEqual(mockAuthResponse)
     })
@@ -68,7 +74,7 @@ describe('AuthService', () => {
     it('should throw error on login failure', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       })
 
       await expect(authService.login(credentials)).rejects.toThrow('Invalid credentials')
@@ -77,7 +83,7 @@ describe('AuthService', () => {
     it('should throw default error when no error message provided', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        data: null
+        data: null,
       })
 
       await expect(authService.login(credentials)).rejects.toThrow('Login failed')
@@ -95,20 +101,20 @@ describe('AuthService', () => {
       email: 'new@example.com',
       password: 'NewPassword123!',
       name: 'New User',
-      acceptTerms: true
+      acceptTerms: true,
     }
 
     it('should register successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: true,
-        data: mockAuthResponse
+        data: mockAuthResponse,
       })
 
       const result = await authService.register(registerData)
 
       expect(mockApiService.post).toHaveBeenCalledWith('/auth/register', registerData, {
         requiresAuth: false,
-        requiresCSRF: false
+        requiresCSRF: false,
       })
       expect(result).toEqual(mockAuthResponse)
     })
@@ -116,7 +122,7 @@ describe('AuthService', () => {
     it('should throw error on registration failure', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Email already exists'
+        error: 'Email already exists',
       })
 
       await expect(authService.register(registerData)).rejects.toThrow('Email already exists')
@@ -124,7 +130,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.register(registerData)).rejects.toThrow('Registration failed')
@@ -134,7 +140,7 @@ describe('AuthService', () => {
   describe('logout', () => {
     it('should logout successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: true
+        success: true,
       })
 
       await expect(authService.logout()).resolves.toBeUndefined()
@@ -152,13 +158,13 @@ describe('AuthService', () => {
     it('should refresh tokens successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: true,
-        data: mockAuthResponse
+        data: mockAuthResponse,
       })
 
       const result = await authService.refreshTokens()
 
       expect(mockApiService.post).toHaveBeenCalledWith('/auth/refresh', undefined, {
-        requiresCSRF: false
+        requiresCSRF: false,
       })
       expect(result).toEqual(mockAuthResponse)
     })
@@ -166,7 +172,7 @@ describe('AuthService', () => {
     it('should throw error on refresh failure', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Token expired'
+        error: 'Token expired',
       })
 
       await expect(authService.refreshTokens()).rejects.toThrow('Token expired')
@@ -174,7 +180,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.refreshTokens()).rejects.toThrow('Token refresh failed')
@@ -185,7 +191,7 @@ describe('AuthService', () => {
     it('should get current user successfully', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: { user: mockUser }
+        data: { user: mockUser },
       })
 
       const result = await authService.getCurrentUser()
@@ -197,7 +203,7 @@ describe('AuthService', () => {
     it('should throw error when API fails', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorized',
       })
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Unauthorized')
@@ -205,7 +211,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Failed to get user data')
@@ -215,19 +221,19 @@ describe('AuthService', () => {
   describe('updateProfile', () => {
     const profileData: UpdateProfileData = {
       name: 'Updated Name',
-      avatar: 'https://example.com/new-avatar.jpg'
+      avatar: 'https://example.com/new-avatar.jpg',
     }
 
     const updatedUser: User = {
       ...mockUser,
       name: 'Updated Name',
-      avatar: 'https://example.com/new-avatar.jpg'
+      avatar: 'https://example.com/new-avatar.jpg',
     }
 
     it('should update profile successfully', async () => {
       mockApiService.put = vi.fn().mockResolvedValue({
         success: true,
-        data: { user: updatedUser }
+        data: { user: updatedUser },
       })
 
       const result = await authService.updateProfile(profileData)
@@ -239,7 +245,7 @@ describe('AuthService', () => {
     it('should throw error on profile update failure', async () => {
       mockApiService.put = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Validation failed'
+        error: 'Validation failed',
       })
 
       await expect(authService.updateProfile(profileData)).rejects.toThrow('Validation failed')
@@ -247,7 +253,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.put = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.updateProfile(profileData)).rejects.toThrow('Profile update failed')
@@ -257,12 +263,12 @@ describe('AuthService', () => {
   describe('changePassword', () => {
     const passwordData: ChangePasswordData = {
       currentPassword: 'oldPassword123',
-      newPassword: 'newPassword456!'
+      newPassword: 'newPassword456!',
     }
 
     it('should change password successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: true
+        success: true,
       })
 
       await expect(authService.changePassword(passwordData)).resolves.toBeUndefined()
@@ -272,25 +278,29 @@ describe('AuthService', () => {
     it('should throw error on password change failure', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Current password is incorrect'
+        error: 'Current password is incorrect',
       })
 
-      await expect(authService.changePassword(passwordData)).rejects.toThrow('Current password is incorrect')
+      await expect(authService.changePassword(passwordData)).rejects.toThrow(
+        'Current password is incorrect'
+      )
     })
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
-      await expect(authService.changePassword(passwordData)).rejects.toThrow('Password change failed')
+      await expect(authService.changePassword(passwordData)).rejects.toThrow(
+        'Password change failed'
+      )
     })
   })
 
   describe('deleteAccount', () => {
     it('should delete account successfully', async () => {
       mockApiService.delete = vi.fn().mockResolvedValue({
-        success: true
+        success: true,
       })
 
       await expect(authService.deleteAccount()).resolves.toBeUndefined()
@@ -300,15 +310,17 @@ describe('AuthService', () => {
     it('should throw error on account deletion failure', async () => {
       mockApiService.delete = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Cannot delete account with active subscriptions'
+        error: 'Cannot delete account with active subscriptions',
       })
 
-      await expect(authService.deleteAccount()).rejects.toThrow('Cannot delete account with active subscriptions')
+      await expect(authService.deleteAccount()).rejects.toThrow(
+        'Cannot delete account with active subscriptions'
+      )
     })
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.delete = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.deleteAccount()).rejects.toThrow('Account deletion failed')
@@ -321,13 +333,13 @@ describe('AuthService', () => {
     it('should get CSRF token successfully', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: { csrfToken }
+        data: { csrfToken },
       })
 
       const result = await authService.getCSRFToken()
 
       expect(mockApiService.get).toHaveBeenCalledWith('/auth/csrf-token', {
-        requiresCSRF: false
+        requiresCSRF: false,
       })
       expect(mockApiService.setCSRFToken).toHaveBeenCalledWith(csrfToken)
       expect(result).toBe(csrfToken)
@@ -336,7 +348,7 @@ describe('AuthService', () => {
     it('should throw error when CSRF token request fails', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: false,
-        error: 'CSRF token generation failed'
+        error: 'CSRF token generation failed',
       })
 
       await expect(authService.getCSRFToken()).rejects.toThrow('CSRF token generation failed')
@@ -345,7 +357,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.getCSRFToken()).rejects.toThrow('Failed to get CSRF token')
@@ -360,7 +372,7 @@ describe('AuthService', () => {
 
       expect(result).toEqual({
         isAuthenticated: true,
-        user: mockUser
+        user: mockUser,
       })
     })
 
@@ -370,7 +382,7 @@ describe('AuthService', () => {
       const result = await authService.checkAuthStatus()
 
       expect(result).toEqual({
-        isAuthenticated: false
+        isAuthenticated: false,
       })
     })
   })
@@ -398,13 +410,13 @@ describe('AuthService', () => {
       verifiedUsers: 800,
       unverifiedUsers: 200,
       adminUsers: 5,
-      regularUsers: 995
+      regularUsers: 995,
     }
 
     it('should get auth stats successfully', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: mockStats
+        data: mockStats,
       })
 
       const result = await authService.getAuthStats()
@@ -416,7 +428,7 @@ describe('AuthService', () => {
     it('should throw error when stats request fails', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Insufficient permissions'
+        error: 'Insufficient permissions',
       })
 
       await expect(authService.getAuthStats()).rejects.toThrow('Insufficient permissions')
@@ -424,7 +436,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.getAuthStats()).rejects.toThrow('Failed to get auth stats')
@@ -437,14 +449,14 @@ describe('AuthService', () => {
     it('should seed test users successfully', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: true,
-        data: mockResult
+        data: mockResult,
       })
 
       const result = await authService.seedTestUsers()
 
       expect(mockApiService.post).toHaveBeenCalledWith('/auth/dev/seed', undefined, {
         requiresAuth: false,
-        requiresCSRF: false
+        requiresCSRF: false,
       })
       expect(result).toEqual(mockResult)
     })
@@ -452,7 +464,7 @@ describe('AuthService', () => {
     it('should throw error when seeding fails', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Seeding not allowed in production'
+        error: 'Seeding not allowed in production',
       })
 
       await expect(authService.seedTestUsers()).rejects.toThrow('Seeding not allowed in production')
@@ -460,7 +472,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.post = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.seedTestUsers()).rejects.toThrow('Failed to seed test users')
@@ -469,19 +481,19 @@ describe('AuthService', () => {
 
   describe('getTestUsers', () => {
     const mockUsers = {
-      users: [mockUser, { ...mockUser, id: 'user-456', email: 'test2@example.com' }]
+      users: [mockUser, { ...mockUser, id: 'user-456', email: 'test2@example.com' }],
     }
 
     it('should get test users successfully', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: mockUsers
+        data: mockUsers,
       })
 
       const result = await authService.getTestUsers()
 
       expect(mockApiService.get).toHaveBeenCalledWith('/auth/dev/users', {
-        requiresAuth: false
+        requiresAuth: false,
       })
       expect(result).toEqual(mockUsers)
     })
@@ -489,7 +501,7 @@ describe('AuthService', () => {
     it('should throw error when getting test users fails', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: false,
-        error: 'Test users not available'
+        error: 'Test users not available',
       })
 
       await expect(authService.getTestUsers()).rejects.toThrow('Test users not available')
@@ -497,7 +509,7 @@ describe('AuthService', () => {
 
     it('should throw default error when no error message provided', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
-        success: false
+        success: false,
       })
 
       await expect(authService.getTestUsers()).rejects.toThrow('Failed to get test users')
@@ -508,16 +520,18 @@ describe('AuthService', () => {
     it('should handle null/undefined API responses', async () => {
       mockApiService.post = vi.fn().mockResolvedValue(null)
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password123'
-      } as LoginCredentials)).rejects.toThrow('Login failed')
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password123',
+        } as LoginCredentials)
+      ).rejects.toThrow('Login failed')
     })
 
     it('should handle malformed API responses', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: null // Invalid response structure
+        data: null, // Invalid response structure
       })
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Failed to get user data')
@@ -526,7 +540,7 @@ describe('AuthService', () => {
     it('should handle missing user data in response', async () => {
       mockApiService.get = vi.fn().mockResolvedValue({
         success: true,
-        data: {} // Missing user property
+        data: {}, // Missing user property
       })
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Failed to get user data')
@@ -544,7 +558,7 @@ describe('AuthService', () => {
         callCount++
         return Promise.resolve({
           success: true,
-          data: { csrfToken: `token-${callCount}` }
+          data: { csrfToken: `token-${callCount}` },
         })
       })
 
@@ -552,7 +566,7 @@ describe('AuthService', () => {
       const promises = [
         authService.getCSRFToken(),
         authService.getCSRFToken(),
-        authService.getCSRFToken()
+        authService.getCSRFToken(),
       ]
 
       const results = await Promise.all(promises)
@@ -568,30 +582,35 @@ describe('AuthService', () => {
       const timeoutError = new Error('Request timeout')
       mockApiService.post = vi.fn().mockRejectedValue(timeoutError)
 
-      await expect(authService.login({
-        email: 'test@example.com',
-        password: 'password123'
-      } as LoginCredentials)).rejects.toThrow('Request timeout')
+      await expect(
+        authService.login({
+          email: 'test@example.com',
+          password: 'password123',
+        } as LoginCredentials)
+      ).rejects.toThrow('Request timeout')
     })
   })
 
   describe('Integration Scenarios', () => {
     it('should handle complete authentication flow', async () => {
       // Setup all mocks before starting the flow
-      mockApiService.post = vi.fn()
+      mockApiService.post = vi
+        .fn()
         .mockResolvedValueOnce({ success: true, data: mockAuthResponse }) // login
         .mockResolvedValueOnce({ success: true }) // logout
 
-      mockApiService.get = vi.fn()
+      mockApiService.get = vi
+        .fn()
         .mockResolvedValueOnce({ success: true, data: { user: mockUser } })
 
-      mockApiService.put = vi.fn()
+      mockApiService.put = vi
+        .fn()
         .mockResolvedValueOnce({ success: true, data: { user: { ...mockUser, name: 'Updated' } } })
 
       // Execute the flow
       await authService.login({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       } as LoginCredentials)
 
       await authService.getCurrentUser()
@@ -600,18 +619,19 @@ describe('AuthService', () => {
 
       // Verify all calls
       expect(mockApiService.post).toHaveBeenCalledTimes(2) // login + logout
-      expect(mockApiService.get).toHaveBeenCalledTimes(1)  // getCurrentUser
-      expect(mockApiService.put).toHaveBeenCalledTimes(1)  // updateProfile
+      expect(mockApiService.get).toHaveBeenCalledTimes(1) // getCurrentUser
+      expect(mockApiService.put).toHaveBeenCalledTimes(1) // updateProfile
     })
 
     it('should handle token refresh during profile operations', async () => {
       // AuthService does not automatically retry on 401 errors
       // This test verifies that authentication errors are properly propagated
-      mockApiService.put = vi.fn()
-        .mockRejectedValueOnce({ response: { status: 401 } })
+      mockApiService.put = vi.fn().mockRejectedValueOnce({ response: { status: 401 } })
 
       // This should reject with the 401 error since AuthService doesn't handle retries
-      await expect(authService.updateProfile({ name: 'Test' })).rejects.toEqual({ response: { status: 401 } })
+      await expect(authService.updateProfile({ name: 'Test' })).rejects.toEqual({
+        response: { status: 401 },
+      })
     })
   })
 })

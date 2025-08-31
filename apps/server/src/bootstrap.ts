@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 import { createServer } from 'http'
 import { connectDatabase, disconnectDatabase, checkDatabaseHealth } from './lib/database.js'
 import { initializeRedis, disconnectRedis, checkRedisHealth } from './lib/redis.js'
+import { log } from './infrastructure/services/logger.js'
 import { setupRoutes } from './routes/index.js'
 import { setupMiddleware } from './middleware/index.js'
 import { setupRateLimiting } from './middleware/rateLimiting.js'
@@ -32,7 +33,7 @@ export class ApplicationBootstrap {
   }
 
   private validateConfiguration(): void {
-    console.log('🔍 Validating security configuration...')
+    log.security.info('Validating security configuration...')
     SecurityConfigValidator.printStatus()
   }
 
@@ -122,12 +123,16 @@ export class ApplicationBootstrap {
 
     // Handle uncaught errors
     process.on('uncaughtException', error => {
-      console.error('❌ Uncaught Exception:', error)
+      log.fatal('Uncaught Exception', error)
       this.gracefulShutdown('uncaughtException')
     })
 
     process.on('unhandledRejection', (reason, promise) => {
-      console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
+      log.fatal(
+        'Unhandled Rejection',
+        reason instanceof Error ? reason : new Error(String(reason)),
+        { promise: String(promise) }
+      )
       this.gracefulShutdown('unhandledRejection')
     })
   }
@@ -158,13 +163,14 @@ export class ApplicationBootstrap {
       // Setup signal handlers
       this.setupSignalHandlers()
     } catch (error) {
-      console.error('Failed to initialize application:', error)
+      log.system.error('Failed to initialize application:', error)
       throw error
     }
   }
 
   public async start(): Promise<void> {
     if (!this.server) {
+      log.system.error('Application start failed: Server is not initialized')
       throw new Error('Application must be initialized before starting')
     }
 
@@ -175,12 +181,12 @@ export class ApplicationBootstrap {
           return
         }
 
-        console.log(`🚀 Server running on http://localhost:${this.PORT}`)
-        console.log(`📊 API available at http://localhost:${this.PORT}/api`)
-        console.log(`🌐 WebSocket available at ws://localhost:${this.PORT}/ws`)
-        console.log(`❤️  Health check at http://localhost:${this.PORT}/health`)
-        console.log(`🗄️  Database connected and ready`)
-        console.log(`🛡️  Graceful shutdown enabled (timeout: 30s)`)
+        log.system.info(`Server running on http://localhost:${this.PORT}`)
+        log.system.info(`API available at http://localhost:${this.PORT}/api`)
+        log.system.info(`WebSocket available at ws://localhost:${this.PORT}/ws`)
+        log.system.info(`Health check at http://localhost:${this.PORT}/health`)
+        log.database.info('Database connected and ready')
+        log.system.info('Graceful shutdown enabled (timeout: 30s)')
         resolve()
       })
     })
@@ -188,29 +194,29 @@ export class ApplicationBootstrap {
 
   private async gracefulShutdown(signal: string): Promise<void> {
     if (this.isShuttingDown) {
-      console.log('⏳ Shutdown already in progress...')
+      log.system.info('⏳ Shutdown already in progress...')
       return
     }
 
     this.isShuttingDown = true
-    console.log(`\n🛑 Received ${signal}, starting graceful shutdown...`)
+    log.system.info(`\n🛑 Received ${signal}, starting graceful shutdown...`)
 
     // Set shutdown timeout (30 seconds)
     const shutdownTimeout = setTimeout(() => {
-      console.error('⚠️  Graceful shutdown timeout exceeded, forcing exit')
+      log.system.error('⚠️  Graceful shutdown timeout exceeded, forcing exit')
       process.exit(1)
     }, 30000)
 
     try {
       // Step 1: Stop accepting new connections
       if (this.server) {
-        console.log('📡 Closing HTTP server...')
+        log.system.info('📡 Closing HTTP server...')
         await new Promise<void>((resolve, reject) => {
           this.server!.close(err => {
             if (err) {
               reject(err)
             } else {
-              console.log('✅ HTTP server closed')
+              log.system.info('✅ HTTP server closed')
               resolve()
             }
           })
@@ -219,41 +225,41 @@ export class ApplicationBootstrap {
         // Force close any remaining connections after 5 seconds
         setTimeout(() => {
           this.activeConnections.forEach(connection => {
-            console.log('⚠️  Force closing active connection')
+            log.system.warn('⚠️  Force closing active connection')
             connection.destroy()
           })
         }, 5000)
       }
 
       // Step 2: Close WebSocket connections
-      console.log('🌐 Closing WebSocket connections...')
+      log.websocket.info('🌐 Closing WebSocket connections...')
       const wsService = getWebSocketService()
       wsService.close()
-      console.log('✅ WebSocket connections closed')
+      log.websocket.info('✅ WebSocket connections closed')
 
       // Step 3: Wait for pending requests to complete (max 10 seconds)
-      console.log('⏳ Waiting for pending requests...')
+      log.system.info('⏳ Waiting for pending requests...')
       await new Promise(resolve =>
         setTimeout(resolve, Math.min(10000, parseInt(process.env.SHUTDOWN_DELAY || '5000')))
       )
 
       // Step 4: Close database connections
-      console.log('🗄️  Closing database connections...')
+      log.database.info('🗄️  Closing database connections...')
       await disconnectDatabase()
-      console.log('✅ Database connections closed')
+      log.database.info('✅ Database connections closed')
 
       // Step 5: Close Redis connections
-      console.log('📡 Closing Redis connections...')
+      log.system.info('📡 Closing Redis connections...')
       await disconnectRedis()
-      console.log('✅ Redis connections closed')
+      log.system.info('✅ Redis connections closed')
 
       // Clear the timeout
       clearTimeout(shutdownTimeout)
 
-      console.log('👋 Graceful shutdown completed')
+      log.system.info('👋 Graceful shutdown completed')
       process.exit(0)
     } catch (error) {
-      console.error('❌ Error during graceful shutdown:', error)
+      log.system.error('❌ Error during graceful shutdown:', error)
       clearTimeout(shutdownTimeout)
       process.exit(1)
     }

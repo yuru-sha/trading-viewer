@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PriceAlert } from '../components/chart/AlertModal'
 import { api } from '../lib/apiClient'
+import { log } from '../services/logger'
 
 interface UseAlertsOptions {
   symbol: string
@@ -37,7 +38,7 @@ export const useAlerts = ({
         setAlerts(serverAlerts)
       }
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to load alerts from server')
     } finally {
       setIsLoading(false)
     }
@@ -104,7 +105,7 @@ export const useAlerts = ({
         setAlerts(prev => prev.map(a => (a.id === alertId ? { ...a, triggeredAt: new Date() } : a)))
       }
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to load alerts from server')
     }
   }, [])
 
@@ -126,7 +127,7 @@ export const useAlerts = ({
           return newAlert
         }
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to load alerts from server')
       }
       return null
     },
@@ -142,7 +143,7 @@ export const useAlerts = ({
         notifiedAlertsRef.current.delete(id)
       }
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to load alerts from server')
     }
   }, [])
 
@@ -174,7 +175,7 @@ export const useAlerts = ({
           }
         }
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to load alerts from server')
       }
     },
     [alerts]
@@ -190,7 +191,7 @@ export const useAlerts = ({
       setAlerts([])
       notifiedAlertsRef.current.clear()
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to load alerts from server')
     }
   }, [alerts])
 
@@ -206,7 +207,7 @@ export const useAlerts = ({
       // Clear from notified set
       triggeredAlerts.forEach(alert => notifiedAlertsRef.current.delete(alert.id))
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to load alerts from server')
     }
   }, [alerts])
 

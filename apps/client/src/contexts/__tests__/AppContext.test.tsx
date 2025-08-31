@@ -120,11 +120,14 @@ describe.skip('AppContext', () => {
     })
 
     it('saves theme to localStorage when changed', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.setTheme('light')
@@ -138,15 +141,18 @@ describe.skip('AppContext', () => {
         classList: {
           add: vi.fn(),
           remove: vi.fn(),
-        }
+        },
       }
       vi.stubGlobal('document', { documentElement: mockDocumentElement })
 
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       // Should add dark class initially (default is dark)
       expect(mockDocumentElement.classList.add).toHaveBeenCalledWith('dark')
@@ -168,7 +174,7 @@ describe.skip('AppContext', () => {
   describe('Watchlist Management', () => {
     it('loads watchlist from localStorage on mount', () => {
       const mockWatchlist = ['AAPL', 'GOOGL', 'MSFT']
-      mockLocalStorage.getItem.mockImplementation((key) => {
+      mockLocalStorage.getItem.mockImplementation(key => {
         if (key === 'watchlist') return JSON.stringify(mockWatchlist)
         return null
       })
@@ -180,7 +186,7 @@ describe.skip('AppContext', () => {
 
     it('handles invalid JSON in watchlist localStorage', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      mockLocalStorage.getItem.mockImplementation((key) => {
+      mockLocalStorage.getItem.mockImplementation(key => {
         if (key === 'watchlist') return 'invalid-json'
         return null
       })
@@ -197,7 +203,7 @@ describe.skip('AppContext', () => {
     })
 
     it('handles non-array data in watchlist localStorage', () => {
-      mockLocalStorage.getItem.mockImplementation((key) => {
+      mockLocalStorage.getItem.mockImplementation(key => {
         if (key === 'watchlist') return JSON.stringify({ invalid: 'data' })
         return null
       })
@@ -208,11 +214,14 @@ describe.skip('AppContext', () => {
     })
 
     it('saves watchlist to localStorage when changed', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.addToWatchlist('AAPL')
@@ -224,15 +233,21 @@ describe.skip('AppContext', () => {
         result.current.actions.addToWatchlist('GOOGL')
       })
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('watchlist', JSON.stringify(['AAPL', 'GOOGL']))
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+        'watchlist',
+        JSON.stringify(['AAPL', 'GOOGL'])
+      )
     })
 
     it('does not add duplicate symbols to watchlist', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.addToWatchlist('AAPL')
@@ -246,11 +261,14 @@ describe.skip('AppContext', () => {
     })
 
     it('removes symbol from watchlist', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.setWatchlist(['AAPL', 'GOOGL', 'MSFT'])
@@ -264,11 +282,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles removing non-existent symbol from watchlist', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.setWatchlist(['AAPL', 'GOOGL'])
@@ -282,11 +303,14 @@ describe.skip('AppContext', () => {
     })
 
     it('replaces entire watchlist', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.addToWatchlist('AAPL')
@@ -303,11 +327,14 @@ describe.skip('AppContext', () => {
 
   describe('Action Creators', () => {
     it('handles loading state changes', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       expect(result.current.state.isLoading).toBe(false)
 
@@ -325,11 +352,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles symbol selection', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       expect(result.current.state.selectedSymbol).toBeNull()
 
@@ -347,11 +377,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles timeframe changes', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       expect(result.current.state.timeframe).toBe('1D')
 
@@ -369,11 +402,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles basic error state', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       expect(result.current.state.error).toBeNull()
 
@@ -393,11 +429,14 @@ describe.skip('AppContext', () => {
 
   describe('App Error Management', () => {
     it('handles app error creation from string', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       const errorMessage = 'Network connection failed'
       act(() => {
@@ -408,16 +447,19 @@ describe.skip('AppContext', () => {
         message: errorMessage,
         type: 'general',
         timestamp: expect.any(Number),
-        retryable: true
+        retryable: true,
       })
     })
 
     it('handles app error creation from Error object', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       const error = new Error('API request failed')
       error.stack = 'Error: API request failed\n    at test.js:1:1'
@@ -431,16 +473,19 @@ describe.skip('AppContext', () => {
         type: 'general',
         timestamp: expect.any(Number),
         retryable: true,
-        details: error.stack
+        details: error.stack,
       })
     })
 
     it('handles network errors', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.showNetworkError('Connection timeout')
@@ -450,16 +495,19 @@ describe.skip('AppContext', () => {
         message: 'Connection timeout',
         type: 'network',
         timestamp: expect.any(Number),
-        retryable: true
+        retryable: true,
       })
     })
 
     it('handles API errors', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.showApiError('Server returned 500')
@@ -469,16 +517,19 @@ describe.skip('AppContext', () => {
         message: 'Server returned 500',
         type: 'api',
         timestamp: expect.any(Number),
-        retryable: true
+        retryable: true,
       })
     })
 
     it('handles validation errors', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.showValidationError('Invalid email format')
@@ -488,16 +539,19 @@ describe.skip('AppContext', () => {
         message: 'Invalid email format',
         type: 'validation',
         timestamp: expect.any(Number),
-        retryable: false
+        retryable: false,
       })
     })
 
     it('handles app error with custom parameters', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.showError('Custom error', 'network', false)
@@ -507,16 +561,19 @@ describe.skip('AppContext', () => {
         message: 'Custom error',
         type: 'network',
         timestamp: expect.any(Number),
-        retryable: false
+        retryable: false,
       })
     })
 
     it('clears app error', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.showError('Test error')
@@ -532,18 +589,21 @@ describe.skip('AppContext', () => {
     })
 
     it('handles direct app error setting', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       const customError = {
         message: 'Custom app error',
         type: 'api' as const,
         timestamp: Date.now(),
         retryable: true,
-        details: 'Additional error details'
+        details: 'Additional error details',
       }
 
       act(() => {
@@ -568,11 +628,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles multiple state updates in sequence', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       act(() => {
         result.current.actions.setTheme('light')
@@ -588,16 +651,19 @@ describe.skip('AppContext', () => {
         timeframe: '1H',
         error: null,
         appError: null,
-        watchlist: []
+        watchlist: [],
       })
     })
 
     it('handles concurrent state updates', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       // Simulate concurrent updates
       act(() => {
@@ -605,7 +671,7 @@ describe.skip('AppContext', () => {
           result.current.actions.setTheme('light'),
           result.current.actions.addToWatchlist('AAPL'),
           result.current.actions.addToWatchlist('GOOGL'),
-          result.current.actions.setSelectedSymbol('MSFT')
+          result.current.actions.setSelectedSymbol('MSFT'),
         ])
       })
 
@@ -618,7 +684,7 @@ describe.skip('AppContext', () => {
   describe('LocalStorage Error Handling', () => {
     it('handles localStorage unavailability', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      
+
       // Mock localStorage to throw errors
       mockLocalStorage.getItem.mockImplementation(() => {
         throw new Error('localStorage not available')
@@ -635,11 +701,14 @@ describe.skip('AppContext', () => {
     })
 
     it('handles localStorage quota exceeded', () => {
-      const { result } = renderHook(() => {
-        const app = useApp()
-        const actions = useAppActions()
-        return { ...app, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app = useApp()
+          const actions = useAppActions()
+          return { ...app, actions }
+        },
+        { wrapper }
+      )
 
       // Mock setItem to throw quota exceeded error
       mockLocalStorage.setItem.mockImplementation(() => {
@@ -661,8 +730,8 @@ describe.skip('AppContext', () => {
 
     it('handles corrupted localStorage data', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      
-      mockLocalStorage.getItem.mockImplementation((key) => {
+
+      mockLocalStorage.getItem.mockImplementation(key => {
         if (key === 'theme') return 'invalid_theme'
         if (key === 'watchlist') return '[invalid,json'
         return null
@@ -691,11 +760,14 @@ describe.skip('AppContext', () => {
 
     it('provides consistent state reference across re-renders', () => {
       let renderCount = 0
-      const { result, rerender } = renderHook(() => {
-        renderCount++
-        const app = useApp()
-        return { app, renderCount }
-      }, { wrapper })
+      const { result, rerender } = renderHook(
+        () => {
+          renderCount++
+          const app = useApp()
+          return { app, renderCount }
+        },
+        { wrapper }
+      )
 
       const initialState = result.current.app.state
 
@@ -706,13 +778,16 @@ describe.skip('AppContext', () => {
     })
 
     it('allows multiple hook consumers', () => {
-      const { result } = renderHook(() => {
-        const app1 = useApp()
-        const app2 = useApp()
-        const actions = useAppActions()
-        
-        return { app1, app2, actions }
-      }, { wrapper })
+      const { result } = renderHook(
+        () => {
+          const app1 = useApp()
+          const app2 = useApp()
+          const actions = useAppActions()
+
+          return { app1, app2, actions }
+        },
+        { wrapper }
+      )
 
       // Both hooks should return the same state
       expect(result.current.app1.state).toBe(result.current.app2.state)

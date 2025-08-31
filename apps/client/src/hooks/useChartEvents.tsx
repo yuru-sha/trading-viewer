@@ -4,6 +4,7 @@ import type useDrawingTools from './useDrawingTools'
 import type { useChartInstance } from './useChartInstance'
 import { PriceData } from '../utils/indicators'
 import { DrawingTool } from '@trading-viewer/shared'
+import { log } from '../services/logger'
 
 interface ChartEventHandlers {
   handleChartClick: (params: ECElementEvent) => void
@@ -93,7 +94,7 @@ export const useChartEvents = (
   // Chart click handler
   const handleChartClick = useCallback(
     (params: ECElementEvent) => {
-      console.log('🎯 Chart clicked:', params)
+      log.business.debug('🎯 Chart clicked:', params)
 
       // Call the onChartClick callback if provided
       config.onChartClick?.()
@@ -245,15 +246,15 @@ export const useChartEvents = (
               return distance <= tolerance
             }
           } catch (error: unknown) {
-            console.error('🎯 Error checking tool click:', error)
+            log.business.error('🎯 Error checking tool click:', error)
           }
           return false
         })
 
         if (clickedTool) {
-          console.log('🎯 Line clicked:', clickedTool.id)
+          log.business.debug('🎯 Line clicked:', clickedTool.id)
           const wasSelected = currentSelectedToolRef.current === clickedTool.id
-          console.log(
+          log.business.debug(
             '🎯 Current selectedToolId (ref):',
             currentSelectedToolRef.current,
             'wasSelected:',
@@ -262,11 +263,11 @@ export const useChartEvents = (
 
           if (wasSelected) {
             // If already selected, check if click is on handle first
-            console.log('🎯 Line was already selected, checking for handle click')
+            log.business.debug('🎯 Line was already selected, checking for handle click')
 
             // Skip handle detection for horizontal/vertical lines as they don't have endpoints
             if (clickedTool.type === 'horizontal' || clickedTool.type === 'vertical') {
-              console.log('🎯 Single-point line clicked (no handle detection needed)')
+              log.business.debug('🎯 Single-point line clicked (no handle detection needed)')
               // For single-point lines, any click on the line is considered a body click
             } else {
               // Handle detection for two-point lines (trendlines, etc.)
@@ -315,16 +316,16 @@ export const useChartEvents = (
                     }
                   }
                 } catch (error: unknown) {
-                  console.error('🎯 Error checking handle click:', error)
+                  log.business.error('🎯 Error checking handle click:', error)
                 }
               }
 
               if (clickedHandle) {
-                console.log('🎯 Handle clicked:', clickedHandle.handleType)
+                log.business.debug('🎯 Handle clicked:', clickedHandle.handleType)
                 // Don't start drag on click event - wait for actual mousedown
                 // This prevents the issue where click events leave isMouseDown state stuck
               } else {
-                console.log('🎯 No handle clicked, line body clicked')
+                log.business.debug('🎯 No handle clicked, line body clicked')
                 // Don't start drag on click event - wait for actual mousedown
               }
             }
@@ -332,7 +333,7 @@ export const useChartEvents = (
             // Any further actions after selection would go here
           } else {
             // If not selected, select it now
-            console.log('🎯 Selecting line for first time')
+            log.business.debug('🎯 Selecting line for first time')
             currentSelectedToolRef.current = clickedTool.id
             currentTools.selectTool(clickedTool.id)
           }
@@ -340,7 +341,7 @@ export const useChartEvents = (
         } else {
           // ツール以外の場所をクリックしたら選択解除
           if (currentSelectedToolRef.current) {
-            console.log('🎯 Deselecting tool')
+            log.business.debug('🎯 Deselecting tool')
             currentSelectedToolRef.current = null
             currentTools.selectTool(null)
           }
@@ -348,7 +349,7 @@ export const useChartEvents = (
       }
 
       if (!currentTools.canDraw) {
-        console.log('🎯 Cannot draw - no active tool selected')
+        log.business.debug('🎯 Cannot draw - no active tool selected')
         return
       }
 
@@ -364,7 +365,7 @@ export const useChartEvents = (
         y: params.offsetY,
       }
 
-      console.log('🎯 Current drawing state:', {
+      log.business.debug('🎯 Current drawing state:', {
         isDrawing: currentTools.isDrawing,
         hasCurrentDrawing: !!currentTools.currentDrawing,
         currentDrawingPoints: currentTools.currentDrawing?.points?.length || 0,
@@ -375,10 +376,10 @@ export const useChartEvents = (
       const shouldFinishDrawing = currentTools.isDrawing && currentTools.currentDrawing
 
       if (shouldStartNewDrawing) {
-        console.log('🎯 Starting new drawing with event:', chartEvent)
+        log.business.debug('🎯 Starting new drawing with event:', chartEvent)
         currentTools.startDrawing(chartEvent)
       } else if (shouldFinishDrawing) {
-        console.log('🎯 Finishing current drawing')
+        log.business.debug('🎯 Finishing current drawing')
         // 2 つ目の点を更新してから終了
         currentTools.updateDrawing(chartEvent)
         // 少し遅延を入れて状態を安定させる
@@ -389,7 +390,7 @@ export const useChartEvents = (
           }
         }, 10)
       } else {
-        console.log('🎯 Unexpected state - resetting drawing')
+        log.business.debug('🎯 Unexpected state - resetting drawing')
         currentTools.cancelDrawing()
         // 状態をリセットした後、新しい描画を開始
         setTimeout(() => {
@@ -419,7 +420,7 @@ export const useChartEvents = (
         lastMouseMoveTime.current = now
       }
 
-      console.log('🎯 handleChartMouseMove entry point:', {
+      log.business.debug('🎯 handleChartMouseMove entry point:', {
         offsetX: params.offsetX,
         offsetY: params.offsetY,
         isDragRelated,
@@ -433,11 +434,11 @@ export const useChartEvents = (
         config.data
       )
       if (!dataPoint) {
-        console.log('🎯 Mouse move - failed to convert pixel to data')
+        log.business.debug('🎯 Mouse move - failed to convert pixel to data')
         return
       }
 
-      console.log('🎯 Pixel to data conversion successful:', dataPoint)
+      log.business.debug('🎯 Pixel to data conversion successful:', dataPoint)
 
       // 描画ツールが有効でない場合のみ crosshair を更新
       if (!config.enableDrawingTools && config.onCrosshairMove) {
@@ -446,7 +447,7 @@ export const useChartEvents = (
 
       // 最新の drawingTools を直接パラメータから取得（ useCallback の依存関係で最新が保証される）
       const currentTools = drawingTools
-      console.log('🎯 handleChartMouseMove - currentTools check:', {
+      log.business.debug('🎯 handleChartMouseMove - currentTools check:', {
         enableDrawingTools: config.enableDrawingTools,
         currentTools: !!currentTools,
         drawingToolsParam: !!drawingTools,
@@ -456,13 +457,13 @@ export const useChartEvents = (
       })
 
       if (!config.enableDrawingTools || !currentTools) {
-        console.log('🎯 Returning early - drawing tools not available')
+        log.business.debug('🎯 Returning early - drawing tools not available')
         return
       }
 
       // Debug mouse move state - ドラッグ関連の状態のみログ出力
       if (currentTools.isMouseDown || currentTools.isDragging) {
-        console.log('🎯 Mouse move state check:', {
+        log.business.debug('🎯 Mouse move state check:', {
           isMouseDown: currentTools.isMouseDown,
           isDragging: currentTools.isDragging,
           hasDragState: !!currentTools.dragState,
@@ -475,7 +476,7 @@ export const useChartEvents = (
         currentTools.isMouseDown && !currentTools.isDragging && currentTools.dragState
 
       // 詳細なドラッグ条件ログ - 常に出力
-      console.log('🎯 Detailed drag conditions:', {
+      log.business.debug('🎯 Detailed drag conditions:', {
         isMouseDown: currentTools.isMouseDown,
         isDragging: currentTools.isDragging,
         dragState: currentTools.dragState,
@@ -493,7 +494,7 @@ export const useChartEvents = (
             Math.pow(params.offsetX - startPos.x, 2) + Math.pow(params.offsetY - startPos.y, 2)
           )
 
-          console.log('🎯 Drag distance check:', {
+          log.business.debug('🎯 Drag distance check:', {
             currentPos: { x: params.offsetX, y: params.offsetY },
             startPos,
             distance,
@@ -502,17 +503,17 @@ export const useChartEvents = (
           })
 
           if (distance >= dragThreshold) {
-            console.log('🎯 Starting drag from mouse move - threshold exceeded')
+            log.business.debug('🎯 Starting drag from mouse move - threshold exceeded')
             const { toolId, handleType, originalPoints } = currentTools.dragState
             if (currentTools.startDrag) {
               currentTools.startDrag(toolId!, handleType!, startPos, originalPoints)
-              console.log('🎯 startDrag called successfully')
+              log.business.debug('🎯 startDrag called successfully')
             } else {
-              console.error('🎯 startDrag function not available')
+              log.business.error('🎯 startDrag function not available')
             }
             return // ドラッグ開始したら return
           } else {
-            console.log('🎯 Mouse movement below threshold, not starting drag yet')
+            log.business.debug('🎯 Mouse movement below threshold, not starting drag yet')
             return // 閾値以下の場合はドラッグを開始しない
           }
         }
@@ -520,12 +521,12 @@ export const useChartEvents = (
 
       // Handle drag movement
       if (currentTools.isDragging) {
-        console.log('🎯 Mouse move during drag - updating drag position')
+        log.business.debug('🎯 Mouse move during drag - updating drag position')
         if (currentTools.updateDrag) {
           currentTools.updateDrag(params.offsetX, params.offsetY, chartInstance, config.data)
-          console.log('🎯 updateDrag called successfully')
+          log.business.debug('🎯 updateDrag called successfully')
         } else {
-          console.error('🎯 updateDrag function not available')
+          log.business.error('🎯 updateDrag function not available')
         }
         return
       }
@@ -536,7 +537,7 @@ export const useChartEvents = (
         return
       }
 
-      console.log('🎯 Mouse move during drawing - calling updateDrawing')
+      log.business.debug('🎯 Mouse move during drawing - calling updateDrawing')
 
       const chartEvent = {
         timestamp: dataPoint.timestamp,
@@ -558,7 +559,7 @@ export const useChartEvents = (
         return
       }
 
-      console.log('🎯 handleChartMouseDown called:', params)
+      log.business.debug('🎯 handleChartMouseDown called:', params)
 
       // If a tool is selected, check if we're clicking on a handle or line
       if (currentTools.selectedToolId) {
@@ -591,7 +592,7 @@ export const useChartEvents = (
               }
 
               if (shouldStartDrag) {
-                console.log('🎯 MouseDown on single-point line body')
+                log.business.debug('🎯 MouseDown on single-point line body')
                 currentTools.mouseDown(
                   selectedTool.id,
                   'line',
@@ -658,7 +659,7 @@ export const useChartEvents = (
                   Math.pow(params.offsetY - startPixel[1], 2)
               )
               if (startDistance <= handleTolerance) {
-                console.log('🎯 MouseDown on fibonacci start handle')
+                log.business.debug('🎯 MouseDown on fibonacci start handle')
                 currentTools.mouseDown(
                   selectedTool.id,
                   'start',
@@ -674,7 +675,7 @@ export const useChartEvents = (
                   Math.pow(params.offsetY - endPixel[1], 2)
               )
               if (endDistance <= handleTolerance) {
-                console.log('🎯 MouseDown on fibonacci end handle')
+                log.business.debug('🎯 MouseDown on fibonacci end handle')
                 currentTools.mouseDown(
                   selectedTool.id,
                   'end',
@@ -704,7 +705,7 @@ export const useChartEvents = (
                       Math.abs(startPixel[0] - endPixel[0]) * 0.2
 
                     if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
-                      console.log('🎯 MouseDown on fibonacci line body')
+                      log.business.debug('🎯 MouseDown on fibonacci line body')
                       currentTools.mouseDown(
                         selectedTool.id,
                         'line',
@@ -746,7 +747,7 @@ export const useChartEvents = (
                 Math.pow(params.offsetY - startPixel[1], 2)
             )
             if (startDistance <= handleTolerance) {
-              console.log('🎯 MouseDown on start handle')
+              log.business.debug('🎯 MouseDown on start handle')
               currentTools.mouseDown(
                 selectedTool.id,
                 'start',
@@ -761,7 +762,7 @@ export const useChartEvents = (
               Math.pow(params.offsetX - endPixel[0], 2) + Math.pow(params.offsetY - endPixel[1], 2)
             )
             if (endDistance <= handleTolerance) {
-              console.log('🎯 MouseDown on end handle')
+              log.business.debug('🎯 MouseDown on end handle')
               currentTools.mouseDown(
                 selectedTool.id,
                 'end',
@@ -782,7 +783,7 @@ export const useChartEvents = (
               endPixel[1]
             )
             if (distance <= tolerance) {
-              console.log('🎯 MouseDown on line body')
+              log.business.debug('🎯 MouseDown on line body')
               currentTools.mouseDown(
                 selectedTool.id,
                 'line',
@@ -792,7 +793,7 @@ export const useChartEvents = (
             }
           }
         } catch (error: unknown) {
-          console.error('🎯 Error in handleChartMouseDown:', error)
+          log.business.error('🎯 Error in handleChartMouseDown:', error)
         }
       }
     },
@@ -809,7 +810,7 @@ export const useChartEvents = (
 
       // Handle drag end
       if (currentTools.isDragging) {
-        console.log('🎯 Mouse up during drag - ending drag')
+        log.business.debug('🎯 Mouse up during drag - ending drag')
 
         const dataPoint = chartInstance.convertPixelToData(
           params.offsetX,
@@ -834,7 +835,7 @@ export const useChartEvents = (
 
       // Handle mouse up when in mouseDown state but not dragging (simple click)
       if (currentTools.isMouseDown && !currentTools.isDragging) {
-        console.log('🎯 Mouse up without drag - resetting mouse down state')
+        log.business.debug('🎯 Mouse up without drag - resetting mouse down state')
         // Reset mouse down state for simple clicks that didn't turn into drags
         if (currentTools.endDrag) {
           // Use a dummy event to reset the state
@@ -867,7 +868,7 @@ export const useChartEvents = (
   // Chart right click handler for context menu
   const handleChartRightClick = useCallback(
     (params: ECElementEvent) => {
-      console.log('🎯 Chart right clicked:', params)
+      log.business.debug('🎯 Chart right clicked:', params)
 
       const currentTools = drawingTools
       if (!config.enableDrawingTools || !currentTools) {
@@ -969,17 +970,17 @@ export const useChartEvents = (
             }
           }
         } catch (error: unknown) {
-          console.error('🎯 Error checking drawing tool click:', error)
+          log.business.error('🎯 Error checking drawing tool click:', error)
         }
         return false
       })
 
       if (clickedTool) {
-        console.log('🎯 Right-clicked on drawing tool:', clickedTool.id)
+        log.business.debug('🎯 Right-clicked on drawing tool:', clickedTool.id)
 
         // Reset drag state and selection highlighting before showing context menu
         if (currentTools.isDragging || currentTools.isMouseDown) {
-          console.log('🎯 Resetting drag state on right-click')
+          log.business.debug('🎯 Resetting drag state on right-click')
           // Reset drag and mouse down states
           if (currentTools.endDrag) {
             const dataPoint = chartInstance.convertPixelToData(
@@ -1001,7 +1002,7 @@ export const useChartEvents = (
 
         // Deselect any currently selected tool to remove highlighting
         if (currentTools.selectedToolId) {
-          console.log(
+          log.business.debug(
             '🎯 Deselecting tool before showing context menu:',
             currentTools.selectedToolId
           )
@@ -1064,7 +1065,7 @@ export const useChartEvents = (
       handleChartRightClick,
       drawingTools, // 最新の drawingTools も保存
     }
-    console.log('🎯 Handlers ref updated')
+    log.business.debug('🎯 Handlers ref updated')
   }, [
     handleChartClick,
     handleChartMouseMove,
@@ -1086,7 +1087,7 @@ export const useChartEvents = (
 
     // イベントリスナーを追加
     const clickHandler = (event: MouseEvent) => {
-      console.log('🎯 DOM click event fired!')
+      log.business.debug('🎯 DOM click event fired!')
 
       if (!config.enableDrawingTools) return
 
@@ -1097,12 +1098,12 @@ export const useChartEvents = (
         domClick: true,
       }
 
-      console.log('🎯 DOM click params:', params)
+      log.business.debug('🎯 DOM click params:', params)
       handlersRef.current.handleChartClick?.(params)
     }
 
     const mouseDownHandler = (event: MouseEvent) => {
-      console.log('🎯 DOM mouse down event fired!')
+      log.business.debug('🎯 DOM mouse down event fired!')
 
       if (!config.enableDrawingTools) return
 
@@ -1124,7 +1125,7 @@ export const useChartEvents = (
       const isDragRelated = currentState.isMouseDown || currentState.isDragging
 
       if (isDragRelated) {
-        console.log('🎯 DOM mouse move (drag-related) event fired!', {
+        log.business.debug('🎯 DOM mouse move (drag-related) event fired!', {
           offsetX: event.offsetX,
           offsetY: event.offsetY,
           enableDrawingTools: config.enableDrawingTools,
@@ -1142,7 +1143,7 @@ export const useChartEvents = (
       const now = Date.now()
       if (now - lastMouseMoveTime.current < MOUSE_MOVE_THROTTLE) {
         if (isDragRelated) {
-          console.log('🎯 DOM mouse move throttled, but processing for drag')
+          log.business.debug('🎯 DOM mouse move throttled, but processing for drag')
         } else {
           return
         }
@@ -1154,7 +1155,7 @@ export const useChartEvents = (
         config.enableDrawingTools &&
         (currentState.isDrawing || currentState.isMouseDown || currentState.isDragging)
       ) {
-        console.log('🎯 DOM mouse move - calling handleChartMouseMove')
+        log.business.debug('🎯 DOM mouse move - calling handleChartMouseMove')
         const params = {
           offsetX: event.offsetX,
           offsetY: event.offsetY,
@@ -1164,18 +1165,18 @@ export const useChartEvents = (
 
         try {
           if (handlersRef.current.handleChartMouseMove) {
-            console.log('🎯 About to call handleChartMouseMove with params:', params)
+            log.business.debug('🎯 About to call handleChartMouseMove with params:', params)
             handlersRef.current.handleChartMouseMove(params)
-            console.log('🎯 handleChartMouseMove called successfully')
+            log.business.debug('🎯 handleChartMouseMove called successfully')
           } else {
-            console.error('🎯 handleChartMouseMove is undefined in handlersRef')
+            log.business.error('🎯 handleChartMouseMove is undefined in handlersRef')
           }
         } catch (error: unknown) {
-          console.error('🎯 Error calling handleChartMouseMove:', error)
+          log.business.error('🎯 Error calling handleChartMouseMove:', error)
         }
       } else {
         if (isDragRelated) {
-          console.log(
+          log.business.debug(
             '🎯 DOM mouse move - condition not met despite drag state, not calling handleChartMouseMove'
           )
         }
@@ -1183,7 +1184,7 @@ export const useChartEvents = (
     }
 
     const mouseUpHandler = (event: MouseEvent) => {
-      console.log('🎯 DOM mouse up event fired!')
+      log.business.debug('🎯 DOM mouse up event fired!')
 
       if (!config.enableDrawingTools) return
 
@@ -1198,7 +1199,7 @@ export const useChartEvents = (
     }
 
     const rightClickHandler = (event: MouseEvent) => {
-      console.log('🎯 DOM right click event fired!')
+      log.business.debug('🎯 DOM right click event fired!')
       event.preventDefault() // Prevent browser context menu
 
       if (!config.enableDrawingTools) return
@@ -1210,7 +1211,7 @@ export const useChartEvents = (
         domRightClick: true,
       }
 
-      console.log('🎯 DOM right click params:', params)
+      log.business.debug('🎯 DOM right click params:', params)
       handlersRef.current.handleChartRightClick?.(params)
     }
 
@@ -1219,7 +1220,7 @@ export const useChartEvents = (
     chartDom.addEventListener('mousemove', mouseMoveHandler)
     chartDom.addEventListener('mouseup', mouseUpHandler)
     chartDom.addEventListener('contextmenu', rightClickHandler)
-    console.log('🎯 DOM event listeners added')
+    log.business.debug('🎯 DOM event listeners added')
 
     // クリーンアップ
     return () => {
@@ -1228,7 +1229,7 @@ export const useChartEvents = (
       chartDom.removeEventListener('mousemove', mouseMoveHandler)
       chartDom.removeEventListener('mouseup', mouseUpHandler)
       chartDom.removeEventListener('contextmenu', rightClickHandler)
-      console.log('🎯 DOM event listeners removed')
+      log.business.debug('🎯 DOM event listeners removed')
     }
   }, [chartInstance.chartReady, config.enableDrawingTools, drawingTools])
 

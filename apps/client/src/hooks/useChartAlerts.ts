@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { log } from '../services/logger'
 
 interface AlertState {
   showCreateAlertModal: boolean
@@ -23,7 +24,7 @@ export const useChartAlerts = (_currentSymbol: string): [AlertState, AlertAction
 
   // Handle alert creation success
   const handleAlertSuccess = () => {
-    console.log('Alert created successfully')
+    log.business.info('Chart alert created successfully')
     setShowCreateAlertModal(false)
   }
 

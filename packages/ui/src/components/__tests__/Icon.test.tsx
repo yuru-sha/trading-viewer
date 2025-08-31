@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { Icon } from '../Icon'
 
 // Mock lucide-react icons
-vi.mock('lucide-react', async (importOriginal) => {
+vi.mock('lucide-react', async importOriginal => {
   const actual = await importOriginal()
   return {
     ...actual,

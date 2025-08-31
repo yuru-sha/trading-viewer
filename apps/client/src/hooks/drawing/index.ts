@@ -16,6 +16,7 @@ import { useDrawingState } from './useDrawingState'
 import { useDrawingActions } from './useDrawingActions'
 import { useDrawingToolManagement } from './useDrawingToolManagement'
 import { useDrawingContextMenu } from './useDrawingContextMenu'
+import { log } from '../../services/logger'
 
 /**
  * Refactored useDrawingTools - now composed from separated concerns
@@ -73,7 +74,7 @@ export const useDrawingTools = () => {
 
   // Debug logging for state changes
   useEffect(() => {
-    console.log('🎯 Drawing state updated:', {
+    log.business.debug('Drawing state updated', {
       activeToolType: state.activeToolType,
       isDrawing: state.isDrawing,
       drawingMode: state.drawingMode,

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import type { DrawingTool, DrawingStyle } from '@trading-viewer/shared'
 import type { DrawingAction, DrawingState } from './useDrawingState'
+import { log } from '../../services/logger'
 
 /**
  * Hook for drawing tool management operations
@@ -13,7 +14,10 @@ export const useDrawingToolManagement = (
   // Select a specific tool
   const selectTool = useCallback(
     (toolId: string | null) => {
-      console.log('🎯 selectTool called:', { toolId, currentSelectedId: state.selectedToolId })
+      log.business.info('Drawing tool selected', {
+        toolId,
+        previousSelection: state.selectedToolId,
+      })
       dispatch({ type: 'SELECT_TOOL', payload: toolId })
     },
     [dispatch, state.selectedToolId]
@@ -74,7 +78,7 @@ export const useDrawingToolManagement = (
         dispatch({ type: 'LOAD_TOOLS', payload: tools })
         return true
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to import drawing tools from JSON')
         return false
       }
     },

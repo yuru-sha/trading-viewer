@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Modal, Button } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface DeleteUserModalProps {
   isOpen: boolean
@@ -99,7 +100,12 @@ const DeleteUserModal: React.FC<DeleteUserModalProps> = ({
       onUserDeleted()
       handleClose()
     } catch (error: unknown) {
-      console.error('Failed to delete user:', error)
+      log.auth.error('Failed to delete user', error, {
+        operation: 'delete_user',
+        userId: user.id,
+        deleteType: deleteData.deleteType,
+        reason: deleteData.reason,
+      })
       const errorMessage =
         error instanceof Error &&
         'response' in error &&

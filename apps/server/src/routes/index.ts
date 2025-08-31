@@ -7,6 +7,7 @@ import newsRoutes from './news.js'
 import drawingRoutes from './drawings.js'
 import indicatorRoutes from './indicators.js'
 import chartRoutes from './charts.js'
+import logsRoutes from './logs.js'
 import { marketDataLimiter, sensitiveLimiter } from '../middleware/rateLimiting.js'
 import { getWebSocketService } from '../application/services/websocketService.js'
 
@@ -21,6 +22,7 @@ export function setupRoutes(app: Application): void {
   app.use('/api/drawings', drawingRoutes) // Drawing tools with general rate limiting
   app.use('/api/indicators', indicatorRoutes) // Indicators with general rate limiting
   app.use('/api/charts', chartRoutes) // Chart saving with general rate limiting
+  app.use('/api/logs', logsRoutes) // Client log collection
 
   // API information endpoint
   app.get('/api', (_req, res) => {

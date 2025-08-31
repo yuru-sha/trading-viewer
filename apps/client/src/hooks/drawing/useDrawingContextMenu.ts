@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { log } from '../../services/logger'
 
 export interface ContextMenuState {
   isVisible: boolean
@@ -16,7 +17,10 @@ export const useDrawingContextMenu = () => {
   })
 
   const showContextMenu = useCallback((toolId: string, x: number, y: number) => {
-    console.log('🎯 Showing context menu for tool:', toolId, 'at position:', { x, y })
+    log.business.info('Showing context menu for drawing tool', {
+      toolId,
+      position: { x, y },
+    })
     setContextMenu({
       isVisible: true,
       x,
@@ -26,7 +30,7 @@ export const useDrawingContextMenu = () => {
   }, [])
 
   const hideContextMenu = useCallback(() => {
-    console.log('🎯 Hiding context menu')
+    log.business.info('Hiding drawing context menu')
     setContextMenu({
       isVisible: false,
       x: 0,

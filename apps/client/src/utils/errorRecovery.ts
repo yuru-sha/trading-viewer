@@ -1,5 +1,7 @@
 // エラー回復のためのユーティリティ
 
+import { log } from '../services/logger'
+
 export interface RecoveryStrategy {
   id: string
   name: string
@@ -253,7 +255,7 @@ export class ErrorRecoveryManager {
           this.retryAttempts.set(strategy.id, attempts + 1)
         }
       } catch (recoveryError) {
-        console.warn(`Recovery strategy ${strategy.id} failed:`, recoveryError)
+        log.system.warn(`Recovery strategy ${strategy.id} failed`, recoveryError)
       }
     }
 
@@ -361,14 +363,18 @@ export const createErrorReport = (
 
 // エラーレポートの送信（将来的にサーバーに送信する場合）
 export const reportError = async (report: ErrorReport): Promise<void> => {
-  // デバッグ環境では console.error で出力
+  // デバッグ環境では構造化ログで出力
   if (process.env.NODE_ENV === 'development') {
-    console.group('🚨 Error Report')
-    console.error('Operation failed')
-    console.log('Classification:', report.classification)
-    console.log('Context:', report.context)
-    console.log('URL:', report.url)
-    console.groupEnd()
+    log.system.error('Error report generated', {
+      report: {
+        id: report.id,
+        classification: report.classification,
+        context: report.context,
+        url: report.url,
+        timestamp: report.timestamp,
+        error: report.error,
+      },
+    })
   }
 
   // 本番環境では外部エラーレポートサービスに送信

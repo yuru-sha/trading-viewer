@@ -4,6 +4,7 @@ import { api } from '../lib/apiClient'
 import { useApp, useAppActions } from '../contexts/AppContext'
 import { useWebSocket } from './useWebSocket'
 import { PriceData } from '../utils/indicators'
+import { log } from '../services/logger'
 
 interface SymbolManagementState {
   currentSymbol: string
@@ -44,12 +45,11 @@ export const useSymbolManagement = (
     async (symbol: string, timeframe: string = selectedTimeframe) => {
       if (!symbol) return
 
-      console.log(
-        '🔄 useSymbolManagement: fetchData called with symbol:',
+      log.business.info('Fetching data for symbol', {
+        operation: 'fetch_data',
         symbol,
-        'timeframe:',
-        timeframe
-      )
+        timeframe,
+      })
 
       try {
         setLoading(true)
@@ -82,8 +82,12 @@ export const useSymbolManagement = (
         if (symbol !== state.selectedSymbol) {
           setSelectedSymbol(symbol)
         }
-      } catch {
-        console.error('Failed to fetch chart data:', error)
+      } catch (error) {
+        log.business.error('Failed to fetch chart data', error as Error, {
+          operation: 'fetch_data',
+          symbol,
+          timeframe,
+        })
         setError(error instanceof Error ? error.message : 'Failed to load chart data')
       } finally {
         setLoading(false)
@@ -94,7 +98,11 @@ export const useSymbolManagement = (
 
   const handleSymbolChange = useCallback(
     (symbol: string) => {
-      console.log('🔄 useSymbolManagement: Symbol change:', symbol, 'from current:', currentSymbol)
+      log.business.info('Symbol change requested', {
+        operation: 'symbol_change',
+        newSymbol: symbol,
+        currentSymbol,
+      })
 
       if (currentSymbol && isConnected) {
         unsubscribe(currentSymbol)
@@ -124,8 +132,10 @@ export const useSymbolManagement = (
       try {
         const dataSourceInfo = await api.market.getDataSource()
         setDataSource(dataSourceInfo)
-      } catch {
-        console.error('Failed to fetch data source info:', error)
+      } catch (error) {
+        log.business.error('Failed to fetch data source info', error as Error, {
+          operation: 'fetch_data_source',
+        })
       }
     }
     fetchDataSource()

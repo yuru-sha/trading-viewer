@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Modal, Button, Input } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface CreateUserModalProps {
   isOpen: boolean
@@ -115,7 +116,11 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onUs
         handleClose()
       }
     } catch (error: unknown) {
-      console.error('Failed to create user:', error)
+      log.auth.error('Failed to create user', error, {
+        operation: 'create_user',
+        email: formData.email,
+        role: formData.role,
+      })
       const errorMessage =
         error instanceof Error &&
         'response' in error &&

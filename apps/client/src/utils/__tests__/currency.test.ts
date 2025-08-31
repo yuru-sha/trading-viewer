@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  getCurrencySymbol,
-  getCurrencyInfo,
-  formatPrice,
-  formatPercentage
-} from '../currency'
+import { getCurrencySymbol, getCurrencyInfo, formatPrice, formatPercentage } from '../currency'
 
 describe('Currency Utilities', () => {
   describe('getCurrencySymbol', () => {
@@ -51,14 +46,14 @@ describe('Currency Utilities', () => {
       expect(usdInfo).toEqual({
         symbol: '$',
         code: 'USD',
-        name: 'US Dollar'
+        name: 'US Dollar',
       })
 
       const jpyInfo = getCurrencyInfo('JPY')
       expect(jpyInfo).toEqual({
         symbol: '¥',
         code: 'JPY',
-        name: 'Japanese Yen'
+        name: 'Japanese Yen',
       })
     })
 
@@ -73,12 +68,12 @@ describe('Currency Utilities', () => {
       expect(getCurrencyInfo(null)).toEqual({
         symbol: '$',
         code: 'USD',
-        name: 'US Dollar'
+        name: 'US Dollar',
       })
       expect(getCurrencyInfo(undefined)).toEqual({
         symbol: '$',
         code: 'USD',
-        name: 'US Dollar'
+        name: 'US Dollar',
       })
     })
 
@@ -87,7 +82,7 @@ describe('Currency Utilities', () => {
       expect(unknownInfo).toEqual({
         symbol: '$',
         code: 'USD',
-        name: 'US Dollar'
+        name: 'US Dollar',
       })
     })
 
@@ -96,14 +91,14 @@ describe('Currency Utilities', () => {
       expect(btcInfo).toEqual({
         symbol: '₿',
         code: 'BTC',
-        name: 'Bitcoin'
+        name: 'Bitcoin',
       })
 
       const ethInfo = getCurrencyInfo('ETH')
       expect(ethInfo).toEqual({
         symbol: 'Ξ',
         code: 'ETH',
-        name: 'Ethereum'
+        name: 'Ethereum',
       })
     })
   })
@@ -149,16 +144,18 @@ describe('Currency Utilities', () => {
 
     it('should allow custom formatting options', () => {
       expect(formatPrice(123.456, 'USD', { maximumFractionDigits: 3 })).toBe('$123.456')
-      expect(formatPrice(123.456, 'USD', { minimumFractionDigits: 0, maximumFractionDigits: 1 })).toBe('$123.5')
+      expect(
+        formatPrice(123.456, 'USD', { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+      ).toBe('$123.5')
     })
 
     it('should use currency-specific formatting', () => {
       // Test JPY with default behavior (no decimals)
       expect(formatPrice(123.45, 'JPY')).toBe('¥123')
-      
+
       // Test EUR with default behavior (with decimals)
       expect(formatPrice(123.45, 'EUR')).toBe('€123.45')
-      
+
       // Test USD formatting
       expect(formatPrice(123.45, 'USD')).toBe('$123.45')
     })
@@ -177,7 +174,9 @@ describe('Currency Utilities', () => {
 
     it('should handle very small numbers', () => {
       expect(formatPrice(0.001, 'USD')).toBe('$0.00')
-      expect(formatPrice(0.001, 'USD', { minimumFractionDigits: 3, maximumFractionDigits: 3 })).toBe('$0.001')
+      expect(
+        formatPrice(0.001, 'USD', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+      ).toBe('$0.001')
     })
 
     it('should handle very large numbers', () => {

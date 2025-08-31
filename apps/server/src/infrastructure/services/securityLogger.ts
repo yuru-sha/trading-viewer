@@ -1,6 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, statSync, renameSync } from 'fs'
 import path from 'path'
 import { AuthenticatedRequest } from '../../middleware/auth'
+import { log } from '../../infrastructure/services/logger'
 
 // Security event types
 export enum SecurityEventType {
@@ -163,7 +164,10 @@ class SecurityLogger {
         this.rotateLogFile()
       }
     } catch (error) {
-      console.error('Failed to write security log:', error)
+      log.security.error(
+        'Failed to write security log',
+        error instanceof Error ? error : new Error(String(error))
+      )
     }
   }
 
@@ -174,28 +178,33 @@ class SecurityLogger {
     try {
       renameSync(this.logPath, rotatedPath)
     } catch (error) {
-      console.error('Failed to rotate security log:', error)
+      log.security.error(
+        'Failed to rotate security log',
+        error instanceof Error ? error : new Error(String(error))
+      )
     }
   }
 
   private writeToConsole(event: SecurityEvent): void {
     if (!this.config.enableConsole) return
 
-    const colorMap: Record<SecuritySeverity, string> = {
-      [SecuritySeverity.INFO]: '\x1b[36m', // Cyan
-      [SecuritySeverity.WARNING]: '\x1b[33m', // Yellow
-      [SecuritySeverity.HIGH]: '\x1b[35m', // Magenta
-      [SecuritySeverity.CRITICAL]: '\x1b[31m', // Red
+    const severityToLogLevel: Record<SecuritySeverity, 'info' | 'warn' | 'error'> = {
+      [SecuritySeverity.INFO]: 'info',
+      [SecuritySeverity.WARNING]: 'warn',
+      [SecuritySeverity.HIGH]: 'error',
+      [SecuritySeverity.CRITICAL]: 'error',
     }
 
-    const color = colorMap[event.severity]
-    const reset = '\x1b[0m'
+    const logLevel = severityToLogLevel[event.severity]
+    const logContext = {
+      eventType: event.eventType,
+      severity: event.severity,
+      ...event.metadata,
+    }
 
-    console.log(
-      `${color}[SECURITY ${event.severity}]${reset}`,
-      `${event.eventType}:`,
-      event.message,
-      event.metadata || ''
+    log.security[logLevel](
+      `[SECURITY ${event.severity}] ${event.eventType}: ${event.message}`,
+      logContext
     )
   }
 
@@ -238,7 +247,10 @@ class SecurityLogger {
         })
       }
     } catch (error) {
-      console.error('Failed to send security alerts:', error)
+      log.security.error(
+        'Failed to send security alerts',
+        error instanceof Error ? error : new Error(String(error))
+      )
     }
   }
 
@@ -388,7 +400,7 @@ class SecurityLogger {
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
 
     // In production, implement log cleanup based on retention policy
-    console.log(`Cleaning up logs older than ${cutoffDate.toISOString()}`)
+    log.security.info(`Cleaning up logs older than ${cutoffDate.toISOString()}`)
   }
 }
 

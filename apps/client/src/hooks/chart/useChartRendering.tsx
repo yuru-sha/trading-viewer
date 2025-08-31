@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { DrawingObject } from '../../components/chart/DrawingObjectsPanel'
 import { EChartsTradingChartRef } from '../../components/chart/EChartsTradingChart'
+import { log } from '../../services/logger'
 
 interface ChartRenderingSettings {
   showVolume: boolean
@@ -55,7 +56,7 @@ export const useChartRendering = (initialSettings?: Partial<ChartRenderingSettin
     if (chartRef.current?.takeScreenshot) {
       return chartRef.current.takeScreenshot(filename)
     } else {
-      console.warn('Chart instance not available for screenshot')
+      log.business.warn('Chart instance not available for screenshot')
       return null
     }
   }, [])

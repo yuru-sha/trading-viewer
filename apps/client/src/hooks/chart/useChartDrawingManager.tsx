@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import useDrawingToolsWithServerPersistence from '../drawing/useDrawingToolsWithServerPersistence'
+import { log } from '../../services/logger'
 
 interface UseChartDrawingManagerProps {
   symbol: string
@@ -24,7 +25,7 @@ export const useChartDrawingManager = ({
   // Handle drawing tool context menu actions
   const changeDrawingToolColor = useCallback(
     (toolId: string, color: string) => {
-      console.log('🎯 Changing drawing tool color:', toolId, color)
+      log.business.debug('🎯 Changing drawing tool color:', toolId, color)
       const tool = drawingTools.getTool(toolId)
       if (tool) {
         drawingTools.updateTool(toolId, {
@@ -40,7 +41,7 @@ export const useChartDrawingManager = ({
 
   const toggleDrawingToolVisibility = useCallback(
     (toolId: string) => {
-      console.log('🎯 Toggling drawing tool visibility:', toolId)
+      log.business.debug('🎯 Toggling drawing tool visibility:', toolId)
       const tool = drawingTools.getTool(toolId)
       if (tool) {
         drawingTools.updateTool(toolId, { visible: !(tool.visible ?? true) })
@@ -51,7 +52,7 @@ export const useChartDrawingManager = ({
 
   const deleteDrawingTool = useCallback(
     (toolId: string) => {
-      console.log('🎯 Deleting drawing tool:', toolId)
+      log.business.debug('🎯 Deleting drawing tool:', toolId)
       drawingTools.deleteTool(toolId)
       drawingTools.hideContextMenu()
     },
@@ -60,7 +61,7 @@ export const useChartDrawingManager = ({
 
   const duplicateDrawingTool = useCallback(
     (toolId: string) => {
-      console.log('🎯 Duplicating drawing tool:', toolId)
+      log.business.debug('🎯 Duplicating drawing tool:', toolId)
       drawingTools.duplicateTool(toolId)
       drawingTools.hideContextMenu()
     },

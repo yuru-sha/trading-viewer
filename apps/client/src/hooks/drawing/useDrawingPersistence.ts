@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import type { DrawingTool } from '@trading-viewer/shared'
+import { log } from '../../services/logger'
 
 export interface DrawingPersistenceOptions {
   symbol?: string
@@ -44,12 +45,14 @@ export const useDrawingPersistence = (
           tools: tools,
         }
         localStorage.setItem(key, JSON.stringify(data))
-        console.log(
-          `💾 Saved ${tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
-        )
+        log.business.info('Drawing tools saved to localStorage', {
+          count: tools.length,
+          symbol: targetSymbol || symbol,
+          timeframe: targetTimeframe || timeframe || '1D',
+        })
         return true
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to save drawing tools to localStorage')
         return false
       }
     },
@@ -64,9 +67,10 @@ export const useDrawingPersistence = (
         const stored = localStorage.getItem(key)
 
         if (!stored) {
-          console.log(
-            `📂 No saved drawings found for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
-          )
+          log.business.info('No saved drawings found in localStorage', {
+            symbol: targetSymbol || symbol,
+            timeframe: targetTimeframe || timeframe || '1D',
+          })
           return []
         }
 
@@ -74,16 +78,18 @@ export const useDrawingPersistence = (
 
         // Validate data structure
         if (!data.tools || !Array.isArray(data.tools)) {
-          console.warn('Invalid drawing data format in localStorage')
+          log.business.warn('Invalid drawing data format in localStorage')
           return []
         }
 
-        console.log(
-          `📂 Loaded ${data.tools.length} drawing tools for ${targetSymbol || symbol}:${targetTimeframe || timeframe || '1D'}`
-        )
+        log.business.info('Drawing tools loaded from localStorage', {
+          count: data.tools.length,
+          symbol: targetSymbol || symbol,
+          timeframe: targetTimeframe || timeframe || '1D',
+        })
         return data.tools as DrawingTool[]
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to save drawing tools to localStorage')
         return []
       }
     },
@@ -120,7 +126,7 @@ export const useDrawingPersistence = (
             }
           }
         } catch {
-          console.warn(`Failed to parse data for key: ${key}`)
+          log.business.warn('Failed to parse localStorage data', { key })
         }
       }
     }
@@ -137,10 +143,13 @@ export const useDrawingPersistence = (
       try {
         const key = getStorageKey(targetSymbol, targetTimeframe)
         localStorage.removeItem(key)
-        console.log(`🗑️ Deleted saved drawings for ${targetSymbol}:${targetTimeframe || '1D'}`)
+        log.business.info('Deleted saved drawings from localStorage', {
+          symbol: targetSymbol,
+          timeframe: targetTimeframe || '1D',
+        })
         return true
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to save drawing tools to localStorage')
         return false
       }
     },

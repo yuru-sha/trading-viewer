@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react'
+import { log } from '../services/logger'
 
 // Error Types
 export interface AppError {
@@ -127,7 +128,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           dispatch({ type: 'SET_WATCHLIST', payload: watchlist })
         }
       } catch (e) {
-        console.error('Failed to parse watchlist from localStorage:', e)
+        log.system.error('Failed to parse watchlist from localStorage', e as Error)
       }
     }
   }, [])

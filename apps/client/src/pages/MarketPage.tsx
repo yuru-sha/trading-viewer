@@ -5,6 +5,7 @@ import { useAppActions } from '../contexts/AppContext'
 import { api } from '../lib/apiClient'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { MarketNews } from '../components/market/MarketNews'
+import { log } from '../services/logger'
 
 interface MarketData {
   symbol: string
@@ -271,7 +272,11 @@ const MarketPage: React.FC = () => {
                   volatility: Math.abs(quote.dp) * (1 + Math.random() * 0.5),
                 }
               } catch (err) {
-                console.warn(`Failed to fetch quote for ${symbol}:`, err)
+                log.business.warn(
+                  'Failed to fetch quote for symbol',
+                  err instanceof Error ? err : new Error(String(err)),
+                  { symbol }
+                )
                 return null
               }
             })
@@ -297,7 +302,7 @@ const MarketPage: React.FC = () => {
 
         setMarketData(validQuotes)
       } catch {
-        console.error('Failed to fetch market data:', error)
+        log.business.error('Failed to fetch market data')
         setError(error instanceof Error ? error.message : 'Failed to load market data')
       } finally {
         setLoading(false)

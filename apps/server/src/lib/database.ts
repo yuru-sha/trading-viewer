@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { log } from '../infrastructure/services/logger'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -22,9 +23,9 @@ export { prisma }
 export async function connectDatabase(): Promise<void> {
   try {
     await prisma.$connect()
-    console.log('✅ Database connected successfully')
+    log.database.info('✅ Database connected successfully')
   } catch (error) {
-    console.error('❌ Failed to connect to database:', error)
+    log.database.error('❌ Failed to connect to database:', error)
     process.exit(1)
   }
 }
@@ -33,9 +34,9 @@ export async function connectDatabase(): Promise<void> {
 export async function disconnectDatabase(): Promise<void> {
   try {
     await prisma.$disconnect()
-    console.log('✅ Database disconnected successfully')
+    log.database.info('✅ Database disconnected successfully')
   } catch (error) {
-    console.error('❌ Failed to disconnect from database:', error)
+    log.database.error('❌ Failed to disconnect from database:', error)
   }
 }
 
@@ -49,7 +50,7 @@ export async function checkDatabaseHealth(): Promise<boolean> {
     await prisma.$queryRaw`SELECT 1`
     return true
   } catch (error) {
-    console.error('Database health check failed:', error)
+    log.database.error('Database health check failed:', error)
     return false
   }
 }

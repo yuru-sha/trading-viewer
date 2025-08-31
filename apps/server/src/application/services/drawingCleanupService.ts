@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/database'
+import { log } from '../../infrastructure/services/logger'
 
 /**
  * Drawing Tools Cleanup Service
@@ -17,25 +18,25 @@ export class DrawingCleanupService {
    */
   start() {
     if (this.cleanupInterval) {
-      console.log('⚠️ Drawing cleanup service is already running')
+      log.system.info('Drawing cleanup service is already running')
       return
     }
 
-    console.log('🧹 Starting drawing tools cleanup service')
+    log.system.info('Starting drawing tools cleanup service')
 
     // Run initial cleanup
     this.runCleanup().catch(error => {
-      console.error('❌ Initial cleanup failed:', error)
+      log.system.error('Initial cleanup failed:', error)
     })
 
     // Schedule regular cleanup
     this.cleanupInterval = setInterval(() => {
       this.runCleanup().catch(error => {
-        console.error('❌ Scheduled cleanup failed:', error)
+        log.system.error('Scheduled cleanup failed:', error)
       })
     }, this.CLEANUP_INTERVAL_MS)
 
-    console.log('✅ Drawing cleanup service started - runs every 24 hours')
+    log.system.info('Drawing cleanup service started - runs every 24 hours')
   }
 
   /**
@@ -45,7 +46,7 @@ export class DrawingCleanupService {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval)
       this.cleanupInterval = null
-      console.log('🛑 Drawing cleanup service stopped')
+      log.system.info('Drawing cleanup service stopped')
     }
   }
 
@@ -57,7 +58,7 @@ export class DrawingCleanupService {
     inactiveCount: number
     totalDeleted: number
   }> {
-    console.log('🧹 Running drawing tools cleanup...')
+    log.system.info('Running drawing tools cleanup...')
 
     try {
       const now = new Date()
@@ -89,13 +90,11 @@ export class DrawingCleanupService {
       const totalDeleted = expiredResult.count + inactiveResult.count
 
       if (totalDeleted > 0) {
-        console.log(`✅ Cleanup completed:`, {
-          expired: expiredResult.count,
-          inactive: inactiveResult.count,
-          total: totalDeleted,
-        })
+        log.system.info(
+          `Cleanup completed - expired: ${expiredResult.count}, inactive: ${inactiveResult.count}, total: ${totalDeleted}`
+        )
       } else {
-        console.log('✅ Cleanup completed - no drawings to delete')
+        log.system.info('Cleanup completed - no drawings to delete')
       }
 
       return {
@@ -104,7 +103,7 @@ export class DrawingCleanupService {
         totalDeleted,
       }
     } catch (error) {
-      console.error('❌ Cleanup failed:', error)
+      log.system.error('Cleanup failed:', error)
       throw error
     }
   }
@@ -120,7 +119,7 @@ export class DrawingCleanupService {
       data: { expiresAt },
     })
 
-    console.log(`⏰ Set expiration for tool ${toolId}: ${expiresAt.toISOString()}`)
+    log.system.info(`Set expiration for tool ${toolId}: ${expiresAt.toISOString()}`)
   }
 
   /**
@@ -132,7 +131,7 @@ export class DrawingCleanupService {
       data: { expiresAt: null },
     })
 
-    console.log(`♾️ Made tool ${toolId} permanent`)
+    log.system.info(`Made tool ${toolId} permanent`)
   }
 
   /**

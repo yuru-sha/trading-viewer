@@ -17,6 +17,7 @@ import { useChartDataManager } from '../../hooks/chart/useChartDataManager'
 import { useChartRendering } from '../../hooks/chart/useChartRendering'
 import { useChartDrawingManager } from '../../hooks/chart/useChartDrawingManager'
 import { useIndicators } from '../../hooks/useIndicators'
+import { log } from '../../services/logger'
 
 interface OptimizedChartContainerProps {
   symbol: string
@@ -159,7 +160,10 @@ export const OptimizedChartContainer = memo(
       // Memoized callbacks
       const handleToolSelect = useCallback(
         (tool: DrawingToolType) => {
-          console.log('🎨 Tool selected:', tool)
+          log.business.info('Drawing tool selected from toolbar', {
+            operation: 'tool_selection',
+            toolType: tool,
+          })
           drawingManager.selectTool?.(tool)
         },
         [drawingManager]
@@ -173,13 +177,18 @@ export const OptimizedChartContainer = memo(
       }, [])
 
       const handleChartClick = useCallback(() => {
-        console.log('📊 Chart clicked')
+        log.business.info('Chart clicked', {
+          operation: 'chart_interaction',
+        })
         // Handle chart interactions
       }, [])
 
       const handleContextMenuAction = useCallback(
         (action: string) => {
-          console.log('🎯 Context menu action:', action)
+          log.business.info('Drawing context menu action triggered', {
+            operation: 'context_menu_action',
+            action,
+          })
           drawingManager.handleContextAction?.(action)
         },
         [drawingManager]
@@ -255,7 +264,12 @@ export const OptimizedChartContainer = memo(
 
           if (renderTime > 100) {
             // Log if render takes more than 100ms
-            console.warn(`⚠️ Slow chart render: ${renderTime.toFixed(2)}ms for ${symbol}`)
+            log.performance.warn('Slow chart render detected', {
+              operation: 'chart_render',
+              renderTime: parseFloat(renderTime.toFixed(2)),
+              symbol,
+              threshold: 100,
+            })
           }
         }
       }, [symbol, processedData])

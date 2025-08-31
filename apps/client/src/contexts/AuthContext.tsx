@@ -10,6 +10,7 @@ import React, {
 import { useErrorHandlers } from './ErrorContext'
 import { clearCSRFToken, setAuthErrorCallback } from '../lib/apiClient'
 import { apiService } from '../services/base/ApiService'
+import { log } from '../services/logger'
 import type { User } from '../domain/interfaces/IMarketDataClient'
 
 // Re-export User type for other modules
@@ -137,6 +138,7 @@ class AuthApiClient {
         if (response.status === 401) {
           this.onAuthError()
         }
+        log.auth.error(`CSRF token request failed: ${response.status} ${response.statusText}`)
         throw new Error('Failed to get CSRF token')
       }
 
@@ -145,10 +147,11 @@ class AuthApiClient {
         this.csrfToken = data.data.csrfToken
         // Sync CSRF token with apiService
         apiService.setCSRFToken(this.csrfToken)
-        console.log('🔐 CSRF token updated:', this.csrfToken.substring(0, 8) + '...')
+        log.auth.info('CSRF token updated', { tokenPrefix: this.csrfToken.substring(0, 8) })
         return this.csrfToken
       }
 
+      log.auth.error('CSRF token response validation failed: Invalid response structure')
       throw new Error('Invalid CSRF token response')
     } catch (error: unknown) {
       this.csrfToken = null
@@ -184,7 +187,10 @@ class AuthApiClient {
         }
       } catch (error: unknown) {
         // If CSRF token fetch fails, proceed without it (will likely get 403)
-        console.warn('Failed to get CSRF token:', error)
+        log.auth.warn(
+          'Failed to get CSRF token:',
+          error instanceof Error ? error : new Error(String(error))
+        )
       }
     }
 
@@ -215,7 +221,10 @@ class AuthApiClient {
               return await retryResponse.json()
             }
           } catch (retryError) {
-            console.warn('CSRF token refresh retry failed:', retryError)
+            log.auth.warn(
+              'CSRF token refresh retry failed:',
+              retryError instanceof Error ? retryError : new Error(String(retryError))
+            )
           }
         }
 
@@ -351,9 +360,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           try {
             await apiClient.refreshCSRFToken()
           } catch (csrfError) {
-            console.warn('Failed to fetch CSRF token after login:', csrfError)
+            log.auth.warn(
+              'Failed to fetch CSRF token after login:',
+              csrfError instanceof Error ? csrfError : new Error(String(csrfError))
+            )
           }
         } else {
+          log.auth.error('Login validation failed: Invalid login response structure')
           throw new Error('Invalid login response')
         }
       } catch (error: unknown) {
@@ -400,7 +413,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await apiClient.post('/auth/logout')
     } catch (error: unknown) {
-      console.warn('Logout API call failed:', error)
+      log.auth.warn(
+        'Logout API call failed:',
+        error instanceof Error ? error : new Error(String(error))
+      )
     } finally {
       clearAuth()
     }
@@ -516,9 +532,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Pre-fetch CSRF token for authenticated users
         try {
           await apiClient.refreshCSRFToken()
-          console.log('🔐 CSRF token initialized on app startup')
+          log.auth.info('CSRF token initialized on app startup')
         } catch (csrfError: unknown) {
-          console.warn('Failed to initialize CSRF token on startup:', csrfError)
+          log.auth.warn(
+            'Failed to initialize CSRF token on startup:',
+            csrfError instanceof Error ? csrfError : new Error(String(csrfError))
+          )
         }
       } else {
         setAuthState(prev => ({ ...prev, isLoading: false }))
@@ -572,6 +591,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext)
   if (!context) {
+    log.error('Auth context error: useAuth must be used within an AuthProvider')
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context

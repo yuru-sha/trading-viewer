@@ -3,6 +3,7 @@ import type {
   ICommandFactory,
   DrawingCommandParams as SharedDrawingCommandParams,
 } from '@trading-viewer/shared'
+import { log } from '../services/logger'
 import { BaseCommand } from './BaseCommand'
 import {
   CreateDrawingToolCommand,
@@ -226,7 +227,7 @@ class BatchCommand extends BaseCommand<unknown[], { commands: ICommand<unknown, 
         try {
           await command.undo?.()
         } catch {
-          console.error('Operation failed')
+          log.system.error('Batch command undo operation failed')
         }
       }
     }

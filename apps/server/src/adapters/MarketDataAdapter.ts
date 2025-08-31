@@ -3,6 +3,7 @@ import type {
   NormalizedQuote,
   NormalizedCandleResponse,
 } from '@trading-viewer/shared'
+import { log } from '../infrastructure/services/logger'
 
 /**
  * Generic Market Data Provider Interface
@@ -86,18 +87,26 @@ export abstract class BaseMarketDataAdapter implements IMarketDataProvider {
   // Common utility methods
   protected validateSymbol(symbol: string): void {
     if (!symbol || symbol.length === 0) {
+      log.api.error('Symbol validation failed: Symbol is required')
       throw new Error('Symbol is required')
     }
     if (symbol.length > 10) {
+      log.api.error(
+        `Symbol validation failed: Symbol is too long (${symbol.length} chars): ${symbol}`
+      )
       throw new Error('Symbol is too long')
     }
   }
 
   protected validateTimeRange(from: number, to: number): void {
     if (from >= to) {
+      log.api.error(`Time range validation failed: from (${from}) must be less than to (${to})`)
       throw new Error('Invalid time range: from must be less than to')
     }
     if (to > Date.now() / 1000) {
+      log.api.error(
+        `Time range validation failed: to (${to}) cannot be in the future (current: ${Date.now() / 1000})`
+      )
       throw new Error('Invalid time range: to cannot be in the future')
     }
   }
@@ -118,6 +127,7 @@ export class MarketDataAdapterFactory {
     const AdapterClass = this.adapters.get(provider.toLowerCase())
 
     if (!AdapterClass) {
+      log.api.error(`Adapter creation failed: Unsupported market data provider: ${provider}`)
       throw new Error(`Unsupported market data provider: ${provider}`)
     }
 
@@ -176,7 +186,7 @@ export class UnifiedMarketDataService {
         return await operation(this.primaryAdapter)
       }
     } catch (error) {
-      console.warn(`Primary adapter ${this.primaryAdapter.getName()} failed:`, error)
+      log.api.warn(`Primary adapter ${this.primaryAdapter.getName()} failed:`, error)
     }
 
     // Try fallback adapters
@@ -184,14 +194,15 @@ export class UnifiedMarketDataService {
       try {
         const isAvailable = await adapter.isAvailable()
         if (isAvailable) {
-          console.info(`Using fallback adapter: ${adapter.getName()}`)
+          log.api.info(`Using fallback adapter: ${adapter.getName()}`)
           return await operation(adapter)
         }
       } catch (error) {
-        console.warn(`Fallback adapter ${adapter.getName()} failed:`, error)
+        log.api.warn(`Fallback adapter ${adapter.getName()} failed:`, error)
       }
     }
 
+    log.api.error('Market data fallback failed: All market data providers are unavailable')
     throw new Error('All market data providers are unavailable')
   }
 

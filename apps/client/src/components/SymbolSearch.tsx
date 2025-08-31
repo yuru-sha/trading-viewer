@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/apiClient'
+import { log } from '../services/logger'
 
 interface SymbolResult {
   symbol: string
@@ -48,8 +49,11 @@ export const SymbolSearch: React.FC<SymbolSearchProps> = ({
         setResults(symbolResults)
         setIsOpen(true)
         setSelectedIndex(-1)
-      } catch {
-        console.error('Failed to search symbols:', _error)
+      } catch (error) {
+        log.business.error('Failed to search symbols', error, {
+          operation: 'symbol_search',
+          query,
+        })
         setResults([])
       } finally {
         setIsLoading(false)

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
+import { log } from '../infrastructure/services/logger'
 
 export interface ApiError extends Error {
   statusCode: number
@@ -217,30 +218,11 @@ export const globalErrorHandler = (
   }
 
   if (severity === 'critical' || severity === 'high') {
-    console.error('High severity error:', {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-      context: errorContext,
-    })
+    log.system.error('High severity error', error, errorContext)
   } else if (severity === 'medium') {
-    console.warn('Medium severity error:', {
-      error: {
-        name: error.name,
-        message: error.message,
-      },
-      context: errorContext,
-    })
+    log.system.warn('Medium severity error', errorContext)
   } else {
-    console.log('Low severity error:', {
-      error: {
-        name: error.name,
-        message: error.message,
-      },
-      context: errorContext,
-    })
+    log.system.info('Low severity error', errorContext)
   }
 
   // Format response
@@ -304,7 +286,7 @@ export const wrapExternalServiceCall = async <T>(
   try {
     return await serviceCall()
   } catch (error) {
-    console.error(`External service error (${serviceName}):`, error)
+    log.api.error(`External service error (${serviceName})`, error)
     throw new ExternalServiceError(serviceName, error as Error)
   }
 }

@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { authService } from '../services/AuthService'
+import { log } from '../services/logger'
 import type {
   User,
   LoginCredentials,
@@ -104,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authService.logout()
         } catch {
-          console.warn('Operation failed')
+          log.auth.warn('Logout API call failed, clearing local state anyway')
         } finally {
           // Always clear local state regardless of API call result
           set({
@@ -252,7 +253,10 @@ useAuthStore.subscribe(
   state => state.isAuthenticated,
   (isAuthenticated, prevIsAuthenticated) => {
     if (isAuthenticated !== prevIsAuthenticated) {
-      console.log(`Auth state changed: ${prevIsAuthenticated} -> ${isAuthenticated}`)
+      log.auth.info('Authentication state changed', {
+        from: prevIsAuthenticated,
+        to: isAuthenticated,
+      })
 
       // Could integrate with analytics here
       // analytics.track('auth_state_changed', { isAuthenticated })

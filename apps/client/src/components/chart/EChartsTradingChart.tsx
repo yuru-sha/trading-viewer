@@ -10,6 +10,7 @@ import { useChartData } from '../../hooks/useChartData'
 import { useChartEvents } from '../../hooks/useChartEvents'
 import { useChartOptions } from '../../hooks/useChartOptions'
 import { UserIndicator, DrawingTool } from '@trading-viewer/shared'
+import { log } from '../../services/logger'
 
 export interface EChartsTradingChartRef {
   takeScreenshot: (filename?: string) => void
@@ -264,7 +265,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
               }
             }
           } catch (error) {
-            console.error('🎨 Failed to convert coordinates for preview:', error)
+            log.business.error('Failed to convert coordinates for drawing tool preview', error, {
+              operation: 'drawing_preview',
+              toolType: currentTool.type,
+              toolId: currentTool.id,
+            })
           }
         }
       }
@@ -286,7 +291,13 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
 
               // Skip rendering if data is empty
               if (startDataIndex === -1 || endDataIndex === -1) {
-                console.warn(`🎨 Trendline ${tool.id} points not found in current chart data`)
+                log.business.warn('Trendline points not found in current chart data', {
+                  operation: 'render_trendline',
+                  toolId: tool.id,
+                  startDataIndex,
+                  endDataIndex,
+                  dataLength: data.length,
+                })
                 return
               }
 
@@ -449,7 +460,13 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
 
               // Skip rendering if data is empty
               if (startDataIndex === -1 || endDataIndex === -1) {
-                console.warn(`🎨 Fibonacci ${tool.id} points not found in current chart data`)
+                log.business.warn('Fibonacci retracement points not found in current chart data', {
+                  operation: 'render_fibonacci',
+                  toolId: tool.id,
+                  startDataIndex,
+                  endDataIndex,
+                  dataLength: data.length,
+                })
                 return
               }
 
@@ -572,7 +589,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
               }
             }
           } catch (error) {
-            console.error(`🎨 Failed to convert coordinates for ${tool.type}:`, error)
+            log.business.error('Failed to convert coordinates for drawing tool', error, {
+              operation: 'render_drawing_tool',
+              toolType: tool.type,
+              toolId: tool.id,
+            })
           }
         }
       })

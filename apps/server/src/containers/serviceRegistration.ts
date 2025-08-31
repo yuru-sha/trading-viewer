@@ -1,4 +1,5 @@
 import { container, registerService } from './ServiceContainer'
+import { log } from '../infrastructure/services/logger'
 
 /**
  * Service registration configuration
@@ -356,14 +357,14 @@ export function requestScopingMiddleware() {
  * Call this at application startup
  */
 export function initializeServices(): void {
-  console.log('Initializing dependency injection container...')
+  log.system.info('Initializing dependency injection container...')
 
   try {
     registerApplicationServices()
-    console.log('✅ All services registered successfully')
-    console.log(`📦 Registered services: ${container.getRegisteredServices().join(', ')}`)
+    log.system.info('✅ All services registered successfully')
+    log.system.info(`📦 Registered services: ${container.getRegisteredServices().join(', ')}`)
   } catch (error) {
-    console.error('❌ Failed to initialize services:', error)
+    log.system.error('❌ Failed to initialize services:', error)
     throw error
   }
 }

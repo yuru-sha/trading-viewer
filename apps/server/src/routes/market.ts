@@ -9,6 +9,7 @@ import {
   CandleParamsRequest,
   QuoteParamsRequest,
 } from '../middleware/validation'
+import { log } from '../infrastructure/services/logger'
 
 const router: import('express').Router = Router()
 
@@ -353,7 +354,7 @@ router.get('/search', validateSymbolSearch, async (req: any, res: Response) => {
       count: symbols.length,
     })
   } catch (error) {
-    console.error('Symbol search error:', error)
+    log.api.error('Symbol search error', error, { query: req.validated?.q })
 
     if ((error as ApiError).code) {
       const apiError = error as ApiError
@@ -432,7 +433,7 @@ router.get('/quotes', async (req, res: Response) => {
             },
           }
         } catch (error) {
-          console.error(`Quote fetch error for ${symbol}:`, error)
+          log.api.error(`Quote fetch error for ${symbol}`, error, { symbol })
           return {
             symbol,
             error: 'Failed to fetch quote',
@@ -460,7 +461,7 @@ router.get('/quotes', async (req, res: Response) => {
       timestamp: Math.floor(Date.now() / 1000),
     })
   } catch (error) {
-    console.error('Batch quotes error:', error)
+    log.api.error('Batch quotes error', error, { symbolsCount: req.body?.symbols?.length })
 
     if ((error as ApiError).code) {
       const apiError = error as ApiError
@@ -505,7 +506,7 @@ router.get('/quote/:symbol', validateQuoteParams, async (req: any, res: Response
 
     res.json(responseQuote)
   } catch (error) {
-    console.error('Quote fetch error:', error)
+    log.api.error('Quote fetch error', error, { symbol: req.validated?.symbol })
 
     if ((error as ApiError).code) {
       const apiError = error as ApiError
@@ -543,7 +544,10 @@ router.get('/candles/:symbol', validateCandleParams, async (req: any, res: Respo
 
     res.json(candleData)
   } catch (error) {
-    console.error('Candle data fetch error:', error)
+    log.api.error('Candle data fetch error', error, {
+      symbol: req.validated?.symbol,
+      resolution: req.validated?.resolution,
+    })
 
     if ((error as ApiError).code) {
       const apiError = error as ApiError
@@ -582,7 +586,7 @@ router.get('/data-source', (_req: Request, res: Response) => {
       description,
     })
   } catch (error) {
-    console.error('Data source info error:', error)
+    log.api.error('Data source info error', error)
     res.status(500).json({
       code: 'INTERNAL_SERVER_ERROR',
       message: 'Internal server error',

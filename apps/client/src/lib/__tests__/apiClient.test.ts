@@ -37,8 +37,8 @@ describe('API Client', () => {
           expect.objectContaining({
             credentials: 'include',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            })
+              'Content-Type': 'application/json',
+            }),
           })
         )
         expect(result).toEqual(mockResponse)
@@ -51,7 +51,9 @@ describe('API Client', () => {
           statusText: 'Internal Server Error',
         } as Response)
 
-        await expect(api.market.searchSymbols({ q: 'invalid' })).rejects.toThrow('HTTP 500: Internal Server Error')
+        await expect(api.market.searchSymbols({ q: 'invalid' })).rejects.toThrow(
+          'HTTP 500: Internal Server Error'
+        )
       })
     })
 
@@ -76,8 +78,8 @@ describe('API Client', () => {
           expect.objectContaining({
             credentials: 'include',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            })
+              'Content-Type': 'application/json',
+            }),
           })
         )
         expect(result).toEqual({ data: mockQuote })
@@ -125,8 +127,8 @@ describe('API Client', () => {
           expect.objectContaining({
             credentials: 'include',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            })
+              'Content-Type': 'application/json',
+            }),
           })
         )
         expect(result).toEqual({ data: mockCandleData })
@@ -157,7 +159,7 @@ describe('API Client', () => {
           remaining: 950,
           resetTime: 1640999800,
           canMakeRequest: true,
-          timeUntilReset: 3600
+          timeUntilReset: 3600,
         }
 
         mockFetch.mockResolvedValueOnce({
@@ -172,8 +174,8 @@ describe('API Client', () => {
           expect.objectContaining({
             credentials: 'include',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            })
+              'Content-Type': 'application/json',
+            }),
           })
         )
         expect(result).toEqual(mockRateLimit)
@@ -186,7 +188,7 @@ describe('API Client', () => {
           isMockData: false,
           provider: 'Yahoo Finance',
           status: 'active',
-          description: 'Real-time market data'
+          description: 'Real-time market data',
         }
 
         mockFetch.mockResolvedValueOnce({
@@ -201,8 +203,8 @@ describe('API Client', () => {
           expect.objectContaining({
             credentials: 'include',
             headers: expect.objectContaining({
-              'Content-Type': 'application/json'
-            })
+              'Content-Type': 'application/json',
+            }),
           })
         )
         expect(result).toEqual(mockDataSource)

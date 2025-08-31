@@ -364,10 +364,7 @@ describe.skip('AuthContext', () => {
           <button onClick={() => getCSRFToken()} data-testid='get-csrf-btn'>
             Get CSRF Token
           </button>
-          <button
-            onClick={() => requestWithAuth('/api/test')}
-            data-testid='auth-request-btn'
-          >
+          <button onClick={() => requestWithAuth('/api/test')} data-testid='auth-request-btn'>
             Authenticated Request
           </button>
         </div>
@@ -845,10 +842,7 @@ describe.skip('AuthContext', () => {
         const { updateProfile } = useAuth()
         return (
           <div>
-            <button
-              onClick={() => updateProfile({ name: 'Test' })}
-              data-testid='update-btn'
-            >
+            <button onClick={() => updateProfile({ name: 'Test' })} data-testid='update-btn'>
               Update
             </button>
           </div>

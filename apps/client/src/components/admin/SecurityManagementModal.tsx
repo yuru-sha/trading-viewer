@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface SecurityManagementModalProps {
   isOpen: boolean
@@ -78,8 +79,11 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       if (response.success) {
         setSecuritySettings(response.data)
       }
-    } catch {
-      console.error('Failed to fetch security settings:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch security settings', error, {
+        operation: 'fetch_security_settings',
+        userId,
+      })
       showError('Failed to load security settings')
     } finally {
       setLoading(false)
@@ -116,8 +120,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`Two-factor authentication ${newStatus ? 'enabled' : 'disabled'} successfully`)
-    } catch {
-      console.error('Failed to toggle 2FA:', error)
+    } catch (error) {
+      log.auth.error('Failed to toggle 2FA', error, {
+        operation: 'toggle_2fa',
+        userId,
+        newStatus,
+      })
       showError(`Failed to ${newStatus ? 'enable' : 'disable'} two-factor authentication`)
     } finally {
       setActionLoading(null)
@@ -150,8 +158,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
         setNewIPRestriction({ ipAddress: '', subnet: '', description: '' })
         showSuccess('IP restriction added successfully')
       }
-    } catch {
-      console.error('Failed to add IP restriction:', error)
+    } catch (error) {
+      log.auth.error('Failed to add IP restriction', error, {
+        operation: 'add_ip_restriction',
+        userId,
+        ipAddress: newIPRestriction.ipAddress,
+      })
       showError('Failed to add IP restriction')
     } finally {
       setActionLoading(null)
@@ -179,8 +191,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess(`IP restriction ${!isActive ? 'enabled' : 'disabled'}`)
-    } catch {
-      console.error('Failed to toggle IP restriction:', error)
+    } catch (error) {
+      log.auth.error('Failed to toggle IP restriction', error, {
+        operation: 'toggle_ip_restriction',
+        userId,
+        restrictionId,
+      })
       showError('Failed to update IP restriction')
     } finally {
       setActionLoading(null)
@@ -206,8 +222,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('IP restriction removed successfully')
-    } catch {
-      console.error('Failed to remove IP restriction:', error)
+    } catch (error) {
+      log.auth.error('Failed to remove IP restriction', error, {
+        operation: 'remove_ip_restriction',
+        userId,
+        restrictionId,
+      })
       showError('Failed to remove IP restriction')
     } finally {
       setActionLoading(null)
@@ -231,8 +251,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Trusted device revoked successfully')
-    } catch {
-      console.error('Failed to revoke trusted device:', error)
+    } catch (error) {
+      log.auth.error('Failed to revoke trusted device', error, {
+        operation: 'revoke_trusted_device',
+        userId,
+        deviceId,
+      })
       showError('Failed to revoke trusted device')
     } finally {
       setActionLoading(null)
@@ -262,8 +286,12 @@ const SecurityManagementModal: React.FC<SecurityManagementModalProps> = ({
       )
 
       showSuccess('Notification settings updated')
-    } catch {
-      console.error('Failed to update notification settings:', error)
+    } catch (error) {
+      log.auth.error('Failed to update notification settings', error, {
+        operation: 'update_notification_settings',
+        userId,
+        setting,
+      })
       showError('Failed to update notification settings')
     } finally {
       setActionLoading(null)

@@ -1,5 +1,6 @@
 import { useReducer, useRef } from 'react'
 import type { DrawingTool, DrawingToolType } from '@trading-viewer/shared'
+import { log } from '../../services/logger'
 
 // Use local type definitions that match domains/drawing
 export type DrawingMode = 'none' | 'drawing' | 'editing' | 'deleting'
@@ -144,9 +145,9 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       }
 
     case 'SELECT_TOOL':
-      console.log('🎯 SELECT_TOOL reducer:', {
-        payload: action.payload,
-        currentSelected: state.selectedToolId,
+      log.business.debug('Drawing tool selection', {
+        newSelection: action.payload,
+        previousSelection: state.selectedToolId,
       })
       return {
         ...state,
@@ -203,7 +204,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       }
 
     case 'MOUSE_DOWN': {
-      console.log('🎯 MOUSE_DOWN reducer processing:', action.payload)
+      log.business.debug('Processing mouse down on drawing tool', action.payload)
       const newState = {
         ...state,
         isMouseDown: true,
@@ -214,7 +215,7 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
           originalPoints: action.payload.originalPoints,
         },
       }
-      console.log('🎯 New state after MOUSE_DOWN:', {
+      log.business.debug('Mouse down state updated', {
         isMouseDown: newState.isMouseDown,
         dragState: newState.dragState,
       })

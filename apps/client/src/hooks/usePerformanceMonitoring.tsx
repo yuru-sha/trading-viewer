@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react'
+import { log } from '../services/logger'
 
 declare global {
   interface Performance {
@@ -91,8 +92,12 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
           }
         })
       }).observe({ entryTypes: ['paint'] })
-    } catch {
-      console.warn('Performance monitoring setup failed:', error)
+    } catch (error) {
+      log.performance.warn('Performance monitoring setup failed', {
+        operation: 'performance_monitoring',
+        action: 'collect_core_web_vitals',
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
   }, [])
 
@@ -168,48 +173,52 @@ export const usePerformanceMonitoring = (options: PerformanceHookOptions = {}) =
     }
 
     // パフォーマンスログ出力
-    console.group('🔍 Performance Metrics Report')
-    console.log('📊 Core Web Vitals:', {
-      LCP: `${metrics.largestContentfulPaint?.toFixed(2)}ms (${evaluation.lcp})`,
-      FID: `${metrics.firstInputDelay?.toFixed(2)}ms (${evaluation.fid})`,
-      CLS: `${metrics.cumulativeLayoutShift?.toFixed(3)} (${evaluation.cls})`,
-      FCP: `${metrics.firstContentfulPaint?.toFixed(2)}ms`,
+    log.performance.info('Performance metrics report', {
+      operation: 'performance_monitoring',
+      coreWebVitals: {
+        LCP: `${metrics.largestContentfulPaint?.toFixed(2)}ms (${evaluation.lcp})`,
+        FID: `${metrics.firstInputDelay?.toFixed(2)}ms (${evaluation.fid})`,
+        CLS: `${metrics.cumulativeLayoutShift?.toFixed(3)} (${evaluation.cls})`,
+        FCP: `${metrics.firstContentfulPaint?.toFixed(2)}ms`,
+      },
+      navigationTiming: {
+        domContentLoaded: `${metrics.domContentLoaded}ms`,
+        loadComplete: `${metrics.loadComplete}ms`,
+      },
+      resourceMetrics: {
+        resourceCount: metrics.resourceCount,
+        bundleSize: `${(metrics.bundleSize || 0 / 1024).toFixed(1)}KB`,
+      },
+      ...(metrics.memoryUsage && {
+        memoryUsage: {
+          used: `${(metrics.memoryUsage.usedJSHeapSize / 1024 / 1024).toFixed(1)}MB`,
+          total: `${(metrics.memoryUsage.totalJSHeapSize / 1024 / 1024).toFixed(1)}MB`,
+          limit: `${(metrics.memoryUsage.jsHeapSizeLimit / 1024 / 1024).toFixed(1)}MB`,
+        },
+      }),
     })
-    console.log('⏱️ Navigation Timing:', {
-      'DOM Content Loaded': `${metrics.domContentLoaded}ms`,
-      'Load Complete': `${metrics.loadComplete}ms`,
-    })
-    console.log('📦 Resource Metrics:', {
-      'Resource Count': metrics.resourceCount,
-      'Bundle Size': `${(metrics.bundleSize || 0 / 1024).toFixed(1)}KB`,
-    })
-    if (metrics.memoryUsage) {
-      console.log('💾 Memory Usage:', {
-        Used: `${(metrics.memoryUsage.usedJSHeapSize / 1024 / 1024).toFixed(1)}MB`,
-        Total: `${(metrics.memoryUsage.totalJSHeapSize / 1024 / 1024).toFixed(1)}MB`,
-        Limit: `${(metrics.memoryUsage.jsHeapSizeLimit / 1024 / 1024).toFixed(1)}MB`,
-      })
-    }
-    console.groupEnd()
 
     // カスタムコールバック実行
     onMetricsCollected?.(metrics)
 
     // 問題があれば警告
     if (evaluation.lcp === 'poor' || evaluation.fid === 'poor' || evaluation.cls === 'poor') {
-      console.warn('⚠️ Performance issues detected! Consider optimizing:', {
-        lcp:
-          evaluation.lcp === 'poor'
-            ? 'Reduce image sizes, improve server response times'
-            : undefined,
-        fid:
-          evaluation.fid === 'poor'
-            ? 'Reduce JavaScript execution time, use code splitting'
-            : undefined,
-        cls:
-          evaluation.cls === 'poor'
-            ? 'Add size attributes to images, avoid inserting content above existing content'
-            : undefined,
+      log.performance.warn('Performance issues detected', {
+        operation: 'performance_monitoring',
+        issues: {
+          lcp:
+            evaluation.lcp === 'poor'
+              ? 'Reduce image sizes, improve server response times'
+              : undefined,
+          fid:
+            evaluation.fid === 'poor'
+              ? 'Reduce JavaScript execution time, use code splitting'
+              : undefined,
+          cls:
+            evaluation.cls === 'poor'
+              ? 'Add size attributes to images, avoid inserting content above existing content'
+              : undefined,
+        },
       })
     }
   }, [sampleRate, onMetricsCollected])

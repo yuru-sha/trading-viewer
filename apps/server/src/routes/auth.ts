@@ -33,6 +33,7 @@ import {
   SecuritySeverity,
 } from '../infrastructure/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
+import { log } from '../infrastructure/services/logger'
 
 const router: import('express').Router = Router()
 
@@ -158,7 +159,7 @@ const incrementFailedLogin = async (userId: string): Promise<void> => {
       await userRepository.lockUser(userId, new Date(Date.now() + LOCK_TIME))
     }
   } catch (error) {
-    console.error('Failed to increment login attempts:', error)
+    log.auth.error('Failed to increment login attempts', error, { userId })
   }
 }
 
@@ -168,7 +169,7 @@ const resetFailedLogin = async (userId: string): Promise<void> => {
     await userRepository.unlockUser(userId)
     await userRepository.updateLastLogin(userId)
   } catch (error) {
-    console.error('Failed to reset login attempts:', error)
+    log.auth.error('Failed to reset login attempts', error, { userId })
   }
 }
 
@@ -634,8 +635,11 @@ router.post(
       )
 
       // TODO: Send email with reset link
-      console.log(`Password reset token for ${email}: ${resetToken}`)
-      console.log(`Reset link: http://localhost:3000/reset-password?token=${resetToken}`)
+      log.auth.info('Password reset token generated', { email, resetToken, userId: user.id })
+      log.auth.info('Reset link generated', {
+        resetLink: `http://localhost:3000/reset-password?token=${resetToken}`,
+        userId: user.id,
+      })
     }
 
     res.json({
@@ -1139,7 +1143,7 @@ router.post(
 
 // Development/testing endpoints (strictly controlled)
 if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS === 'true') {
-  console.warn('⚠️  Development endpoints are enabled. DO NOT use in production!')
+  log.auth.warn('Development endpoints are enabled. DO NOT use in production!')
 
   // Initialize development users in database
   const initializeDevUsers = async () => {
@@ -1154,7 +1158,7 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
           role: 'admin',
           isEmailVerified: true,
         })
-        console.log('✅ Admin user created: admin@tradingviewer.com')
+        log.auth.info('Admin user created', { email: 'admin@tradingviewer.com' })
       }
 
       // Create test user if not exists
@@ -1167,10 +1171,10 @@ if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEV_ENDPOINTS =
           role: 'user',
           isEmailVerified: true,
         })
-        console.log('✅ Test user created: test@example.com')
+        log.auth.info('Test user created', { email: 'test@example.com' })
       }
     } catch (error) {
-      console.error('Failed to initialize dev users:', error)
+      log.auth.error('Failed to initialize dev users', error)
     }
   }
 
@@ -1321,7 +1325,10 @@ router.post(
           successfulImports++
         }
       } catch (error) {
-        console.error(`Import error for line ${lineNumber}:`, error)
+        log.auth.error(`Import error for line ${lineNumber}`, error, {
+          lineNumber,
+          email: row?.email,
+        })
         errors.push({
           row: lineNumber,
           field: 'general',

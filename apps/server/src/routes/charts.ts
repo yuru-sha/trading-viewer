@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth.js'
+import { log } from '../infrastructure/services/logger'
 
 const router: Router = Router()
 const prisma = new PrismaClient()
@@ -62,7 +63,10 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       },
     })
   } catch (error) {
-    console.error('Error fetching saved charts:', error)
+    log.business.error('Error fetching saved charts', error, {
+      userId: (req as any).userId,
+      symbol: req.query?.symbol as string,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to fetch saved charts',
@@ -95,7 +99,10 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
       data: chart,
     })
   } catch (error) {
-    console.error('Error fetching chart:', error)
+    log.business.error('Error fetching chart', error, {
+      chartId: req.params?.id,
+      userId: (req as any).userId,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to fetch chart',
@@ -183,7 +190,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       })
     }
 
-    console.error('Error saving chart:', error)
+    log.business.error('Error saving chart', error, {
+      userId: (req as any).userId,
+      symbol: req.body?.symbol,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to save chart',
@@ -269,7 +279,10 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       })
     }
 
-    console.error('Error updating chart:', error)
+    log.business.error('Error updating chart', error, {
+      chartId: req.params?.id,
+      userId: (req as any).userId,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to update chart',
@@ -307,7 +320,10 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
       message: 'Chart deleted successfully',
     })
   } catch (error) {
-    console.error('Error deleting chart:', error)
+    log.business.error('Error deleting chart', error, {
+      chartId: req.params?.id,
+      userId: (req as any).userId,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to delete chart',
@@ -364,7 +380,10 @@ router.put('/:id/default', requireAuth, async (req: Request, res: Response) => {
       message: 'Chart set as default successfully',
     })
   } catch (error) {
-    console.error('Error setting chart as default:', error)
+    log.business.error('Error setting chart as default', error, {
+      chartId: req.params?.id,
+      userId: (req as any).userId,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to set chart as default',
@@ -399,7 +418,11 @@ router.get('/default/:symbol/:timeframe', requireAuth, async (req: Request, res:
       data: chart,
     })
   } catch (error) {
-    console.error('Error fetching default chart:', error)
+    log.business.error('Error fetching default chart', error, {
+      symbol: req.params?.symbol,
+      timeframe: req.params?.timeframe,
+      userId: (req as any).userId,
+    })
     res.status(500).json({
       success: false,
       message: 'Failed to fetch default chart',

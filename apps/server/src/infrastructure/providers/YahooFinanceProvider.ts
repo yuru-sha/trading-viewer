@@ -6,6 +6,7 @@
 import yahooFinance from 'yahoo-finance2'
 import { IMarketDataProvider, NewsItem } from '../../domain/interfaces/IMarketDataService'
 import { MarketDataEntity, QuoteData, TradingSymbolEntity } from '../../domain/entities/MarketData'
+import { log } from '../../infrastructure/services/logger'
 
 export class YahooFinanceProvider implements IMarketDataProvider {
   async getQuote(symbol: string): Promise<QuoteData> {
@@ -141,7 +142,10 @@ export class YahooFinanceProvider implements IMarketDataProvider {
               relatedTickers: [symbol],
             })
           } catch (symbolError) {
-            console.warn(`Failed to get news for ${symbol}:`, symbolError)
+            log.api.error(
+              `Failed to get news for ${symbol}`,
+              symbolError instanceof Error ? symbolError : new Error(String(symbolError))
+            )
           }
         }
       } else {
@@ -173,7 +177,10 @@ export class YahooFinanceProvider implements IMarketDataProvider {
         return newsItem
       })
     } catch (error) {
-      console.error('Failed to fetch news:', error)
+      log.api.error(
+        'Failed to fetch news',
+        error instanceof Error ? error : new Error(String(error))
+      )
       return []
     }
   }

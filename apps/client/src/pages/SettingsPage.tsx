@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useError } from '../contexts/ErrorContext'
+import { log } from '../services/logger'
 
 interface PasswordChangeForm {
   currentPassword: string
@@ -66,7 +67,7 @@ const SettingsPage: React.FC = () => {
         confirmPassword: '',
       })
     } catch {
-      console.error('Password change failed:', error)
+      log.auth.error('Password change failed')
     } finally {
       setIsChangingPassword(false)
     }
@@ -82,7 +83,7 @@ const SettingsPage: React.FC = () => {
       })
       showSuccess('Profile updated successfully')
     } catch {
-      console.error('Profile update failed:', error)
+      log.auth.error('Profile update failed')
     } finally {
       setIsUpdatingProfile(false)
     }

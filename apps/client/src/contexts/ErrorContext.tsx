@@ -7,6 +7,7 @@ import {
   reportError,
   type ErrorClassification,
 } from '../utils/errorRecovery'
+import { log } from '../services/logger'
 
 declare global {
   interface Window {
@@ -254,7 +255,7 @@ export const useErrorHandlers = () => {
             })
           }
         } catch (recoveryError) {
-          console.warn('Error recovery failed:', recoveryError)
+          log.system.warn('Error recovery failed', recoveryError as Error)
         }
       }
 
@@ -477,7 +478,7 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Erro
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('React Error Boundary caught an error:', error, errorInfo)
+    log.system.error('React Error Boundary caught an error', error, { errorInfo })
 
     // You could send this to an error reporting service here
     if (typeof window !== 'undefined' && window.errorReporter) {

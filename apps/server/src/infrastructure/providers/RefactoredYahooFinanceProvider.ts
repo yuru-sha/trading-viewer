@@ -16,6 +16,7 @@ import {
   SymbolNotFoundError,
   DataUnavailableError,
 } from '../../domain/interfaces/IMarketDataProvider'
+import { log } from '../../infrastructure/services/logger'
 
 export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
   private cache = new Map<string, { data: QuoteResponse; timestamp: number }>()
@@ -250,7 +251,10 @@ export class RefactoredYahooFinanceProvider implements IMarketDataProvider {
         return result
       })
     } catch (error) {
-      console.warn('Failed to fetch news:', error)
+      log.api.error(
+        'Failed to fetch news',
+        error instanceof Error ? error : new Error(String(error))
+      )
       return []
     }
   }

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback } from 'react'
+import { log } from '../services/logger'
 import { ChartType } from '@trading-viewer/shared'
 import { useChartControls } from '../hooks/useChartControls'
 
@@ -18,6 +19,9 @@ const ChartControlsContext = createContext<ChartControlsContextType | null>(null
 export const useChartControlsContext = () => {
   const context = useContext(ChartControlsContext)
   if (!context) {
+    log.error(
+      'Chart controls context error: useChartControlsContext must be used within a ChartControlsProvider'
+    )
     throw new Error('useChartControlsContext must be used within a ChartControlsProvider')
   }
   return context

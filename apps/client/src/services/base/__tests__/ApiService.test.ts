@@ -8,7 +8,7 @@ global.fetch = mockFetch
 // Mock AbortController
 const mockAbortController = {
   abort: vi.fn(),
-  signal: { aborted: false }
+  signal: { aborted: false },
 }
 global.AbortController = vi.fn(() => mockAbortController) as any
 
@@ -50,14 +50,14 @@ describe.skip('ApiService', () => {
     it('should set CSRF token correctly', () => {
       const token = 'test-csrf-token-123'
       apiService.setCSRFToken(token)
-      
+
       expect(apiService['csrfToken']).toBe(token)
     })
 
     it('should clear CSRF token correctly', () => {
       apiService.setCSRFToken('test-token')
       apiService.clearCSRFToken()
-      
+
       expect(apiService['csrfToken']).toBe(null)
     })
   })
@@ -73,7 +73,7 @@ describe.skip('ApiService', () => {
     it('should make successful GET request', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true, data: 'test data' })
+        json: vi.fn().mockResolvedValue({ success: true, data: 'test data' }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -82,9 +82,9 @@ describe.skip('ApiService', () => {
       expect(mockFetch).toHaveBeenCalledWith(`${baseURL}/test`, {
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
       expect(result).toEqual({ success: true, data: 'test data' })
     })
@@ -92,10 +92,10 @@ describe.skip('ApiService', () => {
     it('should add CSRF token when required', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
-      
+
       const token = 'csrf-token-123'
       apiService.setCSRFToken(token)
 
@@ -105,9 +105,9 @@ describe.skip('ApiService', () => {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'x-csrf-token': token
+          'x-csrf-token': token,
         },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
       expect(console.log).toHaveBeenCalledWith(
         '🔐 ApiService sending CSRF token:',
@@ -120,19 +120,22 @@ describe.skip('ApiService', () => {
     it('should warn when CSRF token required but not available', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
       await apiService.request('/test', { requiresCSRF: true })
 
-      expect(console.warn).toHaveBeenCalledWith('🔐 CSRF token required but not available for', '/test')
+      expect(console.warn).toHaveBeenCalledWith(
+        '🔐 CSRF token required but not available for',
+        '/test'
+      )
     })
 
     it('should include custom headers', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -143,9 +146,9 @@ describe.skip('ApiService', () => {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-Custom-Header': 'custom-value'
+          'X-Custom-Header': 'custom-value',
         },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -154,15 +157,15 @@ describe.skip('ApiService', () => {
       const mockResponse = {
         ok: false,
         status: 400,
-        json: vi.fn().mockResolvedValue(errorData)
+        json: vi.fn().mockResolvedValue(errorData),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
       await expect(apiService.request('/test')).rejects.toEqual({
         response: {
           status: 400,
-          data: errorData
-        }
+          data: errorData,
+        },
       })
     })
 
@@ -170,15 +173,15 @@ describe.skip('ApiService', () => {
       const mockResponse = {
         ok: false,
         status: 500,
-        json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
       await expect(apiService.request('/test')).rejects.toEqual({
         response: {
           status: 500,
-          data: {}
-        }
+          data: {},
+        },
       })
     })
 
@@ -198,7 +201,7 @@ describe.skip('ApiService', () => {
     it('should use custom timeout', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -211,7 +214,7 @@ describe.skip('ApiService', () => {
     it('should clear timeout on successful response', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
       const timeoutId = 123
@@ -234,12 +237,10 @@ describe.skip('ApiService', () => {
 
   describe('retry logic', () => {
     it('should retry on network errors', async () => {
-      mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce({
-          ok: true,
-          json: vi.fn().mockResolvedValue({ success: true })
-        })
+      mockFetch.mockRejectedValueOnce(new Error('Network error')).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ success: true }),
+      })
 
       // Mock delay method
       vi.spyOn(apiService as any, 'delay').mockResolvedValue(undefined)
@@ -255,11 +256,11 @@ describe.skip('ApiService', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: vi.fn().mockResolvedValue({ error: 'Server error' })
+          json: vi.fn().mockResolvedValue({ error: 'Server error' }),
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: vi.fn().mockResolvedValue({ success: true })
+          json: vi.fn().mockResolvedValue({ success: true }),
         })
 
       vi.spyOn(apiService as any, 'delay').mockResolvedValue(undefined)
@@ -274,11 +275,11 @@ describe.skip('ApiService', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 400,
-        json: vi.fn().mockResolvedValue({ error: 'Bad Request' })
+        json: vi.fn().mockResolvedValue({ error: 'Bad Request' }),
       })
 
       await expect(apiService.request('/test', { retries: 1 })).rejects.toEqual({
-        response: { status: 400, data: { error: 'Bad Request' } }
+        response: { status: 400, data: { error: 'Bad Request' } },
       })
 
       expect(mockFetch).toHaveBeenCalledTimes(1)
@@ -290,7 +291,7 @@ describe.skip('ApiService', () => {
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({
           ok: true,
-          json: vi.fn().mockResolvedValue({ success: true })
+          json: vi.fn().mockResolvedValue({ success: true }),
         })
 
       const delaySpy = vi.spyOn(apiService as any, 'delay').mockResolvedValue(undefined)
@@ -315,7 +316,7 @@ describe.skip('ApiService', () => {
     beforeEach(() => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true, data: 'test' })
+        json: vi.fn().mockResolvedValue({ success: true, data: 'test' }),
       }
       mockFetch.mockResolvedValue(mockResponse)
     })
@@ -328,7 +329,7 @@ describe.skip('ApiService', () => {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         requiresAuth: false,
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
       expect(result).toEqual({ success: true, data: 'test' })
     })
@@ -342,7 +343,7 @@ describe.skip('ApiService', () => {
         body: JSON.stringify(data),
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -354,7 +355,7 @@ describe.skip('ApiService', () => {
         body: undefined,
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -367,7 +368,7 @@ describe.skip('ApiService', () => {
         body: JSON.stringify(data),
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -378,7 +379,7 @@ describe.skip('ApiService', () => {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -391,7 +392,7 @@ describe.skip('ApiService', () => {
         body: JSON.stringify(data),
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -440,12 +441,12 @@ describe.skip('ApiService', () => {
   describe('delay method', () => {
     it('should resolve after specified delay', async () => {
       vi.useFakeTimers()
-      
+
       const delayPromise = apiService['delay'](1000)
       vi.advanceTimersByTime(1000)
-      
+
       await expect(delayPromise).resolves.toBeUndefined()
-      
+
       vi.useRealTimers()
     })
   })
@@ -454,7 +455,7 @@ describe.skip('ApiService', () => {
     it('should return true for successful health check', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: vi.fn().mockResolvedValue({ status: 'healthy' })
+        json: vi.fn().mockResolvedValue({ status: 'healthy' }),
       })
 
       const result = await apiService.healthCheck()
@@ -464,7 +465,7 @@ describe.skip('ApiService', () => {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        signal: mockAbortController.signal
+        signal: mockAbortController.signal,
       })
     })
 
@@ -480,7 +481,7 @@ describe.skip('ApiService', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 503,
-        json: vi.fn().mockResolvedValue({ error: 'Service unavailable' })
+        json: vi.fn().mockResolvedValue({ error: 'Service unavailable' }),
       })
 
       const result = await apiService.healthCheck()
@@ -498,7 +499,7 @@ describe.skip('ApiService', () => {
       const requests = [
         () => Promise.resolve(mockResponse1),
         () => Promise.resolve(mockResponse2),
-        () => Promise.resolve(mockResponse3)
+        () => Promise.resolve(mockResponse3),
       ]
 
       const results = await apiService.batch(requests)
@@ -510,7 +511,7 @@ describe.skip('ApiService', () => {
       const requests = [
         () => Promise.resolve({ success: true, data: 'result1' }),
         () => Promise.reject(new Error('Request failed')),
-        () => Promise.resolve({ success: true, data: 'result3' })
+        () => Promise.resolve({ success: true, data: 'result3' }),
       ]
 
       await expect(apiService.batch(requests)).rejects.toThrow('Request failed')
@@ -526,7 +527,7 @@ describe.skip('ApiService', () => {
     it('should handle malformed fetch response', async () => {
       const badResponse = {
         ok: true,
-        json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
       }
       mockFetch.mockResolvedValue(badResponse)
 
@@ -536,7 +537,7 @@ describe.skip('ApiService', () => {
     it('should handle null/undefined endpoint', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -554,7 +555,7 @@ describe.skip('ApiService', () => {
     it('should handle very large timeout values', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -565,7 +566,7 @@ describe.skip('ApiService', () => {
     it('should handle concurrent requests with different configurations', async () => {
       const mockResponse = {
         ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
+        json: vi.fn().mockResolvedValue({ success: true }),
       }
       mockFetch.mockResolvedValue(mockResponse)
 
@@ -576,7 +577,7 @@ describe.skip('ApiService', () => {
       const promises = [
         apiService.get('/test1', { requiresAuth: false }),
         apiService.post('/test2', { data: 'test' }, { requiresCSRF: true }),
-        apiService.put('/test3', { data: 'test' }, { requiresCSRF: false })
+        apiService.put('/test3', { data: 'test' }, { requiresCSRF: false }),
       ]
 
       await Promise.all(promises)

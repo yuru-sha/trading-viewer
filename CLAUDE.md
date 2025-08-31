@@ -17,6 +17,7 @@ TradingViewer is a modern web-based financial charting application built as a Tr
 - ✅ **Advanced Features**: Drawing tools, annotations, trading simulation
 - ✅ **Testing Suite**: Unit tests, integration tests, E2E tests with Playwright
 - ✅ **CI/CD Pipeline**: GitHub Actions with quality gates and automated deployment
+- ✅ **Logging Infrastructure**: Structured logging with Pino (server) and client log aggregation
 
 ## Architecture
 
@@ -35,6 +36,7 @@ The project uses a monorepo architecture with the following packages:
 - **Backend**: Express.js, TypeScript (ESM), Prisma ORM, PostgreSQL
 - **External APIs**: Yahoo Finance API for market data
 - **Real-time**: WebSocket connections for live data streaming
+- **Logging**: Pino (server), structured client logging with remote aggregation
 - **Testing**: Vitest, React Testing Library, Playwright for E2E
 
 ### Key Dependencies
@@ -350,3 +352,92 @@ If users are missing after database reset, recreate them using these scripts.
 - Debugging: Use built-in debugger for server-side code
 - Source maps are enabled in development for better debugging experience
 - Workspace settings configured for consistent formatting across team
+
+## Development Guidelines
+
+### Required Coding Standards
+
+1. **Error Handling**: Always log errors before throwing
+
+   ```typescript
+   // ✅ Correct
+   log.error('User authentication failed', error, { userId })
+   throw new Error('Authentication failed')
+
+   // ❌ Incorrect
+   throw new Error('Authentication failed')
+   ```
+
+2. **Type Definitions**: Always prefer `type` over `interface`
+
+   ```typescript
+   // ✅ Correct
+   type User = {
+     id: string
+     email: string
+   }
+
+   // ❌ Incorrect
+   interface User {
+     id: string
+     email: string
+   }
+   ```
+
+### Logging Infrastructure
+
+The application uses structured logging with the following components:
+
+- **Server**: Pino-based logging service (`apps/server/src/services/logger.ts`)
+- **Client**: Multi-transport logging service (`apps/client/src/services/logger.ts`)
+- **Shared Types**: Common logging types in `packages/shared/src/types/logging.ts`
+
+#### Log Categories
+
+- `auth` - Authentication and authorization
+- `api` - API requests and responses
+- `database` - Database operations
+- `market-data` - Market data operations
+- `websocket` - WebSocket connections
+- `security` - Security events
+- `performance` - Performance metrics
+- `business` - Business logic events
+- `system` - System-level events
+- `audit` - Audit trail events
+
+#### Usage Examples
+
+**Server-side:**
+
+```typescript
+import { log } from '../services/logger'
+
+// Category-specific logging
+log.auth.info('User login successful', { userId })
+log.api.error('API request failed', error, { endpoint, statusCode })
+
+// General logging with context
+log.info('Operation completed', { operation: 'data_sync', duration: 150 })
+```
+
+**Client-side:**
+
+```typescript
+import { log } from '../services/logger'
+
+// Automatic error catching (configured globally)
+log.error('User action failed', error, { action: 'submit_form' })
+
+// Performance logging
+log.performance.info('Chart rendered', { duration: 45, symbols: ['AAPL'] })
+```
+
+#### Configuration
+
+Set log level via environment variable:
+
+```bash
+LOG_LEVEL=info  # trace, debug, info, warn, error, fatal
+```
+
+Development environment uses pretty-printed logs, production uses JSON format for log aggregation.

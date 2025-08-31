@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { api } from '../lib/apiClient'
 import ConfirmDialog from './common/ConfirmDialog'
+import { log } from '../services/logger'
 
 interface WatchlistSymbol {
   symbol: string
@@ -55,8 +56,11 @@ export const Watchlist: React.FC<WatchlistProps> = ({
               changePercent: quote.dp,
               lastUpdate: Date.now(),
             }
-          } catch {
-            console.warn(`Failed to fetch data for ${symbol}:`, error)
+          } catch (error) {
+            log.business.warn(`Failed to fetch data for ${symbol}`, error, {
+              operation: 'watchlist_quote_fetch',
+              symbol,
+            })
             return {
               symbol,
               name,
@@ -74,8 +78,11 @@ export const Watchlist: React.FC<WatchlistProps> = ({
         // Save to localStorage
         const symbolsToSave = symbols.map(s => ({ symbol: s.symbol, name: s.name }))
         localStorage.setItem('tradingviewer-watchlist', JSON.stringify(symbolsToSave))
-      } catch {
-        console.error('Failed to fetch watchlist data:', error)
+      } catch (error) {
+        log.business.error('Failed to fetch watchlist data', error, {
+          operation: 'watchlist_batch_fetch',
+          symbolCount: symbols.length,
+        })
       } finally {
         setLoading(false)
       }
