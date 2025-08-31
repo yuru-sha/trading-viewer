@@ -12,7 +12,7 @@ TradingViewer is a modern web-based financial charting application built as a Tr
 - ✅ **Backend API**: Express server with Yahoo Finance integration, WebSocket support
 - ✅ **Frontend Foundation**: React app with routing, state management, responsive design
 - ✅ **Real-time Data**: WebSocket connections for live market data
-- ✅ **Chart Visualization**: TradingView Lightweight Charts integration
+- ✅ **Chart Visualization**: Apache ECharts integration
 - ✅ **Technical Indicators**: SMA, EMA, RSI, MACD, Bollinger Bands
 - ✅ **Advanced Features**: Drawing tools, annotations, trading simulation
 - ✅ **Testing Suite**: Unit tests, integration tests, E2E tests with Playwright
@@ -32,7 +32,7 @@ The project uses a monorepo architecture with the following packages:
 
 ### Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite, TailwindCSS, TradingView Lightweight Charts
+- **Frontend**: React 18, TypeScript, Vite, TailwindCSS, Apache ECharts
 - **Backend**: Express.js, TypeScript (ESM), Prisma ORM, PostgreSQL
 - **External APIs**: Yahoo Finance API for market data
 - **Real-time**: WebSocket connections for live data streaming
@@ -152,7 +152,7 @@ pnpm --filter packages/ui [command]
 
 - Shared UI components in `packages/ui` (Button, Input, Modal, etc.)
 - Client-specific components in `apps/client/src/components/`
-- Chart components integrate with TradingView Lightweight Charts library
+- Chart components integrate with Apache ECharts library
 - State management using React Context API and TanStack Query
 
 ### Build System
