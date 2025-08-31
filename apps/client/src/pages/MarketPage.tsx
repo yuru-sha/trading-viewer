@@ -41,13 +41,13 @@ const MarketPage: React.FC = () => {
 
   // Define market categories
   const marketTabs = [
-    { id: 'indices' as MarketTab, label: 'Indices', icon: 'BarChart3' },
-    { id: 'stocks-japan' as MarketTab, label: 'Japan Stocks', icon: '🇯🇵' },
-    { id: 'stocks-world' as MarketTab, label: 'World Stocks', icon: '🌍' },
-    { id: 'crypto' as MarketTab, label: 'Crypto', icon: '₿' },
-    { id: 'futures' as MarketTab, label: 'Futures', icon: 'TrendingUp' },
-    { id: 'fx' as MarketTab, label: 'FX', icon: '💱' },
-    { id: 'bonds' as MarketTab, label: 'Bonds', icon: '🏦' },
+    { id: 'indices' as MarketTab, label: 'Indices', icon: 'chart' },
+    { id: 'stocks-japan' as MarketTab, label: 'Japan Stocks', icon: 'japanStocks' },
+    { id: 'stocks-world' as MarketTab, label: 'World Stocks', icon: 'worldStocks' },
+    { id: 'crypto' as MarketTab, label: 'Crypto', icon: 'crypto' },
+    { id: 'futures' as MarketTab, label: 'Futures', icon: 'trending' },
+    { id: 'fx' as MarketTab, label: 'FX', icon: 'fx' },
+    { id: 'bonds' as MarketTab, label: 'Bonds', icon: 'bonds' },
     { id: 'etf' as MarketTab, label: 'ETF', icon: 'Package' },
     { id: 'economics' as MarketTab, label: 'Economics', icon: 'TrendingDown' },
   ]
@@ -375,7 +375,7 @@ const MarketPage: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                   }`}
                 >
-                  <span>{tab.icon}</span>
+                  <Icon name={tab.icon} className='w-4 h-4' />
                   <span>{tab.label}</span>
                 </button>
               ))}
@@ -448,8 +448,9 @@ const MarketPage: React.FC = () => {
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                   {/* Major Currency Pairs */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
-                    <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      💱 Major Currency Pairs
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
+                      <Icon name='fx' className='w-5 h-5 mr-2' />
+                      Major Currency Pairs
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData.slice(0, 6).map(item => (
@@ -483,8 +484,9 @@ const MarketPage: React.FC = () => {
 
                   {/* Cross Currency Pairs */}
                   <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
-                    <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                      🔄 Cross Currency Pairs
+                    <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center'>
+                      <Icon name='fx' className='w-5 h-5 mr-2' />
+                      Cross Currency Pairs
                     </h3>
                     <div className='grid grid-cols-2 gap-x-4 gap-y-2'>
                       {marketData.slice(6, 12).map(item => (
