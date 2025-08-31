@@ -31,6 +31,12 @@ export const COMMON_ICONS = {
   trending: 'TrendingUp',
   target: 'Target',
   bell: 'Bell',
+  // Market categories
+  japanStocks: 'JapaneseYen',
+  worldStocks: 'Globe',
+  crypto: 'Bitcoin',
+  fx: 'ArrowLeftRight',
+  bonds: 'Landmark',
 
   // User & Auth
   user: 'User',

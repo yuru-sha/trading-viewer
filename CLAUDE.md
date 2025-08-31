@@ -295,6 +295,33 @@ pnpm dev:server  # Check console output for WebSocket errors
 # Verify CORS settings in server configuration
 ```
 
+**Icons Not Displaying**
+
+When UI icons (especially newly added ones) are not displaying:
+
+```bash
+# Rebuild packages in dependency order
+pnpm --filter @trading-viewer/shared build
+pnpm --filter @trading-viewer/ui build
+
+# Clear cache and restart
+pnpm clean
+pnpm install
+pnpm dev
+
+# Check for missing icon definitions
+# 1. Ensure new icons are added to packages/ui/src/components/Icon.tsx imports
+# 2. Ensure new icons are added to iconMap object
+# 3. For semantic names, ensure they're defined in packages/shared/src/types/ui/icons.ts
+```
+
+**Common causes:**
+
+- Package build dependency issues (shared/ui packages need rebuilding after icon changes)
+- Missing icon imports in lucide-react imports section
+- Missing iconMap entries in UI Icon component
+- Missing COMMON_ICONS definitions in shared package
+
 ### Performance Monitoring
 
 **Bundle Size Analysis**

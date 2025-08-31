@@ -88,6 +88,11 @@ import {
   // 絵文字置き換え用アイコン
   Package,
   Lightbulb,
+  JapaneseYen,
+  Globe,
+  Bitcoin,
+  ArrowLeftRight,
+  Landmark,
 } from 'lucide-react'
 
 // アイコンマッピング（Tree-shaking 対応）
@@ -177,6 +182,11 @@ const iconMap = {
   // 絵文字置き換え用アイコン
   Package,
   Lightbulb,
+  JapaneseYen,
+  Globe,
+  Bitcoin,
+  ArrowLeftRight,
+  Landmark,
   // エイリアス対応
   trending: TrendingUp, // 'trending' アイコンを TrendingUp にマップ
   // COMMON_ICONS エイリアス
