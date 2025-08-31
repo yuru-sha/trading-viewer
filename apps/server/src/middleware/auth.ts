@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
+import { log } from '../infrastructure/services/logger'
 import { UnauthorizedError, ForbiddenError } from './errorHandling'
 import {
   TokenBlacklist,
@@ -31,8 +32,8 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'default-secret-change
   if (process.env.NODE_ENV === 'production') {
     throw new Error('JWT_SECRET must be set in production environment')
   }
-  console.warn(
-    '⚠️  WARNING: Using default JWT_SECRET. Set JWT_SECRET environment variable in production.'
+  log.security.warn(
+    'WARNING: Using default JWT_SECRET. Set JWT_SECRET environment variable in production.'
   )
 }
 
@@ -120,7 +121,7 @@ export const generateTokens = async (
       },
     })
   } catch (error) {
-    console.error('Failed to store refresh token:', error)
+    log.auth.error('Failed to store refresh token:', error)
     throw new Error('Token generation failed')
   }
 
@@ -133,7 +134,7 @@ export const generateTokens = async (
 }
 
 export const verifyAccessToken = async (token: string): Promise<JWTPayload> => {
-  console.log('🔍 verifyAccessToken called with token:', token ? 'exists' : 'missing')
+  log.auth.debug('verifyAccessToken called', { tokenExists: !!token })
 
   // Check if token is blacklisted using Redis
   if (await TokenBlacklist.isBlacklisted(token)) {
@@ -142,12 +143,12 @@ export const verifyAccessToken = async (token: string): Promise<JWTPayload> => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
-    console.log('🔍 Token decoded successfully:', { userId: decoded.userId, email: decoded.email })
+    log.auth.debug('Token decoded successfully', { userId: decoded.userId, email: decoded.email })
     return decoded
   } catch (error) {
-    console.log(
-      '🔍 Token verification failed:',
-      error instanceof Error ? error.message : 'unknown error'
+    log.auth.error(
+      'Token verification failed',
+      error instanceof Error ? error : new Error(String(error))
     )
     if (error instanceof jwt.TokenExpiredError) {
       throw new UnauthorizedError('Access token has expired')
@@ -210,7 +211,7 @@ export const revokeToken = async (token: string): Promise<void> => {
       expirationSeconds = Math.max(0, decoded.exp - now)
     }
   } catch (error) {
-    console.warn('Could not extract expiration from token for blacklist TTL')
+    log.auth.warn('Could not extract expiration from token for blacklist TTL')
   }
 
   await TokenBlacklist.add(token, expirationSeconds)
@@ -226,7 +227,7 @@ export const revokeRefreshToken = async (token: string): Promise<void> => {
       data: { isRevoked: true },
     })
   } catch (error) {
-    console.error('Failed to revoke refresh token:', error)
+    log.auth.error('Failed to revoke refresh token:', error)
   }
 }
 
@@ -243,7 +244,7 @@ export const revokeAllUserTokens = async (userId: string): Promise<void> => {
       data: { isRevoked: true },
     })
   } catch (error) {
-    console.error('Failed to revoke user tokens:', error)
+    log.auth.error('Failed to revoke user tokens:', error)
   }
 }
 
@@ -632,12 +633,12 @@ setInterval(
   () => {
     // Clean up expired CSRF tokens (Redis-based cleanup)
     CSRFTokenStore.cleanupExpired().catch(error => {
-      console.error('Failed to cleanup expired CSRF tokens:', error)
+      log.security.error('Failed to cleanup expired CSRF tokens:', error)
     })
 
     // Clean up expired rate limit entries (Redis-based cleanup)
     RateLimitStore.cleanupExpired(AUTH_ATTEMPT_WINDOW).catch(error => {
-      console.error('Failed to cleanup expired rate limit entries:', error)
+      log.security.error('Failed to cleanup expired rate limit entries:', error)
     })
   },
   60 * 60 * 1000

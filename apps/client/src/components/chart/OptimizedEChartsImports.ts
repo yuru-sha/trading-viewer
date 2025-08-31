@@ -3,6 +3,7 @@
 
 // Core ECharts
 import * as echarts from 'echarts/core'
+import { log } from '../../services/logger'
 
 // Chart types - 必要なものだけインポート
 import { CandlestickChart, LineChart, BarChart, ScatterChart } from 'echarts/charts'
@@ -113,7 +114,10 @@ export const getLineChartOptimizations = (dataSize: number) => ({
 // WebGL Renderer を使用する場合の設定（パフォーマンス重視）
 // NOTE: echarts-gl is not installed, so WebGL renderer is disabled
 export const enableWebGLRenderer = async () => {
-  console.warn('WebGL renderer is not available (echarts-gl not installed)')
+  log.business.warn('WebGL renderer is not available', {
+    operation: 'webgl_renderer_check',
+    reason: 'echarts-gl not installed',
+  })
 
   return {
     renderer: 'canvas' as const,
@@ -126,12 +130,20 @@ export const loadEChartsExtensions = {
   // 3D チャート機能（大きなライブラリなので必要時のみロード）
   async load3D() {
     try {
-      console.log('📊 Loading ECharts 3D extensions...')
+      log.business.info('Loading ECharts 3D extensions', {
+        operation: 'load_3d_extensions',
+      })
       // echarts-gl は現在インストールされていないため、将来の実装用にプレースホルダーとして残す
-      console.warn('❌ ECharts GL not available (not installed)')
+      log.business.warn('ECharts GL not available', {
+        operation: 'load_3d_extensions',
+        reason: 'not installed',
+      })
       return null
     } catch (error) {
-      console.warn('❌ ECharts GL not available:', error)
+      log.business.warn('ECharts GL not available', {
+        operation: 'load_3d_extensions',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
       return null
     }
   },
@@ -139,12 +151,20 @@ export const loadEChartsExtensions = {
   // 地理的可視化（必要時のみ）
   async loadGeo() {
     try {
-      console.log('🗺️ Loading geo maps...')
+      log.business.info('Loading geo maps', {
+        operation: 'load_geo_maps',
+      })
       // 地図データは現在利用不可のため、将来の実装用にプレースホルダーとして残す
-      console.warn('❌ Geo maps not available (not installed)')
+      log.business.warn('Geo maps not available', {
+        operation: 'load_geo_maps',
+        reason: 'not installed',
+      })
       return false
     } catch (error) {
-      console.warn('❌ Failed to load geo maps:', error)
+      log.business.warn('Failed to load geo maps', {
+        operation: 'load_geo_maps',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
       return false
     }
   },
@@ -154,10 +174,15 @@ export const loadEChartsExtensions = {
     try {
       const { BoxplotChart, CandlestickChart } = await import('echarts/charts')
       echarts.use([BoxplotChart, CandlestickChart])
-      console.log('📈 Statistical charts loaded')
+      log.business.info('Statistical charts loaded successfully', {
+        operation: 'load_statistical_charts',
+      })
       return true
     } catch (error) {
-      console.warn('❌ Failed to load statistical charts:', error)
+      log.business.warn('Failed to load statistical charts', {
+        operation: 'load_statistical_charts',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
       return false
     }
   },
@@ -175,7 +200,11 @@ export const createOptimizedChart = (
 
   const performanceConfig = getOptimizedEChartsConfig(dataSize)
 
-  console.log(`📊 Creating chart with ${dataSize} data points`)
+  log.business.info('Creating optimized chart', {
+    operation: 'create_chart',
+    dataSize,
+    theme,
+  })
 
   const startTime = performance.now()
 
@@ -190,7 +219,11 @@ export const createOptimizedChart = (
   const initTime = performance.now() - startTime
 
   if (initTime > 50) {
-    console.warn(`🐌 Slow chart initialization: ${initTime.toFixed(2)}ms`)
+    log.performance.warn('Slow chart initialization detected', {
+      operation: 'chart_init',
+      initTime,
+      dataSize,
+    })
   }
 
   return chart
@@ -210,7 +243,12 @@ export const processLargeDataset = <T extends Record<string, any>>(
     return data
   }
 
-  console.log(`📊 Sampling ${data.length} points to ${maxPoints} using ${samplingMethod}`)
+  log.performance.info('Sampling large dataset for chart performance', {
+    operation: 'data_sampling',
+    originalSize: data.length,
+    sampledSize: maxPoints,
+    samplingMethod,
+  })
 
   switch (samplingMethod) {
     case 'average':
@@ -364,7 +402,11 @@ export const createPerformanceMonitor = () => {
       const renderTime = performance.now() - renderStart
 
       if (renderTime > 100) {
-        console.warn(`📊 Slow chart render detected: ${renderTime.toFixed(2)}ms for ${chartId}`)
+        log.performance.warn('Slow chart render detected', {
+          operation: 'chart_render',
+          chartId,
+          renderTime,
+        })
       }
 
       return renderTime

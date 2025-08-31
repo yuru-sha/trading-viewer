@@ -7,6 +7,7 @@ import {
   UpdateChartRequest,
   UpdateChartResponse,
 } from '@shared'
+import { log } from '../services/logger'
 
 // Type definitions
 interface NormalizedSymbol {
@@ -70,7 +71,7 @@ async function getCSRFToken(): Promise<string> {
         csrfToken = data.data?.csrfToken
       }
     } catch {
-      console.warn('Operation failed')
+      log.api.warn('Failed to get CSRF token')
     }
   }
   return csrfToken || ''
@@ -132,7 +133,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       clearCSRFToken()
       // Trigger auth error callback if available
       if (onAuthError) {
-        console.log('🔒 Authentication error detected, triggering auth callback')
+        log.api.info('Authentication error detected, triggering auth callback')
         onAuthError()
       }
     }

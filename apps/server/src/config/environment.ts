@@ -4,6 +4,7 @@ import {
   SecurityEventType,
   SecuritySeverity,
 } from '../infrastructure/services/securityLogger'
+import { log } from '../infrastructure/services/logger'
 
 // Load environment variables
 dotenv.config()
@@ -138,7 +139,7 @@ export class EnvironmentConfig {
         })
         throw new Error(message)
       } else {
-        console.warn(`⚠️  Warning: ${message}`)
+        log.system.warn(`⚠️  Warning: ${message}`)
       }
     }
 
@@ -155,7 +156,7 @@ export class EnvironmentConfig {
         })
         throw new Error(message)
       } else {
-        console.warn(`⚠️  Warning: ${message}`)
+        log.system.warn(`⚠️  Warning: ${message}`)
       }
     }
   }
@@ -196,7 +197,7 @@ export class EnvironmentConfig {
       if (this.isProduction) {
         throw new Error(message)
       } else {
-        console.warn(`⚠️  Warning: ${message}`)
+        log.system.warn(`⚠️  Warning: ${message}`)
         return ''
       }
     }
@@ -276,14 +277,14 @@ export class EnvironmentConfig {
   }
 
   public printConfiguration(): void {
-    console.log('\n🔧 Environment Configuration')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log(`Environment: ${this.env}`)
-    console.log(`Node Version: ${process.version}`)
-    console.log(`Platform: ${process.platform}`)
-    console.log(`Architecture: ${process.arch}`)
-    console.log(`PID: ${process.pid}`)
-    console.log('')
+    log.system.info('\n🔧 Environment Configuration')
+    log.system.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    log.system.info(`Environment: ${this.env}`)
+    log.system.info(`Node Version: ${process.version}`)
+    log.system.info(`Platform: ${process.platform}`)
+    log.system.info(`Architecture: ${process.arch}`)
+    log.system.info(`PID: ${process.pid}`)
+    log.system.info('')
 
     // Print non-sensitive configuration
     const safeConfig: Record<string, any> = {
@@ -301,23 +302,23 @@ export class EnvironmentConfig {
 
     for (const [key, value] of Object.entries(safeConfig)) {
       if (typeof value === 'object') {
-        console.log(`${key}:`)
+        log.system.info(`${key}:`)
         for (const [subKey, subValue] of Object.entries(value)) {
-          console.log(`  ${subKey}: ${subValue}`)
+          log.system.info(`  ${subKey}: ${subValue}`)
         }
       } else {
-        console.log(`${key}: ${value}`)
+        log.system.info(`${key}: ${value}`)
       }
     }
 
     if (this.validationErrors.length > 0) {
-      console.log('\n⚠️  Validation Warnings:')
+      log.system.info('\n⚠️  Validation Warnings:')
       this.validationErrors.forEach(error => {
-        console.log(`  - ${error}`)
+        log.system.info(`  - ${error}`)
       })
     }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+    log.system.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
   }
 }
 

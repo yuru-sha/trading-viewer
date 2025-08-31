@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface UserPermissionsModalProps {
   isOpen: boolean
@@ -87,8 +88,11 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
         setSelectedPermissions(new Set(response.data.directPermissions.map(p => p.id)))
         setSelectedGroups(new Set(response.data.groups.map(g => g.id)))
       }
-    } catch {
-      console.error('Failed to fetch user permissions:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch user permissions', error, {
+        operation: 'fetch_user_permissions',
+        userId,
+      })
       showError('Failed to load user permissions')
     } finally {
       setLoading(false)
@@ -103,8 +107,10 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
       if (response.success) {
         setAllPermissions(response.data)
       }
-    } catch {
-      console.error('Failed to fetch permissions:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch permissions', error, {
+        operation: 'fetch_all_permissions',
+      })
     }
   }, [])
 
@@ -114,8 +120,10 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
       if (response.success) {
         setAllGroups(response.data)
       }
-    } catch {
-      console.error('Failed to fetch groups:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch groups', error, {
+        operation: 'fetch_all_groups',
+      })
     }
   }, [])
 
@@ -139,8 +147,13 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
 
       showSuccess('User permissions updated successfully')
       fetchUserPermissions()
-    } catch {
-      console.error('Failed to update permissions:', error)
+    } catch (error) {
+      log.auth.error('Failed to update permissions', error, {
+        operation: 'update_user_permissions',
+        userId,
+        permissionCount: selectedPermissions.size,
+        groupCount: selectedGroups.size,
+      })
       showError('Failed to update user permissions')
     } finally {
       setSaving(false)
@@ -167,7 +180,11 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({ isOpen, onC
         setActiveTab('groups')
       }
     } catch (error: unknown) {
-      console.error('Failed to create group:', error)
+      log.auth.error('Failed to create group', error, {
+        operation: 'create_user_group',
+        groupName: newGroup.name,
+        permissionCount: newGroup.permissions.length,
+      })
       if (
         error &&
         typeof error === 'object' &&

@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import type ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts/core'
 import { PriceData } from '../utils/indicators'
+import { log } from '../services/logger'
 
 /**
  * ECharts インスタンス管理フック
@@ -13,7 +14,9 @@ export const useChartInstance = () => {
 
   // ECharts instance ready callback
   const onChartReady = useCallback((_echartInstance: echarts.ECharts) => {
-    console.log('🎯 ECharts instance ready')
+    log.business.info('ECharts instance ready', {
+      operation: 'chart_instance',
+    })
     setChartReady(true)
   }, [])
 
@@ -45,7 +48,10 @@ export const useChartInstance = () => {
         dataIndex: clampedIndex,
       }
     } catch (error: unknown) {
-      console.error('Coordinate conversion failed:', error)
+      log.business.error('Coordinate conversion failed', error as Error, {
+        operation: 'chart_instance',
+        action: 'pixel_to_data_conversion',
+      })
       return null
     }
   }, [])
@@ -59,7 +65,10 @@ export const useChartInstance = () => {
       try {
         return chart.convertToPixel('grid', [dataIndex, price])
       } catch (error: unknown) {
-        console.error('Data to pixel conversion failed:', error)
+        log.business.error('Data to pixel conversion failed', error as Error, {
+          operation: 'chart_instance',
+          action: 'data_to_pixel_conversion',
+        })
         return null
       }
     },
@@ -71,7 +80,10 @@ export const useChartInstance = () => {
     (filename?: string) => {
       const chart = getEChartsInstance()
       if (!chart) {
-        console.error('Chart instance not available')
+        log.business.error('Chart instance not available for screenshot', undefined, {
+          operation: 'chart_instance',
+          action: 'take_screenshot',
+        })
         return null
       }
 
@@ -94,10 +106,18 @@ export const useChartInstance = () => {
         link.click()
         document.body.removeChild(link)
 
-        console.log('📸 Screenshot saved successfully')
+        log.business.info('Screenshot saved successfully', {
+          operation: 'chart_instance',
+          action: 'take_screenshot',
+          filename:
+            filename || `chart-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.png`,
+        })
         return dataURL
       } catch (error: unknown) {
-        console.error('Screenshot failed:', error)
+        log.business.error('Screenshot failed', error as Error, {
+          operation: 'chart_instance',
+          action: 'take_screenshot',
+        })
         return null
       }
     },

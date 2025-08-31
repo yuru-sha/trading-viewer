@@ -5,7 +5,7 @@ import {
   calculateRSI,
   calculateMACD,
   calculateBollingerBands,
-  calculateVWAP
+  calculateVWAP,
 } from '../indicatorCalculations'
 
 describe('Technical Indicator Calculations', () => {
@@ -16,7 +16,7 @@ describe('Technical Indicator Calculations', () => {
 
       expect(result).toHaveLength(6)
       expect(result[0]).toBeNaN() // First value
-      expect(result[1]).toBeNaN() // Second value 
+      expect(result[1]).toBeNaN() // Second value
       expect(result[2]).toBe(12) // (10+12+14)/3 = 12
       expect(result[3]).toBe(14) // (12+14+16)/3 = 14
       expect(result[4]).toBe(16) // (14+16+18)/3 = 16
@@ -31,7 +31,7 @@ describe('Technical Indicator Calculations', () => {
     it('should handle period larger than data length', () => {
       const prices = [10, 12]
       const result = calculateSMA(prices, 5)
-      
+
       expect(result).toHaveLength(2)
       expect(result[0]).toBeNaN()
       expect(result[1]).toBeNaN()
@@ -40,9 +40,9 @@ describe('Technical Indicator Calculations', () => {
     it('should handle single price period', () => {
       const prices = [10, 12, 14]
       const result = calculateSMA(prices, 1)
-      
+
       expect(result[0]).toBe(10)
-      expect(result[1]).toBe(12) 
+      expect(result[1]).toBe(12)
       expect(result[2]).toBe(14)
     })
   })
@@ -76,7 +76,10 @@ describe('Technical Indicator Calculations', () => {
   describe('calculateRSI', () => {
     it('should calculate RSI correctly for normal data', () => {
       // Sample price data with clear trend
-      const prices = [44, 44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.85, 47.25, 47.92, 46.23, 46.08, 46.03, 46.83, 47.69]
+      const prices = [
+        44, 44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.85, 47.25, 47.92, 46.23, 46.08, 46.03,
+        46.83, 47.69,
+      ]
       const result = calculateRSI(prices, 14)
 
       expect(result.length).toBeGreaterThan(0)
@@ -102,7 +105,23 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should handle null values in prices', () => {
-      const prices = [44, null as any, 44.09, undefined as any, 43.61, 44.33, 44.83, 45.85, 47.25, 47.92, 46.23, 46.08, 46.03, 46.83, 47.69]
+      const prices = [
+        44,
+        null as any,
+        44.09,
+        undefined as any,
+        43.61,
+        44.33,
+        44.83,
+        45.85,
+        47.25,
+        47.92,
+        46.23,
+        46.08,
+        46.03,
+        46.83,
+        47.69,
+      ]
       const result = calculateRSI(prices, 10)
 
       // Should handle nulls gracefully by treating them as 0
@@ -121,7 +140,7 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should calculate MACD correctly', () => {
-      const prices = Array.from({length: 30}, (_, i) => 10 + i) // [10, 11, 12, ..., 39]
+      const prices = Array.from({ length: 30 }, (_, i) => 10 + i) // [10, 11, 12, ..., 39]
       const result = calculateMACD(prices, 12, 26, 9)
 
       expect(result.macd).toHaveLength(30)
@@ -144,7 +163,7 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should use default parameters', () => {
-      const prices = Array.from({length: 40}, (_, i) => 100 + Math.sin(i) * 10)
+      const prices = Array.from({ length: 40 }, (_, i) => 100 + Math.sin(i) * 10)
       const result = calculateMACD(prices) // No parameters = defaults
 
       expect(result.macd).toHaveLength(40)
@@ -153,15 +172,16 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should calculate histogram as macd - signal', () => {
-      const prices = Array.from({length: 50}, (_, i) => 20 + i * 0.5)
+      const prices = Array.from({ length: 50 }, (_, i) => 20 + i * 0.5)
       const result = calculateMACD(prices, 5, 10, 3)
 
       // Check that histogram = macd - signal where both are defined
-      for (let i = 20; i < 30; i++) { // Safe range
+      for (let i = 20; i < 30; i++) {
+        // Safe range
         const macdVal = result.macd[i]
         const signalVal = result.signal[i]
         const histogramVal = result.histogram[i]
-        
+
         if (!isNaN(macdVal) && !isNaN(signalVal)) {
           expect(histogramVal).toBeCloseTo(macdVal - signalVal, 10)
         }
@@ -171,7 +191,9 @@ describe('Technical Indicator Calculations', () => {
 
   describe('calculateBollingerBands', () => {
     it('should calculate Bollinger Bands correctly', () => {
-      const prices = [20, 21, 22, 21, 20, 19, 20, 21, 22, 23, 24, 23, 22, 21, 20, 21, 22, 23, 24, 25]
+      const prices = [
+        20, 21, 22, 21, 20, 19, 20, 21, 22, 23, 24, 23, 22, 21, 20, 21, 22, 23, 24, 25,
+      ]
       const result = calculateBollingerBands(prices, 10, 2)
 
       expect(result.upperBand2).toHaveLength(20)
@@ -201,11 +223,11 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should use custom parameters', () => {
-      const prices = Array.from({length: 15}, (_, i) => 100 + Math.sin(i) * 5)
+      const prices = Array.from({ length: 15 }, (_, i) => 100 + Math.sin(i) * 5)
       const result = calculateBollingerBands(prices, 5, 1.5)
 
       expect(result.middleBand).toHaveLength(15)
-      
+
       // Early values should be NaN
       for (let i = 0; i < 4; i++) {
         expect(result.upperBand2[i]).toBeNaN()
@@ -223,9 +245,9 @@ describe('Technical Indicator Calculations', () => {
       expect(result).toHaveLength(6)
       expect(result[0]).toBeNaN()
       expect(result[1]).toBeNaN()
-      
+
       // Manual calculation for index 2: (10*100 + 12*200 + 14*150) / (100+200+150)
-      const expectedVWAP2 = (10*100 + 12*200 + 14*150) / (100+200+150)
+      const expectedVWAP2 = (10 * 100 + 12 * 200 + 14 * 150) / (100 + 200 + 150)
       expect(result[2]).toBeCloseTo(expectedVWAP2, 10)
     })
 
@@ -267,8 +289,8 @@ describe('Technical Indicator Calculations', () => {
     })
 
     it('should use default period', () => {
-      const prices = Array.from({length: 25}, (_, i) => 50 + i)
-      const volumes = Array.from({length: 25}, (_, i) => 100 + i * 10)
+      const prices = Array.from({ length: 25 }, (_, i) => 50 + i)
+      const volumes = Array.from({ length: 25 }, (_, i) => 100 + i * 10)
       const result = calculateVWAP(prices, volumes) // No period = default 20
 
       expect(result).toHaveLength(25)

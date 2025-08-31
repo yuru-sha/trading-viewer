@@ -1,4 +1,5 @@
 import { ApplicationBootstrap } from './bootstrap.js'
+import { log } from './infrastructure/services/logger'
 
 // Main entry point
 async function main() {
@@ -7,7 +8,7 @@ async function main() {
     await app.initialize()
     await app.start()
   } catch (error) {
-    console.error('Failed to start server:', error)
+    log.system.error('Failed to start server:', error)
     process.exit(1)
   }
 }

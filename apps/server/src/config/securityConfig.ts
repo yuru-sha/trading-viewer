@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { log } from '../infrastructure/services/logger'
 
 /**
  * Security Configuration Validator
@@ -115,33 +116,33 @@ export class SecurityConfigValidator {
   public static printStatus(): void {
     const validation = this.validate()
 
-    console.log('\n🔒 Security Configuration Status:')
+    log.security.info('\n🔒 Security Configuration Status:')
 
     if (validation.isValid) {
-      console.log('✅ All security checks passed')
+      log.security.info('✅ All security checks passed')
     } else {
-      console.log('❌ Security validation failed')
+      log.security.error('❌ Security validation failed')
       validation.errors.forEach(error => {
-        console.log(`   ERROR: ${error}`)
+        log.security.error(`   ERROR: ${error}`)
       })
     }
 
     if (validation.warnings.length > 0) {
-      console.log('\n⚠️  Security Warnings:')
+      log.security.warn('\n⚠️  Security Warnings:')
       validation.warnings.forEach(warning => {
-        console.log(`   WARNING: ${warning}`)
+        log.security.warn(`   WARNING: ${warning}`)
       })
     }
 
-    console.log(`\n🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
-    console.log(`🔐 JWT Expiration: ${process.env.JWT_EXPIRES_IN || '15m'}`)
-    console.log(`🔄 Refresh Token Expiration: ${process.env.JWT_REFRESH_EXPIRES_IN || '7d'}`)
-    console.log(`🧂 BCrypt Salt Rounds: ${process.env.BCRYPT_SALT_ROUNDS || 12}`)
+    log.security.info(`\n🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
+    log.security.info(`🔐 JWT Expiration: ${process.env.JWT_EXPIRES_IN || '15m'}`)
+    log.security.info(`🔄 Refresh Token Expiration: ${process.env.JWT_REFRESH_EXPIRES_IN || '7d'}`)
+    log.security.info(`🧂 BCrypt Salt Rounds: ${process.env.BCRYPT_SALT_ROUNDS || 12}`)
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('\n📝 For production deployment, ensure all secrets are changed!')
-      console.log('   Use: openssl rand -base64 64')
-      console.log('   Or call SecurityConfigValidator.generateSecrets()')
+      log.security.info('\n📝 For production deployment, ensure all secrets are changed!')
+      log.security.info('   Use: openssl rand -base64 64')
+      log.security.info('   Or call SecurityConfigValidator.generateSecrets()')
     }
   }
 
@@ -219,8 +220,8 @@ if (process.env.NODE_ENV !== 'test') {
   const validation = SecurityConfigValidator.validate()
 
   if (!validation.isValid && process.env.NODE_ENV === 'production') {
-    console.error('❌ CRITICAL: Security validation failed in production!')
-    validation.errors.forEach(error => console.error(`   ${error}`))
+    log.security.error('❌ CRITICAL: Security validation failed in production!')
+    validation.errors.forEach(error => log.security.error(`   ${error}`))
     process.exit(1)
   }
 }

@@ -1,4 +1,5 @@
 import { BaseCommand } from './BaseCommand'
+import { log } from '../services/logger'
 
 // Define missing types locally since they're not properly exported from shared
 interface ChartSettingsParams {
@@ -342,7 +343,10 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
               await this.executedCommands[i]?.undo()
             }
           } catch (undoError) {
-            console.error('Failed to rollback chart command:', undoError)
+            log.system.error(
+              'Failed to rollback chart command during execution',
+              undoError instanceof Error ? undoError : new Error(String(undoError))
+            )
           }
         }
         throw new Error('Operation failed')
@@ -357,7 +361,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
         try {
           await command?.undo()
         } catch {
-          console.error('Operation failed')
+          log.system.error('Chart command undo operation failed')
         }
       }
     }
@@ -373,7 +377,7 @@ export class BatchChartCommand extends BaseCommand<void, { commands: BaseCommand
           await command.execute()
         }
       } catch {
-        console.error('Operation failed')
+        log.system.error('Chart command redo operation failed')
         throw new Error('Operation failed')
       }
     }

@@ -12,6 +12,7 @@ import {
   NewsItem,
 } from '../interfaces/IMarketDataService'
 import { MarketDataEntity, QuoteData, TradingSymbolEntity } from '../entities/MarketData'
+import { log } from '../../infrastructure/services/logger.js'
 
 export class MarketDataService implements IMarketDataService {
   constructor(
@@ -140,7 +141,7 @@ export class MarketDataService implements IMarketDataService {
         // 新しいデータを取得
         await this.getRealtimeQuote(symbol)
       } catch (error) {
-        console.error(`Failed to refresh data for ${symbol}:`, error)
+        log.api.error(`Failed to refresh data for ${symbol}:`, error)
       }
     })
 

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import { Loading } from '@trading-viewer/ui'
+import { log } from '../../services/logger'
 
 // チャートコンポーネントの遅延読み込み設定
 // 初期ページロード時間を改善するため、必要時のみロード
@@ -145,7 +146,11 @@ export const PerformanceLazyLoad: React.FC<PerformanceLazyLoadProps> = ({
     const loadTime = performance.now() - startTime.current
 
     if (loadTime > 100) {
-      console.warn(`📊 Slow component load: ${componentName} took ${loadTime.toFixed(2)}ms`)
+      log.performance.warn('Slow component load detected', {
+        operation: 'component_load',
+        componentName,
+        loadTime,
+      })
     }
 
     onLoadComplete?.(loadTime)
@@ -178,12 +183,18 @@ export const useChartComponentLoader = () => {
             await import('./ChartSettings')
             break
           default:
-            console.warn(`Unknown component for preload: ${componentName}`)
+            log.business.warn('Unknown component requested for preload', {
+              operation: 'preload_component',
+              componentName,
+            })
         }
 
         setLoadedComponents(prev => new Set([...prev, componentName]))
       } catch (error) {
-        console.error(`Failed to preload component ${componentName}:`, error)
+        log.business.error('Failed to preload component', error, {
+          operation: 'preload_component',
+          componentName,
+        })
       }
     },
     [loadedComponents]

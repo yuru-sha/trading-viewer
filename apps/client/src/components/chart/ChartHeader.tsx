@@ -9,6 +9,7 @@ import UserDropdown from '../UserDropdown'
 import IndicatorsDropdown from './IndicatorsDropdown'
 import SaveChartModal from './SaveChartModal'
 import { api } from '../../lib/apiClient'
+import { log } from '../../services/logger'
 
 interface ChartHeaderProps {
   currentSymbol: string
@@ -103,8 +104,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
             name: item.name,
           })) || []
         setWatchlistSymbols(symbols)
-      } catch {
-        console.log('Failed to fetch watchlist, showing empty list')
+      } catch (error) {
+        log.business.info('Failed to fetch watchlist, showing empty list', {
+          operation: 'fetch_watchlist',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         // Don't fallback to popular symbols - show empty watchlist instead
         setWatchlistSymbols([])
       }
@@ -148,7 +152,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
         )
       }
     } catch (error) {
-      console.error('Failed to fetch existing charts:', error)
+      log.business.error('Failed to fetch existing charts', error, {
+        operation: 'fetch_existing_charts',
+        symbol: currentSymbol,
+        timeframe: selectedTimeframe,
+      })
       setExistingCharts([])
     }
   }
@@ -167,7 +175,10 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
         alert('Failed to save chart: ' + (response.message || 'Unknown error'))
       }
     } catch (error: any) {
-      console.error('Error saving chart:', error)
+      log.business.error('Error saving chart', error, {
+        operation: 'save_chart',
+        chartData: data,
+      })
       alert('Failed to save chart: ' + (error.message || 'Unknown error'))
     } finally {
       setIsSaving(false)
@@ -353,11 +364,12 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
                   />
                 </svg>
               </button>
-              {console.log('🔍 ChartHeader: IndicatorsDropdown props:', {
+              {log.business.info('ChartHeader IndicatorsDropdown props', {
+                operation: 'indicators_dropdown_props',
                 symbol: currentSymbol,
                 timeframe: selectedTimeframe,
                 isOpen: showIndicatorsDropdown,
-              })}
+              }) && null}
               <IndicatorsDropdown
                 symbol={currentSymbol}
                 timeframe={selectedTimeframe}

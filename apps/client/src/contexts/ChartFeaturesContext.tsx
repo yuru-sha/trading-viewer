@@ -8,6 +8,7 @@ import { useChartAlerts } from '../hooks/useChartAlerts'
 import { useChartControlsContext } from './ChartControlsContext'
 import { useAuth } from './AuthContext'
 import { api } from '../lib/apiClient'
+import { log } from '../services/logger'
 
 interface ChartFeaturesContextType {
   // Chart Settings
@@ -90,7 +91,7 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
       const filename = `${currentSymbol}-${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.png`
       chartInstanceRef.current.takeScreenshot(filename)
     } else {
-      console.warn('Screenshot functionality not available')
+      log.business.warn('Screenshot functionality not available for current chart')
     }
   }, [currentSymbol])
 
@@ -124,14 +125,24 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
           // TODO: Apply drawing tools when drawing tools are implemented
           // const savedDrawingTools = JSON.parse(chartData.drawingTools)
 
-          console.log('Default chart loaded successfully:', chartData.name)
+          log.business.info('Default chart loaded successfully', {
+            chartName: chartData.name,
+            symbol: currentSymbol,
+            timeframe: selectedTimeframe,
+          })
         } catch (parseError) {
-          console.error('Error parsing saved chart data:', parseError)
+          log.business.error('Error parsing saved chart data', parseError as Error, {
+            symbol: currentSymbol,
+            timeframe: selectedTimeframe,
+          })
         }
       }
     } catch {
       // No default chart found or error - this is not necessarily an error
-      console.log('No default chart found for', currentSymbol, selectedTimeframe)
+      log.business.info('No default chart found', {
+        symbol: currentSymbol,
+        timeframe: selectedTimeframe,
+      })
     } finally {
       setIsLoadingChart(false)
     }

@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
 import { PriceAlertRepository } from '../infrastructure/repositories'
+import { log } from '../infrastructure/services/logger'
 
 const router: ExpressRouter = Router()
 const priceAlertRepository = new PriceAlertRepository(prisma)
@@ -61,7 +62,7 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json(mappedAlerts)
   } catch (error) {
-    console.error('Error fetching alerts:', error)
+    log.business.error('Error fetching alerts', error, { userId: req.user?.userId })
     res.status(500).json({ error: 'Failed to fetch alerts' })
   }
 })
@@ -97,7 +98,10 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json(mappedAlerts)
   } catch (error) {
-    console.error('Error fetching symbol alerts:', error)
+    log.business.error('Error fetching symbol alerts', error, {
+      symbol: req.params?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({ error: 'Failed to fetch symbol alerts' })
   }
 })
@@ -128,7 +132,7 @@ router.post(
         exchange = quote.exchangeName
         timezone = quote.exchangeTimezoneName
       } catch (error) {
-        console.warn(`Failed to fetch currency info for ${symbol}:`, error)
+        log.business.warn(`Failed to fetch currency info for ${symbol}`, { symbol, error, userId })
         // Continue with default values
       }
 
@@ -146,7 +150,10 @@ router.post(
 
       res.status(201).json({ alert })
     } catch (error) {
-      console.error('Error creating alert:', error)
+      log.business.error('Error creating alert', error, {
+        symbol: req.body?.symbol,
+        userId: req.user?.userId,
+      })
       res.status(500).json({ error: 'Failed to create alert' })
     }
   }
@@ -183,7 +190,10 @@ router.put(
 
       res.json({ alert: updatedAlert })
     } catch (error) {
-      console.error('Error updating alert:', error)
+      log.business.error('Error updating alert', error, {
+        alertId: req.params?.id,
+        userId: req.user?.userId,
+      })
       res.status(500).json({ error: 'Failed to update alert' })
     }
   }
@@ -209,7 +219,10 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
 
     res.status(204).send()
   } catch (error) {
-    console.error('Error deleting alert:', error)
+    log.business.error('Error deleting alert', error, {
+      alertId: req.params?.id,
+      userId: req.user?.userId,
+    })
     res.status(500).json({ error: 'Failed to delete alert' })
   }
 })
@@ -246,7 +259,10 @@ router.put('/symbol/:symbol/disable', requireAuth, async (req: AuthenticatedRequ
       message: `Disabled ${disabledCount} alerts for ${symbol.toUpperCase()}`,
     })
   } catch (error) {
-    console.error('Error disabling symbol alerts:', error)
+    log.business.error('Error disabling symbol alerts', error, {
+      symbol: req.params?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({ error: 'Failed to disable symbol alerts' })
   }
 })
@@ -289,7 +305,10 @@ router.get('/count/:symbol', requireAuth, async (req: AuthenticatedRequest, res)
       })),
     })
   } catch (error) {
-    console.error('Error counting symbol alerts:', error)
+    log.business.error('Error counting symbol alerts', error, {
+      symbol: req.params?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({ error: 'Failed to count symbol alerts' })
   }
 })
@@ -329,7 +348,10 @@ router.put(
         symbols: symbols.map(s => s.toUpperCase()),
       })
     } catch (error) {
-      console.error('Error bulk disabling alerts:', error)
+      log.business.error('Error bulk disabling alerts', error, {
+        symbolCount: req.body?.symbols?.length,
+        userId: req.user?.userId,
+      })
       res.status(500).json({ error: 'Failed to disable alerts' })
     }
   }
@@ -344,7 +366,10 @@ router.post('/:id/trigger', requireAuth, async (req: AuthenticatedRequest, res) 
 
     res.json({ alert })
   } catch (error) {
-    console.error('Error triggering alert:', error)
+    log.business.error('Error triggering alert', error, {
+      alertId: req.params?.id,
+      userId: req.user?.userId,
+    })
     res.status(500).json({ error: 'Failed to trigger alert' })
   }
 })

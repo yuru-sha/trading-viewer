@@ -1,5 +1,6 @@
 import type { ICommand, CommandResult, CommandHistoryEntry } from '@trading-viewer/shared'
 import { UI_TIMEOUTS } from '@trading-viewer/shared'
+import { log } from '../services/logger'
 
 /**
  * Command Invoker Implementation
@@ -20,6 +21,9 @@ export class CommandInvoker {
    */
   async execute<T>(command: ICommand<T>): Promise<CommandResult<T>> {
     if (this.isExecuting) {
+      log.system.error('Command execution blocked - another command is executing', {
+        command: command.constructor.name,
+      })
       throw new Error('Cannot execute command while another command is executing')
     }
 
@@ -57,6 +61,7 @@ export class CommandInvoker {
         this.addToHistory(command, result)
       }
 
+      log.system.error('Command execution failed', { command: command.constructor.name })
       throw new Error('Operation failed')
     } finally {
       this.isExecuting = false
@@ -72,6 +77,7 @@ export class CommandInvoker {
     }
 
     if (this.isExecuting) {
+      log.system.error('Undo operation blocked - command is executing')
       throw new Error('Cannot undo while a command is executing')
     }
 
@@ -94,7 +100,7 @@ export class CommandInvoker {
 
       return true
     } catch {
-      console.error('Operation failed')
+      log.system.error('Undo operation failed')
       return false
     } finally {
       this.isExecuting = false
@@ -110,6 +116,7 @@ export class CommandInvoker {
     }
 
     if (this.isExecuting) {
+      log.system.error('Redo operation blocked - command is executing')
       throw new Error('Cannot redo while a command is executing')
     }
 
@@ -133,7 +140,7 @@ export class CommandInvoker {
 
       return true
     } catch {
-      console.error('Operation failed')
+      log.system.error('Redo operation failed')
       return false
     } finally {
       this.isExecuting = false
@@ -259,7 +266,12 @@ export class CommandInvoker {
 
     try {
       return await Promise.race([this.execute(command), timeoutPromise])
-    } catch {
+    } catch (error) {
+      log.system.error(
+        'Command execution with timeout failed',
+        error instanceof Error ? error : new Error(String(error)),
+        { command: command.constructor.name }
+      )
       throw new Error('Operation failed')
     }
   }

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { performance } from 'perf_hooks'
+import { log } from '../infrastructure/services/logger'
 
 interface PerformanceMetrics {
   timestamp: number
@@ -50,7 +51,7 @@ class PerformanceMonitor {
 
     // Log slow queries
     if (metric.responseTime > this.slowQueryThreshold) {
-      console.warn('Slow query detected:', {
+      log.performance.warn('Slow query detected', {
         path: metric.path,
         method: metric.method,
         responseTime: `${metric.responseTime}ms`,
@@ -61,7 +62,7 @@ class PerformanceMonitor {
     // Log high memory usage
     const heapUsedMB = metric.memoryUsage.heapUsed / 1024 / 1024
     if (heapUsedMB > this.memoryThresholdMB) {
-      console.warn('High memory usage detected:', {
+      log.performance.warn('High memory usage detected', {
         path: metric.path,
         heapUsed: `${Math.round(heapUsedMB)}MB`,
         requestId: metric.requestId,

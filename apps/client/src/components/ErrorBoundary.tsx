@@ -1,5 +1,6 @@
 import { Component, ReactNode } from 'react'
 import { Button } from '@trading-viewer/ui'
+import { log } from '../services/logger'
 
 interface ErrorInfo {
   componentStack: string
@@ -37,7 +38,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    log.system.error('ErrorBoundary caught an error', error, {
+      operation: 'error_boundary_catch',
+      componentStack: errorInfo.componentStack,
+    })
 
     this.setState({
       error,

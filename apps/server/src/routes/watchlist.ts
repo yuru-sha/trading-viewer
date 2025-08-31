@@ -5,6 +5,7 @@ import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
 import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
 import { WatchlistRepository } from '../infrastructure/repositories'
+import { log } from '../infrastructure/services/logger'
 
 const router: import('express').Router = Router()
 const prisma = new PrismaClient()
@@ -49,7 +50,7 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
       data: { watchlist },
     })
   } catch (error) {
-    console.error('Error fetching watchlist:', error)
+    log.business.error('Error fetching watchlist', error, { userId: req.user?.userId })
     res.status(500).json({
       success: false,
       error: 'Failed to fetch watchlist',
@@ -94,7 +95,7 @@ router.post(
         exchange = quote.exchangeName
         timezone = quote.exchangeTimezoneName
       } catch (error) {
-        console.warn(`Failed to fetch currency info for ${symbol}:`, error)
+        log.business.warn(`Failed to fetch currency info for ${symbol}`, { symbol, error, userId })
         // Continue with default values
       }
 
@@ -112,7 +113,10 @@ router.post(
         data: { watchlistItem },
       })
     } catch (error) {
-      console.error('Error adding to watchlist:', error)
+      log.business.error('Error adding to watchlist', error, {
+        symbol: req.body?.symbol,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to add to watchlist',
@@ -150,7 +154,10 @@ router.delete(
 
       res.status(204).send()
     } catch (error) {
-      console.error('Error removing from watchlist:', error)
+      log.business.error('Error removing from watchlist', error, {
+        symbol: req.body?.symbol,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to remove from watchlist',
@@ -186,7 +193,10 @@ router.delete('/:symbol', requireAuth, requireCSRF, async (req: AuthenticatedReq
       message: `${symbol.toUpperCase()} removed from watchlist`,
     })
   } catch (error) {
-    console.error('Error removing from watchlist:', error)
+    log.business.error('Error removing from watchlist', error, {
+      symbol: req.params?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({
       success: false,
       error: 'Failed to remove from watchlist',
@@ -216,7 +226,7 @@ router.delete(
           await watchlistRepository.removeSymbolFromWatchlist(userId, symbol.toUpperCase())
           deletedCount++
         } catch (error) {
-          console.warn(`Failed to remove ${symbol} from watchlist:`, error)
+          log.business.warn(`Failed to remove ${symbol} from watchlist`, { symbol, error, userId })
         }
       }
 
@@ -227,7 +237,10 @@ router.delete(
         symbols: symbols.map(s => s.toUpperCase()),
       })
     } catch (error) {
-      console.error('Error bulk removing from watchlist:', error)
+      log.business.error('Error bulk removing from watchlist', error, {
+        symbols: req.body?.symbols,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to remove symbols from watchlist',
@@ -264,7 +277,10 @@ router.put(
         message: 'Watchlist positions updated',
       })
     } catch (error) {
-      console.error('Error updating watchlist positions:', error)
+      log.business.error('Error updating watchlist positions', error, {
+        itemsCount: req.body?.items?.length,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to update watchlist positions',

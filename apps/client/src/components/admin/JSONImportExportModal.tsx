@@ -3,6 +3,7 @@ import { Modal, Button, Input } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
 import type { ImportResult, ExportOptions } from '@shared'
+import { log } from '../../services/logger'
 
 interface JSONImportExportModalProps {
   isOpen: boolean
@@ -112,7 +113,11 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
         }
       }
     } catch (error: unknown) {
-      console.error('Failed to import users:', error)
+      log.auth.error('Failed to import users', error, {
+        operation: 'import_users',
+        fileName: importFile.name,
+        fileSize: importFile.size,
+      })
       if (
         error &&
         typeof error === 'object' &&
@@ -176,8 +181,12 @@ const JSONImportExportModal: React.FC<JSONImportExportModalProps> = ({
       window.URL.revokeObjectURL(url)
 
       showSuccess('Users exported successfully')
-    } catch {
-      console.error('Failed to export users:', error)
+    } catch (error) {
+      log.auth.error('Failed to export users', error, {
+        operation: 'export_users',
+        format: exportOptions.format,
+        dateRange: exportOptions.dateRange,
+      })
       showError('Failed to export users')
     } finally {
       setExporting(false)

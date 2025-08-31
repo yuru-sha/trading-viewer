@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/apiClient'
+import { log } from '../services/logger'
 
 interface WatchlistState {
   isInWatchlist: boolean
@@ -28,7 +29,7 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
       )
       setIsInWatchlist(!!isSymbolInWatchlist)
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to check watchlist status', { symbol })
       setIsInWatchlist(false)
     }
   }
@@ -62,16 +63,16 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
         // Remove from watchlist
         await api.watchlist.remove(currentSymbol)
         setIsInWatchlist(false)
-        console.log(`${currentSymbol} removed from watchlist`)
+        log.business.info('Symbol removed from watchlist', { symbol: currentSymbol })
       } else {
         // Add to watchlist
         const symbolName = getSymbolName(currentSymbol)
         await api.watchlist.add(currentSymbol, symbolName)
         setIsInWatchlist(true)
-        console.log(`${currentSymbol} added to watchlist`)
+        log.business.info('Symbol added to watchlist', { symbol: currentSymbol })
       }
     } catch {
-      console.error('Operation failed')
+      log.business.error('Failed to toggle watchlist', { symbol: currentSymbol, isInWatchlist })
     } finally {
       setWatchlistLoading(false)
     }

@@ -16,6 +16,7 @@ import {
   useDeleteIndicator,
 } from '../../hooks/useIndicators'
 import { useAuth } from '../../contexts/AuthContext'
+import { log } from '../../services/logger'
 
 interface IndicatorsDropdownProps {
   symbol: string
@@ -47,9 +48,16 @@ const IndicatorConfigModal: React.FC<IndicatorConfigModalProps> = ({
   )
 
   const handleSubmit = (e: React.FormEvent) => {
-    console.log('🔍 IndicatorConfigModal handleSubmit called:', { type, parameters })
+    log.business.info('Indicator configuration modal submitted', {
+      operation: 'indicator_config_submit',
+      type,
+      parameters,
+    })
     e.preventDefault()
-    console.log('🔍 IndicatorConfigModal calling onConfirm with:', parameters)
+    log.business.info('Calling indicator configuration confirmation', {
+      operation: 'indicator_config_confirm',
+      parameters,
+    })
     onConfirm(parameters)
   }
 
@@ -156,7 +164,12 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   showVolume = true,
   onToggleVolume,
 }) => {
-  console.log('🔍 IndicatorsDropdown COMPONENT INSTANTIATED:', { symbol, timeframe, isOpen })
+  log.business.info('IndicatorsDropdown component instantiated', {
+    operation: 'component_init',
+    symbol,
+    timeframe,
+    isOpen,
+  })
   const { isAuthenticated } = useAuth()
   const { data: indicators = [], isLoading } = useIndicators(symbol, timeframe)
   const { addIndicator, isLoading: isAdding } = useAddIndicator()
@@ -190,7 +203,12 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   if (!isOpen) return null
 
   const handleAddIndicator = (type: IndicatorType) => {
-    console.log('🔍 handleAddIndicator called:', { type, symbol, isAuthenticated })
+    log.business.info('Add indicator requested', {
+      operation: 'add_indicator_request',
+      type,
+      symbol,
+      isAuthenticated,
+    })
 
     if (!isAuthenticated) {
       alert('Please log in to add indicators')
@@ -208,14 +226,19 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
       }
     }
 
-    console.log('🔍 Setting config modal:', { type, symbol })
+    log.business.info('Opening indicator configuration modal', {
+      operation: 'open_config_modal',
+      type,
+      symbol,
+    })
     setConfigModal({ type, symbol })
   }
 
   const handleConfirmIndicator = async (parameters: TechnicalIndicator['parameters']) => {
     if (!configModal) return
 
-    console.log('🔍 Adding indicator:', {
+    log.business.info('Adding technical indicator', {
+      operation: 'add_indicator',
       type: configModal.type,
       symbol: configModal.symbol,
       parameters,
@@ -225,7 +248,8 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     try {
       const defaultStyle = DEFAULT_INDICATOR_STYLES[configModal.type]
 
-      console.log('🔍 Calling addIndicator with:', {
+      log.business.info('Calling addIndicator API', {
+        operation: 'add_indicator_api_call',
         type: configModal.type,
         symbol: configModal.symbol,
         parameters,
@@ -246,16 +270,18 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
         }
       )
 
-      console.log('✅ Indicator added successfully:', result)
+      log.business.info('Indicator added successfully', {
+        operation: 'add_indicator_success',
+        result,
+      })
 
       setConfigModal(null)
       onClose()
-    } catch {
-      console.error('❌ Failed to add indicator:', error)
-      console.error('❌ Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        error,
+    } catch (error) {
+      log.business.error('Failed to add indicator', error, {
+        operation: 'add_indicator_failed',
+        type: configModal.type,
+        symbol: configModal.symbol,
       })
       alert(`Failed to add indicator: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -264,24 +290,36 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   const handleToggleIndicator = async (id: string, currentVisible: boolean) => {
     try {
       await toggleIndicator(id, !currentVisible)
-    } catch {
-      console.error('Failed to toggle indicator:', error)
+    } catch (error) {
+      log.business.error('Failed to toggle indicator visibility', error, {
+        operation: 'toggle_indicator',
+        indicatorId: id,
+      })
     }
   }
 
   const handleColorChange = async (indicatorId: string, color: string) => {
-    console.log('🎨 handleColorChange called:', { indicatorId, color })
-    console.log('🎨 updateIndicator object:', updateIndicator)
+    log.business.info('Indicator color change requested', {
+      operation: 'change_indicator_color',
+      indicatorId,
+      color,
+    })
     try {
       const result = await updateIndicator.mutateAsync({
         id: indicatorId,
         updates: { style: { color } },
       })
-      console.log('🎨 Color update successful:', result)
+      log.business.info('Indicator color updated successfully', {
+        operation: 'change_indicator_color_success',
+        result,
+      })
       setColorPickerIndicator(null)
       setEditingIndicator(null)
-    } catch {
-      console.error('Failed to update indicator color:', error)
+    } catch (error) {
+      log.business.error('Failed to update indicator color', error, {
+        operation: 'change_indicator_color_failed',
+        indicatorId,
+      })
       alert('色の変更に失敗しました')
     }
   }
@@ -290,8 +328,11 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
     try {
       await deleteIndicator.mutateAsync(indicatorId)
       setEditingIndicator(null)
-    } catch {
-      console.error('Failed to delete indicator:', error)
+    } catch (error) {
+      log.business.error('Failed to delete indicator', error, {
+        operation: 'delete_indicator',
+        indicatorId,
+      })
       alert('インジケーターの削除に失敗しました')
     }
   }
@@ -307,28 +348,35 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
   const handleUpdateParameters = async (parameters: TechnicalIndicator['parameters']) => {
     if (!editingParametersIndicator) return
 
-    console.log('📊 handleUpdateParameters called:', {
+    log.business.info('Indicator parameters update requested', {
+      operation: 'update_indicator_parameters',
       id: editingParametersIndicator.id,
       parameters,
     })
-    console.log('📊 updateIndicator object:', updateIndicator)
     try {
       const result = await updateIndicator.mutateAsync({
         id: editingParametersIndicator.id,
         updates: { parameters },
       })
-      console.log('📊 Parameter update successful:', result)
+      log.business.info('Indicator parameters updated successfully', {
+        operation: 'update_indicator_parameters_success',
+        result,
+      })
       setEditingParametersIndicator(null)
       setEditingIndicator(null)
-    } catch {
-      console.error('Failed to update indicator parameters:', error)
+    } catch (error) {
+      log.business.error('Failed to update indicator parameters', error, {
+        operation: 'update_indicator_parameters_failed',
+        indicatorId: editingParametersIndicator.id,
+      })
       alert('パラメーターの更新に失敗しました')
     }
   }
 
   const availableTypes: IndicatorType[] = ['sma', 'ema', 'rsi', 'macd', 'bollinger']
 
-  console.log('🔍 IndicatorsDropdown render:', {
+  log.business.info('IndicatorsDropdown rendering', {
+    operation: 'component_render',
     isOpen,
     isAdding,
     availableTypes,
@@ -526,13 +574,19 @@ const IndicatorsDropdown: React.FC<IndicatorsDropdownProps> = ({
               const isAlreadyAdded =
                 (type === 'rsi' || type === 'macd') &&
                 indicators.some(indicator => indicator.type === type)
-              console.log(`🔍 Rendering ${type} button:`, { metadata, isAdding, isAlreadyAdded })
+              log.business.info('Rendering indicator button', {
+                operation: 'render_indicator_button',
+                type,
+                metadata: metadata.name,
+                isAdding,
+                isAlreadyAdded,
+              })
               return (
                 <button
                   key={type}
                   onClick={e => {
-                    console.log('🔍 BUTTON CLICKED - ANY BUTTON!')
-                    console.log(`🔍 ${type.toUpperCase()} button clicked:`, {
+                    log.business.info('Indicator button clicked', {
+                      operation: 'indicator_button_click',
                       type,
                       metadata: metadata.name,
                     })

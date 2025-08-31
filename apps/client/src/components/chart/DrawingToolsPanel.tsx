@@ -3,6 +3,7 @@ import { Button } from '@trading-viewer/ui'
 import { api } from '../../lib/apiClient'
 // Test regular icons from lucide-react
 import { Icon } from '@ui'
+import { log } from '../../services/logger'
 
 export interface DrawingTool {
   id: string
@@ -88,12 +89,16 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
   const [isLoading, setIsLoading] = useState(false)
 
   const handleToolClick = (tool: DrawingTool) => {
-    console.log('Tool clicked:', tool.name)
+    log.business.info('Drawing tool clicked', {
+      toolName: tool.name,
+      toolId: tool.id,
+      toolType: tool.type,
+    })
     if (activeTool?.id === tool.id) {
-      console.log('Deselecting tool')
+      log.business.info('Deselecting active drawing tool', { toolName: tool.name })
       onToolSelect(null) // Deselect if already active
     } else {
-      console.log('Selecting tool:', tool.name)
+      log.business.info('Selecting drawing tool', { toolName: tool.name, toolId: tool.id })
       onToolSelect(tool)
     }
   }
@@ -127,9 +132,17 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
         })
       }
 
-      console.log(`Saved ${drawingElements.length} drawings for ${currentSymbol}`)
-    } catch {
-      console.error('Failed to save drawings:', error)
+      log.business.info('Successfully saved drawings', {
+        count: drawingElements.length,
+        symbol: currentSymbol,
+        operation: 'save_drawings',
+      })
+    } catch (error) {
+      log.business.error('Failed to save drawings', error, {
+        symbol: currentSymbol,
+        drawingCount: drawingElements.length,
+        operation: 'save_drawings',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -146,10 +159,17 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
         for (const tool of response.data) {
           await api.drawing.deleteDrawingTool(tool.id)
         }
-        console.log(`Deleted saved drawings for ${currentSymbol}`)
+        log.business.info('Successfully deleted saved drawings', {
+          symbol: currentSymbol,
+          deletedCount: response.data.length,
+          operation: 'delete_saved_drawings',
+        })
       }
-    } catch {
-      console.error('Failed to delete saved drawings:', error)
+    } catch (error) {
+      log.business.error('Failed to delete saved drawings', error, {
+        symbol: currentSymbol,
+        operation: 'delete_saved_drawings',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -193,10 +213,17 @@ export const DrawingToolsPanel: React.FC<DrawingToolsPanelProps> = ({
           }
         })
 
-        console.log(`Loaded ${loadedElements.length} drawings for ${currentSymbol}`)
+        log.business.info('Successfully loaded drawings', {
+          count: loadedElements.length,
+          symbol: currentSymbol,
+          operation: 'load_drawings',
+        })
       }
-    } catch {
-      console.error('Failed to load drawings:', error)
+    } catch (error) {
+      log.business.error('Failed to load drawings', error, {
+        symbol: currentSymbol,
+        operation: 'load_drawings',
+      })
     } finally {
       setIsLoading(false)
     }

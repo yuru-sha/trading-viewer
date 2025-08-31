@@ -5,6 +5,8 @@
  * パフォーマンス改善のためファイル分割
  */
 
+import { log } from './logger'
+
 // SMA (Simple Moving Average) 計算
 export function calculateSMA(prices: number[], period: number): number[] {
   const sma: number[] = []
@@ -105,14 +107,16 @@ export function calculateMACD(
     return { macd: [], signal: [], histogram: [] }
   }
 
-  console.log('🔍 MACD: Calculating EMAs with periods:', { fastPeriod, slowPeriod, signalPeriod })
+  log.system.debug('Calculating MACD EMAs', { fastPeriod, slowPeriod, signalPeriod })
 
   // EMA 計算
   const fastEMA = calculateEMA(prices, fastPeriod)
   const slowEMA = calculateEMA(prices, slowPeriod)
 
-  console.log('🔍 MACD: Fast EMA sample:', fastEMA.slice(0, 5))
-  console.log('🔍 MACD: Slow EMA sample:', slowEMA.slice(0, 5))
+  log.system.debug('MACD EMA calculations', {
+    fastEMASample: fastEMA.slice(0, 5),
+    slowEMASample: slowEMA.slice(0, 5),
+  })
 
   // MACD ライン計算 (Fast EMA - Slow EMA)
   const macdLine: number[] = []
@@ -124,13 +128,17 @@ export function calculateMACD(
     }
   }
 
-  console.log('🔍 MACD: MACD line sample:', macdLine.slice(slowPeriod - 1, slowPeriod + 4))
+  log.system.debug('MACD line calculated', {
+    sample: macdLine.slice(slowPeriod - 1, slowPeriod + 4),
+  })
 
   // Signal ライン計算 (MACD の EMA)
   const validMacdValues = macdLine.filter(val => !isNaN(val))
   const signalEMA = calculateEMA(validMacdValues, signalPeriod)
 
-  console.log('🔍 MACD: Signal EMA sample:', signalEMA.slice(0, 5))
+  log.system.debug('Signal EMA calculated', {
+    sample: signalEMA.slice(0, 5),
+  })
 
   // Signal ラインを元のデータ長に合わせる
   const signalLine: number[] = []
@@ -144,10 +152,9 @@ export function calculateMACD(
     }
   }
 
-  console.log(
-    '🔍 MACD: Signal line sample:',
-    signalLine.slice(slowPeriod + signalPeriod - 2, slowPeriod + signalPeriod + 2)
-  )
+  log.system.debug('Signal line aligned', {
+    sample: signalLine.slice(slowPeriod + signalPeriod - 2, slowPeriod + signalPeriod + 2),
+  })
 
   // Histogram 計算 (MACD - Signal)
   const histogram: number[] = []
@@ -161,10 +168,9 @@ export function calculateMACD(
     }
   }
 
-  console.log(
-    '🔍 MACD: Histogram sample:',
-    histogram.slice(slowPeriod + signalPeriod - 2, slowPeriod + signalPeriod + 2)
-  )
+  log.system.debug('MACD histogram calculated', {
+    sample: histogram.slice(slowPeriod + signalPeriod - 2, slowPeriod + signalPeriod + 2),
+  })
 
   return {
     macd: macdLine,

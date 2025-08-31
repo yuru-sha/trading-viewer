@@ -35,7 +35,7 @@ describe('ErrorBoundary', () => {
   beforeEach(() => {
     // Mock console.error to avoid noise in test output
     consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    
+
     // Mock window.location.reload
     reloadSpy = vi.fn()
     Object.defineProperty(window, 'location', {
@@ -66,7 +66,11 @@ describe('ErrorBoundary', () => {
     )
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
-    expect(screen.getByText('An unexpected error occurred. Please try one of the recovery options below.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'An unexpected error occurred. Please try one of the recovery options below.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('displays custom fallback when provided', () => {
@@ -209,7 +213,9 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     )
 
-    expect(screen.getByText('If the problem persists, please contact support with the error details.')).toBeInTheDocument()
+    expect(
+      screen.getByText('If the problem persists, please contact support with the error details.')
+    ).toBeInTheDocument()
   })
 
   it('has proper ARIA attributes for accessibility', () => {

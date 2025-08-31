@@ -3,6 +3,7 @@ export * from './core'
 export * from './api'
 export * from './ui'
 export * from './business'
+export * from './logging'
 
 // Legacy compatibility exports for gradual migration
 // These will be deprecated in future versions

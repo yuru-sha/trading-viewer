@@ -17,6 +17,7 @@ import {
   IRefreshTokenRepository,
   IWatchlistRepository,
 } from '../repositories'
+import { log } from '../../infrastructure/services/logger'
 
 /**
  * 取引データ用のコアデータベースサービスインターフェースです。
@@ -119,7 +120,10 @@ export class DatabaseService implements IDatabaseService {
       await this.prisma.$queryRaw`SELECT 1`
       return true
     } catch (error) {
-      console.error('Database health check failed:', error)
+      log.database.error(
+        'Database health check failed',
+        error instanceof Error ? error : new Error(String(error))
+      )
       return false
     }
   }

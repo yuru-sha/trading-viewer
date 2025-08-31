@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useError } from '../contexts/ErrorContext'
 import { apiService } from '../services/base/ApiService'
+import { log } from '../services/logger'
 import BulkUserActions from '../components/admin/BulkUserActions'
 import UserActionsComponent from '../components/admin/UserActionsComponent'
 import UserFiltersComponent from '../components/admin/UserFiltersComponent'
@@ -131,7 +132,7 @@ const AdminUsersPage: React.FC = () => {
         setPagination(response.data.pagination)
       }
     } catch {
-      console.error('Failed to fetch users:', error)
+      log.auth.error('Failed to fetch admin users data')
       showError('Failed to load users')
     } finally {
       setLoading(false)
@@ -145,7 +146,7 @@ const AdminUsersPage: React.FC = () => {
         setStats(response.data)
       }
     } catch {
-      console.error('Failed to fetch stats:', error)
+      log.auth.error('Failed to fetch admin user stats')
     }
   }
 
@@ -200,7 +201,7 @@ const AdminUsersPage: React.FC = () => {
       fetchUsers()
       fetchStats()
     } catch {
-      console.error(`Failed to ${action} user:`, error)
+      log.auth.error('Failed to execute admin user action', { action })
       showError(`Failed to ${action} user`)
     } finally {
       setActionLoading(null)

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Button } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface BulkUserActionsProps {
   selectedUsers: string[]
@@ -61,7 +62,11 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
         onRefresh()
       }
     } catch (error: unknown) {
-      console.error(`Failed to perform bulk ${action}:`, error)
+      log.auth.error(`Failed to perform bulk ${action}`, error, {
+        operation: 'bulk_user_action',
+        action,
+        userCount: selectedUsers.length,
+      })
       const errorMessage =
         error instanceof Error &&
         'response' in error &&
@@ -113,8 +118,11 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = ({
       window.URL.revokeObjectURL(url)
 
       showSuccess(`Exported ${selectedUsers.length} users to JSON`)
-    } catch {
-      console.error('Failed to export users:', error)
+    } catch (error) {
+      log.auth.error('Failed to export users', error, {
+        operation: 'export_users',
+        userCount: selectedUsers.length,
+      })
       showError('Failed to export users')
     } finally {
       setLoading(false)

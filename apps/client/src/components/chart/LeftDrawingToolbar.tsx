@@ -3,6 +3,7 @@ import { DrawingTool, drawingTools } from './DrawingToolsPanel'
 import { DrawingToolType } from '@trading-viewer/shared'
 import DrawingObjectsPanel, { DrawingObject } from './DrawingObjectsPanel'
 import { Icon } from '@trading-viewer/ui'
+import { log } from '../../services/logger'
 
 interface LeftDrawingToolbarProps {
   activeTool: DrawingToolType | null
@@ -39,9 +40,11 @@ export const LeftDrawingToolbar = forwardRef<LeftDrawingToolbarRef, LeftDrawingT
     }))
 
     const handleToolClick = (tool: DrawingTool) => {
-      console.log('Tool clicked:', tool.type, 'current active:', activeTool)
-      // ツールを選択（トグル動作を無効化）
-      console.log('Selecting tool:', tool.type)
+      log.business.info('Drawing tool selected', {
+        operation: 'select_drawing_tool',
+        toolType: tool.type,
+        previousActiveTool: activeTool,
+      })
       onToolSelect(tool.type)
     }
 
@@ -52,7 +55,10 @@ export const LeftDrawingToolbar = forwardRef<LeftDrawingToolbarRef, LeftDrawingT
         {/* Cursor/Select Tool */}
         <button
           onClick={() => {
-            console.log('Select tool clicked')
+            log.business.info('Select tool activated', {
+              operation: 'select_cursor_tool',
+              previousActiveTool: activeTool,
+            })
             onToolSelect(null)
           }}
           className={`flex items-center justify-center w-12 h-12 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 ${

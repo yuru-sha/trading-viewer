@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { DrawingTool } from '@trading-viewer/shared'
 import { api } from '../../lib/apiClient'
 import { useAuth } from '../../contexts/AuthContext'
+import { log } from '../../services/logger'
 
 export interface DrawingServerPersistenceOptions {
   symbol?: string
@@ -27,35 +28,45 @@ export const useDrawingServerPersistence = (
   // Save tools to server API
   const saveToServer = useCallback(
     async (targetSymbol?: string) => {
-      console.log(
-        `🔍 [SaveToServer] Starting save for symbol: ${targetSymbol}, authenticated: ${isAuthenticated}, tools count: ${tools.length}`
-      )
+      log.business.info('Starting server save for drawing tools', {
+        symbol: targetSymbol,
+        authenticated: isAuthenticated,
+        toolsCount: tools.length,
+      })
 
       if (!isAuthenticated || !targetSymbol) {
-        console.log(
-          `🔍 [SaveToServer] Skipping save - authenticated: ${isAuthenticated}, symbol: ${targetSymbol}`
-        )
+        log.business.debug('Skipping drawing tools save', {
+          authenticated: isAuthenticated,
+          symbol: targetSymbol,
+        })
         return false
       }
 
-      console.log(`🔍 [SaveToServer] Tools to save:`, tools)
+      log.business.debug('Drawing tools to save', { tools })
       setIsSaving(true)
       try {
         // Delete existing tools for this symbol and timeframe first
-        console.log(`🔍 [SaveToServer] Fetching existing tools for ${targetSymbol}:${timeframe}`)
+        log.business.debug('Fetching existing tools for replacement', {
+          symbol: targetSymbol,
+          timeframe,
+        })
         const existingTools = await api.drawings.getDrawingTools(targetSymbol, timeframe)
-        console.log(`🔍 [SaveToServer] Found ${existingTools.data?.length || 0} existing tools`)
+        log.business.debug('Found existing tools', {
+          count: existingTools.data?.length || 0,
+        })
 
         if (existingTools.data && Array.isArray(existingTools.data)) {
           for (const tool of existingTools.data as any[]) {
-            console.log(`🔍 [SaveToServer] Deleting existing tool: ${(tool as any).id}`)
+            log.business.debug('Deleting existing drawing tool', {
+              toolId: (tool as any).id,
+            })
             await api.drawings.deleteDrawingTool((tool as any).id)
           }
         }
 
         // Save new tools
         for (const tool of tools) {
-          console.log(`🔍 [SaveToServer] Creating tool:`, tool)
+          log.business.debug('Creating drawing tool on server', { tool })
           const result = await api.drawings.createDrawingTool({
             symbol: targetSymbol,
             timeframe: timeframe || '1D',
@@ -68,13 +79,16 @@ export const useDrawingServerPersistence = (
               visible: tool.visible,
             },
           })
-          console.log(`🔍 [SaveToServer] Created tool result:`, result)
+          log.business.debug('Drawing tool created on server', { result })
         }
 
-        console.log(`💾 Saved ${tools.length} drawing tools to server for ${targetSymbol}`)
+        log.business.info('Drawing tools saved to server', {
+          count: tools.length,
+          symbol: targetSymbol,
+        })
         return true
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to save drawing tools to server')
         return false
       } finally {
         setIsSaving(false)
@@ -86,35 +100,43 @@ export const useDrawingServerPersistence = (
   // Load tools from server API
   const loadFromServer = useCallback(
     async (targetSymbol?: string) => {
-      console.log(
-        `🔍 [LoadFromServer] Starting load for symbol: ${targetSymbol}, authenticated: ${isAuthenticated}`
-      )
+      log.business.info('Starting server load for drawing tools', {
+        symbol: targetSymbol,
+        authenticated: isAuthenticated,
+      })
 
       if (!isAuthenticated || !targetSymbol) {
-        console.log(
-          `🔍 [LoadFromServer] Skipping load - authenticated: ${isAuthenticated}, symbol: ${targetSymbol}`
-        )
+        log.business.debug('Skipping drawing tools load', {
+          authenticated: isAuthenticated,
+          symbol: targetSymbol,
+        })
         return []
       }
 
       setIsLoading(true)
       try {
-        console.log(`🔍 [LoadFromServer] Fetching tools for ${targetSymbol}:${timeframe}`)
+        log.business.debug('Fetching drawing tools from server', {
+          symbol: targetSymbol,
+          timeframe,
+        })
         const response = await api.drawings.getDrawingTools(targetSymbol, timeframe)
-        console.log(`🔍 [LoadFromServer] API response:`, response)
+        log.business.debug('Server API response for drawing tools', { response })
 
         if (response.data && Array.isArray(response.data)) {
-          console.log(
-            `📂 Loaded ${response.data.length} drawing tools from server for ${targetSymbol}`,
-            response.data
-          )
+          log.business.info('Drawing tools loaded from server', {
+            count: response.data.length,
+            symbol: targetSymbol,
+            data: response.data,
+          })
           return response.data as DrawingTool[]
         }
 
-        console.log(`📂 No saved drawings found on server for ${targetSymbol}`)
+        log.business.info('No saved drawings found on server', {
+          symbol: targetSymbol,
+        })
         return []
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to load drawing tools from server')
         return []
       } finally {
         setIsLoading(false)
@@ -150,10 +172,12 @@ export const useDrawingServerPersistence = (
           }
         }
 
-        console.log(`🗑️ Deleted saved drawings from server for ${targetSymbol}`)
+        log.business.info('Deleted saved drawings from server', {
+          symbol: targetSymbol,
+        })
         return true
       } catch {
-        console.error('Operation failed')
+        log.business.error('Failed to delete saved drawings from server')
         return false
       }
     },
@@ -162,35 +186,42 @@ export const useDrawingServerPersistence = (
 
   // Auto-save effect (debounced)
   useEffect(() => {
-    console.log(
-      `🔍 [AutoSave] Effect triggered - autoSave: ${autoSave}, symbol: ${symbol}, authenticated: ${isAuthenticated}, tools: ${tools.length}`
-    )
+    log.business.debug('Auto-save effect triggered', {
+      autoSave,
+      symbol,
+      authenticated: isAuthenticated,
+      toolsCount: tools.length,
+    })
 
     if (!autoSave) {
-      console.log(`🔍 [AutoSave] Skipped - autoSave disabled`)
+      log.business.debug('Auto-save skipped - disabled')
       return
     }
     if (!symbol) {
-      console.log(`🔍 [AutoSave] Skipped - no symbol`)
+      log.business.debug('Auto-save skipped - no symbol')
       return
     }
     if (!isAuthenticated) {
-      console.log(`🔍 [AutoSave] Skipped - not authenticated`)
+      log.business.debug('Auto-save skipped - not authenticated')
       return
     }
     // Auto-save even when tools.length === 0 to handle deletions
-    console.log(
-      `🔍 [AutoSave] Scheduling save in ${autoSaveInterval}ms for ${tools.length} tools (including deletions)`
-    )
+    log.business.debug('Auto-save scheduling save with deletions', {
+      delay: autoSaveInterval,
+      toolsCount: tools.length,
+    })
 
-    console.log(`🔍 [AutoSave] Scheduling save in ${autoSaveInterval}ms for ${tools.length} tools`)
+    log.business.debug('Auto-save scheduling save', {
+      delay: autoSaveInterval,
+      toolsCount: tools.length,
+    })
     const timeoutId = setTimeout(() => {
-      console.log(`🔍 [AutoSave] Executing scheduled save for ${symbol}`)
+      log.business.debug('Executing scheduled auto-save', { symbol })
       saveToServer(symbol)
     }, autoSaveInterval)
 
     return () => {
-      console.log(`🔍 [AutoSave] Clearing timeout`)
+      log.business.debug('Clearing auto-save timeout')
       clearTimeout(timeoutId)
     }
   }, [tools, autoSave, autoSaveInterval, saveToServer, symbol, isAuthenticated])

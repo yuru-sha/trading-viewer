@@ -5,6 +5,7 @@ import type {
   CommandHistoryEntry,
   DrawingCommandParams,
 } from '@trading-viewer/shared'
+import { log } from '../services/logger'
 // Define ChartSettingsParams locally for now
 interface ChartSettingsParams {
   theme?: string
@@ -105,7 +106,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
 
           if (enableNotifications) {
             // You could integrate with a notification system here
-            console.log(`Command executed: ${command.type}`)
+            log.business.info('Command executed', { commandType: command.type })
           }
         } else if (result.error) {
           const error = new Error(result.error)
@@ -191,7 +192,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       updateState()
 
       if (result && enableNotifications) {
-        console.log('Command undone')
+        log.business.info('Command undone')
       }
 
       return result
@@ -219,7 +220,7 @@ export function useCommandSystem(options: UseCommandSystemOptions = {}): UseComm
       updateState()
 
       if (result && enableNotifications) {
-        console.log('Command redone')
+        log.business.info('Command redone')
       }
 
       return result

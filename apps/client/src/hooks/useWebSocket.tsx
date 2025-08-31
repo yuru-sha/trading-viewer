@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { log } from '../services/logger'
 
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'ping' | 'error' | 'quote' | 'candle'
@@ -96,13 +97,19 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
     setError(null)
 
     try {
-      console.log('Attempting WebSocket connection to:', config.url)
+      log.api.info('Attempting WebSocket connection', {
+        operation: 'websocket_connect',
+        url: config.url,
+      })
       const ws = new WebSocket(config.url)
       wsRef.current = ws
 
       const connectTimeout = setTimeout(() => {
         if (ws.readyState === WebSocket.CONNECTING) {
-          console.log('WebSocket connection timeout')
+          log.api.warn('WebSocket connection timeout', {
+            operation: 'websocket_connect',
+            timeout: 10000,
+          })
           ws.close()
           setError('Connection timeout')
           setIsConnecting(false)
@@ -115,7 +122,9 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         setIsConnecting(false)
         setError(null)
         reconnectAttemptsRef.current = 0
-        console.log('WebSocket connected')
+        log.api.info('WebSocket connected successfully', {
+          operation: 'websocket_connect',
+        })
 
         // Start heartbeat
         heartbeatRef.current = setInterval(() => {
@@ -145,18 +154,27 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
               setLastQuote(message.data)
               break
             case 'error':
-              console.error('WebSocket server error:', message.data?.error)
+              log.api.error('WebSocket server error', new Error(message.data?.error), {
+                operation: 'websocket_message',
+                messageType: 'error',
+              })
               setError(message.data?.error || 'Server error')
               break
             case 'ping':
               // Handle ping/pong
               if (message.data?.status === 'connected') {
-                console.log('WebSocket connection confirmed')
+                log.api.info('WebSocket connection confirmed via ping', {
+                  operation: 'websocket_message',
+                  messageType: 'ping',
+                })
               }
               break
           }
         } catch (error: unknown) {
-          console.error('Failed to parse WebSocket message:', error)
+          log.api.error('Failed to parse WebSocket message', error as Error, {
+            operation: 'websocket_message',
+            action: 'parse_message',
+          })
         }
       }
 
@@ -170,7 +188,11 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         setIsConnected(false)
         setIsConnecting(false)
 
-        console.log(`WebSocket disconnected: ${event.code} ${event.reason}`)
+        log.api.info('WebSocket disconnected', {
+          operation: 'websocket_disconnect',
+          code: event.code,
+          reason: event.reason,
+        })
 
         // Only attempt reconnection if it wasn't a clean close and we should be connected
         if (shouldConnectRef.current && event.code !== 1000) {
@@ -180,9 +202,12 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
             reconnectAttemptsRef.current++
             const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current - 1), 30000)
 
-            console.log(
-              `Attempting to reconnect... (${reconnectAttemptsRef.current}/${config.maxReconnectAttempts})`
-            )
+            log.api.info('Attempting to reconnect WebSocket', {
+              operation: 'websocket_reconnect',
+              attempt: reconnectAttemptsRef.current,
+              maxAttempts: config.maxReconnectAttempts,
+              delay,
+            })
 
             reconnectTimeoutRef.current = setTimeout(() => {
               if (shouldConnectRef.current) {
@@ -196,10 +221,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
       }
 
       ws.onerror = _event => {
-        console.error('WebSocket error event:', {
+        log.api.error('WebSocket error event', undefined, {
+          operation: 'websocket_error',
           readyState: ws.readyState,
           url: config.url,
-          message: 'Connection failed',
         })
         clearTimeout(connectTimeout)
         if (ws.readyState === WebSocket.CONNECTING) {
@@ -210,7 +235,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
         setIsConnecting(false)
       }
     } catch (error: unknown) {
-      console.error('Failed to create WebSocket:', error)
+      log.api.error('Failed to create WebSocket', error as Error, {
+        operation: 'websocket_connect',
+        url: config.url,
+      })
       setError('Failed to create connection')
       setIsConnecting(false)
     }
@@ -253,7 +281,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message))
     } else {
-      console.warn('Cannot send message: WebSocket not connected')
+      log.api.warn('Cannot send message: WebSocket not connected', {
+        operation: 'websocket_send',
+        readyState: wsRef.current?.readyState,
+      })
     }
   }, [])
 

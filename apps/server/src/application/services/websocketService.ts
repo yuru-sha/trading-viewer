@@ -5,6 +5,7 @@ import { IncomingMessage } from 'http'
 import { URL } from 'url'
 import jwt from 'jsonwebtoken'
 import { getYahooFinanceService } from './yahooFinanceService'
+import { log } from '../../infrastructure/services/logger'
 
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'ping' | 'error' | 'quote' | 'candle'
@@ -77,17 +78,17 @@ export class WebSocketService extends EventEmitter {
           }) as any
           ws.userId = payload.userId
           ws.isAuthenticated = true
-          console.log(`✅ Authenticated WebSocket connection for user: ${ws.userId}`)
+          log.websocket.info(`Authenticated WebSocket connection for user: ${ws.userId}`)
         } else {
           ws.isAuthenticated = false
-          console.log(`⚠️ Unauthenticated WebSocket connection`)
+          log.websocket.info('Unauthenticated WebSocket connection')
         }
       } catch (error) {
-        console.error('WebSocket authentication error:', error)
+        log.websocket.error('WebSocket authentication error:', error)
         ws.isAuthenticated = false
       }
 
-      console.log(`WebSocket client connected: ${clientId} (${this.clients.size} total)`)
+      log.websocket.info(`WebSocket client connected: ${clientId} (${this.clients.size} total)`)
 
       // Set up heartbeat
       ws.isAlive = true
@@ -100,18 +101,18 @@ export class WebSocketService extends EventEmitter {
           const data = JSON.parse(message.toString()) as WebSocketMessage
           this.handleMessage(ws, clientId, data)
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error)
+          log.websocket.error('Failed to parse WebSocket message:', error)
           this.sendError(ws, 'Invalid message format')
         }
       })
 
       ws.on('close', (code, reason) => {
-        console.log(`WebSocket client disconnected: ${clientId} (${code}: ${reason})`)
+        log.websocket.info(`WebSocket client disconnected: ${clientId} (${code}: ${reason})`)
         this.handleClientDisconnect(ws, clientId)
       })
 
       ws.on('error', error => {
-        console.error(`WebSocket error for client ${clientId}:`, error)
+        log.websocket.error(`WebSocket error for client ${clientId}:`, error)
         this.handleClientDisconnect(ws, clientId)
       })
 
@@ -127,7 +128,7 @@ export class WebSocketService extends EventEmitter {
     const heartbeatInterval = setInterval(() => {
       this.wss?.clients.forEach((ws: any) => {
         if (!ws.isAlive) {
-          console.log('Terminating inactive WebSocket connection')
+          log.websocket.info('Terminating inactive WebSocket connection')
           return ws.terminate()
         }
 
@@ -140,7 +141,7 @@ export class WebSocketService extends EventEmitter {
       clearInterval(heartbeatInterval)
     })
 
-    console.log('WebSocket server initialized on /ws')
+    log.websocket.info('WebSocket server initialized on /ws')
   }
 
   private handleMessage(
@@ -220,7 +221,9 @@ export class WebSocketService extends EventEmitter {
     // Increment user's subscription count
     ws.subscriptionCount = (ws.subscriptionCount || 0) + 1
 
-    console.log(`Client ${clientId} (user: ${ws.userId || 'anonymous'}) subscribed to ${symbol}`)
+    log.websocket.info(
+      `Client ${clientId} (user: ${ws.userId || 'anonymous'}) subscribed to ${symbol}`
+    )
 
     // Send immediate quote
     this.sendQuoteUpdate(symbol)
@@ -262,7 +265,7 @@ export class WebSocketService extends EventEmitter {
       this.subscriptions.delete(symbol)
     }
 
-    console.log(
+    log.websocket.info(
       `Client ${clientId} (user: ${ws.userId || 'anonymous'}) unsubscribed from ${symbol}`
     )
 
@@ -285,7 +288,7 @@ export class WebSocketService extends EventEmitter {
     }, 5000) // Update every 5 seconds
 
     this.updateIntervals.set(symbol, interval)
-    console.log(`Started real-time updates for ${symbol}`)
+    log.websocket.info(`Started real-time updates for ${symbol}`)
   }
 
   private stopSymbolUpdates(symbol: string): void {
@@ -293,7 +296,7 @@ export class WebSocketService extends EventEmitter {
     if (interval) {
       clearInterval(interval)
       this.updateIntervals.delete(symbol)
-      console.log(`Stopped real-time updates for ${symbol}`)
+      log.websocket.info(`Stopped real-time updates for ${symbol}`)
     }
   }
 
@@ -307,7 +310,7 @@ export class WebSocketService extends EventEmitter {
 
       // Priority: Yahoo Finance > Mock Data
       if (USE_YAHOO_FINANCE && !USE_MOCK_DATA && !MOCK_REAL_TIME_UPDATES) {
-        console.log(`🔄 WebSocket Yahoo Finance update for ${symbol}`)
+        log.websocket.info(`WebSocket Yahoo Finance update for ${symbol}`)
         try {
           const yahooQuote = await this.yahooFinanceService.getQuote(symbol)
           quote = {
@@ -321,7 +324,7 @@ export class WebSocketService extends EventEmitter {
             t: Math.floor(yahooQuote.timestamp / 1000),
           }
         } catch (error) {
-          console.warn(
+          log.websocket.warn(
             `Failed to get Yahoo Finance quote for ${symbol}, falling back to mock:`,
             error
           )
@@ -360,7 +363,7 @@ export class WebSocketService extends EventEmitter {
         }
       } else if (USE_MOCK_DATA || MOCK_REAL_TIME_UPDATES) {
         // Use consistent mock data for development
-        console.log(`🔄 WebSocket mock update for ${symbol}`)
+        log.websocket.info(`WebSocket mock update for ${symbol}`)
         const basePrice =
           symbol === 'AAPL'
             ? 150
@@ -439,7 +442,7 @@ export class WebSocketService extends EventEmitter {
         symbolSubscriptions.delete(client)
       })
     } catch (error) {
-      console.error(`Failed to send quote update for ${symbol}:`, error)
+      log.websocket.error(`Failed to send quote update for ${symbol}:`, error)
 
       // Send error to subscribers
       const symbolSubscriptions = this.subscriptions.get(symbol)
@@ -564,7 +567,7 @@ export class WebSocketService extends EventEmitter {
     this.subscriptions.clear()
     this.clients.clear()
 
-    console.log('WebSocket service closed')
+    log.websocket.info('WebSocket service closed')
   }
 
   // Get service status for health checks
@@ -588,7 +591,7 @@ export class WebSocketService extends EventEmitter {
       if (process.env.NODE_ENV === 'production') {
         const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || []
         if (allowedOrigins.length > 0 && !allowedOrigins.includes(info.origin)) {
-          console.warn(`❌ WebSocket connection rejected - invalid origin: ${info.origin}`)
+          log.websocket.warn(`WebSocket connection rejected - invalid origin: ${info.origin}`)
           return false
         }
       }
@@ -596,13 +599,13 @@ export class WebSocketService extends EventEmitter {
       // Basic rate limiting by IP
       const clientIP = info.req.socket.remoteAddress || 'unknown'
       if (this.isRateLimited(clientIP)) {
-        console.warn(`❌ WebSocket connection rejected - rate limited IP: ${clientIP}`)
+        log.websocket.warn(`WebSocket connection rejected - rate limited IP: ${clientIP}`)
         return false
       }
 
       return true
     } catch (error) {
-      console.error('Error in WebSocket verifyClient:', error)
+      log.websocket.error('Error in WebSocket verifyClient:', error)
       return false
     }
   }
@@ -633,7 +636,7 @@ export class WebSocketService extends EventEmitter {
 
       return null
     } catch (error) {
-      console.error('Error extracting token from WebSocket request:', error)
+      log.websocket.error('Error extracting token from WebSocket request:', error)
       return null
     }
   }

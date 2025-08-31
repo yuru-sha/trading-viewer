@@ -2,6 +2,7 @@
 
 import { authService } from '../AuthService'
 import { errorRecoveryManager } from '../../utils/errorRecovery'
+import { log } from '../logger'
 import type { User, UpdateProfileData, ChangePasswordData } from '../../contexts/AuthContext'
 
 export interface UserValidationResult {
@@ -137,9 +138,9 @@ export class UserManager {
 
     try {
       return await authService.updateProfile(sanitizedData)
-    } catch {
+    } catch (error) {
       // Business logic for handling update errors
-      console.error('Operation failed')
+      log.auth.error('Profile update operation failed', error)
 
       // Attempt recovery if possible
       try {
@@ -176,8 +177,8 @@ export class UserManager {
 
     try {
       await authService.changePassword(data)
-    } catch {
-      console.error('Operation failed')
+    } catch (error) {
+      log.auth.error('Password change operation failed', error)
       throw new Error('Operation failed')
     }
   }

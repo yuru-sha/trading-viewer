@@ -17,6 +17,7 @@ import {
   SecuritySeverity,
 } from '../infrastructure/services/securityLogger'
 import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
+import { log } from '../infrastructure/services/logger'
 
 // Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
@@ -106,7 +107,11 @@ router.post(
 
     // In production, send email with reset link
     // For now, we'll just log the token (remove in production)
-    console.log(`Password reset token for ${email}: ${resetToken}`)
+    log.security.info('Password reset token generated', {
+      email,
+      resetToken,
+      userId: user.id,
+    })
 
     res.json({
       success: true,

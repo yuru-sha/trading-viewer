@@ -8,14 +8,14 @@ import type { User, UpdateProfileData, ChangePasswordData } from '../../../conte
 vi.mock('../../AuthService', () => ({
   authService: {
     updateProfile: vi.fn(),
-    changePassword: vi.fn()
-  }
+    changePassword: vi.fn(),
+  },
 }))
 
 vi.mock('../../../utils/errorRecovery', () => ({
   errorRecoveryManager: {
-    attemptRecovery: vi.fn()
-  }
+    attemptRecovery: vi.fn(),
+  },
 }))
 
 describe('UserManager', () => {
@@ -29,7 +29,7 @@ describe('UserManager', () => {
     isEmailVerified: true,
     role: 'user',
     createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z',
   }
 
   beforeEach(() => {
@@ -49,7 +49,7 @@ describe('UserManager', () => {
         'test@example.com',
         'user+label@domain.co.uk',
         'first.last@subdomain.example.org',
-        'a@b.co'
+        'a@b.co',
       ]
 
       validEmails.forEach(email => {
@@ -67,7 +67,7 @@ describe('UserManager', () => {
         'user@.com',
         'user..double.dot@domain.com',
         'user@domain',
-        'user name@domain.com' // space in local part
+        'user name@domain.com', // space in local part
       ]
 
       invalidEmails.forEach(email => {
@@ -102,7 +102,7 @@ describe('UserManager', () => {
         'Password123!',
         'MyStr0ng@P@ssw0rd',
         'C0mplex!Password#2024',
-        'Secure$Pass1'
+        'Secure$Pass1',
       ]
 
       strongPasswords.forEach(password => {
@@ -160,14 +160,14 @@ describe('UserManager', () => {
         'letmein',
         'welcome',
         'monkey',
-        '1234567890'
+        '1234567890',
       ]
 
       weakPasswords.forEach(password => {
         // Add required complexity to bypass other rules
         const complexWeakPassword = password.toUpperCase() + '1!'
         const result = userManager.validatePassword(complexWeakPassword)
-        
+
         // These should still fail because they're based on common weak passwords
         if (password === 'password' || password === '12345678') {
           expect(result.isValid).toBe(false)
@@ -195,7 +195,7 @@ describe('UserManager', () => {
     it('should validate valid profile data', () => {
       const validData: UpdateProfileData = {
         name: 'John Doe',
-        avatar: 'https://example.com/avatar.jpg'
+        avatar: 'https://example.com/avatar.jpg',
       }
 
       const result = userManager.validateProfileData(validData)
@@ -205,7 +205,7 @@ describe('UserManager', () => {
 
     it('should allow partial profile updates', () => {
       const partialData: UpdateProfileData = {
-        name: 'Updated Name'
+        name: 'Updated Name',
         // avatar is undefined - should be allowed
       }
 
@@ -230,7 +230,7 @@ describe('UserManager', () => {
     it('should reject invalid avatar URL', () => {
       const result = userManager.validateProfileData({
         name: 'Valid Name',
-        avatar: 'invalid-url'
+        avatar: 'invalid-url',
       })
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('有効なアバター画像 URL を入力してください')
@@ -239,7 +239,7 @@ describe('UserManager', () => {
     it('should allow empty avatar URL', () => {
       const result = userManager.validateProfileData({
         name: 'Valid Name',
-        avatar: ''
+        avatar: '',
       })
       expect(result.isValid).toBe(true)
     })
@@ -254,7 +254,7 @@ describe('UserManager', () => {
   describe('updateUserProfile', () => {
     const validProfileData: UpdateProfileData = {
       name: 'Updated Name',
-      avatar: 'https://example.com/new-avatar.jpg'
+      avatar: 'https://example.com/new-avatar.jpg',
     }
 
     it('should update profile successfully', async () => {
@@ -265,7 +265,7 @@ describe('UserManager', () => {
 
       expect(authService.updateProfile).toHaveBeenCalledWith({
         name: 'Updated Name',
-        avatar: 'https://example.com/new-avatar.jpg'
+        avatar: 'https://example.com/new-avatar.jpg',
       })
       expect(result).toEqual(updatedUser)
     })
@@ -281,16 +281,18 @@ describe('UserManager', () => {
     })
 
     it('should handle validation only mode', async () => {
-      await expect(userManager.updateUserProfile({
-        ...validProfileData,
-        validateOnly: true
-      })).rejects.toThrow('Validation only mode - no actual update performed')
+      await expect(
+        userManager.updateUserProfile({
+          ...validProfileData,
+          validateOnly: true,
+        })
+      ).rejects.toThrow('Validation only mode - no actual update performed')
     })
 
     it('should sanitize data before update', async () => {
       const dataWithWhitespace = {
         name: '  Trimmed Name  ',
-        avatar: '  https://example.com/avatar.jpg  '
+        avatar: '  https://example.com/avatar.jpg  ',
       }
 
       const updatedUser = { ...mockUser, name: 'Trimmed Name' }
@@ -300,14 +302,14 @@ describe('UserManager', () => {
 
       expect(authService.updateProfile).toHaveBeenCalledWith({
         name: 'Trimmed Name',
-        avatar: 'https://example.com/avatar.jpg'
+        avatar: 'https://example.com/avatar.jpg',
       })
     })
 
     it('should remove empty values from sanitized data', async () => {
       const dataWithEmptyValues = {
         name: 'Valid Name',
-        avatar: ''
+        avatar: '',
       }
 
       const updatedUser = { ...mockUser, name: 'Valid Name' }
@@ -316,7 +318,7 @@ describe('UserManager', () => {
       await userManager.updateUserProfile(dataWithEmptyValues)
 
       expect(authService.updateProfile).toHaveBeenCalledWith({
-        name: 'Valid Name'
+        name: 'Valid Name',
         // avatar should be removed because it was empty
       })
     })
@@ -333,7 +335,10 @@ describe('UserManager', () => {
 
       const result = await userManager.updateUserProfile(validProfileData)
 
-      expect(errorRecoveryManager.attemptRecovery).toHaveBeenCalledWith(updateError, 'profile update')
+      expect(errorRecoveryManager.attemptRecovery).toHaveBeenCalledWith(
+        updateError,
+        'profile update'
+      )
       expect(authService.updateProfile).toHaveBeenCalledTimes(2)
       expect(result).toEqual(updatedUser)
     })
@@ -342,18 +347,25 @@ describe('UserManager', () => {
       const updateError = new Error('Profile update failed')
 
       vi.mocked(authService.updateProfile).mockRejectedValue(updateError)
-      vi.mocked(errorRecoveryManager.attemptRecovery).mockRejectedValue(new Error('Recovery failed'))
+      vi.mocked(errorRecoveryManager.attemptRecovery).mockRejectedValue(
+        new Error('Recovery failed')
+      )
 
-      await expect(userManager.updateUserProfile(validProfileData)).rejects.toThrow('Profile update failed')
+      await expect(userManager.updateUserProfile(validProfileData)).rejects.toThrow(
+        'Profile update failed'
+      )
 
-      expect(errorRecoveryManager.attemptRecovery).toHaveBeenCalledWith(updateError, 'profile update')
+      expect(errorRecoveryManager.attemptRecovery).toHaveBeenCalledWith(
+        updateError,
+        'profile update'
+      )
     })
   })
 
   describe('changeUserPassword', () => {
     const validPasswordData: ChangePasswordData = {
       currentPassword: 'OldPassword123!',
-      newPassword: 'NewPassword456@'
+      newPassword: 'NewPassword456@',
     }
 
     it('should change password successfully', async () => {
@@ -367,7 +379,7 @@ describe('UserManager', () => {
     it('should validate current password', async () => {
       const invalidData = {
         currentPassword: 'weak',
-        newPassword: 'NewPassword456@'
+        newPassword: 'NewPassword456@',
       }
 
       await expect(userManager.changeUserPassword(invalidData)).rejects.toThrow(
@@ -380,7 +392,7 @@ describe('UserManager', () => {
     it('should validate new password', async () => {
       const invalidData = {
         currentPassword: 'OldPassword123!',
-        newPassword: 'weak'
+        newPassword: 'weak',
       }
 
       await expect(userManager.changeUserPassword(invalidData)).rejects.toThrow(
@@ -393,7 +405,7 @@ describe('UserManager', () => {
     it('should reject when new password equals current password', async () => {
       const samePasswordData = {
         currentPassword: 'SamePassword123!',
-        newPassword: 'SamePassword123!'
+        newPassword: 'SamePassword123!',
       }
 
       await expect(userManager.changeUserPassword(samePasswordData)).rejects.toThrow(
@@ -404,7 +416,7 @@ describe('UserManager', () => {
     it('should reject similar passwords', async () => {
       const similarPasswordData = {
         currentPassword: 'MyPassword123!',
-        newPassword: 'MyPassword124!' // Very similar
+        newPassword: 'MyPassword124!', // Very similar
       }
 
       await expect(userManager.changeUserPassword(similarPasswordData)).rejects.toThrow(
@@ -415,7 +427,9 @@ describe('UserManager', () => {
     it('should handle auth service errors', async () => {
       vi.mocked(authService.changePassword).mockRejectedValue(new Error('Auth service error'))
 
-      await expect(userManager.changeUserPassword(validPasswordData)).rejects.toThrow('Operation failed')
+      await expect(userManager.changeUserPassword(validPasswordData)).rejects.toThrow(
+        'Operation failed'
+      )
 
       expect(console.error).toHaveBeenCalledWith('Operation failed')
     })
@@ -426,10 +440,10 @@ describe('UserManager', () => {
       const testCases = [
         { str1: 'hello', str2: 'hello', expected: 1.0 }, // Identical
         { str1: 'hello', str2: 'hallo', expected: 0.8 }, // 1 character different
-        { str1: 'password123', str2: 'password124', expected: 10/11 }, // 1 character different
+        { str1: 'password123', str2: 'password124', expected: 10 / 11 }, // 1 character different
         { str1: 'completely', str2: 'different', expected: 0 }, // No similarity
         { str1: '', str2: '', expected: 1.0 }, // Both empty
-        { str1: 'test', str2: '', expected: 0 } // One empty
+        { str1: 'test', str2: '', expected: 0 }, // One empty
       ]
 
       testCases.forEach(({ str1, str2, expected }) => {
@@ -445,7 +459,7 @@ describe('UserManager', () => {
         { str1: 'kitten', str2: 'sitting', expected: 3 },
         { str1: 'saturday', str2: 'sunday', expected: 3 },
         { str1: '', str2: 'test', expected: 4 },
-        { str1: 'test', str2: '', expected: 4 }
+        { str1: 'test', str2: '', expected: 4 },
       ]
 
       testCases.forEach(({ str1, str2, expected }) => {
@@ -459,7 +473,7 @@ describe('UserManager', () => {
         { current: 'password123', new: 'password124', shouldBeSimilar: true },
         { current: 'MyPassword!', new: 'MyPassword@', shouldBeSimilar: true },
         { current: 'shortpw1', new: 'CompletelyDifferent123!', shouldBeSimilar: false },
-        { current: 'Test123!', new: 'Different456@', shouldBeSimilar: false }
+        { current: 'Test123!', new: 'Different456@', shouldBeSimilar: false },
       ]
 
       testCases.forEach(({ current, new: newPassword, shouldBeSimilar }) => {
@@ -473,7 +487,7 @@ describe('UserManager', () => {
     it('should calculate insights for complete user profile', async () => {
       const user = {
         ...mockUser,
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
       }
 
       const insights = await userManager.getUserInsights(user)
@@ -490,7 +504,7 @@ describe('UserManager', () => {
         name: '',
         avatar: undefined,
         isEmailVerified: false,
-        createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString() // 100 days ago
+        createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(), // 100 days ago
       }
 
       const insights = await userManager.getUserInsights(incompleteUser)
@@ -498,7 +512,9 @@ describe('UserManager', () => {
       expect(insights.accountAge).toBe(100)
       expect(insights.profileCompleteness).toBe(33) // Only email present (1/3 * 100)
       expect(insights.securityScore).toBe(40) // Only base score, no verified email or name
-      expect(insights.recommendations).toContain('メールアドレスを認証してセキュリティを向上させましょう')
+      expect(insights.recommendations).toContain(
+        'メールアドレスを認証してセキュリティを向上させましょう'
+      )
       expect(insights.recommendations).toContain('プロフィールを完成させて体験を向上させましょう')
       expect(insights.recommendations).toContain('定期的にパスワードを変更することをお勧めします')
     })
@@ -506,19 +522,21 @@ describe('UserManager', () => {
     it('should calculate insights for new user', async () => {
       const newUser = {
         ...mockUser,
-        createdAt: new Date().toISOString() // Just created
+        createdAt: new Date().toISOString(), // Just created
       }
 
       const insights = await userManager.getUserInsights(newUser)
 
       expect(insights.accountAge).toBe(0)
-      expect(insights.recommendations).not.toContain('定期的にパスワードを変更することをお勧めします')
+      expect(insights.recommendations).not.toContain(
+        '定期的にパスワードを変更することをお勧めします'
+      )
     })
 
     it('should handle user without avatar', async () => {
       const userWithoutAvatar = {
         ...mockUser,
-        avatar: undefined
+        avatar: undefined,
       }
 
       const insights = await userManager.getUserInsights(userWithoutAvatar)
@@ -531,24 +549,24 @@ describe('UserManager', () => {
       const scenarios = [
         {
           user: { ...mockUser, isEmailVerified: false, createdAt: mockUser.createdAt },
-          expectedRecommendations: ['メールアドレスを認証してセキュリティを向上させましょう']
-        },
-        {
-          user: { 
-            ...mockUser, 
-            name: '', 
-            avatar: undefined, 
-            createdAt: mockUser.createdAt 
-          },
-          expectedRecommendations: ['プロフィールを完成させて体験を向上させましょう']
+          expectedRecommendations: ['メールアドレスを認証してセキュリティを向上させましょう'],
         },
         {
           user: {
             ...mockUser,
-            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString()
+            name: '',
+            avatar: undefined,
+            createdAt: mockUser.createdAt,
           },
-          expectedRecommendations: ['定期的にパスワードを変更することをお勧めします']
-        }
+          expectedRecommendations: ['プロフィールを完成させて体験を向上させましょう'],
+        },
+        {
+          user: {
+            ...mockUser,
+            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          expectedRecommendations: ['定期的にパスワードを変更することをお勧めします'],
+        },
       ]
 
       for (const { user, expectedRecommendations } of scenarios) {
@@ -564,7 +582,7 @@ describe('UserManager', () => {
     it('should handle malformed profile data gracefully', async () => {
       const malformedData = {
         name: null,
-        avatar: 123 // Wrong type
+        avatar: 123, // Wrong type
       } as any
 
       const result = userManager.validateProfileData(malformedData)
@@ -587,7 +605,7 @@ describe('UserManager', () => {
       const urlsWithSpecialChars = [
         'https://example.com/avatar?v=1&size=100',
         'https://example.com/path%20with%20spaces/avatar.jpg',
-        'https://example.com/avatar.jpg#fragment'
+        'https://example.com/avatar.jpg#fragment',
       ]
 
       urlsWithSpecialChars.forEach(url => {
@@ -601,7 +619,7 @@ describe('UserManager', () => {
         userManager.validateEmail('test1@example.com'),
         userManager.validateEmail('test2@example.com'),
         userManager.validatePassword('Password123!'),
-        userManager.validateProfileData({ name: 'Test User' })
+        userManager.validateProfileData({ name: 'Test User' }),
       ]
 
       const results = await Promise.all(promises)
@@ -619,7 +637,7 @@ describe('UserManager', () => {
         isEmailVerified: false,
         role: 'user' as const,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }
 
       const insights = await userManager.getUserInsights(emptyUser)

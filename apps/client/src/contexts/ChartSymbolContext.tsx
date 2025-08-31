@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useSymbolManagement } from '../hooks/useSymbolManagement'
+import { log } from '../services/logger'
 
 interface ChartSymbolContextType {
   // URL Management
@@ -43,14 +44,20 @@ export const ChartSymbolProvider: React.FC<ChartSymbolProviderProps> = ({
   // Handle symbol change with URL update
   const handleSymbolChange = useCallback(
     (symbol: string) => {
-      console.log('🔄 ChartSymbolContext: Symbol change requested:', symbol)
+      log.business.info('Symbol change requested', {
+        newSymbol: symbol,
+        currentSymbol: symbolFromUrl,
+      })
 
       // Update URL parameter
       setSearchParams(
         prev => {
           const newParams = new URLSearchParams(prev)
           newParams.set('symbol', symbol)
-          console.log('🔄 ChartSymbolContext: URL updated to:', newParams.toString())
+          log.business.info('Symbol URL parameter updated', {
+            urlParams: newParams.toString(),
+            symbol,
+          })
           return newParams
         },
         { replace: true }

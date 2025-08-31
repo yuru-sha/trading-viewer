@@ -8,6 +8,7 @@ import type {
 import type { ECharts } from 'echarts'
 import type { PriceData } from '../../utils/indicators'
 import type { DrawingAction, DrawingState } from './useDrawingState'
+import { log } from '../../services/logger'
 
 export interface ChartMouseEvent {
   timestamp: number
@@ -62,7 +63,7 @@ export const useDrawingActions = (
   // Set active tool type
   const setToolType = useCallback(
     (toolType: DrawingToolType | null) => {
-      console.log('useDrawingActions - setToolType called with:', toolType)
+      log.business.info('Drawing tool type changed', { toolType })
       dispatch({ type: 'SET_TOOL_TYPE', payload: toolType })
     },
     [dispatch]
@@ -79,10 +80,10 @@ export const useDrawingActions = (
   // Start drawing operation
   const startDrawing = useCallback(
     (event: ChartMouseEvent) => {
-      console.log('🎯 startDrawing called with event:', event)
+      log.business.info('Starting drawing operation', { event })
 
       if (!state.activeToolType) {
-        console.log('🎯 No active tool type, cannot start drawing')
+        log.business.warn('Cannot start drawing - no active tool type')
         return
       }
 
@@ -105,14 +106,14 @@ export const useDrawingActions = (
 
       // 水平線と垂直線は単一クリックで完成するため、すぐに描画を完了
       if (state.activeToolType === 'horizontal' || state.activeToolType === 'vertical') {
-        console.log('🎯 Creating single-click drawing tool:', newDrawing)
+        log.business.info('Creating single-click drawing tool', { tool: newDrawing })
         dispatch({ type: 'ADD_TOOL', payload: newDrawing as DrawingTool })
         return
       }
 
       // その他のツールは従来通り描画を開始
       currentDrawingRef.current = newDrawing
-      console.log('🎯 Created drawing tool:', newDrawing)
+      log.business.info('Drawing tool created', { tool: newDrawing })
       dispatch({ type: 'START_DRAWING', payload: newDrawing })
     },
     [state.activeToolType, state.defaultStyle, snapPrice, generateId, dispatch]
@@ -121,14 +122,14 @@ export const useDrawingActions = (
   // Update drawing in progress
   const updateDrawing = useCallback(
     (event: ChartMouseEvent) => {
-      console.log('🎯 updateDrawing called:', {
+      log.business.debug('Updating drawing', {
         isDrawing: state.isDrawing,
         hasCurrentDrawing: !!currentDrawingRef.current,
         event,
       })
 
       if (!state.isDrawing || !currentDrawingRef.current) {
-        console.log('🎯 Cannot update drawing - not in drawing mode or no current drawing')
+        log.business.debug('Cannot update drawing - not in drawing mode or no current drawing')
         return
       }
 
@@ -187,14 +188,14 @@ export const useDrawingActions = (
 
   // Finish drawing operation
   const finishDrawing = useCallback(() => {
-    console.log('finishDrawing called:', {
+    log.business.info('Finishing drawing', {
       hasCurrentDrawing: !!currentDrawingRef.current,
       isDrawing: state.isDrawing,
       currentDrawing: currentDrawingRef.current,
     })
 
     if (!currentDrawingRef.current || !state.isDrawing) {
-      console.log('Cannot finish drawing - no current drawing or not in drawing mode')
+      log.business.warn('Cannot finish drawing - no current drawing or not in drawing mode')
       return
     }
 
@@ -211,13 +212,15 @@ export const useDrawingActions = (
     // Validate the drawing has enough points
     const minPoints = currentDrawingRef.current.type === 'text' ? 1 : 2
     if (currentDrawingRef.current.points!.length >= minPoints) {
-      console.log('Adding completed drawing tool:', currentDrawingRef.current)
+      log.business.info('Adding completed drawing tool', { tool: currentDrawingRef.current })
       dispatch({
         type: 'ADD_TOOL',
         payload: currentDrawingRef.current as DrawingTool,
       })
     } else {
-      console.log('Drawing does not have enough points:', currentDrawingRef.current.points?.length)
+      log.business.warn('Drawing does not have enough points', {
+        pointCount: currentDrawingRef.current.points?.length,
+      })
     }
 
     currentDrawingRef.current = null
@@ -226,7 +229,7 @@ export const useDrawingActions = (
 
   // Cancel drawing operation
   const cancelDrawing = useCallback(() => {
-    console.log('cancelDrawing called')
+    log.business.info('Cancelling drawing operation')
     currentDrawingRef.current = null
     dispatch({ type: 'STOP_DRAWING' })
   }, [dispatch])
@@ -239,32 +242,37 @@ export const useDrawingActions = (
       startPos: { x: number; y: number },
       originalPoints?: { timestamp: number; price: number }[]
     ) => {
-      console.log('🎯 mouseDown called with:', { toolId, handleType, startPos, originalPoints })
-      console.log('🎯 Current state before MOUSE_DOWN:', {
-        isMouseDown: state.isMouseDown,
-        isDragging: state.isDragging,
-        dragState: state.dragState,
-        selectedToolId: state.selectedToolId,
+      log.business.debug('Mouse down on drawing tool', {
+        toolId,
+        handleType,
+        startPos,
+        originalPoints,
+        currentState: {
+          isMouseDown: state.isMouseDown,
+          isDragging: state.isDragging,
+          dragState: state.dragState,
+          selectedToolId: state.selectedToolId,
+        },
       })
 
       // 重複実行を防ぐため、既にマウスダウン状態の場合は処理しない
       if (state.isMouseDown) {
-        console.log('🎯 mouseDown ignored - already in mouse down state')
+        log.business.debug('Mouse down ignored - already in mouse down state')
         return
       }
 
       // ドラッグ中の場合も処理しない
       if (state.isDragging) {
-        console.log('🎯 mouseDown ignored - already in dragging state')
+        log.business.debug('Mouse down ignored - already in dragging state')
         return
       }
 
-      console.log('🎯 Dispatching MOUSE_DOWN action')
+      log.business.debug('Dispatching MOUSE_DOWN action')
       dispatch({
         type: 'MOUSE_DOWN',
         payload: { toolId, handleType, startPos, originalPoints },
       })
-      console.log('🎯 MOUSE_DOWN dispatched successfully')
+      log.business.debug('MOUSE_DOWN dispatched successfully')
     },
     [dispatch, state.isMouseDown, state.isDragging, state.dragState, state.selectedToolId]
   )
@@ -277,7 +285,7 @@ export const useDrawingActions = (
       startPos: { x: number; y: number },
       originalPoints?: { timestamp: number; price: number }[]
     ) => {
-      console.log('🎯 startDrag called:', { toolId, handleType, startPos })
+      log.business.info('Starting drag operation', { toolId, handleType, startPos })
       dispatch({
         type: 'START_DRAG',
         payload: { toolId, handleType, startPos, originalPoints },
@@ -289,7 +297,7 @@ export const useDrawingActions = (
   // Update drag position - ドラッグ中のリアルタイム座標更新
   const updateDrag = useCallback(
     (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
-      console.log('🎯 updateDrag called:', {
+      log.business.debug('Updating drag position', {
         x,
         y,
         isDragging: state.isDragging,
@@ -395,17 +403,17 @@ export const useDrawingActions = (
   // End dragging and apply changes
   const endDrag = useCallback(
     (event: ChartMouseEvent, currentTool?: DrawingTool | null) => {
-      console.log('🎯 endDrag called:', event)
+      log.business.info('Ending drag operation', { event })
 
       // If called with null tool, just reset state (for simple clicks that didn't become drags)
       if (currentTool === null) {
-        console.log('🎯 endDrag: Resetting state for simple click')
+        log.business.debug('End drag: Resetting state for simple click')
         dispatch({ type: 'END_DRAG' })
         return
       }
 
       if (!state.isDragging || !state.dragState) {
-        console.log('🎯 endDrag: Not in dragging state, just resetting')
+        log.business.debug('End drag: Not in dragging state, just resetting')
         dispatch({ type: 'END_DRAG' })
         return
       }
@@ -419,7 +427,7 @@ export const useDrawingActions = (
 
       // Get current tool to preserve existing points
       if (!currentTool) {
-        console.error('🎯 endDrag: currentTool is required for actual drag')
+        log.business.error('End drag: currentTool is required for actual drag')
         dispatch({ type: 'END_DRAG' })
         return
       }
@@ -435,7 +443,7 @@ export const useDrawingActions = (
           const currentPoints = currentTool.points
           if (currentPoints && currentPoints.length >= 1) {
             updatedPoints[0] = currentPoints[0]
-            console.log('🎯 Single-point line move finalized:', {
+            log.business.info('Single-point line move finalized', {
               type: currentTool.type,
               finalPoint: updatedPoints[0],
             })
@@ -467,7 +475,7 @@ export const useDrawingActions = (
             updatedPoints[0] = currentPoints[0]
             updatedPoints[1] = currentPoints[1]
 
-            console.log('🎯 Line move finalized (using current points):', {
+            log.business.info('Line move finalized using current points', {
               finalStart: updatedPoints[0],
               finalEnd: updatedPoints[1],
             })

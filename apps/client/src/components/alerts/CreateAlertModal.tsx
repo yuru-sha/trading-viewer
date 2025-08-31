@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Icon from '../Icon'
 import { useAuth } from '../../contexts/AuthContext'
+import { log } from '../../services/logger'
 
 interface PriceAlert {
   id: string
@@ -101,11 +102,16 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
       if (Array.isArray(data)) {
         setWatchlist(data)
       } else {
-        console.warn('Watchlist data is not an array:', result)
+        log.business.warn('Watchlist data is not an array', undefined, {
+          operation: 'fetch_watchlist',
+          receivedData: result,
+        })
         setWatchlist([])
       }
     } catch (err) {
-      console.error('Failed to fetch watchlist:', err)
+      log.business.error('Failed to fetch watchlist', err, {
+        operation: 'fetch_watchlist',
+      })
       setWatchlist([])
     } finally {
       setLoadingWatchlist(false)
@@ -133,7 +139,10 @@ const CreateAlertModal: React.FC<CreateAlertModalProps> = ({
           setCurrentPriceInfo(null)
         }
       } catch (err) {
-        console.error('Failed to fetch current price:', err)
+        log.business.error('Failed to fetch current price', err, {
+          operation: 'fetch_current_price',
+          symbol,
+        })
         setCurrentPriceInfo(null)
       } finally {
         setLoadingCurrentPrice(false)

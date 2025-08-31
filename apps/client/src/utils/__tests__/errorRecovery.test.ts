@@ -5,38 +5,38 @@ import {
   ErrorRecoveryManager,
   createErrorReport,
   reportError,
-  errorRecoveryManager
+  errorRecoveryManager,
 } from '../errorRecovery'
 
 // Mock window location and other browser APIs
 const mockLocation = {
   reload: vi.fn(),
-  href: '/'
+  href: '/',
 }
 
 const mockNavigator = {
-  userAgent: 'test-user-agent'
+  userAgent: 'test-user-agent',
 }
 
 const mockCaches = {
   keys: vi.fn().mockResolvedValue(['cache1', 'cache2']),
   delete: vi.fn().mockResolvedValue(true),
   // Add availability check
-  has: vi.fn().mockResolvedValue(true)
+  has: vi.fn().mockResolvedValue(true),
 }
 
 const mockCrypto = {
-  randomUUID: vi.fn().mockReturnValue('test-uuid-123')
+  randomUUID: vi.fn().mockReturnValue('test-uuid-123'),
 }
 
 const mockLocalStorage = {
   clear: vi.fn(),
-  removeItem: vi.fn()
+  removeItem: vi.fn(),
 }
 
 const mockSessionStorage = {
   clear: vi.fn(),
-  removeItem: vi.fn()
+  removeItem: vi.fn(),
 }
 
 // Setup globalThis for better compatibility
@@ -46,20 +46,20 @@ Object.defineProperty(globalThis, 'window', {
     navigator: mockNavigator,
     caches: mockCaches,
     localStorage: mockLocalStorage,
-    sessionStorage: mockSessionStorage
+    sessionStorage: mockSessionStorage,
   },
-  writable: true
+  writable: true,
 })
 
 // Mock global caches for the 'caches' in window check
 Object.defineProperty(globalThis, 'caches', {
   value: mockCaches,
-  writable: true
+  writable: true,
 })
 
 Object.defineProperty(globalThis, 'crypto', {
   value: mockCrypto,
-  writable: true
+  writable: true,
 })
 
 // Also set on global for fallback
@@ -91,7 +91,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -104,7 +104,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -117,7 +117,7 @@ describe('Error Recovery System', () => {
         severity: 'high',
         isRecoverable: true,
         retryable: false,
-        userActionRequired: true
+        userActionRequired: true,
       })
     })
 
@@ -125,8 +125,8 @@ describe('Error Recovery System', () => {
       const csrfError = {
         response: {
           status: 403,
-          data: { message: 'CSRF token validation failed' }
-        }
+          data: { message: 'CSRF token validation failed' },
+        },
       }
       const result = classifyError(csrfError)
 
@@ -135,7 +135,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -143,8 +143,8 @@ describe('Error Recovery System', () => {
       const authzError = {
         response: {
           status: 403,
-          data: { message: 'Insufficient permissions' }
-        }
+          data: { message: 'Insufficient permissions' },
+        },
       }
       const result = classifyError(authzError)
 
@@ -153,7 +153,7 @@ describe('Error Recovery System', () => {
         severity: 'high',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: true
+        userActionRequired: true,
       })
     })
 
@@ -166,7 +166,7 @@ describe('Error Recovery System', () => {
         severity: 'low',
         isRecoverable: true,
         retryable: false,
-        userActionRequired: true
+        userActionRequired: true,
       })
 
       expect(classifyError(validationError422)).toEqual({
@@ -174,7 +174,7 @@ describe('Error Recovery System', () => {
         severity: 'low',
         isRecoverable: true,
         retryable: false,
-        userActionRequired: true
+        userActionRequired: true,
       })
     })
 
@@ -187,7 +187,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -202,7 +202,7 @@ describe('Error Recovery System', () => {
         severity: 'high',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
 
       expect(classifyError(serverError502)).toEqual({
@@ -210,7 +210,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
 
       expect(classifyError(serverError503)).toEqual({
@@ -218,7 +218,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
 
       expect(classifyError(serverError504)).toEqual({
@@ -226,7 +226,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: true,
         retryable: true,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -239,7 +239,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: true
+        userActionRequired: true,
       })
     })
 
@@ -252,7 +252,7 @@ describe('Error Recovery System', () => {
         severity: 'medium',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -265,7 +265,7 @@ describe('Error Recovery System', () => {
         severity: 'low',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -275,7 +275,7 @@ describe('Error Recovery System', () => {
         severity: 'low',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: false
+        userActionRequired: false,
       })
 
       expect(classifyError(undefined)).toEqual({
@@ -283,7 +283,7 @@ describe('Error Recovery System', () => {
         severity: 'low',
         isRecoverable: false,
         retryable: false,
-        userActionRequired: false
+        userActionRequired: false,
       })
     })
 
@@ -291,15 +291,15 @@ describe('Error Recovery System', () => {
       const csrfErrorInMessage = {
         response: {
           status: 403,
-          data: { message: 'Invalid CSRF token provided' }
-        }
+          data: { message: 'Invalid CSRF token provided' },
+        },
       }
 
       const csrfErrorInError = {
         response: {
           status: 403,
-          data: { error: 'CSRF validation failed' }
-        }
+          data: { error: 'CSRF validation failed' },
+        },
       }
 
       expect(classifyError(csrfErrorInMessage).category).toBe('csrf')
@@ -373,10 +373,10 @@ describe('Error Recovery System', () => {
       const strategies = createRecoveryStrategies()
 
       const actionPromise = strategies.retryRequest.action()
-      
+
       // Fast-forward time by 1 second
       vi.advanceTimersByTime(1000)
-      
+
       const result = await actionPromise
       expect(result).toBe(true)
 
@@ -418,7 +418,7 @@ describe('Error Recovery System', () => {
     it('should attempt recovery for network errors', async () => {
       const networkError = { code: 'NETWORK_ERROR' }
       vi.useFakeTimers()
-      
+
       const recoveryPromise = manager.attemptRecovery(networkError)
       vi.advanceTimersByTime(1000) // For retry delay
       const result = await recoveryPromise
@@ -439,10 +439,10 @@ describe('Error Recovery System', () => {
       const csrfError = {
         response: {
           status: 403,
-          data: { message: 'CSRF token expired' }
-        }
+          data: { message: 'CSRF token expired' },
+        },
       }
-      
+
       vi.useFakeTimers()
       const recoveryPromise = manager.attemptRecovery(csrfError)
       vi.advanceTimersByTime(1000)
@@ -454,7 +454,7 @@ describe('Error Recovery System', () => {
 
     it('should attempt recovery for rate limit errors', async () => {
       const rateLimitError = { response: { status: 429 } }
-      
+
       vi.useFakeTimers()
       const recoveryPromise = manager.attemptRecovery(rateLimitError)
       vi.advanceTimersByTime(1000)
@@ -466,7 +466,7 @@ describe('Error Recovery System', () => {
 
     it('should attempt recovery for server errors', async () => {
       const serverError = { response: { status: 500 } }
-      
+
       vi.useFakeTimers()
       const recoveryPromise = manager.attemptRecovery(serverError)
       vi.advanceTimersByTime(1000)
@@ -487,9 +487,9 @@ describe('Error Recovery System', () => {
     it('should respect max retry limits', async () => {
       const networkError = { code: 'NETWORK_ERROR' }
       manager['maxRetries'] = 2
-      
+
       vi.useFakeTimers()
-      
+
       // First attempt should succeed
       let recoveryPromise = manager.attemptRecovery(networkError)
       vi.advanceTimersByTime(1000)
@@ -498,7 +498,7 @@ describe('Error Recovery System', () => {
 
       // Reset manager state and make retry fail
       vi.spyOn(manager['strategies'].retryRequest, 'action').mockResolvedValue(false)
-      
+
       // Exhaust retries
       for (let i = 0; i < 3; i++) {
         recoveryPromise = manager.attemptRecovery(networkError)
@@ -510,7 +510,7 @@ describe('Error Recovery System', () => {
       recoveryPromise = manager.attemptRecovery(networkError)
       vi.advanceTimersByTime(1000)
       result = await recoveryPromise
-      
+
       expect(mockLocation.reload).toHaveBeenCalled() // Should fall back to refresh
 
       vi.useRealTimers()
@@ -518,31 +518,36 @@ describe('Error Recovery System', () => {
 
     it('should handle recovery strategy failures gracefully', async () => {
       const networkError = { code: 'NETWORK_ERROR' }
-      
+
       // Mock retry strategy to throw error
-      vi.spyOn(manager['strategies'].retryRequest, 'action').mockRejectedValue(new Error('Strategy failed'))
-      
+      vi.spyOn(manager['strategies'].retryRequest, 'action').mockRejectedValue(
+        new Error('Strategy failed')
+      )
+
       vi.useFakeTimers()
       const recoveryPromise = manager.attemptRecovery(networkError)
       vi.advanceTimersByTime(1000)
       const result = await recoveryPromise
 
       expect(result).toBe(true) // Should succeed with refresh strategy
-      expect(console.warn).toHaveBeenCalledWith('Recovery strategy retryRequest failed:', expect.any(Error))
-      
+      expect(console.warn).toHaveBeenCalledWith(
+        'Recovery strategy retryRequest failed:',
+        expect.any(Error)
+      )
+
       vi.useRealTimers()
     })
 
     it('should reset retry attempts', () => {
       manager['retryAttempts'].set('testStrategy', 3)
       manager.reset()
-      
+
       expect(manager.getRetryCount('testStrategy')).toBe(0)
     })
 
     it('should track retry counts correctly', () => {
       expect(manager.getRetryCount('nonexistent')).toBe(0)
-      
+
       manager['retryAttempts'].set('testStrategy', 2)
       expect(manager.getRetryCount('testStrategy')).toBe(2)
     })
@@ -552,7 +557,7 @@ describe('Error Recovery System', () => {
     it('should create complete error report', () => {
       const error = new Error('Test error message')
       error.stack = 'Error: Test error\n    at test.js:1:1'
-      
+
       const report = createErrorReport(error, 'test context', 'user123')
 
       expect(report).toEqual({
@@ -561,17 +566,17 @@ describe('Error Recovery System', () => {
         error: {
           message: 'Test error message',
           stack: 'Error: Test error\n    at test.js:1:1',
-          response: undefined
+          response: undefined,
         },
         classification: expect.objectContaining({
           category: 'client',
-          severity: 'medium'
+          severity: 'medium',
         }),
         context: 'test context',
         userAgent: 'test-user-agent',
         url: '/',
         userId: 'user123',
-        recoveryAttempted: false
+        recoveryAttempted: false,
       })
     })
 
@@ -580,15 +585,15 @@ describe('Error Recovery System', () => {
         message: 'Request failed',
         response: {
           status: 500,
-          data: { message: 'Internal server error' }
-        }
+          data: { message: 'Internal server error' },
+        },
       }
-      
+
       const report = createErrorReport(error)
 
       expect(report.error.response).toEqual({
         status: 500,
-        data: { message: 'Internal server error' }
+        data: { message: 'Internal server error' },
       })
     })
 
@@ -630,7 +635,7 @@ describe('Error Recovery System', () => {
 
     it('should not log in production environment', async () => {
       vi.stubEnv('NODE_ENV', 'production')
-      
+
       const error = new Error('Test error')
       const report = createErrorReport(error)
 
@@ -653,10 +658,10 @@ describe('Error Recovery System', () => {
       const malformedError = {
         response: {
           status: 'invalid',
-          data: null
-        }
+          data: null,
+        },
       }
-      
+
       const classification = classifyError(malformedError)
       expect(classification.category).toBe('client')
     })
@@ -664,19 +669,19 @@ describe('Error Recovery System', () => {
     it('should handle errors with circular references', () => {
       const circularError: any = { message: 'Circular error' }
       circularError.self = circularError
-      
+
       expect(() => classifyError(circularError)).not.toThrow()
     })
 
     it('should handle recovery when window objects are not available', async () => {
       const originalWindow = global.window
       delete (global as any).window
-      
+
       const strategies = createRecoveryStrategies()
-      
+
       // Should not throw when window is undefined
       await expect(strategies.refreshPage.action()).resolves.toBe(true)
-      
+
       // Restore window
       global.window = originalWindow
     })
@@ -684,22 +689,22 @@ describe('Error Recovery System', () => {
     it('should handle cache API unavailability', async () => {
       const originalWindow = global.window
       global.window = { ...global.window, caches: undefined } as any
-      
+
       const strategies = createRecoveryStrategies()
       const result = await strategies.clearCache.action()
-      
+
       expect(result).toBe(true) // Should still succeed by clearing storage
-      
+
       global.window = originalWindow
     })
 
     it('should handle crypto API unavailability', () => {
       const originalCrypto = global.crypto
       delete (global as any).crypto
-      
+
       // Should not throw, might return undefined or fallback
       expect(() => createErrorReport(new Error('test'))).not.toThrow()
-      
+
       global.crypto = originalCrypto
     })
   })

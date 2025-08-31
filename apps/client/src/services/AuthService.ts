@@ -1,6 +1,7 @@
 // Authentication service - responsible for all auth-related API calls
 
 import { ApiService, apiService } from './base/ApiService'
+import { log } from './logger'
 import type {
   User,
   LoginCredentials,
@@ -144,7 +145,7 @@ export class AuthService {
     try {
       await this.getCSRFToken()
     } catch (error: unknown) {
-      console.warn('Operation failed', error)
+      log.auth.warn('Failed to ensure CSRF token', error)
     }
   }
 

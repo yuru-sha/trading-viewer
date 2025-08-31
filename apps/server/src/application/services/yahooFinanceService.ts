@@ -1,4 +1,5 @@
 import yahooFinance from 'yahoo-finance2'
+import { log } from '../../infrastructure/services/logger'
 
 export interface YahooQuoteData {
   symbol: string
@@ -155,7 +156,7 @@ export class YahooFinanceService {
 
       return quoteData
     } catch (error) {
-      console.error(`Yahoo Finance API エラー (${symbol}):`, error)
+      log.api.error(`Yahoo Finance API error (${symbol}):`, error)
       throw new Error(
         `株価の取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -194,7 +195,7 @@ export class YahooFinanceService {
         v: quotes.map(q => q.volume || 0),
       }
     } catch (error) {
-      console.error(`Yahoo Finance チャート API エラー (${symbol}):`, error)
+      log.api.error(`Yahoo Finance chart API error (${symbol}):`, error)
       throw new Error(
         `過去データの取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -221,7 +222,7 @@ export class YahooFinanceService {
         typeDisp: quote.typeDisp,
       }))
     } catch (error) {
-      console.error(`Yahoo Finance 検索 API エラー ("${query}"):`, error)
+      log.api.error(`Yahoo Finance search API error ("${query}"):`, error)
       throw new Error(
         `銘柄の検索に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -272,7 +273,7 @@ export class YahooFinanceService {
         return quoteData
       })
     } catch (error) {
-      console.error(`Yahoo Finance 複数株価取得 API エラー:`, error)
+      log.api.error(`Yahoo Finance multiple quotes API error:`, error)
       throw new Error(
         `複数株価の取得に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )

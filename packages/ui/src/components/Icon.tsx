@@ -197,10 +197,8 @@ export const Icon: React.FC<IconProps> = ({ name, size = 16, className, color })
   const IconComponent = iconMap[iconName as keyof typeof iconMap]
 
   if (!IconComponent) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `Icon "${iconName}" not found in iconMap. Add it to the import list for tree-shaking optimization.`
-    )
+    // UI コンポーネントライブラリでは警告を出さずにnullを返す
+    // 開発者は TypeScript の型チェックで不正なアイコン名を検出できる
     return null
   }
 

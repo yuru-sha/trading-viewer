@@ -1,4 +1,5 @@
 # TradingViewer
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yuru-sha/trading-viewer)
 
 TradingViewer は、TradingView のクローンとして開発された現代的な Web ベースの金融チャートアプリケーションです。リアルタイム市場データの可視化、テクニカル分析ツール、インタラクティブなチャート機能をトレーダーや投資家に提供します。

@@ -5,22 +5,23 @@ import { IndicatorCalculationService } from '../application/services/IndicatorCa
 import { prisma } from '../lib/database.js'
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js'
 import { validateRequest } from '../middleware/validation.js'
+import { log } from '../infrastructure/services/logger'
 
 const router: import('express').Router = Router()
 
-console.log('🔍 Initializing indicators router...')
+log.business.info('Initializing indicators router')
 
 let userIndicatorRepository: UserIndicatorRepository
 let indicatorCalculationService: IndicatorCalculationService
 
 try {
-  console.log('🔍 Creating UserIndicatorRepository...')
+  log.business.info('Creating UserIndicatorRepository')
   userIndicatorRepository = new UserIndicatorRepository(prisma)
-  console.log('🔍 Creating IndicatorCalculationService...')
+  log.business.info('Creating IndicatorCalculationService')
   indicatorCalculationService = new IndicatorCalculationService()
-  console.log('✅ Indicators router dependencies initialized successfully')
+  log.business.info('Indicators router dependencies initialized successfully')
 } catch (error) {
-  console.error('❌ Failed to initialize indicators router dependencies:', error)
+  log.business.error('Failed to initialize indicators router dependencies', error)
   throw error
 }
 
@@ -72,18 +73,18 @@ const calculateIndicatorSchema = z.object({
 router.get(
   '/',
   (req: AuthenticatedRequest, res, next) => {
-    console.log('🔍 Indicators route hit - before auth:', {
+    log.business.info('Indicators route hit - before auth', {
       url: req.url,
       method: req.method,
-      headers: Object.keys(req.headers),
-      cookies: Object.keys(req.cookies || {}),
-      user: req.user ? 'exists' : 'missing',
+      headerCount: Object.keys(req.headers).length,
+      cookieCount: Object.keys(req.cookies || {}).length,
+      userExists: !!req.user,
     })
     next()
   },
   requireAuth,
   (req: AuthenticatedRequest, res, next) => {
-    console.log('🔍 After auth middleware - before validation:', {
+    log.business.info('After auth middleware - before validation', {
       userId: req.user?.userId,
       userExists: !!req.user,
     })
@@ -92,37 +93,36 @@ router.get(
   validateRequest(querySchema, 'query'),
   async (req: AuthenticatedRequest, res) => {
     try {
-      console.log('🔍 Indicators API called:', {
+      log.business.info('Indicators API called', {
         userId: req.user?.userId,
-        symbol: req.query?.symbol,
+        symbol: req.query?.symbol as string,
         userExists: !!req.user,
         queryParams: req.query,
-        headers: req.headers,
-        cookies: req.cookies,
       })
 
       const userId = req.user!.userId
-      const { symbol, timeframe } = req.query
+      const symbol = req.query?.symbol as string
+      const timeframe = req.query?.timeframe as string
 
-      console.log('🔍 About to query repository:', { userId, symbol, timeframe })
+      log.business.info('About to query repository', { userId, symbol, timeframe })
 
       let indicators
       if (symbol && timeframe) {
-        console.log('🔍 Querying by userId, symbol and timeframe...')
+        log.business.info('Querying by userId, symbol and timeframe', { userId, symbol, timeframe })
         indicators = await userIndicatorRepository.findByUserIdSymbolAndTimeframe(
           userId,
           symbol as string,
           timeframe as string
         )
       } else if (symbol) {
-        console.log('🔍 Querying by userId and symbol...')
+        log.business.info('Querying by userId and symbol', { userId, symbol })
         indicators = await userIndicatorRepository.findByUserIdAndSymbol(userId, symbol as string)
       } else {
-        console.log('🔍 Querying by userId only...')
+        log.business.info('Querying by userId only', { userId })
         indicators = await userIndicatorRepository.findByUserId(userId)
       }
 
-      console.log('🔍 Raw indicators from DB:', indicators)
+      log.business.info('Raw indicators from DB', { indicatorCount: indicators.length, userId })
 
       // Parse JSON fields
       const parsedIndicators = indicators.map(indicator =>
@@ -134,13 +134,9 @@ router.get(
         data: parsedIndicators,
       })
     } catch (error) {
-      console.error('❌ Error fetching indicators:', error)
-      console.error('❌ Error stack:', error instanceof Error ? error.stack : 'Unknown error')
-      console.error('❌ Error details:', {
+      log.business.error('Error fetching indicators', error, {
         userId: req.user?.userId,
-        symbol: req.query?.symbol,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        name: error instanceof Error ? error.name : 'Unknown',
+        symbol: req.query?.symbol as string,
       })
       res.status(500).json({
         success: false,
@@ -177,7 +173,10 @@ router.get(
         data: parsedIndicator,
       })
     } catch (error) {
-      console.error('Error fetching indicator:', error)
+      log.business.error('Error fetching indicator', error, {
+        indicatorId: req.params?.id,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to fetch indicator',
@@ -223,7 +222,10 @@ router.post(
         data: parsedIndicator,
       })
     } catch (error) {
-      console.error('Error creating indicator:', error)
+      log.business.error('Error creating indicator', error, {
+        symbol: req.body?.symbol,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to create indicator',
@@ -277,7 +279,10 @@ router.put(
         data: parsedIndicator,
       })
     } catch (error) {
-      console.error('Error updating indicator:', error)
+      log.business.error('Error updating indicator', error, {
+        indicatorId: req.params?.id,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to update indicator',
@@ -312,7 +317,10 @@ router.delete(
         message: 'Indicator deleted successfully',
       })
     } catch (error) {
-      console.error('Error deleting indicator:', error)
+      log.business.error('Error deleting indicator', error, {
+        indicatorId: req.params?.id,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to delete indicator',
@@ -333,7 +341,8 @@ router.put(
   async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.userId
-      const { symbol, timeframe } = req.query
+      const symbol = req.query?.symbol as string
+      const timeframe = req.query?.timeframe as string
       const { positions } = req.body
 
       // Verify all indicators belong to user, symbol and timeframe
@@ -366,7 +375,10 @@ router.put(
         message: 'Indicator positions updated successfully',
       })
     } catch (error) {
-      console.error('Error updating indicator positions:', error)
+      log.business.error('Error updating indicator positions', error, {
+        positionCount: req.body?.positions?.length,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: 'Failed to update indicator positions',
@@ -411,7 +423,11 @@ router.post(
         data: result,
       })
     } catch (error) {
-      console.error('Error calculating indicator:', error)
+      log.business.error('Error calculating indicator', error, {
+        symbol: req.body?.symbol,
+        type: req.body?.type,
+        userId: req.user?.userId,
+      })
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to calculate indicator',

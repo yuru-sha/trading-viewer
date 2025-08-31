@@ -3,6 +3,7 @@ import { Modal, Button, Input, Loading } from '@trading-viewer/ui'
 import { useError } from '../../contexts/ErrorContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { apiService } from '../../services/base/ApiService'
+import { log } from '../../services/logger'
 
 interface User {
   id: string
@@ -63,8 +64,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
           isActive: response.data.isActive,
         })
       }
-    } catch {
-      console.error('Failed to fetch user details:', error)
+    } catch (error) {
+      log.auth.error('Failed to fetch user details', error, {
+        operation: 'fetch_user_details',
+        userId,
+      })
       showError('Failed to load user details')
     } finally {
       setLoading(false)
@@ -109,8 +113,12 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
         setIsEditing(false)
         onUserUpdate()
       }
-    } catch {
-      console.error('Failed to update user:', error)
+    } catch (error) {
+      log.auth.error('Failed to update user', error, {
+        operation: 'update_user',
+        userId,
+        changes: formData,
+      })
       showError('Failed to update user')
     } finally {
       setSaving(false)

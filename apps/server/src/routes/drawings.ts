@@ -14,6 +14,7 @@ import type {
   DeleteDrawingToolResponse,
 } from '@trading-viewer/shared'
 import { DrawingToolType, DrawingPoint, DrawingStyle, DrawingObject } from '@trading-viewer/shared'
+import { log } from '../infrastructure/services/logger'
 
 // Define local DrawingTool interface for server responses
 interface DrawingTool {
@@ -122,7 +123,10 @@ router.get('/:symbol', requireAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json(response)
   } catch (error) {
-    console.error('Error fetching drawing tools:', error)
+    log.business.error('Error fetching drawing tools', error, {
+      symbol: req.params?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({
       status: 'error',
       message: 'Internal server error',
@@ -185,7 +189,10 @@ router.post('/', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res
 
     res.status(201).json(response)
   } catch (error) {
-    console.error('Error creating drawing tool:', error)
+    log.business.error('Error creating drawing tool', error, {
+      symbol: req.body?.symbol,
+      userId: req.user?.userId,
+    })
     res.status(500).json({
       status: 'error',
       message: 'Internal server error',
@@ -239,7 +246,10 @@ router.put('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest, r
 
     res.json(response)
   } catch (error) {
-    console.error('Error updating drawing tool:', error)
+    log.business.error('Error updating drawing tool', error, {
+      drawingId: req.params?.id,
+      userId: req.user?.userId,
+    })
     if ((error as any).code === 'P2025') {
       res.status(404).json({
         status: 'error',
@@ -274,7 +284,10 @@ router.delete('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest
 
     res.json(response)
   } catch (error) {
-    console.error('Error deleting drawing tool:', error)
+    log.business.error('Error deleting drawing tool', error, {
+      drawingId: req.params?.id,
+      userId: req.user?.userId,
+    })
     if ((error as any).code === 'P2025') {
       res.status(404).json({
         status: 'error',

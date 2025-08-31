@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
+import { log } from '../services/logger'
 
 export interface FocusableElement {
   element: HTMLElement
@@ -95,7 +96,9 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
         announceToScreenReader(`Focused: ${announcement}`)
       }
     } catch {
-      console.warn('Failed to focus element:', element, error)
+      log.system.warn('Failed to focus element', {
+        selector: element ? 'element provided' : 'no element',
+      })
     }
   }, [])
 

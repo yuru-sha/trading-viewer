@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts'
+import { log } from '../services/logger'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import type { CandlestickSeriesOption, LineSeriesOption } from 'echarts/charts'
 import type {
@@ -78,70 +79,71 @@ export function useChartOptions(
     staleTime: 5 * 60 * 1000,
   })
 
-  console.log('📊 useChartOptions: ALL indicators received:', indicators)
-  console.log('📊 useChartOptions: Indicators count:', indicators.length)
+  log.business.info('Loaded indicators in chart options', {
+    operation: 'chart_options',
+    count: indicators.length,
+    symbol: config.symbol,
+    timeframe: config.timeframe,
+  })
 
   // Only log when there are indicators
   if (indicators.length > 0) {
-    console.log('📊 useChartOptions: Found', indicators.length, 'indicators for', config.symbol)
-    console.log(
-      '📊 useChartOptions: Calculations:',
-      Object.keys(indicatorCalculations).length,
-      'ready'
-    )
-    console.log(
-      '📊 useChartOptions: Available calculation keys:',
-      Object.keys(indicatorCalculations)
-    )
-    console.log(
-      '📊 useChartOptions: RSI calculations available:',
-      Object.keys(indicatorCalculations).filter(key => key.includes('rsi'))
-    )
+    log.business.info('Indicator calculations status', {
+      operation: 'chart_options',
+      indicatorCount: indicators.length,
+      calculationKeys: Object.keys(indicatorCalculations).length,
+      availableKeys: Object.keys(indicatorCalculations),
+      rsiKeys: Object.keys(indicatorCalculations).filter(key => key.includes('rsi')),
+      symbol: config.symbol,
+    })
   }
 
   // Generate chart options
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
 
-    console.log('🔧 Chart Options Config:', {
+    log.business.info('Chart configuration applied', {
+      operation: 'chart_options',
       showGridlines: config.showGridlines,
       chartType: config.chartType,
       theme: config.theme,
     })
 
-    // 🔥 DEBUG: チャートタイプをログに出力
-    console.log('🚨 GEMINI PATTERN: Chart type:', config.chartType)
-    console.log(
-      '🚨 GEMINI PATTERN: Current indicators:',
-      indicators.map(i => ({
+    // Chart type and indicators debug info
+    log.business.info('Chart type and indicators analysis', {
+      operation: 'chart_options',
+      chartType: config.chartType,
+      indicators: indicators.map(i => ({
         id: i.id,
         name: i.name,
         type: i.type,
         visible: i.visible,
-      }))
-    )
+      })),
+    })
 
     // RSI インジケーターが有効かつ表示中かどうかをチェック
     const hasRSI = indicators.some(
       indicator => indicator.type === 'rsi' && indicator.visible === true
     )
-    console.log(
-      '📊 RSI Check: hasRSI =',
+    log.business.info('RSI indicator check', {
+      operation: 'chart_options',
       hasRSI,
-      'indicators:',
-      indicators.map(i => ({ type: i.type, visible: i.visible }))
-    )
+      rsiIndicators: indicators
+        .filter(i => i.type === 'rsi')
+        .map(i => ({ type: i.type, visible: i.visible })),
+    })
 
     // MACD インジケーターが有効かつ表示中かどうかをチェック
     const hasMACD = indicators.some(
       indicator => indicator.type === 'macd' && indicator.visible === true
     )
-    console.log(
-      '📊 MACD Check: hasMACD =',
+    log.business.info('MACD indicator check', {
+      operation: 'chart_options',
       hasMACD,
-      'indicators:',
-      indicators.map(i => ({ type: i.type, visible: i.visible }))
-    )
+      macdIndicators: indicators
+        .filter(i => i.type === 'macd')
+        .map(i => ({ type: i.type, visible: i.visible })),
+    })
 
     // Dynamically calculate grid heights and positions
     const gridConfigs: GridComponentOption[] = []
@@ -234,9 +236,12 @@ export function useChartOptions(
 
     const gridCount = gridConfigs.length
 
-    console.log('🚨 Dynamically Calculated Grid structure:', {
+    log.business.info('Dynamic grid structure calculated', {
+      operation: 'chart_options',
       totalGrids: gridCount,
-      configs: gridConfigs,
+      mainChartHeight,
+      subChartCount: numSubCharts,
+      visibleSubCharts: visibleSubCharts.map(c => c.type),
     })
 
     const xAxes = gridConfigs.map((_, index) => ({
@@ -307,7 +312,8 @@ export function useChartOptions(
       graphic: config.graphicElements,
     }
 
-    console.log('🚨 GEMINI PATTERN: Final chart structure:', {
+    log.business.info('Final chart structure generated', {
+      operation: 'chart_options',
       chartType: config.chartType,
       showGridlines: config.showGridlines,
       totalGrids: baseOption.grid.length,
@@ -330,7 +336,7 @@ export function useChartOptions(
       candlestickSeries.xAxisIndex = 0
       candlestickSeries.yAxisIndex = 0
       baseOption.series.push(candlestickSeries)
-      console.log('🚨 GEMINI PATTERN: Added candlestick series')
+      log.business.info('Added candlestick series to chart', { operation: 'chart_options' })
     } else if (config.chartType === 'line') {
       const lineSeries = createLineSeries(
         chartData,
@@ -343,7 +349,7 @@ export function useChartOptions(
       lineSeries.xAxisIndex = 0
       lineSeries.yAxisIndex = 0
       baseOption.series.push(lineSeries)
-      console.log('🚨 GEMINI PATTERN: Added line series')
+      log.business.info('Added line series to chart', { operation: 'chart_options' })
     } else {
       // area
       const areaSeries = createAreaSeries(
@@ -357,7 +363,7 @@ export function useChartOptions(
       areaSeries.xAxisIndex = 0
       areaSeries.yAxisIndex = 0
       baseOption.series.push(areaSeries)
-      console.log('🚨 GEMINI PATTERN: Added area series')
+      log.business.info('Added area series to chart', { operation: 'chart_options' })
     }
 
     // Add volume series if enabled
@@ -375,7 +381,10 @@ export function useChartOptions(
             color: config.colors?.volume || '#10b981',
           },
         })
-        console.log('📊 Added Volume series to grid index:', volumeGridIndex)
+        log.business.info('Added volume series to chart', {
+          operation: 'chart_options',
+          gridIndex: volumeGridIndex,
+        })
       }
     }
 
@@ -387,19 +396,22 @@ export function useChartOptions(
       config,
       seriesMapping // Pass the series mapping instead of gridCount
     )
-    console.log('🔍 Generated indicator series:', indicatorSeries.length, 'series')
+    log.business.info('Generated indicator series', {
+      operation: 'chart_options',
+      seriesCount: indicatorSeries.length,
+    })
     baseOption.series.push(...indicatorSeries)
 
-    console.log('🚨 GEMINI PATTERN: Final option.series count:', baseOption.series.length)
-    console.log(
-      '🚨 GEMINI PATTERN: All series names and indices:',
-      baseOption.series.map(s => ({
+    log.business.info('Final chart series summary', {
+      operation: 'chart_options',
+      totalSeries: baseOption.series.length,
+      seriesDetails: baseOption.series.map(s => ({
         name: s.name || s.type,
         xAxisIndex: s.xAxisIndex,
         yAxisIndex: s.yAxisIndex,
         type: s.type,
-      }))
-    )
+      })),
+    })
 
     return baseOption
   }, [
@@ -546,12 +558,16 @@ function createLineSeries(
       return item
     } else {
       // その他の場合は 0 を返す（安全な処理）
-      console.warn('🚨 GEMINI FIX: Unexpected data format for line chart:', item)
+      log.business.warn('Unexpected data format for line chart', {
+        operation: 'chart_options',
+        dataItem: item,
+      })
       return 0
     }
   })
 
-  console.log('🚨 GEMINI FIX: Line series data conversion:', {
+  log.business.info('Line series data conversion completed', {
+    operation: 'chart_options',
     originalLength: chartData.values.length,
     convertedLength: lineData.length,
     originalSample: chartData.values.slice(0, 3),
@@ -598,12 +614,16 @@ function createAreaSeries(
       return item
     } else {
       // その他の場合は 0 を返す（安全な処理）
-      console.warn('🚨 GEMINI FIX: Unexpected data format for area chart:', item)
+      log.business.warn('Unexpected data format for area chart', {
+        operation: 'chart_options',
+        dataItem: item,
+      })
       return 0
     }
   })
 
-  console.log('🚨 GEMINI FIX: Area series data conversion:', {
+  log.business.info('Area series data conversion completed', {
+    operation: 'chart_options',
     originalLength: chartData.values.length,
     convertedLength: areaData.length,
     originalSample: chartData.values.slice(0, 3),
@@ -726,11 +746,16 @@ function createIndicatorSeries(
   config: ChartOptionsConfig,
   seriesMapping: Record<string, number>
 ) {
-  console.log('📊 Creating indicator series with mapping:', seriesMapping)
+  log.business.info('Creating indicator series', {
+    operation: 'chart_options',
+    seriesMapping,
+    indicatorCount: indicators.length,
+  })
   const series: SeriesOption[] = []
 
   indicators.forEach(indicator => {
-    console.log('🔍 Processing indicator:', {
+    log.business.info('Processing indicator for series creation', {
+      operation: 'chart_options',
       id: indicator.id,
       name: indicator.name,
       visible: indicator.visible,
@@ -738,13 +763,18 @@ function createIndicatorSeries(
     })
 
     if (!indicator.visible) {
-      console.log('⚠️ Indicator not visible, skipping:', indicator.name)
+      log.business.info('Skipping invisible indicator', {
+        operation: 'chart_options',
+        indicatorName: indicator.name,
+      })
       return
     }
 
     // API 計算結果を優先、フォールバックでローカル計算
     const calculationResult = calculations[indicator.id]
-    console.log('🔍 Calculation result for', indicator.name, ':', {
+    log.business.info('Checking calculation result for indicator', {
+      operation: 'chart_options',
+      indicatorName: indicator.name,
       hasCalculationResult: !!calculationResult,
       calculationKeys: calculationResult ? Object.keys(calculationResult) : [],
       hasValues: calculationResult?.values ? true : false,
@@ -756,21 +786,37 @@ function createIndicatorSeries(
     if (calculationResult && calculationResult.values) {
       // API 計算結果を使用
       indicatorData = calculationResult.values.map((item: { value: number }) => item.value)
-      console.log('✅ Using API calculation for', indicator.name, indicatorData.length, 'points')
+      log.business.info('Using API calculation for indicator', {
+        operation: 'chart_options',
+        indicatorName: indicator.name,
+        dataPoints: indicatorData.length,
+      })
     } else {
       // フォールバックでローカル計算
-      console.log('🔍 Falling back to local calculation for', indicator.name)
+      log.business.warn('Falling back to local calculation for indicator', {
+        operation: 'chart_options',
+        indicatorName: indicator.name,
+      })
       indicatorData = calculateIndicatorFromData(chartData, indicator)
-      console.log('⚠️ Using local calculation for', indicator.name, indicatorData.length, 'points')
+      log.business.info('Using local calculation for indicator', {
+        operation: 'chart_options',
+        indicatorName: indicator.name,
+        dataPoints: indicatorData.length,
+      })
     }
 
-    console.log('🔍 Final indicator data for', indicator.name, ':', {
+    log.business.info('Final indicator data prepared', {
+      operation: 'chart_options',
+      indicatorName: indicator.name,
       dataLength: indicatorData?.length || 0,
       firstFewValues: indicatorData?.slice(0, 5) || [],
     })
 
     if (!indicatorData || indicatorData.length === 0) {
-      console.log('❌ No indicator data available for', indicator.name)
+      log.business.warn('No indicator data available', {
+        operation: 'chart_options',
+        indicatorName: indicator.name,
+      })
       return
     }
 
@@ -793,7 +839,11 @@ function createIndicatorSeries(
           yAxisIndex: 0,
           z: 50,
         }
-        console.log('📊 Adding line series for', indicator.name)
+        log.business.info('Adding line series for moving average', {
+          operation: 'chart_options',
+          indicatorName: indicator.name,
+          type: indicator.type,
+        })
         series.push(lineSeriesConfig)
         break
       }
@@ -866,11 +916,18 @@ function createIndicatorSeries(
       case 'rsi': {
         const rsiGridIndex = seriesMapping['rsi']
         if (rsiGridIndex === undefined) {
-          console.error('❌ RSI grid index not found in seriesMapping')
+          log.business.error('RSI grid index not found in series mapping', undefined, {
+            operation: 'chart_options',
+            seriesMapping,
+          })
           return
         }
 
-        console.log('📊 Adding RSI series to grid index:', rsiGridIndex)
+        log.business.info('Adding RSI series to chart', {
+          operation: 'chart_options',
+          gridIndex: rsiGridIndex,
+          indicatorName: indicator.name,
+        })
 
         // RSI Main Line
         series.push({
@@ -927,11 +984,18 @@ function createIndicatorSeries(
       case 'macd': {
         const macdGridIndex = seriesMapping['macd']
         if (macdGridIndex === undefined) {
-          console.error('❌ MACD grid index not found in seriesMapping')
+          log.business.error('MACD grid index not found in series mapping', undefined, {
+            operation: 'chart_options',
+            seriesMapping,
+          })
           return
         }
 
-        console.log('📊 Adding MACD series to grid index:', macdGridIndex)
+        log.business.info('Adding MACD series to chart', {
+          operation: 'chart_options',
+          gridIndex: macdGridIndex,
+          indicatorName: indicator.name,
+        })
 
         if (Array.isArray(indicatorData) && Array.isArray(indicatorData[0])) {
           const macdData = indicatorData as number[][]
@@ -985,12 +1049,17 @@ function createIndicatorSeries(
       }
 
       default:
-        console.log('⚠️ Unknown indicator type:', indicator.type)
+        log.business.warn('Unknown indicator type encountered', {
+          operation: 'chart_options',
+          indicatorType: indicator.type,
+          indicatorName: indicator.name,
+        })
         break
     }
   })
 
-  console.log('🚨 GEMINI PATTERN: Final series summary:', {
+  log.business.info('Final indicator series summary', {
+    operation: 'chart_options',
     totalSeries: series.length,
     seriesDetails: series.map(s => ({
       name: s.name,
@@ -1023,7 +1092,10 @@ function calculateIndicatorFromData(
     }
 
     // Log debug info to console instead of downloading
-    console.log('🔍 Indicator Debug Info:', debugInfo)
+    log.business.info('Indicator calculation debug info', {
+      operation: 'chart_options',
+      ...debugInfo,
+    })
 
     // 🚨 GEMINI FIX: 堅牢な価格抽出（ローソク足とライン両方に対応）
     const prices = chartData.values.map((item: number[] | number | { close: number }) => {
@@ -1040,12 +1112,16 @@ function calculateIndicatorFromData(
         // オブジェクト形式で close プロパティがある場合
         return item.close
       } else {
-        console.warn('🚨 GEMINI FIX: Unable to extract price from:', item)
+        log.business.warn('Unable to extract price from data item', {
+          operation: 'chart_options',
+          dataItem: item,
+        })
         return 0
       }
     })
 
-    console.log('🚨 GEMINI FIX: Price extraction for indicators:', {
+    log.business.info('Price extraction for indicators completed', {
+      operation: 'chart_options',
       originalLength: chartData.values.length,
       extractedLength: prices.length,
       originalSample: chartData.values.slice(0, 3),
@@ -1103,15 +1179,17 @@ function calculateIndicatorFromData(
       }
       case 'rsi': {
         // RSI の実装（0-100 の範囲）
-        console.log(
-          '🔍 RSI Calculation: Starting with prices length:',
-          prices.length,
-          'period:',
-          period
-        )
+        log.business.info('Starting RSI calculation', {
+          operation: 'chart_options',
+          pricesLength: prices.length,
+          period,
+        })
         const rsiData = calculateRSI(prices, period)
-        console.log('🔍 RSI Calculation: calculateRSI returned:', rsiData.length, 'values')
-        console.log('🔍 RSI Sample values:', rsiData.slice(0, 5))
+        log.business.info('RSI calculation completed', {
+          operation: 'chart_options',
+          resultLength: rsiData.length,
+          sampleValues: rsiData.slice(0, 5),
+        })
 
         // RSI 値を配列として返す（NaN パディングでデータ長を統一）
         const rsiValues = []
@@ -1130,18 +1208,25 @@ function calculateIndicatorFromData(
           }
         }
 
-        console.log('🔍 RSI Final values length:', rsiValues.length)
-        console.log('🔍 RSI Sample final values:', rsiValues.slice(-10))
+        log.business.info('RSI final values prepared', {
+          operation: 'chart_options',
+          finalLength: rsiValues.length,
+          sampleFinalValues: rsiValues.slice(-10),
+        })
         return rsiValues
       }
       case 'macd': {
         // MACD の実装（MACD ライン、シグナルライン、ヒストグラム）
-        console.log('🔍 MACD Calculation: Starting with prices length:', prices.length)
+        log.business.info('Starting MACD calculation', {
+          operation: 'chart_options',
+          pricesLength: prices.length,
+        })
         const macdData = calculateMACD(prices, 12, 26, 9) // デフォルトパラメータ
-        console.log('🔍 MACD Calculation: calculateMACD returned:', {
-          macd: macdData.macd.length,
-          signal: macdData.signal.length,
-          histogram: macdData.histogram.length,
+        log.business.info('MACD calculation completed', {
+          operation: 'chart_options',
+          macdLength: macdData.macd.length,
+          signalLength: macdData.signal.length,
+          histogramLength: macdData.histogram.length,
         })
 
         // MACD データを配列として返す（NaN パディングでデータ長を統一）
@@ -1167,15 +1252,21 @@ function calculateIndicatorFromData(
           }
         }
 
-        console.log('🔍 MACD Final values length:', macdValues.length)
-        console.log('🔍 MACD Sample final values:', macdValues.slice(-5))
+        log.business.info('MACD final values prepared', {
+          operation: 'chart_options',
+          finalLength: macdValues.length,
+          sampleFinalValues: macdValues.slice(-5),
+        })
         return macdValues
       }
       default:
         return []
     }
-  } catch {
-    console.error('Error calculating indicator:', indicator.type, error)
+  } catch (error) {
+    log.business.error('Error calculating indicator', error as Error, {
+      operation: 'chart_options',
+      indicatorType: indicator.type,
+    })
     return []
   }
 }
@@ -1277,13 +1368,22 @@ function calculateMACD(
     return { macd: [], signal: [], histogram: [] }
   }
 
-  console.log('🔍 MACD: Calculating EMAs with periods:', { fastPeriod, slowPeriod, signalPeriod })
+  log.business.info('Calculating EMAs for MACD', {
+    operation: 'chart_options',
+    fastPeriod,
+    slowPeriod,
+    signalPeriod,
+  })
 
   // 12 日 EMA と 26 日 EMA を計算
   const fastEMA = calculateEMA(prices, fastPeriod)
   const slowEMA = calculateEMA(prices, slowPeriod)
 
-  console.log('🔍 MACD: EMA lengths:', { fast: fastEMA.length, slow: slowEMA.length })
+  log.business.info('EMA calculations for MACD completed', {
+    operation: 'chart_options',
+    fastEMALength: fastEMA.length,
+    slowEMALength: slowEMA.length,
+  })
 
   // MACD ライン = 12 日 EMA - 26 日 EMA
   const macdLine: number[] = []
@@ -1295,12 +1395,18 @@ function calculateMACD(
     }
   }
 
-  console.log('🔍 MACD: MACD line length:', macdLine.length)
+  log.business.info('MACD line calculation completed', {
+    operation: 'chart_options',
+    macdLineLength: macdLine.length,
+  })
 
   // シグナルライン = MACD ラインの 9 日 EMA
   const signalLine = calculateEMA(macdLine, signalPeriod)
 
-  console.log('🔍 MACD: Signal line length:', signalLine.length)
+  log.business.info('MACD signal line calculation completed', {
+    operation: 'chart_options',
+    signalLineLength: signalLine.length,
+  })
 
   // ヒストグラム = MACD ライン - シグナルライン
   const histogram: number[] = []
@@ -1319,11 +1425,14 @@ function calculateMACD(
     }
   }
 
-  console.log('🔍 MACD: Histogram length:', histogram.length)
-  console.log('🔍 MACD: Sample values:', {
-    macd: macdLine.slice(-3),
-    signal: signalLine.slice(-3),
-    histogram: histogram.slice(-3),
+  log.business.info('MACD histogram calculation completed', {
+    operation: 'chart_options',
+    histogramLength: histogram.length,
+    sampleValues: {
+      macd: macdLine.slice(-3),
+      signal: signalLine.slice(-3),
+      histogram: histogram.slice(-3),
+    },
   })
 
   return {

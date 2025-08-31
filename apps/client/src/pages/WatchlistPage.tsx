@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button, useToast } from '@trading-viewer/ui'
 import { apiService } from '../services/base/ApiService'
 import SelectAllButton from '../components/common/SelectAllButton'
+import { log } from '../services/logger'
 import {
   DndContext,
   closestCenter,
@@ -206,7 +207,7 @@ const WatchlistPage: React.FC = () => {
         setWatchlistItems([])
       }
     } catch {
-      console.error('Error fetching watchlist:', error)
+      log.business.error('Error fetching watchlist')
       setError('ウォッチリストの取得に失敗しました')
       // フォールバック: 空のウォッチリストを設定
       setWatchlistItems([])
@@ -216,7 +217,7 @@ const WatchlistPage: React.FC = () => {
   // ウォッチリストから複数のシンボルを削除
   const deleteWatchlistItems = async (symbols: string[], disableAlerts: boolean = true) => {
     try {
-      console.log('削除開始:', symbols)
+      log.business.info('Starting watchlist deletion', { symbols })
 
       // バルク削除 API を使用（N+1 問題解消）
       const deleteResponse = await apiService.delete('/watchlist/bulk', {
@@ -235,7 +236,11 @@ const WatchlistPage: React.FC = () => {
 
           disabledAlertsCount = disableResponse.data?.disabledCount || 0
         } catch (alertError) {
-          console.warn('アラートの無効化でエラーが発生しました:', alertError)
+          log.business.warn(
+            'Failed to disable alerts during watchlist deletion',
+            alertError instanceof Error ? alertError : new Error(String(alertError)),
+            { symbolCount: symbols.length }
+          )
           toast.warning('アラートの無効化に失敗しました', {
             message:
               'ウォッチリストの削除は完了しましたが、関連するアラートは手動で無効化してください。',
@@ -255,7 +260,7 @@ const WatchlistPage: React.FC = () => {
 
       toast.success('削除完了', { message })
     } catch {
-      console.error('Error deleting from watchlist:', error)
+      log.business.error('Error deleting from watchlist', { symbolCount: symbols.length })
       toast.error('削除に失敗しました', {
         message: 'ウォッチリストからの削除に失敗しました。再度お試しください。',
       })
@@ -269,15 +274,14 @@ const WatchlistPage: React.FC = () => {
       // API を使って並び替え位置をサーバーに送信
       const response = await apiService.put('/watchlist/positions', { items: items })
       if (response.success) {
-        console.log(
-          '位置更新完了:',
-          items.map(item => `${item.symbol}: ${item.position}`).join(', ')
-        )
+        log.business.info('Watchlist position update completed', {
+          items: items.map(item => ({ symbol: item.symbol, position: item.position })),
+        })
       } else {
         throw new Error(response.error || 'Position update failed')
       }
     } catch {
-      console.error('Error updating watchlist positions:', error)
+      log.business.error('Error updating watchlist positions', { itemCount: items.length })
       setError('ウォッチリストの順番更新に失敗しました')
       // エラー時は元の順序に戻す
       await fetchWatchlist()
@@ -325,7 +329,9 @@ const WatchlistPage: React.FC = () => {
       const response = await apiService.get(`/market/quotes?symbols=${symbolList}`)
 
       if (!response?.quotes) {
-        console.warn('Batch quotes API returned no data, falling back to mock data')
+        log.business.warn('Batch quotes API returned no data, using mock data', {
+          symbolCount: visibleSymbols.length,
+        })
         return generateMockQuotes(visibleSymbols)
       }
 
@@ -333,7 +339,10 @@ const WatchlistPage: React.FC = () => {
         const quoteData = response.quotes[stock.symbol]
 
         if (quoteData?.error) {
-          console.warn(`Quote error for ${stock.symbol}:`, quoteData.error)
+          log.business.warn('Quote error for symbol', {
+            symbol: stock.symbol,
+            error: quoteData.error,
+          })
           // エラーの場合はモックデータを使用
           return generateMockQuote(stock, index)
         }
@@ -353,7 +362,9 @@ const WatchlistPage: React.FC = () => {
         }
       })
     } catch {
-      console.error('Batch quotes fetch error:', error)
+      log.business.error('Batch quotes fetch error, using mock data', {
+        symbolCount: symbols.length,
+      })
       // エラーの場合はモックデータを使用
       return generateMockQuotes(symbols.slice(0, 10))
     }
@@ -424,7 +435,10 @@ const WatchlistPage: React.FC = () => {
         await fetchWatchlist()
       } catch (err) {
         setError('Failed to load watchlist')
-        console.error('Watchlist loading error:', err)
+        log.business.error(
+          'Watchlist loading error',
+          err instanceof Error ? err : new Error(String(err))
+        )
       } finally {
         setIsLoading(false)
       }
@@ -442,7 +456,10 @@ const WatchlistPage: React.FC = () => {
           const watchlistData = await fetchMultipleQuotes(watchlistItems)
           setWatchlist(watchlistData)
         } catch (err) {
-          console.error('Error loading quotes:', err)
+          log.business.error(
+            'Error loading quotes',
+            err instanceof Error ? err : new Error(String(err))
+          )
           // エラー時はモックデータを表示
           setWatchlist([])
         }
