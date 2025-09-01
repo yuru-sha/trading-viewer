@@ -130,9 +130,9 @@ export default defineConfig({
 
           // Chart 関連コンポーネント - リファクタリング後の構造に対応
           if (
-            id.includes('/src/components/chart/') || 
-            id.includes('/src/hooks/chart-types/') || 
-            id.includes('/src/hooks/indicators/') || 
+            id.includes('/src/components/chart/') ||
+            id.includes('/src/hooks/chart-types/') ||
+            id.includes('/src/hooks/indicators/') ||
             id.includes('/src/hooks/layout/') ||
             id.includes('/src/utils/calculations/')
           ) {
@@ -145,8 +145,11 @@ export default defineConfig({
           }
 
           // 管理者機能 - 遅延読み込み用に専用チャンク
-          if (id.includes('/src/components/admin/') || id.includes('/src/pages/Admin') || 
-              id.includes('AdminUsersPage')) {
+          if (
+            id.includes('/src/components/admin/') ||
+            id.includes('/src/pages/Admin') ||
+            id.includes('AdminUsersPage')
+          ) {
             return 'admin'
           }
 

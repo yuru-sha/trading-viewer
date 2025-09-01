@@ -86,9 +86,9 @@ export function useAreaSeries(
     // Add price lines similar to candlestick
     if (priceStats) {
       areaSeries.markLine = createPriceMarkLine(
-        priceStats, 
-        currentPrice, 
-        showPeriodHigh, 
+        priceStats,
+        currentPrice,
+        showPeriodHigh,
         showPeriodLow
       )
     }

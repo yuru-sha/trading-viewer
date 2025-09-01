@@ -1,11 +1,11 @@
 import { log } from '../../services/logger'
 import type { ChartData, UserIndicator } from '@shared'
-import { 
-  calculateSMA, 
-  calculateEMA, 
-  calculateRSI, 
+import {
+  calculateSMA,
+  calculateEMA,
+  calculateRSI,
   calculateMACD,
-  calculateBollingerBands
+  calculateBollingerBands,
 } from './technicalIndicators'
 
 /**
@@ -110,10 +110,10 @@ export function calculateIndicatorFromData(
           period,
           dataPoints: prices.length,
         })
-        
+
         // ボリンジャーバンドの実装（±1σ, ±2σの 4 本線 + 中央線）
         const bollingerResult = calculateBollingerBands(prices, period)
-        
+
         log.business.info('Bollinger Bands calculation completed', {
           operation: 'indicator_processor',
           upper2Length: bollingerResult[0].length,
@@ -127,7 +127,7 @@ export function calculateIndicatorFromData(
             lower2: bollingerResult[4].slice(-3),
           },
         })
-        
+
         return bollingerResult
       }
 
@@ -137,9 +137,9 @@ export function calculateIndicatorFromData(
           pricesLength: prices.length,
           period,
         })
-        
+
         const rsiData = calculateRSI(prices, period)
-        
+
         log.business.info('RSI calculation completed', {
           operation: 'indicator_processor',
           resultLength: rsiData.length,
@@ -168,7 +168,7 @@ export function calculateIndicatorFromData(
           finalLength: rsiValues.length,
           sampleFinalValues: rsiValues.slice(-10),
         })
-        
+
         return rsiValues
       }
 
@@ -177,9 +177,9 @@ export function calculateIndicatorFromData(
           operation: 'indicator_processor',
           pricesLength: prices.length,
         })
-        
+
         const macdData = calculateMACD(prices, 12, 26, 9) // デフォルトパラメータ
-        
+
         log.business.info('MACD calculation completed', {
           operation: 'indicator_processor',
           macdLength: macdData.macd.length,
@@ -215,7 +215,7 @@ export function calculateIndicatorFromData(
           finalLength: macdValues.length,
           sampleFinalValues: macdValues.slice(-5),
         })
-        
+
         return macdValues
       }
 

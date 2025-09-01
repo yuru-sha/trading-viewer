@@ -57,9 +57,9 @@ export function useMACDSeries(
       data: macdData,
       smooth: true,
       symbol: 'none',
-      lineStyle: { 
-        color: indicator.style?.color || '#3b82f6', 
-        width: 2 
+      lineStyle: {
+        color: indicator.style?.color || '#3b82f6',
+        width: 2,
       },
       xAxisIndex: gridIndex,
       yAxisIndex: gridIndex,
@@ -73,9 +73,9 @@ export function useMACDSeries(
       data: signalData,
       smooth: true,
       symbol: 'none',
-      lineStyle: { 
-        color: '#ef4444', 
-        width: 2 
+      lineStyle: {
+        color: '#ef4444',
+        width: 2,
       },
       xAxisIndex: gridIndex,
       yAxisIndex: gridIndex,
@@ -100,11 +100,11 @@ export function useMACDSeries(
       name: `${indicator.name} Zero Line`,
       type: 'line',
       data: histogramData.map(() => 0),
-      lineStyle: { 
-        color: '#6b7280', 
-        width: 1, 
-        type: 'dashed', 
-        opacity: 0.6 
+      lineStyle: {
+        color: '#6b7280',
+        width: 1,
+        type: 'dashed',
+        opacity: 0.6,
       },
       symbol: 'none',
       xAxisIndex: gridIndex,

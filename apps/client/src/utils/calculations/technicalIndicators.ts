@@ -200,13 +200,9 @@ export function calculateMACD(
  * @param multiplier 標準偏差の倍数（デフォルト2）
  * @returns 上限、下限、中央線の配列
  */
-export function calculateBollingerBands(
-  prices: number[], 
-  period: number, 
-  multiplier: number = 2
-) {
+export function calculateBollingerBands(prices: number[], period: number, multiplier: number = 2) {
   const sma = calculateSMA(prices, period)
-  
+
   // 5 つの配列を準備: upper2σ, upper1σ, middle, lower1σ, lower2σ
   const upper2 = []
   const upper1 = []
