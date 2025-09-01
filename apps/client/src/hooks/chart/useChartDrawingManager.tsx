@@ -61,9 +61,14 @@ export const useChartDrawingManager = ({
 
   const duplicateDrawingTool = useCallback(
     (toolId: string) => {
-      log.business.debug('🎯 Duplicating drawing tool:', toolId)
-      drawingTools.duplicateTool(toolId)
-      drawingTools.hideContextMenu()
+      log.business.info('🎯 duplicateDrawingTool called in manager', { toolId })
+      try {
+        const result = drawingTools.duplicateTool(toolId)
+        log.business.info('🎯 duplicateTool result', { toolId, result })
+        drawingTools.hideContextMenu()
+      } catch (error) {
+        log.business.error('🎯 Error duplicating drawing tool', error, { toolId })
+      }
     },
     [drawingTools]
   )
