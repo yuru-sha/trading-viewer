@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { ECElementEvent } from 'echarts'
 import { log } from '@/services/logger'
 import type { ChartEventsConfig } from './types'
@@ -10,21 +10,24 @@ type UseChartMouseEventsProps = {
   findClosestDataIndex: (timestamp: number) => number
 }
 
-export const useChartMouseEvents = ({ 
-  config, 
-  chartInstance, 
+export const useChartMouseEvents = ({
+  config,
+  chartInstance,
   drawingTools,
-  findClosestDataIndex 
+  findClosestDataIndex,
 }: UseChartMouseEventsProps) => {
   const lastMouseMoveTime = useRef(0)
-  const MOUSE_MOVE_THROTTLE = 16 // 60fps
+  const MOUSE_MOVE_THROTTLE = 4 // ~240fps for maximum responsiveness
+  const isMouseDownRef = useRef(false)
+  const rafId = useRef<number | null>(null)
 
   const handleChartMouseMove = useCallback(
     (params: ECElementEvent) => {
       const currentState = drawingTools
-      const isDragRelated = currentState?.isMouseDown || currentState?.isDragging
+      const isDragRelated =
+        currentState?.isMouseDown || currentState?.isDragging || isMouseDownRef.current
 
-      // Throttling: only restrict for non-drag related events
+      // For drag operations, completely skip throttling and logging
       if (!isDragRelated) {
         const now = Date.now()
         if (now - lastMouseMoveTime.current < MOUSE_MOVE_THROTTLE) {
@@ -33,22 +36,26 @@ export const useChartMouseEvents = ({
         lastMouseMoveTime.current = now
       }
 
-      log.business.debug('🎯 handleChartMouseMove entry point:', {
-        offsetX: params.offsetX,
-        offsetY: params.offsetY,
-        isDragRelated,
-        isMouseDown: currentState?.isMouseDown,
-        isDragging: currentState?.isDragging,
-      })
+      // Skip all unnecessary processing during drag for maximum performance
+      // Completely skip debug logging during drag operations
+      if (process.env.NODE_ENV === 'development' && !isDragRelated && Math.random() < 0.05) {
+        log.business.debug('🎯 handleChartMouseMove entry point:', {
+          offsetX: params.offsetX,
+          offsetY: params.offsetY,
+          isDragRelated,
+        })
+      }
 
-      const dataPoint = chartInstance.convertPixelToData(
-        params.offsetX,
-        params.offsetY,
-        config.data
-      )
-      if (!dataPoint) {
-        log.business.debug('🎯 Mouse move - failed to convert pixel to data')
-        return
+      // Skip expensive data conversion during drag for better performance
+      if (!isDragRelated) {
+        const dataPoint = chartInstance.convertPixelToData(
+          params.offsetX,
+          params.offsetY,
+          config.data
+        )
+        if (!dataPoint) {
+          return
+        }
       }
 
       // Update crosshair only when drawing tools are disabled
@@ -61,17 +68,25 @@ export const useChartMouseEvents = ({
         return
       }
 
-      // Handle drag movement
+      // Handle drag movement with requestAnimationFrame for maximum smoothness
       if (currentTools.isDragging) {
-        log.business.debug('🎯 Mouse move during drag - updating drag position')
-        if (currentTools.updateDrag) {
-          currentTools.updateDrag(params.offsetX, params.offsetY, chartInstance, config.data)
+        // Use requestAnimationFrame to ensure smooth updates
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current)
         }
+
+        rafId.current = requestAnimationFrame(() => {
+          if (currentTools.updateDrag) {
+            currentTools.updateDrag(params.offsetX, params.offsetY, chartInstance, config.data)
+          }
+          rafId.current = null
+        })
         return
       }
 
       // Start drag if mouse is down and moving with sufficient distance
-      const canStartDrag = currentTools.isMouseDown && !currentTools.isDragging && currentTools.dragState
+      const canStartDrag =
+        currentTools.isMouseDown && !currentTools.isDragging && currentTools.dragState
 
       if (canStartDrag) {
         const dragThreshold = 5 // pixels
@@ -116,6 +131,8 @@ export const useChartMouseEvents = ({
         return
       }
 
+      // Set mouse down flag for performance optimization
+      isMouseDownRef.current = true
       log.business.debug('🎯 handleChartMouseDown called:', params)
 
       if (currentTools.selectedToolId) {
@@ -176,8 +193,8 @@ export const useChartMouseEvents = ({
                   Math.pow(params.offsetY - startPixel[1], 2)
               )
               const endDistance = Math.sqrt(
-                Math.pow(params.offsetX - endPixel[0], 2) + 
-                Math.pow(params.offsetY - endPixel[1], 2)
+                Math.pow(params.offsetX - endPixel[0], 2) +
+                  Math.pow(params.offsetY - endPixel[1], 2)
               )
 
               if (startDistance <= handleTolerance) {
@@ -202,19 +219,21 @@ export const useChartMouseEvents = ({
                 const rightX = Math.max(startPixel[0], endPixel[0])
                 const topY = Math.min(startPixel[1], endPixel[1])
                 const bottomY = Math.max(startPixel[1], endPixel[1])
-                
+
                 const extendX = Math.abs(rightX - leftX) * 0.1
                 const extendY = Math.abs(bottomY - topY) * 0.1
-                
+
                 const expandedLeftX = leftX - extendX
                 const expandedRightX = rightX + extendX
                 const expandedTopY = topY - extendY
                 const expandedBottomY = bottomY + extendY
 
-                if (params.offsetX >= expandedLeftX && 
-                    params.offsetX <= expandedRightX && 
-                    params.offsetY >= expandedTopY && 
-                    params.offsetY <= expandedBottomY) {
+                if (
+                  params.offsetX >= expandedLeftX &&
+                  params.offsetX <= expandedRightX &&
+                  params.offsetY >= expandedTopY &&
+                  params.offsetY <= expandedBottomY
+                ) {
                   log.business.debug('🎯 MouseDown on fibonacci body for moving entire fibonacci')
                   currentTools.mouseDown(
                     selectedTool.id,
@@ -248,8 +267,8 @@ export const useChartMouseEvents = ({
                   Math.pow(params.offsetY - startPixel[1], 2)
               )
               const endDistance = Math.sqrt(
-                Math.pow(params.offsetX - endPixel[0], 2) + 
-                Math.pow(params.offsetY - endPixel[1], 2)
+                Math.pow(params.offsetX - endPixel[0], 2) +
+                  Math.pow(params.offsetY - endPixel[1], 2)
               )
 
               if (startDistance <= handleTolerance) {
@@ -271,9 +290,12 @@ export const useChartMouseEvents = ({
               } else {
                 // Check if clicking on the line itself for moving the entire line
                 const distanceFromPointToLine = (
-                  px: number, py: number,
-                  x1: number, y1: number,
-                  x2: number, y2: number
+                  px: number,
+                  py: number,
+                  x1: number,
+                  y1: number,
+                  x2: number,
+                  y2: number
                 ): number => {
                   const A = px - x1
                   const B = py - y1
@@ -337,6 +359,13 @@ export const useChartMouseEvents = ({
 
   const handleChartMouseUp = useCallback(
     (params: ECElementEvent) => {
+      // Reset mouse down flag and cancel any pending animation frames
+      isMouseDownRef.current = false
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current)
+        rafId.current = null
+      }
+
       const currentTools = drawingTools
       if (!config.enableDrawingTools || !currentTools) {
         return
@@ -390,9 +419,18 @@ export const useChartMouseEvents = ({
     [config, chartInstance, drawingTools]
   )
 
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current)
+      }
+    }
+  }, [])
+
   return {
     handleChartMouseMove,
     handleChartMouseDown,
-    handleChartMouseUp
+    handleChartMouseUp,
   }
 }

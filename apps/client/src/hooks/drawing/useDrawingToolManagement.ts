@@ -131,46 +131,46 @@ export const useDrawingToolManagement = (
         log.business.error('🎯 Tool not found for duplication', { toolId })
         return null
       }
-      log.business.info('🎯 Tool found for duplication', { 
-        toolId, 
-        type: tool.type, 
-        pointsCount: tool.points?.length 
+      log.business.info('🎯 Tool found for duplication', {
+        toolId,
+        type: tool.type,
+        pointsCount: tool.points?.length,
       })
 
       // Calculate appropriate offset based on tool type and current points
       const calculateOffset = (tool: DrawingTool) => {
         const baseTimestampOffset = 5 * 60 * 1000 // 5 minutes in milliseconds
-        
+
         // Calculate absolute price offset based on current prices
         const getAbsolutePriceOffset = (points: DrawingTool['points']) => {
           if (!points || points.length === 0) return 5 // Default $5 offset
-          
+
           const prices = points.map(p => p.price)
           const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length
-          
+
           // Use 1% of average price as base offset, minimum $1
           const baseAbsolutePriceOffset = Math.max(avgPrice * 0.01, 1)
-          
+
           if (points.length >= 2) {
             const priceRange = Math.max(...prices) - Math.min(...prices)
             // For multi-point tools, use larger offset: 15% of range or 2% of average price
             return Math.max(priceRange * 0.15, avgPrice * 0.02, 2)
           }
-          
+
           return baseAbsolutePriceOffset
         }
-        
+
         const absolutePriceOffset = getAbsolutePriceOffset(tool.points)
-        
+
         // For tools with time ranges, calculate dynamic time offset
         if (tool.points && tool.points.length >= 2) {
           const timestamps = tool.points.map(p => p.timestamp)
           const timeRange = Math.max(...timestamps) - Math.min(...timestamps)
           const dynamicTimeOffset = Math.max(timeRange * 0.15, baseTimestampOffset) // 15% of range or base offset
-          
+
           return { priceOffset: absolutePriceOffset, timestampOffset: dynamicTimeOffset }
         }
-        
+
         return { priceOffset: absolutePriceOffset, timestampOffset: baseTimestampOffset }
       }
 
@@ -187,14 +187,14 @@ export const useDrawingToolManagement = (
               ...point,
               price: point.price + priceOffset, // Use absolute offset
             }))
-          
+
           case 'vertical':
-            // Vertical lines: only offset timestamp (X-axis)  
+            // Vertical lines: only offset timestamp (X-axis)
             return points.map(point => ({
               ...point,
               timestamp: point.timestamp + timestampOffset,
             }))
-          
+
           case 'trendline':
           case 'fibonacci':
           default:
@@ -223,7 +223,7 @@ export const useDrawingToolManagement = (
           priceOffset,
           timestampOffset,
           pointCount: tool.points?.length || 0,
-        }
+        },
       })
 
       dispatch({ type: 'ADD_TOOL', payload: duplicatedTool })

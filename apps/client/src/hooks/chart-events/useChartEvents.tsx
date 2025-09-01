@@ -19,7 +19,10 @@ export const useChartEvents = (
   // Helper function to find closest data index by timestamp
   const findClosestDataIndex = useCallback(
     (targetTimestamp: number): number => {
-      if (config.data.length === 0) return -1
+      if (!config.data || config.data.length === 0) {
+        console.warn('🎯 findClosestDataIndex: No chart data available', { targetTimestamp })
+        return 0 // Return 0 instead of -1 to allow basic functionality
+      }
 
       // First try exact match
       const exactIndex = config.data.findIndex(d => d.timestamp === targetTimestamp)
