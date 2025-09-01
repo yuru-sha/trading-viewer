@@ -172,8 +172,9 @@ export function registerApplicationServices(): void {
   registerService.singleton(
     SERVICE_NAMES.MARKET_DATA_ADAPTER,
     _config => {
-      const { getYahooFinanceService } = require('../services/yahooFinanceService')
-      return getYahooFinanceService()
+      const { getService } = require('../infrastructure/di/container.js')
+      const { TYPES } = require('../infrastructure/di/types.js')
+      return getService(TYPES.YahooFinanceService)
     },
     [SERVICE_NAMES.CONFIG]
   )

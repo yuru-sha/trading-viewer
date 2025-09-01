@@ -5,21 +5,15 @@
 import * as echarts from 'echarts/core'
 import { log } from '../../services/logger'
 
-// Chart types - 必要なものだけインポート
-import { CandlestickChart, LineChart, BarChart, ScatterChart } from 'echarts/charts'
+// Chart types - 実際に使用されているもののみインポート
+import { CandlestickChart, LineChart } from 'echarts/charts'
 
-// Components - 必要なものだけインポート
+// Components - 実際に使用されているもののみインポート
 import {
-  TitleComponent,
   TooltipComponent,
   GridComponent,
   LegendComponent,
   DataZoomComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  BrushComponent,
   GraphicComponent,
 } from 'echarts/components'
 
@@ -29,36 +23,28 @@ import {
   // SVGRenderer, // 必要に応じてコメントアウト解除
 } from 'echarts/renderers'
 
-// Features - 必要なものだけインポート
-import { UniversalTransition, LabelLayout } from 'echarts/features'
+// Features は現在使用されていないためコメントアウト
+// import { UniversalTransition, LabelLayout } from 'echarts/features'
 
 // ECharts を設定
 echarts.use([
   // Chart types
   CandlestickChart,
   LineChart,
-  BarChart,
-  ScatterChart,
 
   // Components
-  TitleComponent,
   TooltipComponent,
   GridComponent,
   LegendComponent,
   DataZoomComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  BrushComponent,
   GraphicComponent,
 
   // Renderers
   CanvasRenderer,
 
-  // Features
-  UniversalTransition,
-  LabelLayout,
+  // Features は現在使用されていないため削除
+  // UniversalTransition,
+  // LabelLayout,
 ])
 
 // 最適化された ECharts インスタンスをエクスポート
@@ -172,8 +158,8 @@ export const loadEChartsExtensions = {
   // 高度な統計チャート（必要時のみ）
   async loadStatistical() {
     try {
-      const { BoxplotChart, CandlestickChart } = await import('echarts/charts')
-      echarts.use([BoxplotChart, CandlestickChart])
+      const { BoxplotChart } = await import('echarts/charts')
+      echarts.use([BoxplotChart])
       log.business.info('Statistical charts loaded successfully', {
         operation: 'load_statistical_charts',
       })

@@ -302,4 +302,177 @@ router.delete('/:id', requireAuth, requireCSRF, async (req: AuthenticatedRequest
   }
 })
 
+// POST /api/drawings/batch - Bulk operations for drawing tools
+router.post('/batch', requireAuth, requireCSRF, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { operation, data } = req.body
+    const userId = req.user?.userId
+
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not authenticated',
+      })
+    }
+
+    if (operation === 'replace') {
+      // Replace all drawing tools for a symbol/timeframe combination
+      const { symbol, timeframe = '1D', tools } = data
+
+      if (!symbol || !Array.isArray(tools)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Symbol and tools array are required for replace operation',
+        })
+      }
+
+      // Use transaction to ensure atomicity
+      const result = await prisma.$transaction(async (tx) => {
+        // First, delete existing tools for this user/symbol/timeframe
+        const deleteResult = await tx.drawingTool.deleteMany({
+          where: {
+            userId,
+            symbol,
+            timeframe,
+          },
+        })
+
+        log.business.info('Batch delete completed', {
+          userId,
+          symbol,
+          timeframe,
+          deletedCount: deleteResult.count,
+        })
+
+        // Then, create new tools if any
+        if (tools.length > 0) {
+          const createData = tools.map((tool: any) => ({
+            userId,
+            symbol,
+            timeframe,
+            type: tool.type,
+            points: JSON.stringify(tool.points),
+            style: JSON.stringify(tool.style),
+            text: tool.text,
+            locked: tool.locked ?? false,
+            visible: tool.visible ?? true,
+          }))
+
+          const createResult = await tx.drawingTool.createMany({
+            data: createData,
+          })
+
+          log.business.info('Batch create completed', {
+            userId,
+            symbol,
+            timeframe,
+            createdCount: createResult.count,
+          })
+
+          // Fetch the created tools to return them
+          const createdTools = await tx.drawingTool.findMany({
+            where: {
+              userId,
+              symbol,
+              timeframe,
+            },
+            orderBy: { createdAt: 'desc' },
+          })
+
+          return {
+            deleted: deleteResult.count,
+            created: createResult.count,
+            tools: createdTools,
+          }
+        }
+
+        return {
+          deleted: deleteResult.count,
+          created: 0,
+          tools: [],
+        }
+      })
+
+      // Transform tools to API format
+      const transformedTools = result.tools.map(tool => ({
+        id: tool.id,
+        type: tool.type as any,
+        points: JSON.parse(tool.points),
+        style: JSON.parse(tool.style),
+        text: tool.text || undefined,
+        locked: tool.locked,
+        visible: tool.visible,
+        createdAt: tool.createdAt.getTime(),
+        updatedAt: tool.updatedAt.getTime(),
+      }))
+
+      res.json({
+        status: 'success',
+        data: {
+          operation: 'replace',
+          deleted: result.deleted,
+          created: result.created,
+          tools: transformedTools,
+        },
+      })
+    } else if (operation === 'bulkDelete') {
+      // Delete multiple tools by IDs
+      const { ids } = data
+
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'IDs array is required for bulk delete operation',
+        })
+      }
+
+      // Verify all tools belong to the user before deletion
+      const userTools = await prisma.drawingTool.findMany({
+        where: {
+          id: { in: ids },
+          userId,
+        },
+        select: { id: true },
+      })
+
+      if (userTools.length !== ids.length) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Some drawing tools do not belong to the authenticated user',
+        })
+      }
+
+      const deleteCount = await drawingToolRepository.bulkDelete(ids)
+
+      log.business.info('Bulk delete completed', {
+        userId,
+        requestedIds: ids.length,
+        deletedCount: deleteCount,
+      })
+
+      res.json({
+        status: 'success',
+        data: {
+          operation: 'bulkDelete',
+          deleted: deleteCount,
+        },
+      })
+    } else {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Unsupported operation. Use "replace" or "bulkDelete"',
+      })
+    }
+  } catch (error) {
+    log.business.error('Error in batch drawing operation', error, {
+      operation: req.body?.operation,
+      userId: req.user?.userId,
+    })
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
+    })
+  }
+})
+
 export default router

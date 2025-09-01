@@ -1,4 +1,6 @@
 import { Candle } from '@prisma/client'
+import { injectable } from 'inversify'
+import type { IIndicatorCalculationService } from '../../infrastructure/di/interfaces.js'
 
 export interface IndicatorValue {
   timestamp: number
@@ -12,7 +14,8 @@ export interface IndicatorResult {
   values: IndicatorValue[]
 }
 
-export class IndicatorCalculationService {
+@injectable()
+export class IndicatorCalculationService implements IIndicatorCalculationService {
   /**
    * Calculate Simple Moving Average (SMA)
    */

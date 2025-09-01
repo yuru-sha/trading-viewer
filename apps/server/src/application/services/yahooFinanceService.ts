@@ -1,5 +1,7 @@
 import yahooFinance from 'yahoo-finance2'
-import { log } from '../../infrastructure/services/logger'
+import { injectable, inject } from 'inversify'
+import { TYPES } from '../../infrastructure/di/types.js'
+import type { ILoggerService, IYahooFinanceService } from '../../infrastructure/di/interfaces.js'
 
 export interface YahooQuoteData {
   symbol: string
@@ -55,16 +57,20 @@ export interface YahooNewsItem {
   relatedTickers?: string[]
 }
 
-export class YahooFinanceService {
+@injectable()
+export class YahooFinanceService implements IYahooFinanceService {
   private static instance: YahooFinanceService
   private cache = new Map<string, { data: YahooQuoteData; timestamp: number }>()
   private rateLimitMap = new Map<string, number>()
   private readonly CACHE_TTL = 30 * 1000 // 30秒キャッシュ
   private readonly RATE_LIMIT_DELAY = 100 // 銘柄ごとにリクエスト間隔を100ms空ける
 
+  constructor(@inject(TYPES.LoggerService) private logger: ILoggerService) {}
+
   static getInstance(): YahooFinanceService {
     if (!YahooFinanceService.instance) {
-      YahooFinanceService.instance = new YahooFinanceService()
+      // This is now deprecated in favor of DI container
+      throw new Error('Use DI container to get YahooFinanceService instance')
     }
     return YahooFinanceService.instance
   }
@@ -156,7 +162,7 @@ export class YahooFinanceService {
 
       return quoteData
     } catch (error) {
-      log.api.error(`Yahoo Finance API error (${symbol}):`, error)
+      this.logger.api.error(`Yahoo Finance API error (${symbol}):`, error)
       throw new Error(
         `株価の取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -195,7 +201,7 @@ export class YahooFinanceService {
         v: quotes.map(q => q.volume || 0),
       }
     } catch (error) {
-      log.api.error(`Yahoo Finance chart API error (${symbol}):`, error)
+      this.logger.api.error(`Yahoo Finance chart API error (${symbol}):`, error)
       throw new Error(
         `過去データの取得に失敗しました (${symbol}): ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -222,7 +228,7 @@ export class YahooFinanceService {
         typeDisp: quote.typeDisp,
       }))
     } catch (error) {
-      log.api.error(`Yahoo Finance search API error ("${query}"):`, error)
+      this.logger.api.error(`Yahoo Finance search API error ("${query}"):`, error)
       throw new Error(
         `銘柄の検索に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -273,7 +279,7 @@ export class YahooFinanceService {
         return quoteData
       })
     } catch (error) {
-      log.api.error(`Yahoo Finance multiple quotes API error:`, error)
+      this.logger.api.error(`Yahoo Finance multiple quotes API error:`, error)
       throw new Error(
         `複数株価の取得に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
@@ -406,6 +412,3 @@ export class YahooFinanceService {
   }
 }
 
-export const getYahooFinanceService = (): YahooFinanceService => {
-  return YahooFinanceService.getInstance()
-}

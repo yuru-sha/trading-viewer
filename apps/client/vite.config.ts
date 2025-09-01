@@ -128,8 +128,14 @@ export default defineConfig({
             return 'dev-tools'
           }
 
-          // Chart 関連コンポーネント
-          if (id.includes('/src/components/chart/') || id.includes('/src/hooks/chart/')) {
+          // Chart 関連コンポーネント - リファクタリング後の構造に対応
+          if (
+            id.includes('/src/components/chart/') || 
+            id.includes('/src/hooks/chart-types/') || 
+            id.includes('/src/hooks/indicators/') || 
+            id.includes('/src/hooks/layout/') ||
+            id.includes('/src/utils/calculations/')
+          ) {
             return 'chart-components'
           }
 
@@ -138,9 +144,21 @@ export default defineConfig({
             return 'drawing-tools'
           }
 
-          // 管理者機能
-          if (id.includes('/src/components/admin/') || id.includes('/src/pages/Admin')) {
+          // 管理者機能 - 遅延読み込み用に専用チャンク
+          if (id.includes('/src/components/admin/') || id.includes('/src/pages/Admin') || 
+              id.includes('AdminUsersPage')) {
             return 'admin'
+          }
+
+          // ページ別チャンク分割（遅延読み込み最適化）
+          if (id.includes('/src/pages/ChartsPage') || id.includes('ChartsPage')) {
+            return 'page-charts'
+          }
+          if (id.includes('/src/pages/MarketPage') || id.includes('MarketPage')) {
+            return 'page-market'
+          }
+          if (id.includes('/src/pages/AlertsPage') || id.includes('AlertsPage')) {
+            return 'page-alerts'
           }
 
           // その他の大きなライブラリ

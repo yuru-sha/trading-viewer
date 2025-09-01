@@ -4,7 +4,9 @@ import { EventEmitter } from 'events'
 import { IncomingMessage } from 'http'
 import { URL } from 'url'
 import jwt from 'jsonwebtoken'
-import { getYahooFinanceService } from './yahooFinanceService'
+import { getService } from '../../infrastructure/di/container.js'
+import { TYPES } from '../../infrastructure/di/types.js'
+import type { IYahooFinanceService } from '../../infrastructure/di/interfaces.js'
 import { log } from '../../infrastructure/services/logger'
 
 export interface WebSocketMessage {
@@ -35,7 +37,7 @@ export class WebSocketService extends EventEmitter {
   private subscriptions: Map<string, Set<SubscriptionData>> = new Map()
   private clients: Map<AuthenticatedWebSocket, string> = new Map()
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map()
-  private yahooFinanceService = getYahooFinanceService()
+  private yahooFinanceService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
   private readonly MAX_SUBSCRIPTIONS_PER_USER = 50
 
