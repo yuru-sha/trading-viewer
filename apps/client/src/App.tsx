@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { ErrorBoundary } from '@trading-viewer/ui'
 import { AppProvider } from './contexts/AppContext'
@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ErrorProvider } from './contexts/ErrorContext'
 import { useAuth } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
+import { initializeMemoryManager } from './utils/memoryManager'
 import {
   HomePage,
   MarketPage,
@@ -51,32 +52,41 @@ const AppContent: React.FC = () => {
   }
 
   if (isChartsPage) {
-    // Charts page - full screen without layout
+    // Charts page - full screen without layout with lazy loading
     return (
-      <Routes>
-        <Route path='/charts' element={<ChartsPage />} />
-      </Routes>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading Chart...</div>}>
+        <Routes>
+          <Route path='/charts' element={<ChartsPage />} />
+        </Routes>
+      </Suspense>
     )
   }
 
-  // Other pages with layout
+  // Other pages with layout and lazy loading
   return (
     <Layout>
-      <Routes>
-        <Route path='/' element={<HomePage />} />
-        <Route path='/market' element={<MarketPage />} />
-        <Route path='/search' element={<SearchPage />} />
-        <Route path='/watchlist' element={<WatchlistPage />} />
-        <Route path='/alerts' element={<AlertsPage />} />
-        <Route path='/settings' element={<SettingsPage />} />
-        <Route path='/help' element={<HelpPage />} />
-        <Route path='/admin/users' element={<AdminUsersPage />} />
-      </Routes>
+      <Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+          <Route path='/market' element={<MarketPage />} />
+          <Route path='/search' element={<SearchPage />} />
+          <Route path='/watchlist' element={<WatchlistPage />} />
+          <Route path='/alerts' element={<AlertsPage />} />
+          <Route path='/settings' element={<SettingsPage />} />
+          <Route path='/help' element={<HelpPage />} />
+          <Route path='/admin/users' element={<AdminUsersPage />} />
+        </Routes>
+      </Suspense>
     </Layout>
   )
 }
 
 const App: React.FC = () => {
+  useEffect(() => {
+    // アプリ起動時にメモリマネージャーを初期化
+    initializeMemoryManager()
+  }, [])
+
   return (
     <ErrorBoundary>
       <ErrorProvider>
