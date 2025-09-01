@@ -131,12 +131,10 @@ export function useChartOptions(
     '#3b82f6'
   )
 
-  // インジケーターシリーズ作成
-  const allIndicatorSeries = useMemo(() => {
-    const series: SeriesOption[] = []
-
-    indicators.forEach(indicator => {
-      if (!indicator.visible) return
+  // インジケーターデータ処理
+  const processedIndicators = useMemo(() => {
+    return indicators.map(indicator => {
+      if (!indicator.visible) return null
 
       // API計算結果を優先、フォールバックでローカル計算
       const calculationResult = indicatorCalculations[indicator.id]
@@ -164,29 +162,102 @@ export function useChartOptions(
           operation: 'chart_options_refactored',
           indicatorName: indicator.name,
         })
-        return
+        return null
       }
 
-      // インジケータータイプに応じてシリーズ作成
+      return {
+        indicator,
+        data: indicatorData
+      }
+    }).filter(Boolean)
+  }, [indicators, indicatorCalculations, chartData])
+
+  // インジケーターシリーズ作成（直接計算）
+  const allIndicatorSeries = useMemo(() => {
+    const series: SeriesOption[] = []
+
+    processedIndicators.forEach(item => {
+      if (!item) return
+
+      const { indicator, data } = item
+
+      // インジケータータイプに応じてシリーズ作成（直接シリーズオブジェクトを生成）
       switch (indicator.type) {
         case 'sma':
         case 'ema': {
-          const movingAvgSeries = useMovingAverageSeries(indicator, indicatorData as number[])
-          series.push(...movingAvgSeries)
+          const isDarkMode = config.theme === 'dark'
+          series.push({
+            type: 'line',
+            name: `${indicator.type.toUpperCase()}(${indicator.parameters?.period || 20})`,
+            data: data.map((value, index) => [chartData.dates[index], value]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: {
+              color: indicator.color || (isDarkMode ? '#fbbf24' : '#f59e0b'),
+              width: 2,
+            },
+            symbol: 'none',
+            smooth: false,
+          })
           break
         }
 
         case 'bollinger': {
-          const bollingerSeries = useBollingerBandsSeries(indicator, indicatorData as number[][])
-          series.push(...bollingerSeries)
+          const bands = data as number[][]
+          const isDarkMode = config.theme === 'dark'
+          const color = indicator.color || (isDarkMode ? '#8b5cf6' : '#7c3aed')
+          
+          // Upper band
+          series.push({
+            type: 'line',
+            name: 'Bollinger Upper',
+            data: bands.map((band, index) => [chartData.dates[index], band[0]]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: { color, width: 1, opacity: 0.7 },
+            symbol: 'none',
+          })
+          
+          // Lower band
+          series.push({
+            type: 'line',
+            name: 'Bollinger Lower',
+            data: bands.map((band, index) => [chartData.dates[index], band[2]]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: { color, width: 1, opacity: 0.7 },
+            symbol: 'none',
+          })
+          
+          // Middle line (SMA)
+          series.push({
+            type: 'line',
+            name: 'Bollinger Middle',
+            data: bands.map((band, index) => [chartData.dates[index], band[1]]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: { color, width: 2 },
+            symbol: 'none',
+          })
           break
         }
 
         case 'rsi': {
           const rsiGridIndex = layout.seriesMapping['rsi']
           if (rsiGridIndex !== undefined) {
-            const rsiSeries = useRSISeries(indicator, indicatorData as number[], rsiGridIndex)
-            series.push(...rsiSeries)
+            const isDarkMode = config.theme === 'dark'
+            series.push({
+              type: 'line',
+              name: 'RSI',
+              data: data.map((value, index) => [chartData.dates[index], value]),
+              xAxisIndex: rsiGridIndex,
+              yAxisIndex: rsiGridIndex,
+              lineStyle: {
+                color: indicator.color || (isDarkMode ? '#06b6d4' : '#0891b2'),
+                width: 2,
+              },
+              symbol: 'none',
+            })
           }
           break
         }
@@ -194,8 +265,46 @@ export function useChartOptions(
         case 'macd': {
           const macdGridIndex = layout.seriesMapping['macd']
           if (macdGridIndex !== undefined) {
-            const macdSeries = useMACDSeries(indicator, indicatorData as number[][], macdGridIndex)
-            series.push(...macdSeries)
+            const macdData = data as number[][]
+            const isDarkMode = config.theme === 'dark'
+            
+            // MACD Line
+            series.push({
+              type: 'line',
+              name: 'MACD',
+              data: macdData.map((item, index) => [chartData.dates[index], item[0]]),
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
+              lineStyle: { color: indicator.color || '#3b82f6', width: 2 },
+              symbol: 'none',
+            })
+            
+            // Signal Line
+            series.push({
+              type: 'line',
+              name: 'Signal',
+              data: macdData.map((item, index) => [chartData.dates[index], item[1]]),
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
+              lineStyle: { color: '#f59e0b', width: 2 },
+              symbol: 'none',
+            })
+            
+            // Histogram
+            series.push({
+              type: 'bar',
+              name: 'MACD Histogram',
+              data: macdData.map((item, index) => [chartData.dates[index], item[2]]),
+              xAxisIndex: macdGridIndex,
+              yAxisIndex: macdGridIndex,
+              itemStyle: {
+                color: function(params: any) {
+                  return params.value[1] >= 0 
+                    ? (isDarkMode ? 'rgba(34, 197, 94, 0.8)' : 'rgba(22, 163, 74, 0.8)')
+                    : (isDarkMode ? 'rgba(239, 68, 68, 0.8)' : 'rgba(220, 38, 38, 0.8)')
+                }
+              },
+            })
           }
           break
         }
@@ -211,7 +320,7 @@ export function useChartOptions(
     })
 
     return series
-  }, [indicators, indicatorCalculations, chartData, layout.seriesMapping])
+  }, [processedIndicators, layout.seriesMapping, chartData.dates, config.theme])
 
   // 最終オプション生成
   const option = useMemo(() => {
