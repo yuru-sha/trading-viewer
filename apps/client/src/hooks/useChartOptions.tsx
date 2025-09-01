@@ -133,8 +133,29 @@ export function useChartOptions(
 
   // インジケーターデータ処理
   const processedIndicators = useMemo(() => {
+    log.business.info('Processing indicators', {
+      operation: 'chart_options_refactored',
+      totalIndicators: indicators.length,
+      visibleIndicators: indicators.filter(ind => ind.visible).length,
+      indicatorTypes: indicators.map(ind => ({ type: ind.type, visible: ind.visible, name: ind.name })),
+    })
+
     return indicators.map(indicator => {
-      if (!indicator.visible) return null
+      if (!indicator.visible) {
+        log.business.debug('Skipping non-visible indicator', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+          indicatorType: indicator.type,
+        })
+        return null
+      }
+
+      log.business.info('Processing visible indicator', {
+        operation: 'chart_options_refactored',
+        indicatorName: indicator.name,
+        indicatorType: indicator.type,
+        hasCalculationResult: Boolean(indicatorCalculations[indicator.id]),
+      })
 
       // API計算結果を優先、フォールバックでローカル計算
       const calculationResult = indicatorCalculations[indicator.id]
@@ -153,8 +174,17 @@ export function useChartOptions(
         log.business.warn('Falling back to local calculation for indicator', {
           operation: 'chart_options_refactored',
           indicatorName: indicator.name,
+          indicatorType: indicator.type,
         })
         indicatorData = calculateIndicatorFromData(chartData, indicator)
+        
+        log.business.info('Local calculation result', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+          indicatorType: indicator.type,
+          resultLength: Array.isArray(indicatorData) ? indicatorData.length : 0,
+          isArray2D: Array.isArray(indicatorData) && Array.isArray(indicatorData[0]),
+        })
       }
 
       if (!indicatorData || indicatorData.length === 0) {
@@ -207,25 +237,27 @@ export function useChartOptions(
           const isDarkMode = config.theme === 'dark'
           const color = indicator.color || (isDarkMode ? '#8b5cf6' : '#7c3aed')
           
-          // Upper band
+          // bands[0] = upper2σ, bands[1] = upper1σ, bands[2] = middle, bands[3] = lower1σ, bands[4] = lower2σ
+          
+          // Upper band (2σ)
           series.push({
             type: 'line',
-            name: 'Bollinger Upper',
-            data: bands.map((band, index) => [chartData.dates[index], band[0]]),
+            name: 'Bollinger Upper (2σ)',
+            data: chartData.dates.map((date, index) => [date, bands[0][index]]),
             xAxisIndex: 0,
             yAxisIndex: 0,
-            lineStyle: { color, width: 1, opacity: 0.7 },
+            lineStyle: { color, width: 1, opacity: 0.8 },
             symbol: 'none',
           })
           
-          // Lower band
+          // Upper band (1σ)  
           series.push({
             type: 'line',
-            name: 'Bollinger Lower',
-            data: bands.map((band, index) => [chartData.dates[index], band[2]]),
+            name: 'Bollinger Upper (1σ)',
+            data: chartData.dates.map((date, index) => [date, bands[1][index]]),
             xAxisIndex: 0,
             yAxisIndex: 0,
-            lineStyle: { color, width: 1, opacity: 0.7 },
+            lineStyle: { color, width: 1, opacity: 0.5, type: 'dashed' },
             symbol: 'none',
           })
           
@@ -233,10 +265,32 @@ export function useChartOptions(
           series.push({
             type: 'line',
             name: 'Bollinger Middle',
-            data: bands.map((band, index) => [chartData.dates[index], band[1]]),
+            data: chartData.dates.map((date, index) => [date, bands[2][index]]),
             xAxisIndex: 0,
             yAxisIndex: 0,
             lineStyle: { color, width: 2 },
+            symbol: 'none',
+          })
+          
+          // Lower band (1σ)
+          series.push({
+            type: 'line',
+            name: 'Bollinger Lower (1σ)',
+            data: chartData.dates.map((date, index) => [date, bands[3][index]]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: { color, width: 1, opacity: 0.5, type: 'dashed' },
+            symbol: 'none',
+          })
+          
+          // Lower band (2σ)
+          series.push({
+            type: 'line',
+            name: 'Bollinger Lower (2σ)',
+            data: chartData.dates.map((date, index) => [date, bands[4][index]]),
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            lineStyle: { color, width: 1, opacity: 0.8 },
             symbol: 'none',
           })
           break

@@ -110,8 +110,25 @@ export function calculateIndicatorFromData(
           period,
           dataPoints: prices.length,
         })
+        
         // ボリンジャーバンドの実装（±1σ, ±2σの 4 本線 + 中央線）
-        return calculateBollingerBands(prices, period)
+        const bollingerResult = calculateBollingerBands(prices, period)
+        
+        log.business.info('Bollinger Bands calculation completed', {
+          operation: 'indicator_processor',
+          upper2Length: bollingerResult[0].length,
+          upper1Length: bollingerResult[1].length,
+          middleLength: bollingerResult[2].length,
+          lower1Length: bollingerResult[3].length,
+          lower2Length: bollingerResult[4].length,
+          sampleValues: {
+            upper2: bollingerResult[0].slice(-3),
+            middle: bollingerResult[2].slice(-3),
+            lower2: bollingerResult[4].slice(-3),
+          },
+        })
+        
+        return bollingerResult
       }
 
       case 'rsi': {
