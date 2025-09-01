@@ -1,7 +1,6 @@
 import yahooFinance from 'yahoo-finance2'
 import { injectable, inject } from 'inversify'
 import { TYPES } from '../../infrastructure/di/types.js'
-import { getService } from '../../infrastructure/di/container.js'
 import type { ILoggerService, IYahooFinanceService } from '../../infrastructure/di/interfaces.js'
 
 export interface YahooQuoteData {
@@ -413,6 +412,3 @@ export class YahooFinanceService implements IYahooFinanceService {
   }
 }
 
-export const getYahooFinanceService = (): YahooFinanceService => {
-  return getService<YahooFinanceService>(TYPES.YahooFinanceService)
-}

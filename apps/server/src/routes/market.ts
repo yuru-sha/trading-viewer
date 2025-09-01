@@ -1,5 +1,7 @@
 import { Router, Response, Request } from 'express'
-import { getYahooFinanceService } from '../application/services/yahooFinanceService'
+import { getService } from '../infrastructure/di/container.js'
+import { TYPES } from '../infrastructure/di/types.js'
+import type { IYahooFinanceService } from '../infrastructure/di/interfaces.js'
 import { ApiError } from '@trading-viewer/shared'
 import {
   validateSymbolSearch,
@@ -336,7 +338,7 @@ router.get('/search', validateSymbolSearch, async (req: any, res: Response) => {
     }
 
     // Use Yahoo Finance API
-    const yahooService = getYahooFinanceService()
+    const yahooService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
     const results = await yahooService.searchSymbols(q.trim(), limit)
 
     const symbols = results.map(result => ({
@@ -413,7 +415,7 @@ router.get('/quotes', async (req, res: Response) => {
       }
     } else {
       // Use Yahoo Finance API for batch fetching
-      const yahooService = getYahooFinanceService()
+      const yahooService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
 
       // Fetch quotes in parallel for better performance
       const quotePromises = symbols.map(async symbol => {
@@ -489,7 +491,7 @@ router.get('/quote/:symbol', validateQuoteParams, async (req: any, res: Response
     }
 
     // Use Yahoo Finance API
-    const yahooService = getYahooFinanceService()
+    const yahooService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
     const quote = await yahooService.getQuote(symbol.toUpperCase())
 
     // Convert Yahoo Finance format to expected format
@@ -534,7 +536,7 @@ router.get('/candles/:symbol', validateCandleParams, async (req: any, res: Respo
     }
 
     // Use Yahoo Finance API
-    const yahooService = getYahooFinanceService()
+    const yahooService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
     const candleData = await yahooService.getCandlesWithResolution(
       symbol.toUpperCase(),
       resolution,

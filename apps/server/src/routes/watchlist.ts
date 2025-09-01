@@ -3,7 +3,9 @@ import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { validateRequest } from '../middleware/errorHandling.js'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth.js'
-import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
+import { getService } from '../infrastructure/di/container.js'
+import { TYPES } from '../infrastructure/di/types.js'
+import type { IYahooFinanceService } from '../infrastructure/di/interfaces.js'
 import { WatchlistRepository } from '../infrastructure/repositories'
 import { log } from '../infrastructure/services/logger'
 
@@ -89,7 +91,7 @@ router.post(
       let timezone = null
 
       try {
-        const yahooService = getYahooFinanceService()
+        const yahooService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
         const quote = await yahooService.getQuote(symbol.toUpperCase())
         currency = quote.currency || 'USD'
         exchange = quote.exchangeName

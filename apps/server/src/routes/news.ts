@@ -1,8 +1,10 @@
 import express from 'express'
-import { getYahooFinanceService } from '../application/services/yahooFinanceService.js'
+import { getService } from '../infrastructure/di/container.js'
+import { TYPES } from '../infrastructure/di/types.js'
+import type { IYahooFinanceService } from '../infrastructure/di/interfaces.js'
 
 const router: express.Router = express.Router()
-const yahooFinanceService = getYahooFinanceService()
+const yahooFinanceService = getService<IYahooFinanceService>(TYPES.YahooFinanceService)
 
 /**
  * GET /api/news
