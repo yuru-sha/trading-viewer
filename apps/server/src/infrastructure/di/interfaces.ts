@@ -93,7 +93,7 @@ export interface IYahooFinanceService {
     from: number,
     to: number
   ): Promise<YahooCandleData>
-  searchSymbols(query: string): Promise<SearchResult[]>
+  searchSymbols(query: string, limit?: number): Promise<SearchResult[]>
   getNews(symbol?: string): Promise<NewsItem[]>
   getCategoryNews(category: string): Promise<NewsItem[]>
 }
