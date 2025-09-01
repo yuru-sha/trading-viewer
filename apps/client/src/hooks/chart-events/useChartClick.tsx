@@ -89,12 +89,42 @@ export const useChartClick = ({
           if (tool.points.length < 2) return false
 
           const startDataIndex = findClosestDataIndex(tool.points[0].timestamp)
+          const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
+          
           const startPixel = chart.convertToPixel('grid', [
             startDataIndex,
             tool.points[0].price,
           ])
+          const endPixel = chart.convertToPixel('grid', [
+            endDataIndex,
+            tool.points[1].price,
+          ])
 
-          if (startPixel && Array.isArray(startPixel)) {
+          if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+            // Define the fibonacci area bounds
+            const leftX = Math.min(startPixel[0], endPixel[0])
+            const rightX = Math.max(startPixel[0], endPixel[0])
+            const topY = Math.min(startPixel[1], endPixel[1])
+            const bottomY = Math.max(startPixel[1], endPixel[1])
+            
+            // Extend the selectable area slightly beyond the fibonacci range
+            const extendX = Math.abs(rightX - leftX) * 0.1 // 10% extension
+            const extendY = Math.abs(bottomY - topY) * 0.1 // 10% extension
+            
+            const expandedLeftX = leftX - extendX
+            const expandedRightX = rightX + extendX
+            const expandedTopY = topY - extendY
+            const expandedBottomY = bottomY + extendY
+
+            // Check if click is within the fibonacci area
+            if (params.offsetX >= expandedLeftX && 
+                params.offsetX <= expandedRightX && 
+                params.offsetY >= expandedTopY && 
+                params.offsetY <= expandedBottomY) {
+              return true
+            }
+
+            // Also check individual fibonacci levels for more precise selection
             const fibLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
             const startPrice = tool.points[0].price
             const endPrice = tool.points[1].price
@@ -106,21 +136,12 @@ export const useChartClick = ({
 
               if (levelPixel && Array.isArray(levelPixel)) {
                 if (Math.abs(params.offsetY - levelPixel[1]) <= tolerance) {
-                  const endDataIndex = findClosestDataIndex(tool.points[1].timestamp)
-                  const endPixel = chart.convertToPixel('grid', [
-                    endDataIndex,
-                    tool.points[1].price,
-                  ])
+                  // Extend fibonacci level lines beyond the price range
+                  const levelLineStartX = leftX - extendX
+                  const levelLineEndX = rightX + extendX
 
-                  if (endPixel && Array.isArray(endPixel)) {
-                    const lineStartX = Math.min(startPixel[0], endPixel[0])
-                    const lineEndX =
-                      Math.max(startPixel[0], endPixel[0]) +
-                      Math.abs(startPixel[0] - endPixel[0]) * 0.2
-
-                    if (params.offsetX >= lineStartX && params.offsetX <= lineEndX) {
-                      return true
-                    }
+                  if (params.offsetX >= levelLineStartX && params.offsetX <= levelLineEndX) {
+                    return true
                   }
                 }
               }

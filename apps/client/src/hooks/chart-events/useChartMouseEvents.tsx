@@ -153,8 +153,80 @@ export const useChartMouseEvents = ({
                 )
               }
             }
+          } else if (selectedTool.type === 'fibonacci' && selectedTool.points.length >= 2) {
+            // Handle Fibonacci Retracement specifically
+            const startDataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
+            const endDataIndex = findClosestDataIndex(selectedTool.points[1].timestamp)
+
+            const startPixel = chart.convertToPixel('grid', [
+              startDataIndex,
+              selectedTool.points[0].price,
+            ])
+            const endPixel = chart.convertToPixel('grid', [
+              endDataIndex,
+              selectedTool.points[1].price,
+            ])
+
+            if (startPixel && endPixel && Array.isArray(startPixel) && Array.isArray(endPixel)) {
+              const handleTolerance = 12
+
+              // Check handles for fibonacci start/end points
+              const startDistance = Math.sqrt(
+                Math.pow(params.offsetX - startPixel[0], 2) +
+                  Math.pow(params.offsetY - startPixel[1], 2)
+              )
+              const endDistance = Math.sqrt(
+                Math.pow(params.offsetX - endPixel[0], 2) + 
+                Math.pow(params.offsetY - endPixel[1], 2)
+              )
+
+              if (startDistance <= handleTolerance) {
+                log.business.debug('🎯 MouseDown on fibonacci start handle')
+                currentTools.mouseDown(
+                  selectedTool.id,
+                  'start',
+                  { x: params.offsetX, y: params.offsetY },
+                  selectedTool.points
+                )
+              } else if (endDistance <= handleTolerance) {
+                log.business.debug('🎯 MouseDown on fibonacci end handle')
+                currentTools.mouseDown(
+                  selectedTool.id,
+                  'end',
+                  { x: params.offsetX, y: params.offsetY },
+                  selectedTool.points
+                )
+              } else {
+                // Check if clicking within fibonacci area for moving entire fibonacci
+                const leftX = Math.min(startPixel[0], endPixel[0])
+                const rightX = Math.max(startPixel[0], endPixel[0])
+                const topY = Math.min(startPixel[1], endPixel[1])
+                const bottomY = Math.max(startPixel[1], endPixel[1])
+                
+                const extendX = Math.abs(rightX - leftX) * 0.1
+                const extendY = Math.abs(bottomY - topY) * 0.1
+                
+                const expandedLeftX = leftX - extendX
+                const expandedRightX = rightX + extendX
+                const expandedTopY = topY - extendY
+                const expandedBottomY = bottomY + extendY
+
+                if (params.offsetX >= expandedLeftX && 
+                    params.offsetX <= expandedRightX && 
+                    params.offsetY >= expandedTopY && 
+                    params.offsetY <= expandedBottomY) {
+                  log.business.debug('🎯 MouseDown on fibonacci body for moving entire fibonacci')
+                  currentTools.mouseDown(
+                    selectedTool.id,
+                    'line',
+                    { x: params.offsetX, y: params.offsetY },
+                    selectedTool.points
+                  )
+                }
+              }
+            }
           } else if (selectedTool.points.length >= 2) {
-            // Handle two-point lines
+            // Handle other two-point lines (trendlines, etc.)
             const startDataIndex = findClosestDataIndex(selectedTool.points[0].timestamp)
             const endDataIndex = findClosestDataIndex(selectedTool.points[1].timestamp)
 
@@ -181,6 +253,7 @@ export const useChartMouseEvents = ({
               )
 
               if (startDistance <= handleTolerance) {
+                log.business.debug('🎯 MouseDown on start handle')
                 currentTools.mouseDown(
                   selectedTool.id,
                   'start',
@@ -188,12 +261,69 @@ export const useChartMouseEvents = ({
                   selectedTool.points
                 )
               } else if (endDistance <= handleTolerance) {
+                log.business.debug('🎯 MouseDown on end handle')
                 currentTools.mouseDown(
                   selectedTool.id,
                   'end',
                   { x: params.offsetX, y: params.offsetY },
                   selectedTool.points
                 )
+              } else {
+                // Check if clicking on the line itself for moving the entire line
+                const distanceFromPointToLine = (
+                  px: number, py: number,
+                  x1: number, y1: number,
+                  x2: number, y2: number
+                ): number => {
+                  const A = px - x1
+                  const B = py - y1
+                  const C = x2 - x1
+                  const D = y2 - y1
+
+                  const dot = A * C + B * D
+                  const lenSq = C * C + D * D
+                  let param = -1
+                  if (lenSq !== 0) {
+                    param = dot / lenSq
+                  }
+
+                  let xx: number, yy: number
+
+                  if (param < 0) {
+                    xx = x1
+                    yy = y1
+                  } else if (param > 1) {
+                    xx = x2
+                    yy = y2
+                  } else {
+                    xx = x1 + param * C
+                    yy = y1 + param * D
+                  }
+
+                  const dx = px - xx
+                  const dy = py - yy
+                  return Math.sqrt(dx * dx + dy * dy)
+                }
+
+                const lineDistance = distanceFromPointToLine(
+                  params.offsetX,
+                  params.offsetY,
+                  startPixel[0],
+                  startPixel[1],
+                  endPixel[0],
+                  endPixel[1]
+                )
+
+                const lineTolerance = 10
+                if (lineDistance <= lineTolerance) {
+                  log.business.debug('🎯 MouseDown on line body for moving entire line')
+                  currentTools.mouseDown(
+                    selectedTool.id,
+                    'line',
+                    { x: params.offsetX, y: params.offsetY },
+                    selectedTool.points
+                  )
+                }
               }
             }
           }
