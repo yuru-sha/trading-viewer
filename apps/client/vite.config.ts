@@ -128,8 +128,14 @@ export default defineConfig({
             return 'dev-tools'
           }
 
-          // Chart 関連コンポーネント
-          if (id.includes('/src/components/chart/') || id.includes('/src/hooks/chart/')) {
+          // Chart 関連コンポーネント - リファクタリング後の構造に対応
+          if (
+            id.includes('/src/components/chart/') || 
+            id.includes('/src/hooks/chart-types/') || 
+            id.includes('/src/hooks/indicators/') || 
+            id.includes('/src/hooks/layout/') ||
+            id.includes('/src/utils/calculations/')
+          ) {
             return 'chart-components'
           }
 
