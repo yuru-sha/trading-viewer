@@ -46,6 +46,12 @@ const HelpPage: React.FC = () => {
             'SMA、EMA、RSI、MACD、ボリンジャーバンドなどの指標を追加できます。チャート上部のインディケーターボタンからどうぞ。',
         },
         {
+          title: 'チャートナビゲーション',
+          content:
+            '過去のチャートデータを見るための操作方法：' +
+            'Shift+ドラッグで左右スクロール、マウスホイールでズーム、キーボードショートカット（⌘/Ctrl+矢印キー）でスクロール・ズーム操作が可能です。',
+        },
+        {
           title: 'アラート設定',
           content:
             '価格アラートや指標アラートを設定できます。右クリックメニューまたはアラートページから設定してください。',
@@ -166,6 +172,9 @@ const HelpPage: React.FC = () => {
     { key: 'H', description: '水平線' },
     { key: 'F', description: 'フィボナッチ' },
     { key: 'Esc', description: '描画モード解除' },
+    { key: '⌘/Ctrl + ←→', description: 'チャートスクロール' },
+    { key: '⌘/Ctrl + ↑↓', description: 'チャートズーム' },
+    { key: 'Shift + ドラッグ', description: 'チャート左右スクロール' },
   ]
 
   return (

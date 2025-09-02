@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import type { ChartData, PriceStats, UserIndicator } from '@shared'
@@ -47,6 +47,21 @@ export function useChartOptions(
   priceStats: PriceStats | null,
   config: ChartOptionsConfig
 ) {
+  // スクロール位置を保持するためのref
+  const scrollPositionRef = useRef({ start: 70, end: 100 })
+  const isInitializedRef = useRef(false)
+
+  // chartDataの変更検出用のメモ化された値
+  const chartDataHash = useMemo(() => {
+    // データの長さと最後の要素のタイムスタンプのみを監視
+    return {
+      dataLength: chartData.dates?.length || 0,
+      lastTimestamp: chartData.dates?.[chartData.dates.length - 1] || null,
+      symbol: config.symbol,
+      timeframe: config.timeframe,
+    }
+  }, [chartData.dates?.length, chartData.dates?.[chartData.dates?.length - 1], config.symbol, config.timeframe])
+
   // インジケーターデータフェッチ
   const { data: indicators = [], isLoading: indicatorsLoading } = useQuery({
     queryKey: ['indicators', config.symbol, config.timeframe],
@@ -386,7 +401,12 @@ export function useChartOptions(
     return series
   }, [processedIndicators, layout.seriesMapping, chartData.dates, config.theme])
 
-  // 最終オプション生成
+  // スクロール位置更新関数
+  const updateScrollPosition = useCallback((start: number, end: number) => {
+    scrollPositionRef.current = { start, end }
+  }, [])
+
+  // 最終オプション生成 - 依存配列を最小限に抑制
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
 
@@ -395,7 +415,27 @@ export function useChartOptions(
       showGridlines: config.showGridlines,
       chartType: config.chartType,
       theme: config.theme,
+      dataLength: chartDataHash.dataLength,
+      preservingScrollPosition: isInitializedRef.current,
     })
+
+    // 初期化時のみデフォルト値を使用、以降はスクロール位置を保持
+    const currentScrollPosition = isInitializedRef.current 
+      ? scrollPositionRef.current 
+      : { start: 70, end: 100 }
+
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true
+      log.business.info('Chart initialized with default scroll position', {
+        operation: 'chart_options_scroll_preservation',
+        scrollPosition: currentScrollPosition,
+      })
+    } else {
+      log.business.info('Chart updated preserving scroll position', {
+        operation: 'chart_options_scroll_preservation',
+        scrollPosition: currentScrollPosition,
+      })
+    }
 
     const baseOption: EChartsOption = {
       backgroundColor: config.colors?.background || (isDarkMode ? '#1f2937' : '#ffffff'),
@@ -430,10 +470,15 @@ export function useChartOptions(
       dataZoom: [
         {
           type: 'inside',
-          xAxisIndex: Array.from({ length: layout.gridCount }, (_, i) => i), // All X-axes
-          start: 0,
-          end: 100,
+          xAxisIndex: Array.from({ length: layout.gridCount }, (_, i) => i),
+          start: currentScrollPosition.start,
+          end: currentScrollPosition.end,
           filterMode: 'filter',
+          zoomLock: false,
+          moveOnMouseMove: 'shift', // Shiftキーを押しながらドラッグでスクロール
+          moveOnMouseWheel: false, // マウスホイールでの移動を無効化
+          zoomOnMouseWheel: true, // マウスホイール上下でズーム
+          preventDefaultMouseMove: true,
         },
       ],
       series: [] as SeriesOption[],
@@ -499,7 +544,8 @@ export function useChartOptions(
 
     return baseOption
   }, [
-    chartData,
+    // 依存配列を最小限に抑制：chartData の直接参照を避ける
+    chartDataHash, // chartData の代わりにハッシュ値を使用
     config,
     priceStats,
     layout,
@@ -511,5 +557,5 @@ export function useChartOptions(
     calculationsLoading,
   ])
 
-  return { option }
+  return { option, updateScrollPosition }
 }
