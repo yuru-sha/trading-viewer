@@ -12,11 +12,14 @@ export class MemoryManager {
   private static instance: MemoryManager | null = null
   private cleanupFunctions: Map<string, CleanupFunction[]> = new Map()
   private timers: Map<string, TimerHandle[]> = new Map()
-  private eventListeners: Map<string, Array<{
-    element: EventTarget
-    event: string
-    handler: EventListener
-  }>> = new Map()
+  private eventListeners: Map<
+    string,
+    Array<{
+      element: EventTarget
+      event: string
+      handler: EventListener
+    }>
+  > = new Map()
 
   private constructor() {
     // Singleton pattern
@@ -157,20 +160,26 @@ export class MemoryManager {
     totalTimers: number
     totalEventListeners: number
   } {
-    const totalCleanupFunctions = Array.from(this.cleanupFunctions.values())
-      .reduce((sum, cleanups) => sum + cleanups.length, 0)
-    
-    const totalTimers = Array.from(this.timers.values())
-      .reduce((sum, timers) => sum + timers.length, 0)
-    
-    const totalEventListeners = Array.from(this.eventListeners.values())
-      .reduce((sum, listeners) => sum + listeners.length, 0)
+    const totalCleanupFunctions = Array.from(this.cleanupFunctions.values()).reduce(
+      (sum, cleanups) => sum + cleanups.length,
+      0
+    )
+
+    const totalTimers = Array.from(this.timers.values()).reduce(
+      (sum, timers) => sum + timers.length,
+      0
+    )
+
+    const totalEventListeners = Array.from(this.eventListeners.values()).reduce(
+      (sum, listeners) => sum + listeners.length,
+      0
+    )
 
     return {
       totalScopes: new Set([
         ...this.cleanupFunctions.keys(),
         ...this.timers.keys(),
-        ...this.eventListeners.keys()
+        ...this.eventListeners.keys(),
       ]).size,
       scopesWithCleanups: this.cleanupFunctions.size,
       scopesWithTimers: this.timers.size,
@@ -216,11 +225,7 @@ export class MemoryScope {
   /**
    * 管理対象イベントリスナーを追加
    */
-  addEventListener(
-    element: EventTarget,
-    event: string,
-    handler: EventListener
-  ): void {
+  addEventListener(element: EventTarget, event: string, handler: EventListener): void {
     this.manager.registerEventListener(this.scopeId, element, event, handler)
   }
 
@@ -248,7 +253,7 @@ export function useMemoryManager(scopeId?: string) {
     // 便利メソッド
     setTimeout: (callback: () => void, delay: number) => scope.setTimeout(callback, delay),
     setInterval: (callback: () => void, delay: number) => scope.setInterval(callback, delay),
-    addEventListener: (element: EventTarget, event: string, handler: EventListener) => 
+    addEventListener: (element: EventTarget, event: string, handler: EventListener) =>
       scope.addEventListener(element, event, handler),
     onCleanup: (fn: CleanupFunction) => scope.onCleanup(fn),
   }
@@ -289,7 +294,8 @@ export function initializeMemoryManager(): void {
     // 定期的にメモリ使用状況を診断
     setInterval(() => {
       const diagnostics = manager.getDiagnostics()
-      if (diagnostics.totalScopes > 10) {  // 閾値は調整可能
+      if (diagnostics.totalScopes > 10) {
+        // 閾値は調整可能
         log.performance.warn('High memory scope count detected', {
           operation: 'memory_diagnostics',
           ...diagnostics,

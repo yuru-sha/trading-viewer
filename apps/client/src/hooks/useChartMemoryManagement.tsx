@@ -108,7 +108,7 @@ export const useChartMemoryManagement = (chartId?: string) => {
   ) => {
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
-        (entries) => {
+        entries => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               onVisible()
@@ -141,12 +141,13 @@ export const useChartMemoryManagement = (chartId?: string) => {
   const trackPerformanceMetrics = () => {
     const performanceEntries: PerformanceEntry[] = []
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       list.getEntries().forEach(entry => {
         if (entry.name.includes('chart') || entry.name.includes('echarts')) {
           performanceEntries.push(entry)
-          
-          if (entry.duration > 100) { // 100ms を超える処理は警告
+
+          if (entry.duration > 100) {
+            // 100ms を超える処理は警告
             log.performance.warn('Slow chart operation detected', {
               operation: 'chart_performance_warning',
               chartId,
@@ -162,10 +163,12 @@ export const useChartMemoryManagement = (chartId?: string) => {
 
     onCleanup(() => {
       observer.disconnect()
-      
+
       // パフォーマンス統計をログ出力
       if (performanceEntries.length > 0) {
-        const avgDuration = performanceEntries.reduce((sum, entry) => sum + entry.duration, 0) / performanceEntries.length
+        const avgDuration =
+          performanceEntries.reduce((sum, entry) => sum + entry.duration, 0) /
+          performanceEntries.length
         log.performance.info('Chart performance summary', {
           operation: 'chart_performance_summary',
           chartId,

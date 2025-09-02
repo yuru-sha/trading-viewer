@@ -54,7 +54,9 @@ const AppContent: React.FC = () => {
   if (isChartsPage) {
     // Charts page - full screen without layout with lazy loading
     return (
-      <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading Chart...</div>}>
+      <Suspense
+        fallback={<div className='flex items-center justify-center h-screen'>Loading Chart...</div>}
+      >
         <Routes>
           <Route path='/charts' element={<ChartsPage />} />
         </Routes>
@@ -65,7 +67,7 @@ const AppContent: React.FC = () => {
   // Other pages with layout and lazy loading
   return (
     <Layout>
-      <Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+      <Suspense fallback={<div className='flex items-center justify-center h-64'>Loading...</div>}>
         <Routes>
           <Route path='/' element={<HomePage />} />
           <Route path='/market' element={<MarketPage />} />

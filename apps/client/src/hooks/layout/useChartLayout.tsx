@@ -34,10 +34,7 @@ type ChartLayoutResult = {
  * @param config レイアウト設定
  * @returns グリッド、軸、シリーズマッピング設定
  */
-export function useChartLayout(
-  chartData: ChartData,
-  config: ChartLayoutConfig
-): ChartLayoutResult {
+export function useChartLayout(chartData: ChartData, config: ChartLayoutConfig): ChartLayoutResult {
   return useMemo(() => {
     log.business.info('Calculating dynamic chart layout', {
       operation: 'chart_layout',

@@ -9,10 +9,7 @@ import { log } from '../../services/logger'
  * @param indicatorData 計算済みインジケーターデータ（[upper2σ, upper1σ, middle, lower1σ, lower2σ]形式）
  * @returns ボリンジャーバンドシリーズオプション配列
  */
-export function useBollingerBandsSeries(
-  indicator: UserIndicator,
-  indicatorData: number[][]
-) {
+export function useBollingerBandsSeries(indicator: UserIndicator, indicatorData: number[][]) {
   return useMemo(() => {
     if (!indicator.visible || indicatorData.length !== 5) {
       log.business.info('Bollinger Bands series skipped (invisible or invalid data)', {
@@ -42,10 +39,10 @@ export function useBollingerBandsSeries(
         name: `${indicator.name} +2σ`,
         type: 'line',
         data: upper2,
-        lineStyle: { 
-          color: baseColor, 
-          width: 1, 
-          type: 'dashed' 
+        lineStyle: {
+          color: baseColor,
+          width: 1,
+          type: 'dashed',
         },
         symbol: 'none',
         xAxisIndex: 0,
@@ -56,10 +53,10 @@ export function useBollingerBandsSeries(
         name: `${indicator.name} +1σ`,
         type: 'line',
         data: upper1,
-        lineStyle: { 
-          color: baseColor, 
-          width: 1, 
-          type: 'dotted' 
+        lineStyle: {
+          color: baseColor,
+          width: 1,
+          type: 'dotted',
         },
         symbol: 'none',
         xAxisIndex: 0,
@@ -70,9 +67,9 @@ export function useBollingerBandsSeries(
         name: `${indicator.name} SMA`,
         type: 'line',
         data: middle,
-        lineStyle: { 
-          color: baseColor, 
-          width: 2 
+        lineStyle: {
+          color: baseColor,
+          width: 2,
         },
         symbol: 'none',
         xAxisIndex: 0,
@@ -83,10 +80,10 @@ export function useBollingerBandsSeries(
         name: `${indicator.name} -1σ`,
         type: 'line',
         data: lower1,
-        lineStyle: { 
-          color: baseColor, 
-          width: 1, 
-          type: 'dotted' 
+        lineStyle: {
+          color: baseColor,
+          width: 1,
+          type: 'dotted',
         },
         symbol: 'none',
         xAxisIndex: 0,
@@ -97,10 +94,10 @@ export function useBollingerBandsSeries(
         name: `${indicator.name} -2σ`,
         type: 'line',
         data: lower2,
-        lineStyle: { 
-          color: baseColor, 
-          width: 1, 
-          type: 'dashed' 
+        lineStyle: {
+          color: baseColor,
+          width: 1,
+          type: 'dashed',
         },
         symbol: 'none',
         xAxisIndex: 0,

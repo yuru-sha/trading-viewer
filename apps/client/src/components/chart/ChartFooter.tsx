@@ -64,7 +64,7 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
                     : 'text-green-600 dark:text-green-400'
                 }`}
               >
-                {dataSource.status}
+                {dataSource.isMockData ? 'デモデータ' : 'リアルタイムデータ'}
               </span>
             </div>
           )}
@@ -73,7 +73,7 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
           </span>
         </div>
 
-        {/* Right - Current Time (Clickable) */}
+        {/* Right - Time Display (Clickable) */}
         <div className='relative'>
           <button
             onClick={e => {
