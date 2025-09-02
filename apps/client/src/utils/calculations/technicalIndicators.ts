@@ -227,11 +227,11 @@ export function calculateBollingerBands(prices: number[], period: number, multip
       }
       const stdDev = Math.sqrt(sum / period)
 
-      upper2.push(sma[i] + 2 * stdDev) // +2σ
-      upper1.push(sma[i] + 1 * stdDev) // +1σ
+      upper2.push(sma[i] + multiplier * stdDev) // +2σ
+      upper1.push(sma[i] + (multiplier / 2) * stdDev) // +1σ
       middle.push(sma[i]) // SMA
-      lower1.push(sma[i] - 1 * stdDev) // -1σ
-      lower2.push(sma[i] - 2 * stdDev) // -2σ
+      lower1.push(sma[i] - (multiplier / 2) * stdDev) // -1σ
+      lower2.push(sma[i] - multiplier * stdDev) // -2σ
     }
   }
 

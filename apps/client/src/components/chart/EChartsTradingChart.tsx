@@ -1,4 +1,4 @@
-import React, { useEffect, forwardRef, useImperativeHandle, useMemo } from 'react'
+import React, { useEffect, forwardRef, useImperativeHandle } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { GraphicComponentOption } from 'echarts/components'
 import { useApp } from '../../contexts/AppContext'
@@ -695,13 +695,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
     }, [enableDrawingTools, drawingTools, chartInstance, updateScrollPosition])
 
     return (
-      <div 
-        className={`relative ${className}`}
-        tabIndex={0}
-        style={{ outline: 'none' }}
-        onFocus={() => console.log('Chart focused')}
-        onBlur={() => console.log('Chart blurred')}
-      >
+      <div className={`relative ${className}`}>
         {priceStats && (
           <div className='absolute top-3 left-3 z-10 bg-white bg-opacity-95 dark:bg-black dark:bg-opacity-50 text-gray-800 dark:text-white px-3 py-2 rounded text-xs shadow-lg'>
             <div className='flex space-x-4'>

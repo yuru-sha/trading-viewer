@@ -1,7 +1,7 @@
 import { useMemo, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { EChartsOption, SeriesOption } from 'echarts'
-import type { ChartData, PriceStats, UserIndicator } from '@shared'
+import type { ChartData, PriceStats } from '@shared'
 import { log } from '@/services/logger'
 
 // 新しい分離されたフック・ユーティリティのインポート
@@ -9,10 +9,6 @@ import { useCandlestickSeries } from './chart-types/useCandlestickSeries'
 import { useLineSeries } from './chart-types/useLineSeries'
 import { useAreaSeries } from './chart-types/useAreaSeries'
 import { useChartLayout } from './layout/useChartLayout'
-import { useRSISeries } from './indicators/useRSISeries'
-import { useMACDSeries } from './indicators/useMACDSeries'
-import { useMovingAverageSeries } from './indicators/useMovingAverageSeries'
-import { useBollingerBandsSeries } from './indicators/useBollingerBandsSeries'
 import { calculateIndicatorFromData } from '../utils/calculations/indicatorProcessor'
 
 export type ChartOptionsConfig = {

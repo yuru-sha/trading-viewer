@@ -1,15 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react'
 import { useChartClick } from './useChartClick'
 import { useChartMouseEvents } from './useChartMouseEvents'
 import { useChartRightClick } from './useChartRightClick'
 import { useDOMEventListeners } from './useDOMEventListeners'
-import type { ChartEventsConfig, ChartEventHandlers } from './types'
-
-type UseChartEventsParams = {
-  chartInstance: ReturnType<typeof import('../useChartInstance')>
-  drawingTools: any
-  config: ChartEventsConfig
-}
+import type { ChartEventsConfig } from './types'
 
 export const useChartEvents = (
   chartInstance: any,
