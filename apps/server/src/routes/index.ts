@@ -1,5 +1,6 @@
 import { Application } from 'express'
-import authRoutes from './auth.js'
+import authRoutes from './auth.js' // Restored working auth routes
+// import { authRouter } from './auth/index.js' // New modular auth routes - temporarily disabled
 import marketRoutes from './market.js'
 import alertRoutes from './alerts.js'
 import watchlistRoutes from './watchlist.js'
@@ -14,7 +15,7 @@ import { getWebSocketService } from '../application/services/websocketService.js
 export function setupRoutes(app: Application): void {
   // API routes with specific rate limiting
   // Use more lenient rate limiting for auth - let application-level rate limiting handle failures
-  app.use('/api/auth', authRoutes) // Auth routes handle their own rate limiting
+  app.use('/api/auth', authRoutes) // Restored working auth routes
   app.use('/api/market', marketDataLimiter, marketRoutes) // Moderate rate limiting for market data
   app.use('/api/alerts', sensitiveLimiter, alertRoutes) // Strict rate limiting for alerts
   app.use('/api/watchlist', watchlistRoutes) // Use general rate limiting for watchlist

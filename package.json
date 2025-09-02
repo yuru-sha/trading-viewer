@@ -52,8 +52,8 @@
   },
   "devDependencies": {
     "@lhci/cli": "^0.12.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "^8.39.1",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "concurrently": "^8.2.0",
     "dependency-cruiser": "^17.0.1",
     "eslint": "^8.54.0",

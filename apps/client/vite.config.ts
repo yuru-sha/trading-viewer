@@ -79,23 +79,29 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: id => {
-          // React 関連の基本ライブラリ
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-            return 'vendor'
+          // Core React libraries (critical for app bootstrap)
+          if (id.includes('react/') || id.includes('react-dom/') || id.includes('scheduler/')) {
+            return 'react-core'
+          }
+          if (id.includes('react-router')) {
+            return 'react-router'
           }
 
-          // ECharts 関連の詳細な分割
+          // ECharts 関連の詳細な分割 - サイズベースで最適化
           if (id.includes('echarts/core') || id.includes('echarts-gl')) {
             return 'charts-core'
           }
-          if (id.includes('echarts/charts') || id.includes('echarts/components')) {
-            return 'charts-components'
+          if (id.includes('echarts/charts')) {
+            return 'charts-types' // candlestick, line, bar charts
+          }
+          if (id.includes('echarts/components')) {
+            return 'charts-components' // tooltip, legend, axis components
           }
           if (id.includes('echarts/renderers') || id.includes('echarts/features')) {
             return 'charts-features'
           }
           if (id.includes('echarts') && !id.includes('node_modules/@trading-viewer')) {
-            return 'charts'
+            return 'charts' // Main echarts bundle
           }
 
           // TanStack Query

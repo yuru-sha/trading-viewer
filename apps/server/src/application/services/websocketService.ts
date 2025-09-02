@@ -128,15 +128,29 @@ export class WebSocketService extends EventEmitter {
 
     // Heartbeat to detect broken connections
     const heartbeatInterval = setInterval(() => {
-      this.wss?.clients.forEach((ws: any) => {
-        if (!ws.isAlive) {
-          log.websocket.info('Terminating inactive WebSocket connection')
-          return ws.terminate()
-        }
+      if (!this.wss?.clients) return
 
+      const clients = Array.from(this.wss.clients) as any[]
+
+      // Process inactive clients first (synchronous operations)
+      const inactiveClients = clients.filter(ws => !ws.isAlive)
+      inactiveClients.forEach(ws => {
+        log.websocket.info('Terminating inactive WebSocket connection')
+        ws.terminate()
+      })
+
+      // Process active clients (ping operations)
+      const activeClients = clients.filter(ws => ws.isAlive)
+      activeClients.forEach(ws => {
         ws.isAlive = false
         ws.ping()
       })
+
+      if (inactiveClients.length > 0) {
+        log.websocket.info(
+          `Cleaned up ${inactiveClients.length} inactive connections, ${activeClients.length} active connections remain`
+        )
+      }
     }, 30000) // Every 30 seconds
 
     this.wss.on('close', () => {

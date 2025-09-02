@@ -44,6 +44,38 @@ export interface RegisterResponse {
   message?: string
 }
 
+// Additional authentication request types
+export interface RefreshTokenRequest {
+  refreshToken: string
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface UpdateProfileRequest {
+  username?: string
+  email?: string
+  avatar?: string
+}
+
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  password: string
+}
+
+export interface RefreshTokenResponse {
+  success: boolean
+  token?: string
+  user?: User
+  message?: string
+}
+
 export interface AuthState {
   user: User | null
   isAuthenticated: boolean

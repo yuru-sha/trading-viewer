@@ -6,20 +6,22 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ErrorProvider } from './contexts/ErrorContext'
 import { useAuth } from './contexts/AuthContext'
 import { Layout } from './components/Layout'
+import { PageLoader, ChartLoader, AdminLoader } from './components/LoadingSpinner'
 import { initializeMemoryManager } from './utils/memoryManager'
-import {
-  HomePage,
-  MarketPage,
-  ChartsPage,
-  SearchPage,
-  WatchlistPage,
-  AlertsPage,
-  AdminUsersPage,
-  SettingsPage,
-  HelpPage,
-} from './pages'
+// Critical pages loaded immediately
+import { HomePage } from './pages'
 import LoginPage from './pages/LoginPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+
+// Lazy load heavy components for better performance
+const MarketPage = React.lazy(() => import('./pages/MarketPage'))
+const ChartsPage = React.lazy(() => import('./pages/ChartsPage'))
+const SearchPage = React.lazy(() => import('./pages/SearchPage'))
+const WatchlistPage = React.lazy(() => import('./pages/WatchlistPage'))
+const AlertsPage = React.lazy(() => import('./pages/AlertsPage'))
+const AdminUsersPage = React.lazy(() => import('./pages/AdminUsersPage'))
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'))
+const HelpPage = React.lazy(() => import('./pages/HelpPage'))
 
 const AppContent: React.FC = () => {
   const location = useLocation()
@@ -67,18 +69,73 @@ const AppContent: React.FC = () => {
   // Other pages with layout and lazy loading
   return (
     <Layout>
-      <Suspense fallback={<div className='flex items-center justify-center h-64'>Loading...</div>}>
-        <Routes>
-          <Route path='/' element={<HomePage />} />
-          <Route path='/market' element={<MarketPage />} />
-          <Route path='/search' element={<SearchPage />} />
-          <Route path='/watchlist' element={<WatchlistPage />} />
-          <Route path='/alerts' element={<AlertsPage />} />
-          <Route path='/settings' element={<SettingsPage />} />
-          <Route path='/help' element={<HelpPage />} />
-          <Route path='/admin/users' element={<AdminUsersPage />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path='/' element={<HomePage />} />
+        <Route
+          path='/market'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <MarketPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/charts'
+          element={
+            <Suspense fallback={<ChartLoader />}>
+              <ChartsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/search'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SearchPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/watchlist'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <WatchlistPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/alerts'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <AlertsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/settings'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/help'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <HelpPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/admin/users'
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <AdminUsersPage />
+            </Suspense>
+          }
+        />
+      </Routes>
     </Layout>
   )
 }

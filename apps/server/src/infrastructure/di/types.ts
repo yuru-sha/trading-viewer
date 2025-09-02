@@ -22,6 +22,13 @@ export const TYPES = {
 
   // Security Services
   AuthorizationService: Symbol.for('AuthorizationService'),
+  AuthService: Symbol.for('AuthService'),
+  AuthValidator: Symbol.for('AuthValidator'),
+  AuthController: Symbol.for('AuthController'),
+
+  // Repositories
+  UserRepository: Symbol.for('UserRepository'),
+  RefreshTokenRepository: Symbol.for('RefreshTokenRepository'),
 
   // Configuration
   Config: Symbol.for('Config'),

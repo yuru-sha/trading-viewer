@@ -35,6 +35,11 @@ import type {
 // Import concrete implementations (synchronous)
 import { YahooFinanceService } from '../../application/services/yahooFinanceService.js'
 import { IndicatorCalculationService } from '../../application/services/IndicatorCalculationService.js'
+import { AuthService } from '../../application/services/AuthService.js'
+import { UserRepository } from '../repositories/UserRepository.js'
+import { RefreshTokenRepository } from '../repositories/RefreshTokenRepository.js'
+import { AuthValidator } from '../../validators/AuthValidator.js'
+import { AuthController } from '../../controllers/AuthController.js'
 
 class ApplicationContainer {
   private static instance: Container | null = null
@@ -86,10 +91,15 @@ class ApplicationContainer {
    * Bind all services to their implementations
    */
   private static bindServices(container: Container): void {
-    // For now, bind all services to mock implementations
-    // This allows gradual migration to DI
+    // Authentication services - Real implementations
+    container.bind(TYPES.UserRepository).to(UserRepository).inSingletonScope()
+    container.bind(TYPES.RefreshTokenRepository).to(RefreshTokenRepository).inSingletonScope()
+    container.bind(TYPES.AuthService).to(AuthService).inSingletonScope()
+    container.bind(TYPES.AuthValidator).to(AuthValidator).inSingletonScope()
+    container.bind(TYPES.AuthController).to(AuthController).inSingletonScope()
 
-    // Bind mock services for all service types
+    // Bind mock services for remaining service types
+    // This allows gradual migration to DI
     container
       .bind(TYPES.YahooFinanceService)
       .toConstantValue(createMockService(TYPES.YahooFinanceService))
@@ -275,6 +285,47 @@ function createMockService(serviceIdentifier: symbol): any {
         expiredCount: 0,
         lastCleanup: new Date(),
       }),
+    }
+  }
+
+  if (serviceIdentifier === TYPES.AuthService) {
+    return {
+      register: async () => ({ user: {}, token: '', refreshToken: '' }),
+      login: async () => ({ user: {}, token: '', refreshToken: '' }),
+      logout: async () => {},
+      refreshToken: async () => ({ user: {}, token: '' }),
+      changePassword: async () => {},
+      updateProfile: async () => ({}),
+      forgotPassword: async () => {},
+      resetPassword: async () => {},
+      getCurrentUser: async () => ({}),
+    }
+  }
+
+  if (serviceIdentifier === TYPES.UserRepository) {
+    return {
+      findById: async () => null,
+      findByEmail: async () => null,
+      findByUsername: async () => null,
+      findByResetToken: async () => null,
+      create: async (user: any) => user,
+      update: async (user: any) => user,
+      delete: async () => {},
+      findAll: async () => [],
+      existsByEmail: async () => false,
+      count: async () => 0,
+    }
+  }
+
+  if (serviceIdentifier === TYPES.RefreshTokenRepository) {
+    return {
+      findByToken: async () => null,
+      create: async (token: any) => token,
+      update: async (id: string, data: any) => data,
+      deleteByToken: async () => {},
+      deleteByUserId: async () => {},
+      findByUserId: async () => [],
+      deleteExpired: async () => {},
     }
   }
 

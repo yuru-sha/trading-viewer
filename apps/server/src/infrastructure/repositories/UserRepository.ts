@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+import { injectable } from 'inversify'
 import { User } from '@prisma/client'
 import { BaseRepository, NotFoundError, DuplicateError, FindManyOptions } from './BaseRepository'
 
@@ -60,6 +62,7 @@ export interface UserFilter {
   // hasActiveSession requires session management implementation
 }
 
+@injectable()
 export class UserRepository
   extends BaseRepository<User, UserCreateInput, UserUpdateInput, UserFilter>
   implements IUserRepository

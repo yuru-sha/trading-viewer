@@ -1,218 +1,97 @@
-import { RefreshToken } from '@prisma/client'
-import { BaseRepository, NotFoundError, FindManyOptions } from './BaseRepository'
+import { injectable } from 'inversify'
+import type { IRefreshTokenRepository } from '../../domain/repositories/IRefreshTokenRepository'
+import { RefreshToken } from '../../domain/entities/RefreshToken'
 
-export interface IRefreshTokenRepository {
-  findByToken(token: string): Promise<RefreshToken | null>
-  findByUserId(userId: string, options?: FindManyOptions): Promise<RefreshToken[]>
-  findValidByUserId(userId: string): Promise<RefreshToken[]>
-  revokeToken(id: string): Promise<RefreshToken>
-  revokeAllUserTokens(userId: string): Promise<number>
-  cleanupExpiredTokens(): Promise<number>
-  findExpiredTokens(): Promise<RefreshToken[]>
-}
-
-// Input types
-export interface RefreshTokenCreateInput {
-  token: string
-  userId: string
-  expiresAt: Date
-}
-
-export interface RefreshTokenUpdateInput {
-  token?: string
-  expiresAt?: Date
-  isRevoked?: boolean
-}
-
-export interface RefreshTokenFilter {
-  userId?: string
-  token?: string
-  isRevoked?: boolean
-  expired?: boolean
-}
-
-export class RefreshTokenRepository
-  extends BaseRepository<
-    RefreshToken,
-    RefreshTokenCreateInput,
-    RefreshTokenUpdateInput,
-    RefreshTokenFilter
-  >
-  implements IRefreshTokenRepository
-{
-  async create(data: RefreshTokenCreateInput): Promise<RefreshToken> {
-    return await this.prisma.refreshToken.create({
-      data: {
-        token: data.token,
-        userId: data.userId,
-        expiresAt: data.expiresAt,
-        isRevoked: false,
-      },
-    })
-  }
-
-  async findById(id: string): Promise<RefreshToken | null> {
-    return await this.prisma.refreshToken.findUnique({
-      where: { id },
-    })
-  }
+@injectable()
+export class RefreshTokenRepository implements IRefreshTokenRepository {
+  constructor(private readonly prisma = globalThis.prisma) {}
 
   async findByToken(token: string): Promise<RefreshToken | null> {
-    return await this.prisma.refreshToken.findUnique({
+    const refreshToken = await this.prisma.refreshToken.findUnique({
       where: { token },
     })
-  }
 
-  async findByUserId(userId: string, options?: FindManyOptions): Promise<RefreshToken[]> {
-    return await this.prisma.refreshToken.findMany({
-      where: { userId },
-      skip: options?.skip,
-      take: options?.take,
-      orderBy: options?.orderBy || [{ createdAt: 'desc' }],
-    })
-  }
-
-  async findValidByUserId(userId: string): Promise<RefreshToken[]> {
-    return await this.prisma.refreshToken.findMany({
-      where: {
-        userId,
-        isRevoked: false,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      orderBy: [{ createdAt: 'desc' }],
-    })
-  }
-
-  async findMany(filter?: RefreshTokenFilter, options?: FindManyOptions): Promise<RefreshToken[]> {
-    const where: any = {}
-
-    if (filter) {
-      if (filter.userId) {
-        where.userId = filter.userId
-      }
-      if (filter.token) {
-        where.token = filter.token
-      }
-      if (typeof filter.isRevoked === 'boolean') {
-        where.isRevoked = filter.isRevoked
-      }
-      if (typeof filter.expired === 'boolean') {
-        if (filter.expired) {
-          where.expiresAt = { lte: new Date() }
-        } else {
-          where.expiresAt = { gt: new Date() }
-        }
-      }
+    if (!refreshToken || refreshToken.isRevoked) {
+      return null
     }
 
-    return await this.prisma.refreshToken.findMany({
-      where,
-      skip: options?.skip,
-      take: options?.take,
-      orderBy: options?.orderBy || [{ createdAt: 'desc' }],
-    })
+    return this.toDomainEntity(refreshToken)
   }
 
-  async update(id: string, data: RefreshTokenUpdateInput): Promise<RefreshToken> {
-    try {
-      return await this.prisma.refreshToken.update({
-        where: { id },
-        data,
-      })
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('RefreshToken', id)
-      }
-      throw error
-    }
-  }
-
-  async delete(id: string): Promise<void> {
-    try {
-      await this.prisma.refreshToken.delete({
-        where: { id },
-      })
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundError('RefreshToken', id)
-      }
-      throw error
-    }
-  }
-
-  async count(filter?: RefreshTokenFilter): Promise<number> {
-    const where: any = {}
-
-    if (filter) {
-      if (filter.userId) {
-        where.userId = filter.userId
-      }
-      if (filter.token) {
-        where.token = filter.token
-      }
-      if (typeof filter.isRevoked === 'boolean') {
-        where.isRevoked = filter.isRevoked
-      }
-      if (typeof filter.expired === 'boolean') {
-        if (filter.expired) {
-          where.expiresAt = { lte: new Date() }
-        } else {
-          where.expiresAt = { gt: new Date() }
-        }
-      }
-    }
-
-    return await this.prisma.refreshToken.count({ where })
-  }
-
-  async revokeToken(id: string): Promise<RefreshToken> {
-    return await this.update(id, { isRevoked: true })
-  }
-
-  async revokeAllUserTokens(userId: string): Promise<number> {
-    const result = await this.prisma.refreshToken.updateMany({
-      where: {
-        userId,
-        isRevoked: false,
-      },
+  async create(refreshToken: RefreshToken): Promise<RefreshToken> {
+    const created = await this.prisma.refreshToken.create({
       data: {
-        isRevoked: true,
+        id: refreshToken.id,
+        token: refreshToken.token,
+        userId: refreshToken.userId,
+        expiresAt: refreshToken.expiresAt,
+        isRevoked: false,
+        createdAt: refreshToken.createdAt,
       },
     })
-    return result.count
+
+    return this.toDomainEntity(created)
   }
 
-  async cleanupExpiredTokens(): Promise<number> {
-    const result = await this.prisma.refreshToken.deleteMany({
+  async update(id: string, data: Partial<RefreshToken>): Promise<RefreshToken> {
+    const updated = await this.prisma.refreshToken.update({
+      where: { id },
+      data: {
+        ...(data.token && { token: data.token }),
+        ...(data.expiresAt && { expiresAt: data.expiresAt }),
+        // Note: lastUsedAt and updatedAt are not stored in the database
+        // but are handled in the domain layer
+      },
+    })
+
+    return this.toDomainEntity(updated)
+  }
+
+  async deleteByToken(token: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: { token },
+      data: { isRevoked: true },
+    })
+  }
+
+  async deleteByUserId(userId: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: { userId },
+      data: { isRevoked: true },
+    })
+  }
+
+  async findByUserId(userId: string): Promise<RefreshToken[]> {
+    const refreshTokens = await this.prisma.refreshToken.findMany({
       where: {
-        OR: [
-          {
-            expiresAt: {
-              lte: new Date(),
-            },
-          },
-          {
-            isRevoked: true,
-            createdAt: {
-              lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Older than 7 days
-            },
-          },
-        ],
+        userId,
+        isRevoked: false,
       },
     })
-    return result.count
+
+    return refreshTokens.map(token => this.toDomainEntity(token))
   }
 
-  async findExpiredTokens(): Promise<RefreshToken[]> {
-    return await this.prisma.refreshToken.findMany({
+  async deleteExpired(): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
       where: {
         expiresAt: {
-          lte: new Date(),
+          lt: new Date(),
         },
       },
-      orderBy: [{ expiresAt: 'asc' }],
+      data: { isRevoked: true },
     })
+  }
+
+  private toDomainEntity(dbToken: any): RefreshToken {
+    return new RefreshToken(
+      dbToken.id,
+      dbToken.token,
+      dbToken.userId,
+      dbToken.expiresAt,
+      undefined, // lastUsedAt not stored in DB
+      dbToken.createdAt,
+      dbToken.createdAt // updatedAt not stored in DB, use createdAt
+    )
   }
 }

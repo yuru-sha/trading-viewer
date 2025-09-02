@@ -50,7 +50,7 @@ const LoginPage: React.FC = () => {
         showSuccess('Account created successfully')
         announceToScreenReader('Account creation completed successfully', 'assertive')
       }
-    } catch {
+    } catch (error) {
       handleApiError(error, isLogin ? 'Login' : 'Account creation')
       announceToScreenReader(
         `An error occurred during ${isLogin ? 'login' : 'account creation'}`,
@@ -70,7 +70,7 @@ const LoginPage: React.FC = () => {
       showSuccess('Password reset link has been sent to your email address.')
       setShowForgotPassword(false)
       setForgotPasswordEmail('')
-    } catch {
+    } catch (error) {
       handleApiError(error, 'Password reset request')
     } finally {
       setIsForgotPasswordLoading(false)
