@@ -3,7 +3,6 @@ import type { useChartInstance } from './useChartInstance'
 import { PriceData } from '../utils/indicators'
 import { useChartEvents as useRefactoredChartEvents } from './chart-events'
 
-
 interface ChartEventsConfig {
   enableDrawingTools: boolean
   onCrosshairMove?: (price: number | null, time: number | null) => void

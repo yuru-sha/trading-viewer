@@ -73,7 +73,6 @@ const ChartFooter: React.FC<ChartFooterProps> = ({
           </span>
         </div>
 
-
         {/* Right - Time Display (Clickable) */}
         <div className='relative'>
           <button

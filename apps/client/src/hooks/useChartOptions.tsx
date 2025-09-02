@@ -56,7 +56,12 @@ export function useChartOptions(
       symbol: config.symbol,
       timeframe: config.timeframe,
     }
-  }, [chartData.dates?.length, chartData.dates?.[chartData.dates?.length - 1], config.symbol, config.timeframe])
+  }, [
+    chartData.dates?.length,
+    chartData.dates?.[chartData.dates?.length - 1],
+    config.symbol,
+    config.timeframe,
+  ])
 
   // インジケーターデータフェッチ
   const { data: indicators = [], isLoading: indicatorsLoading } = useQuery({
@@ -416,8 +421,8 @@ export function useChartOptions(
     })
 
     // 初期化時のみデフォルト値を使用、以降はスクロール位置を保持
-    const currentScrollPosition = isInitializedRef.current 
-      ? scrollPositionRef.current 
+    const currentScrollPosition = isInitializedRef.current
+      ? scrollPositionRef.current
       : { start: 70, end: 100 }
 
     if (!isInitializedRef.current) {

@@ -618,11 +618,14 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
         })
 
         // Cmd+矢印キー（Mac）またはCtrl+矢印キー（Windows/Linux）でのスクロール
-        if ((event.metaKey || event.ctrlKey) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+        if (
+          (event.metaKey || event.ctrlKey) &&
+          ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
+        ) {
           event.preventDefault()
           const option = chart.getOption()
           const dataZoom = option.dataZoom?.[0]
-          
+
           if (dataZoom) {
             const currentStart = dataZoom.start || 0
             const currentEnd = dataZoom.end || 100
@@ -671,7 +674,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
             updateScrollPosition(newStart, newEnd)
           }
         }
-        
+
         // 描画ツール関連のキーボードイベント
         if (!enableDrawingTools || !drawingTools) return
 
@@ -737,7 +740,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
                 // バッチ形式の場合
                 const batchItem = params.batch[0]
                 if (batchItem && batchItem.start !== undefined && batchItem.end !== undefined) {
-                  console.log('Updating scroll position from batch:', batchItem.start, batchItem.end)
+                  console.log(
+                    'Updating scroll position from batch:',
+                    batchItem.start,
+                    batchItem.end
+                  )
                   updateScrollPosition(batchItem.start, batchItem.end)
                 }
               } else {
