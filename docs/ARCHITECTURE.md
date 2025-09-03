@@ -59,12 +59,12 @@ apps/server/src/
 ├── application/              # アプリケーション層
 │   └── services/            # アプリケーションサービス（IndicatorCalculation 等）
 ├── infrastructure/           # インフラストラクチャ層
+│   ├── di/                  # DI コンテナ
 │   ├── providers/           # 外部 API プロバイダー
 │   ├── services/            # 外部依存サービス（tokenStore, encryption 等）
 │   ├── cache/               # キャッシュ実装
 │   └── repositories/        # データアクセス実装（Prisma）
 ├── routes/                   # API ルート・コントローラー
-├── containers/               # DI コンテナ
 └── middleware/              # ミドルウェア
 ```
 

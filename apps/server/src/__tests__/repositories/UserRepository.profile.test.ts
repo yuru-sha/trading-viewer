@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { UserRepository } from '../../repositories/UserRepository'
+import { UserRepository } from '../../infrastructure/repositories/UserRepository'
 import { prismaMock } from '../__mocks__/prisma'
 
-describe.skip('UserRepository - Profile Operations', () => {
+describe('UserRepository - Profile Operations', () => {
   let userRepository: UserRepository
   const mockUserId = 'user_123'
   const mockUser = {
@@ -18,7 +18,7 @@ describe.skip('UserRepository - Profile Operations', () => {
   }
 
   beforeEach(() => {
-    userRepository = new UserRepository()
+    userRepository = new UserRepository(prismaMock)
   })
 
   afterEach(() => {
@@ -37,10 +37,9 @@ describe.skip('UserRepository - Profile Operations', () => {
 
       // Assert
       expect(prismaMock.user.update).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
+        where: { id: mockUserId },
         data: {
           name: 'Updated Name',
-          updatedAt: expect.any(Date),
         },
       })
       expect(result.name).toBe('Updated Name')

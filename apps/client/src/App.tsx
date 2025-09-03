@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import { ErrorBoundary } from '@trading-viewer/ui'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { AppProvider } from './contexts/AppContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { ErrorProvider } from './contexts/ErrorContext'
@@ -14,14 +14,16 @@ import LoginPage from './pages/LoginPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 
 // Lazy load heavy components for better performance
-const MarketPage = React.lazy(() => import('./pages/MarketPage'))
-const ChartsPage = React.lazy(() => import('./pages/ChartsPage'))
-const SearchPage = React.lazy(() => import('./pages/SearchPage'))
-const WatchlistPage = React.lazy(() => import('./pages/WatchlistPage'))
-const AlertsPage = React.lazy(() => import('./pages/AlertsPage'))
-const AdminUsersPage = React.lazy(() => import('./pages/AdminUsersPage'))
-const SettingsPage = React.lazy(() => import('./pages/SettingsPage'))
-const HelpPage = React.lazy(() => import('./pages/HelpPage'))
+import {
+  MarketPage,
+  ChartsPage,
+  SearchPage,
+  WatchlistPage,
+  AlertsPage,
+  AdminUsersPage,
+  SettingsPage,
+  HelpPage,
+} from './pages'
 
 const AppContent: React.FC = () => {
   const location = useLocation()

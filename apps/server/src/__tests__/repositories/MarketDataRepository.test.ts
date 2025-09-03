@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { MarketDataRepository } from '../../repositories/MarketDataRepository'
+import { MarketDataRepository } from '../../infrastructure/repositories/MarketDataRepository'
 import {
   IMarketDataProvider,
   QuoteResponse,

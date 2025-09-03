@@ -1,10 +1,12 @@
-import { injectable } from 'inversify'
+import { injectable, inject } from 'inversify'
+import { PrismaClient } from '@prisma/client'
 import type { IRefreshTokenRepository } from '../../domain/repositories/IRefreshTokenRepository'
 import { RefreshToken } from '../../domain/entities/RefreshToken'
+import { TYPES } from '../di/types'
 
 @injectable()
 export class RefreshTokenRepository implements IRefreshTokenRepository {
-  constructor(private readonly prisma = globalThis.prisma) {}
+  constructor(@inject(TYPES.PrismaClient) private readonly prisma: PrismaClient) {}
 
   async findByToken(token: string): Promise<RefreshToken | null> {
     const refreshToken = await this.prisma.refreshToken.findUnique({

@@ -151,7 +151,11 @@ router.get(
     }
 
     const [users, totalCount] = await Promise.all([
-      userRepository.findMany(where),
+      userRepository.findMany(where, {
+        skip,
+        take: limitNum,
+        orderBy: [{ createdAt: 'desc' }],
+      }),
       userRepository.count(where),
     ])
 

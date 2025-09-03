@@ -40,6 +40,7 @@ import { UserRepository } from '../repositories/UserRepository.js'
 import { RefreshTokenRepository } from '../repositories/RefreshTokenRepository.js'
 import { AuthValidator } from '../../validators/AuthValidator.js'
 import { AuthController } from '../../controllers/AuthController.js'
+import { prisma } from '../../lib/database.js'
 
 class ApplicationContainer {
   private static instance: Container | null = null
@@ -91,6 +92,9 @@ class ApplicationContainer {
    * Bind all services to their implementations
    */
   private static bindServices(container: Container): void {
+    // Database
+    container.bind(TYPES.PrismaClient).toConstantValue(prisma)
+
     // Authentication services - Real implementations
     container.bind(TYPES.UserRepository).to(UserRepository).inSingletonScope()
     container.bind(TYPES.RefreshTokenRepository).to(RefreshTokenRepository).inSingletonScope()

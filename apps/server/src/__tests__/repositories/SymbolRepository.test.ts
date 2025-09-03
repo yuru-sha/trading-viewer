@@ -4,7 +4,7 @@ import {
   SymbolRepository,
   DuplicateError,
   NotFoundError,
-} from '../../repositories/SymbolRepository'
+} from '../../infrastructure/repositories/SymbolRepository'
 
 // Mock PrismaClient
 const mockPrismaClient = {

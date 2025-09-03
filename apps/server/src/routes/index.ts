@@ -1,6 +1,6 @@
 import { Application } from 'express'
-import authRoutes from './auth.js' // Restored working auth routes
-// import { authRouter } from './auth/index.js' // New modular auth routes - temporarily disabled
+import authRoutes from './auth' // Use monolithic auth routes with integrated user management
+// import authRoutes from './authIndex' // Modular auth routes - disabled due to import issues
 import marketRoutes from './market.js'
 import alertRoutes from './alerts.js'
 import watchlistRoutes from './watchlist.js'

@@ -5,7 +5,7 @@
  * パフォーマンス改善のためファイル分割
  */
 
-import { log } from './logger'
+import { log } from '../services/logger'
 
 // SMA (Simple Moving Average) 計算
 export function calculateSMA(prices: number[], period: number): number[] {

@@ -30,6 +30,9 @@ export const TYPES = {
   UserRepository: Symbol.for('UserRepository'),
   RefreshTokenRepository: Symbol.for('RefreshTokenRepository'),
 
+  // Database
+  PrismaClient: Symbol.for('PrismaClient'),
+
   // Configuration
   Config: Symbol.for('Config'),
 } as const

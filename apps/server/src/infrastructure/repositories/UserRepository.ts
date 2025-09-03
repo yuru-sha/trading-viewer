@@ -1,7 +1,8 @@
 import 'reflect-metadata'
-import { injectable } from 'inversify'
-import { User } from '@prisma/client'
+import { injectable, inject } from 'inversify'
+import { User, PrismaClient } from '@prisma/client'
 import { BaseRepository, NotFoundError, DuplicateError, FindManyOptions } from './BaseRepository'
+import { TYPES } from '../di/types'
 
 export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>
@@ -67,6 +68,9 @@ export class UserRepository
   extends BaseRepository<User, UserCreateInput, UserUpdateInput, UserFilter>
   implements IUserRepository
 {
+  constructor(@inject(TYPES.PrismaClient) prisma: PrismaClient) {
+    super(prisma)
+  }
   async create(data: UserCreateInput): Promise<User> {
     try {
       const result = await this.prisma.user.create({
@@ -178,12 +182,19 @@ export class UserRepository
       }
     }
 
-    const result = await this.prisma.user.findMany({
+    const queryOptions: any = {
       where,
       skip: options?.skip,
       take: options?.take,
       orderBy: options?.orderBy || [{ createdAt: 'desc' }],
-    })
+    }
+
+    // Only add select if it's provided
+    if (options?.select) {
+      queryOptions.select = options.select
+    }
+
+    const result = await this.prisma.user.findMany(queryOptions)
     return result as User[]
   }
 

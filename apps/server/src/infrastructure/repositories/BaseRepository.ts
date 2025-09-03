@@ -14,6 +14,7 @@ export interface FindManyOptions {
   skip?: number
   take?: number
   orderBy?: Record<string, 'asc' | 'desc'>[]
+  select?: Record<string, boolean>
 }
 
 // Abstract base repository implementation

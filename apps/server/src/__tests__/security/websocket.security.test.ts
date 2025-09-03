@@ -1,7 +1,7 @@
 import WebSocket from 'ws'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Server } from 'http'
-import { WebSocketService } from '../../services/websocketService'
+import { WebSocketService } from '../../application/services/websocketService'
 import jwt from 'jsonwebtoken'
 
 describe.skip('WebSocket Security Tests', () => {

@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useChartClick } from './useChartClick'
 import { useChartMouseEvents } from './useChartMouseEvents'
 import { useChartRightClick } from './useChartRightClick'

@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { CandleRepository, NotFoundError } from '../../repositories/CandleRepository'
+import { CandleRepository, NotFoundError } from '../../infrastructure/repositories/CandleRepository'
 
 // Mock PrismaClient
 const mockPrismaClient = {

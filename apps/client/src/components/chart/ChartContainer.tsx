@@ -176,7 +176,7 @@ const ChartContainerComponent = forwardRef<ChartContainerRef, ChartContainerProp
     }
 
     return (
-      <div className={`h-full flex relative ${className}`}>
+      <div className={`h-full flex relative ${className}`} data-testid='chart-container'>
         {/* 左側の描画ツールバー */}
         {(showDrawingTools ?? renderingManager.settings.showDrawingTools) && (
           <LeftDrawingToolbar

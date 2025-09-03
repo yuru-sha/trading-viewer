@@ -1,4 +1,4 @@
-import { MemoryCacheService, ICacheService } from '../../services/cacheService'
+import { MemoryCacheService, ICacheService } from '../../application/services/cacheService'
 import { NormalizedSymbol, NormalizedQuote, NormalizedCandleResponse } from '@trading-viewer/shared'
 import { vi } from 'vitest'
 
@@ -6,7 +6,7 @@ import { vi } from 'vitest'
 // @vitest-environment node
 
 // Mock database service
-vi.mock('../../services/databaseService', () => ({
+vi.mock('../../infrastructure/services/databaseService', () => ({
   getDatabaseService: vi.fn(() => ({
     symbols: {
       findBySymbol: vi.fn(),
@@ -25,7 +25,7 @@ describe.skip('MemoryCacheService', () => {
 
   beforeEach(() => {
     service = new MemoryCacheService()
-    const { getDatabaseService } = require('../../services/databaseService')
+    const { getDatabaseService } = require('../../infrastructure/services/databaseService')
     mockDbService = getDatabaseService()
     vi.clearAllMocks()
   })
