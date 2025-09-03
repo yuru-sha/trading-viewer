@@ -3,11 +3,33 @@ import { useChartClick } from './useChartClick'
 import { useChartMouseEvents } from './useChartMouseEvents'
 import { useChartRightClick } from './useChartRightClick'
 import { useDOMEventListeners } from './useDOMEventListeners'
-import type { ChartEventsConfig } from './types'
+import type { ChartEventsConfig, ChartEventHandlers } from './types'
+
+type ChartInstanceType = {
+  chartRef: React.RefObject<{ getEchartsInstance: () => unknown }>
+  convertPixelToData: (
+    x: number,
+    y: number,
+    data: ChartEventsConfig['data']
+  ) => { timestamp: number; price: number } | null
+}
+
+type DrawingToolsType = {
+  selectedToolId: string | null
+  canDraw: boolean
+  isDrawing: boolean
+  currentDrawing: unknown
+  getVisibleTools?: () => unknown[]
+  selectTool: (id: string | null) => void
+  startDrawing: (event: { timestamp: number; price: number; x: number; y: number }) => void
+  updateDrawing: (event: { timestamp: number; price: number; x: number; y: number }) => void
+  finishDrawing: () => void
+  cancelDrawing: () => void
+}
 
 export const useChartEvents = (
-  chartInstance: any,
-  drawingTools: any,
+  chartInstance: ChartInstanceType,
+  drawingTools: DrawingToolsType,
   config: ChartEventsConfig
 ) => {
   // Helper function to find closest data index by timestamp

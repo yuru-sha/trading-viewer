@@ -3,10 +3,57 @@ import { ECElementEvent } from 'echarts'
 import { log } from '@/services/logger'
 import type { ChartEventsConfig } from './types'
 
+type ChartInstanceType = {
+  chartRef: React.RefObject<{ getEchartsInstance: () => unknown }>
+  convertPixelToData: (
+    x: number,
+    y: number,
+    data: ChartEventsConfig['data']
+  ) => { timestamp: number; price: number } | null
+}
+
+type DrawingToolsType = {
+  selectedToolId: string | null
+  isMouseDown: boolean
+  isDragging: boolean
+  dragState: {
+    toolId?: string
+    handleType?: string
+    startPos?: { x: number; y: number }
+    originalPoints?: unknown[]
+  } | null
+  getTool: (
+    id: string
+  ) => { id: string; type: string; points: { timestamp: number; price: number }[] } | null
+  mouseDown: (
+    toolId: string,
+    handleType: string,
+    pos: { x: number; y: number },
+    points: unknown[]
+  ) => void
+  updateDrag?: (
+    x: number,
+    y: number,
+    chartInstance: ChartInstanceType,
+    data: ChartEventsConfig['data']
+  ) => void
+  startDrag?: (
+    toolId: string,
+    handleType: string,
+    startPos: { x: number; y: number },
+    originalPoints: unknown[]
+  ) => void
+  endDrag: (
+    event: { timestamp: number; price: number; x: number; y: number },
+    tool: unknown | null
+  ) => void
+  updateDrawing: (event: { timestamp: number; price: number; x: number; y: number }) => void
+}
+
 type UseChartMouseEventsProps = {
   config: ChartEventsConfig
-  chartInstance: any
-  drawingTools: any
+  chartInstance: ChartInstanceType
+  drawingTools: DrawingToolsType
   findClosestDataIndex: (timestamp: number) => number
 }
 

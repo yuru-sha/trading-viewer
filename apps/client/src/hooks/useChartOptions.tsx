@@ -28,7 +28,7 @@ export type ChartOptionsConfig = {
     grid: string
     background: string
   }
-  graphicElements?: any[]
+  graphicElements?: Record<string, unknown>[]
 }
 
 /**
@@ -374,7 +374,7 @@ export function useChartOptions(
               xAxisIndex: macdGridIndex,
               yAxisIndex: macdGridIndex,
               itemStyle: {
-                color: function (params: any) {
+                color: function (params: { value: [number, number] }) {
                   return params.value[1] >= 0
                     ? isDarkMode
                       ? 'rgba(34, 197, 94, 0.8)'

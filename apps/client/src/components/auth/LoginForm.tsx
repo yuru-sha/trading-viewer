@@ -72,20 +72,25 @@ const LoginForm: React.FC<LoginFormProps> = ({
       await login(formData)
       showSuccess('ログインが成功しました')
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle specific login errors
       let errorMessage = 'ログインに失敗しました。'
 
-      if (error?.response?.status === 401) {
+      const httpError = error as {
+        response?: { status?: number; data?: { message?: string } }
+        message?: string
+      }
+
+      if (httpError?.response?.status === 401) {
         errorMessage = 'メールアドレスまたはパスワードが正しくありません。'
-      } else if (error?.response?.status === 423) {
+      } else if (httpError?.response?.status === 423) {
         errorMessage = 'アカウントがロックされています。しばらく待ってから再度お試しください。'
-      } else if (error?.response?.status === 429) {
+      } else if (httpError?.response?.status === 429) {
         errorMessage = 'ログイン試行回数が制限を超えました。しばらく待ってから再度お試しください。'
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (error?.message) {
-        errorMessage = error.message
+      } else if (httpError?.response?.data?.message) {
+        errorMessage = httpError.response.data.message
+      } else if (httpError?.message) {
+        errorMessage = httpError.message
       }
 
       setLoginError(errorMessage)

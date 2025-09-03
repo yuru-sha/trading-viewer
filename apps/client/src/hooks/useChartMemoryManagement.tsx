@@ -30,7 +30,7 @@ export const useChartMemoryManagement = (chartId?: string) => {
   /**
    * ECharts インスタンスの安全な破棄
    */
-  const disposeChart = (chartInstance: any) => {
+  const disposeChart = (chartInstance: unknown) => {
     onCleanup(() => {
       try {
         if (chartInstance && typeof chartInstance.dispose === 'function') {

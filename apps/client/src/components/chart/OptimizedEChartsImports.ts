@@ -215,8 +215,17 @@ export const createOptimizedChart = (
   return chart
 }
 
+// データポイントの基本構造を定義
+type DataPoint = {
+  timestamp?: number
+  time?: number
+  close?: number
+  value?: number
+  [key: string]: unknown
+}
+
 // メモリ効率の良いデータ処理
-export const processLargeDataset = <T extends Record<string, any>>(
+export const processLargeDataset = <T extends DataPoint>(
   data: T[],
   options: {
     maxPoints?: number
@@ -250,7 +259,7 @@ export const processLargeDataset = <T extends Record<string, any>>(
 }
 
 // LTTB (Largest-Triangle-Three-Buckets) サンプリング
-const sampleByLTTB = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
+const sampleByLTTB = <T extends DataPoint>(data: T[], maxPoints: number): T[] => {
   if (data.length <= maxPoints) return data
 
   const bucketSize = Math.floor(data.length / maxPoints)
@@ -288,7 +297,7 @@ const sampleByLTTB = <T extends Record<string, any>>(data: T[], maxPoints: numbe
 }
 
 // 三角形の面積計算
-const calculateTriangleArea = (a: any, b: any, c: any): number => {
+const calculateTriangleArea = (a: DataPoint, b: DataPoint, c: DataPoint): number => {
   const x1 = a.timestamp || a.time || 0
   const y1 = a.close || a.value || 0
   const x2 = b.timestamp || b.time || 0
@@ -300,7 +309,7 @@ const calculateTriangleArea = (a: any, b: any, c: any): number => {
 }
 
 // 平均値サンプリング
-const sampleByAverage = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
+const sampleByAverage = <T extends DataPoint>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
 
@@ -317,7 +326,7 @@ const sampleByAverage = <T extends Record<string, any>>(data: T[], maxPoints: nu
 }
 
 // 最大値サンプリング
-const sampleByMax = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
+const sampleByMax = <T extends DataPoint>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
 
@@ -343,7 +352,7 @@ const sampleByMax = <T extends Record<string, any>>(data: T[], maxPoints: number
 }
 
 // 最小値サンプリング
-const sampleByMin = <T extends Record<string, any>>(data: T[], maxPoints: number): T[] => {
+const sampleByMin = <T extends DataPoint>(data: T[], maxPoints: number): T[] => {
   const bucketSize = Math.floor(data.length / maxPoints)
   const sampled: T[] = []
 

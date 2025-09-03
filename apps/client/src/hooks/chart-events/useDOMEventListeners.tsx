@@ -3,10 +3,22 @@ import { log } from '@/services/logger'
 import { useMemoryManager } from '../../utils/memoryManager'
 import type { ChartEventsConfig, ChartEventHandlers } from './types'
 
+type ChartInstanceType = {
+  chartReady: boolean
+  chartRef: React.RefObject<unknown>
+  getEChartsInstance: () => { getDom: () => HTMLElement | null } | null
+}
+
+type DrawingToolsType = {
+  isMouseDown?: boolean
+  isDragging?: boolean
+  isDrawing?: boolean
+}
+
 type UseDOMEventListenersProps = {
   config: ChartEventsConfig
-  chartInstance: any
-  drawingTools: any
+  chartInstance: ChartInstanceType
+  drawingTools: DrawingToolsType
   handlers: ChartEventHandlers
 }
 
@@ -46,7 +58,7 @@ export const useDOMEventListeners = ({
         offsetY: event.offsetY,
         event: event,
         domClick: true,
-      } as any
+      } as unknown
 
       handlersRef.current.handleChartClick?.(params)
     }
@@ -61,7 +73,7 @@ export const useDOMEventListeners = ({
         offsetY: event.offsetY,
         event: event,
         domMouseDown: true,
-      } as any
+      } as unknown
 
       handlersRef.current.handleChartMouseDown?.(params)
     }
@@ -99,7 +111,7 @@ export const useDOMEventListeners = ({
           offsetY: event.offsetY,
           event: event,
           domMove: true,
-        } as any
+        } as unknown
 
         try {
           handlersRef.current.handleChartMouseMove?.(params)
@@ -119,7 +131,7 @@ export const useDOMEventListeners = ({
         offsetY: event.offsetY,
         event: event,
         domMouseUp: true,
-      } as any
+      } as unknown
 
       handlersRef.current.handleChartMouseUp?.(params)
     }
@@ -135,7 +147,7 @@ export const useDOMEventListeners = ({
         offsetY: event.offsetY,
         event: event,
         domRightClick: true,
-      } as any
+      } as unknown
 
       handlersRef.current.handleChartRightClick?.(params)
     }

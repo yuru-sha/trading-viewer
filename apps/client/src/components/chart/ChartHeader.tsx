@@ -161,7 +161,11 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
     }
   }
 
-  const handleSaveChartSubmit = async (data: any) => {
+  const handleSaveChartSubmit = async (data: {
+    name: string
+    description?: string
+    isDefault?: boolean
+  }) => {
     try {
       setIsSaving(true)
       const response = await api.charts.saveChart(data)
@@ -174,12 +178,13 @@ const ChartHeader: React.FC<ChartHeaderProps> = ({
       } else {
         alert('Failed to save chart: ' + (response.message || 'Unknown error'))
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string }
       log.business.error('Error saving chart', error, {
         operation: 'save_chart',
         chartData: data,
       })
-      alert('Failed to save chart: ' + (error.message || 'Unknown error'))
+      alert('Failed to save chart: ' + (err.message || 'Unknown error'))
     } finally {
       setIsSaving(false)
     }

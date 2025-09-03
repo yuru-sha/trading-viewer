@@ -117,7 +117,7 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
           // Apply settings to chart
           handleSettingsChange({
             ...chartSettings,
-            chartType: chartData.chartType as any,
+            chartType: chartData.chartType as 'candlestick' | 'line' | 'area',
             ...savedSettings,
             indicators: savedIndicators,
           })

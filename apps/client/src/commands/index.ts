@@ -80,8 +80,9 @@ export async function createCommandSystem(options?: {
   return {
     invoker,
     factory,
-    execute: (command: any) => invoker.execute(command),
-    createCommand: (type: string, params: any) => factory.createCommand(type, params),
+    execute: (command: ICommand<unknown, unknown>) => invoker.execute(command),
+    createCommand: <T extends ICommand<unknown, unknown>>(type: string, params: unknown) =>
+      factory.createCommand<T>(type, params),
     undo: () => invoker.undo(),
     redo: () => invoker.redo(),
     canUndo: () => invoker.canUndo(),

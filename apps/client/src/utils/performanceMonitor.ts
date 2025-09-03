@@ -4,7 +4,7 @@ export interface PerformanceMetrics {
   name: string
   duration: number
   timestamp: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 class PerformanceMonitor {
@@ -150,7 +150,7 @@ class PerformanceMonitor {
     this.timers.set(name, Date.now())
   }
 
-  stopTimer = (name: string, metadata?: Record<string, any>): number => {
+  stopTimer = (name: string, metadata?: Record<string, unknown>): number => {
     const startTime = this.timers.get(name)
     if (!startTime) {
       log.performance.warn('Timer not found', { timerName: name })
@@ -174,7 +174,11 @@ class PerformanceMonitor {
   // Memory usage tracking
   trackMemoryUsage = (): void => {
     if ('memory' in performance) {
-      const memInfo = (performance as any).memory
+      const memInfo = (
+        performance as {
+          memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number }
+        }
+      ).memory
       const metric: PerformanceMetrics = {
         name: 'memory_usage',
         duration: 0,
@@ -234,8 +238,8 @@ class PerformanceMonitor {
   }
 
   // Get performance summary
-  getPerformanceSummary = (): Record<string, any> => {
-    const summary: Record<string, any> = {}
+  getPerformanceSummary = (): Record<string, unknown> => {
+    const summary: Record<string, unknown> = {}
     const now = Date.now()
     const recentMetrics = this.metrics.filter(m => now - m.timestamp < 60000) // Last minute
 

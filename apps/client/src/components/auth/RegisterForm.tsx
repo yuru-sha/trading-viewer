@@ -87,18 +87,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchToLogin 
       await register(registerData)
       showSuccess('アカウントが正常に作成されました')
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle specific registration errors
       let errorMessage = 'アカウント作成に失敗しました。'
 
-      if (error?.response?.status === 400) {
+      const httpError = error as {
+        response?: { status?: number; data?: { message?: string } }
+        message?: string
+      }
+
+      if (httpError?.response?.status === 400) {
         errorMessage = '入力データに問題があります。'
-      } else if (error?.response?.status === 409) {
+      } else if (httpError?.response?.status === 409) {
         errorMessage = 'このメールアドレスは既に使用されています。'
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (error?.message) {
-        errorMessage = error.message
+      } else if (httpError?.response?.data?.message) {
+        errorMessage = httpError.response.data.message
+      } else if (httpError?.message) {
+        errorMessage = httpError.message
       }
 
       setRegisterError(errorMessage)

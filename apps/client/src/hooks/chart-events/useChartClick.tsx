@@ -4,10 +4,32 @@ import { log } from '@/services/logger'
 import type { ChartEventsConfig } from './types'
 import type { DrawingTool } from '@shared/types/chart'
 
+type ChartInstanceType = {
+  chartRef: React.RefObject<{ getEchartsInstance: () => unknown }>
+  convertPixelToData: (
+    x: number,
+    y: number,
+    data: ChartEventsConfig['data']
+  ) => { timestamp: number; price: number } | null
+}
+
+type DrawingToolsType = {
+  selectedToolId: string | null
+  canDraw: boolean
+  isDrawing: boolean
+  currentDrawing: DrawingTool | null
+  getVisibleTools?: () => DrawingTool[]
+  selectTool: (id: string | null) => void
+  startDrawing: (event: { timestamp: number; price: number; x: number; y: number }) => void
+  updateDrawing: (event: { timestamp: number; price: number; x: number; y: number }) => void
+  finishDrawing: () => void
+  cancelDrawing: () => void
+}
+
 type UseChartClickProps = {
   config: ChartEventsConfig
-  chartInstance: any
-  drawingTools: any
+  chartInstance: ChartInstanceType
+  drawingTools: DrawingToolsType
   findClosestDataIndex: (timestamp: number) => number
 }
 
@@ -52,7 +74,7 @@ export const useChartClick = ({
   )
 
   const findClickedTool = useCallback(
-    (params: ECElementEvent, tools: any[]): DrawingTool | null => {
+    (params: ECElementEvent, tools: DrawingTool[]): DrawingTool | null => {
       return tools.find((tool: DrawingTool) => {
         if (!tool.points || tool.points.length < 1) {
           return false

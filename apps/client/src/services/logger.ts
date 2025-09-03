@@ -393,5 +393,5 @@ export const log = ClientLoggerService.getInstance()
 
 // 開発環境でのデバッグ用にグローバルに露出
 if (import.meta.env.DEV) {
-  ;(window as any).logger = log
+  ;(window as { logger?: typeof log }).logger = log
 }

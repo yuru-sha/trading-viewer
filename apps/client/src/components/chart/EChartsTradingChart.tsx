@@ -733,7 +733,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
           }}
           onChartReady={chartInstance.onChartReady}
           onEvents={{
-            dataZoom: (params: any) => {
+            dataZoom: (params: {
+              batch?: Array<{ start?: number; end?: number }>
+              start?: number
+              end?: number
+            }) => {
               console.log('DataZoom event:', params)
               // EChartsのdataZoomイベントの正しい構造を使用
               if (params.batch) {

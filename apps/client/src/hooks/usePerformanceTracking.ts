@@ -97,7 +97,7 @@ export const useCustomPerformanceTracking = () => {
     const timerName = `custom_${metricName}_${Date.now()}`
     startTimer(timerName)
 
-    return (metadata?: Record<string, any>) => {
+    return (metadata?: Record<string, unknown>) => {
       return stopTimer(timerName, metadata)
     }
   }, [])

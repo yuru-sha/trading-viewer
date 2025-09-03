@@ -30,7 +30,22 @@ interface UserPreferencesParams {
   [key: string]: unknown
 }
 
-// Simplified context types - using any for flexibility during development
+// Context types for dependency injection
+interface DrawingContext {
+  createDrawingTool: (params: SharedDrawingCommandParams) => void
+  updateDrawingTool: (drawingId: string, updates: Record<string, unknown>) => void
+  deleteDrawingTool: (drawingId: string) => void
+}
+
+interface ChartContext {
+  updateSettings: (settings: ChartSettingsParams) => void
+  addIndicator: (type: string, params: Record<string, unknown>) => void
+  removeIndicator: (id: string) => void
+}
+
+interface UserPreferencesContext {
+  updatePreferences: (preferences: UserPreferencesParams) => void
+}
 
 /**
  * Command Factory Implementation
@@ -126,7 +141,10 @@ export class CommandFactory implements ICommandFactory {
     this.registerCommand(
       'CREATE_DRAWING',
       (params, contexts) =>
-        new CreateDrawingToolCommand(params as SharedDrawingCommandParams, contexts.drawing as any)
+        new CreateDrawingToolCommand(
+          params as SharedDrawingCommandParams,
+          contexts.drawing as DrawingContext
+        )
     )
 
     this.registerCommand(
@@ -134,14 +152,17 @@ export class CommandFactory implements ICommandFactory {
       (params, contexts) =>
         new UpdateDrawingToolCommand(
           params as { drawingId: string; updates: Record<string, unknown> },
-          contexts.drawing as any
+          contexts.drawing as DrawingContext
         )
     )
 
     this.registerCommand(
       'DELETE_DRAWING',
       (params, contexts) =>
-        new DeleteDrawingToolCommand(params as { drawingId: string }, contexts.drawing as any)
+        new DeleteDrawingToolCommand(
+          params as { drawingId: string },
+          contexts.drawing as DrawingContext
+        )
     )
 
     this.registerCommand(
@@ -154,7 +175,7 @@ export class CommandFactory implements ICommandFactory {
     this.registerCommand(
       'UPDATE_CHART_SETTINGS',
       (params, contexts) =>
-        new ChartSettingsCommand(params as ChartSettingsParams, contexts.chart as any)
+        new ChartSettingsCommand(params as ChartSettingsParams, contexts.chart as ChartContext)
     )
 
     this.registerCommand(
@@ -162,14 +183,14 @@ export class CommandFactory implements ICommandFactory {
       (params, contexts) =>
         new AddIndicatorCommand(
           params as { type: string; params: Record<string, unknown> },
-          contexts.chart as any
+          contexts.chart as ChartContext
         )
     )
 
     this.registerCommand(
       'REMOVE_INDICATOR',
       (params, contexts) =>
-        new RemoveIndicatorCommand(params as { id: string }, contexts.chart as any)
+        new RemoveIndicatorCommand(params as { id: string }, contexts.chart as ChartContext)
     )
 
     // User Preferences Commands
@@ -178,13 +199,13 @@ export class CommandFactory implements ICommandFactory {
       (params, contexts) =>
         new UpdateUserPreferencesCommand(
           params as UserPreferencesParams,
-          contexts.userPreferences as any
+          contexts.userPreferences as UserPreferencesContext
         )
     )
 
     // Batch Command
     this.registerCommand('BATCH', params => {
-      return new BatchCommand((params as { commands: any[] }).commands as any)
+      return new BatchCommand((params as { commands: ICommand<unknown, unknown>[] }).commands)
     })
   }
 }

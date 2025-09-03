@@ -62,7 +62,7 @@ class CandlestickChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'candlestick' as any} />
+        <EChartsTradingChart {...this.props} chartType={'candlestick'} />
       </React.Suspense>
     )
   }
@@ -78,7 +78,7 @@ class LineChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'line' as any} />
+        <EChartsTradingChart {...this.props} chartType={'line'} />
       </React.Suspense>
     )
   }
@@ -94,7 +94,7 @@ class AreaChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'area' as any} />
+        <EChartsTradingChart {...this.props} chartType={'area'} />
       </React.Suspense>
     )
   }

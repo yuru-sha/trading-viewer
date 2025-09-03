@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
-// import type { YAXisComponentOption, XAXisComponentOption } from 'echarts/components' // TODO: Fix ECharts type imports
-type YAXisComponentOption = any
-type XAXisComponentOption = any
+import type { YAXisComponentOption, XAXisComponentOption } from 'echarts/components'
 import type { PriceStats } from '../useChartData'
 
 /**
@@ -87,8 +85,8 @@ function generateYAxisConfig(
 
   // メイン価格軸
   if (priceStats) {
-    const min = (priceStats as any).min || 0
-    const max = (priceStats as any).max || 100
+    const min = priceStats.min || 0
+    const max = priceStats.max || 100
     const { min: niceMin, max: niceMax } = calculateNiceBounds(min, max, 6)
 
     yAxisArray.push({

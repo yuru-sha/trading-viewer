@@ -56,11 +56,12 @@ export const useDrawingServerPersistence = (
         })
 
         if (existingTools.data && Array.isArray(existingTools.data)) {
-          for (const tool of existingTools.data as any[]) {
+          for (const tool of existingTools.data) {
+            const toolWithId = tool as { id: string }
             log.business.debug('Deleting existing drawing tool', {
-              toolId: (tool as any).id,
+              toolId: toolWithId.id,
             })
-            await api.drawings.deleteDrawingTool((tool as any).id)
+            await api.drawings.deleteDrawingTool(toolWithId.id)
           }
         }
 
@@ -167,8 +168,9 @@ export const useDrawingServerPersistence = (
       try {
         const existingTools = await api.drawings.getDrawingTools(targetSymbol)
         if (existingTools.data && Array.isArray(existingTools.data)) {
-          for (const tool of existingTools.data as any[]) {
-            await api.drawings.deleteDrawingTool((tool as any).id)
+          for (const tool of existingTools.data) {
+            const toolWithId = tool as { id: string }
+            await api.drawings.deleteDrawingTool(toolWithId.id)
           }
         }
 
