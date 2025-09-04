@@ -79,28 +79,7 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
 
         return aTabIndex - bTabIndex
       })
-  }, [])
-
-  // 要素にフォーカスを移動
-  const focusElement = useCallback((element: HTMLElement, options?: FocusOptions) => {
-    try {
-      element.focus(options)
-
-      // ARIA live region で通知 (スクリーンリーダー対応)
-      const announcement =
-        element.getAttribute('aria-label') ||
-        element.getAttribute('title') ||
-        element.textContent?.slice(0, 50)
-
-      if (announcement) {
-        announceToScreenReader(`Focused: ${announcement}`)
-      }
-    } catch {
-      log.system.warn('Failed to focus element', {
-        selector: element ? 'element provided' : 'no element',
-      })
-    }
-  }, [])
+  }, [focusableSelectors])
 
   // スクリーンリーダーへのアナウンス
   const announceToScreenReader = useCallback((message: string) => {
@@ -113,6 +92,30 @@ export const useFocusManagement = (config: FocusManagerConfig = {}) => {
     document.body.appendChild(announcement)
     setTimeout(() => document.body.removeChild(announcement), 1000)
   }, [])
+
+  // 要素にフォーカスを移動
+  const focusElement = useCallback(
+    (element: HTMLElement, options?: FocusOptions) => {
+      try {
+        element.focus(options)
+
+        // ARIA live region で通知 (スクリーンリーダー対応)
+        const announcement =
+          element.getAttribute('aria-label') ||
+          element.getAttribute('title') ||
+          element.textContent?.slice(0, 50)
+
+        if (announcement) {
+          announceToScreenReader(`Focused: ${announcement}`)
+        }
+      } catch {
+        log.system.warn('Failed to focus element', {
+          selector: element ? 'element provided' : 'no element',
+        })
+      }
+    },
+    [announceToScreenReader]
+  )
 
   // 次の要素にフォーカス
   const focusNext = useCallback(() => {

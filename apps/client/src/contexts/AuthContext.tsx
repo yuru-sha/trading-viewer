@@ -545,7 +545,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     initAuth()
-  }, [clearAuth])
+  }, [apiClient, clearAuth])
 
   // Get CSRF token
   const getCSRFToken = useCallback(async (): Promise<string> => {

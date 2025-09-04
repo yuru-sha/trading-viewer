@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/apiClient'
 import { log } from '../services/logger'
@@ -19,7 +19,7 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
   const [watchlistLoading, setWatchlistLoading] = useState(false)
 
   // Check if current symbol is in watchlist
-  const checkWatchlistStatus = async () => {
+  const checkWatchlistStatus = useCallback(async () => {
     if (!isAuthenticated || !currentSymbol) return
 
     try {
@@ -29,14 +29,14 @@ export const useChartWatchlist = (currentSymbol: string): [WatchlistState, Watch
       )
       setIsInWatchlist(!!isSymbolInWatchlist)
     } catch {
-      log.business.error('Failed to check watchlist status', { symbol })
+      log.business.error('Failed to check watchlist status', { currentSymbol })
       setIsInWatchlist(false)
     }
-  }
+  }, [isAuthenticated, currentSymbol])
 
   useEffect(() => {
     checkWatchlistStatus()
-  }, [currentSymbol, isAuthenticated])
+  }, [currentSymbol, isAuthenticated, checkWatchlistStatus])
 
   // Get symbol name for display
   const getSymbolName = (symbol: string): string => {

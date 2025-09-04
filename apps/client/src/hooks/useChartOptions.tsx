@@ -50,21 +50,20 @@ export function useChartOptions(
   // chartDataの変更検出用のメモ化された値
   const chartDataHash = useMemo(() => {
     // データの長さと最後の要素のタイムスタンプのみを監視
+    const datesLength = chartData.dates?.length || 0
+    const lastIndex = datesLength - 1
+    const lastTimestamp = chartData.dates?.[lastIndex] || null
+
     return {
-      dataLength: chartData.dates?.length || 0,
-      lastTimestamp: chartData.dates?.[chartData.dates.length - 1] || null,
+      dataLength: datesLength,
+      lastTimestamp,
       symbol: config.symbol,
       timeframe: config.timeframe,
     }
-  }, [
-    chartData.dates?.length,
-    chartData.dates?.[chartData.dates?.length - 1],
-    config.symbol,
-    config.timeframe,
-  ])
+  }, [chartData.dates, config.symbol, config.timeframe])
 
   // インジケーターデータフェッチ
-  const { data: indicators = [], isLoading: indicatorsLoading } = useQuery({
+  const { data: indicators = [] } = useQuery({
     queryKey: ['indicators', config.symbol, config.timeframe],
     queryFn: async () => {
       if (!config.symbol || !config.timeframe) return []
@@ -79,7 +78,7 @@ export function useChartOptions(
   })
 
   // インジケーター計算結果フェッチ
-  const { data: indicatorCalculations = {}, isLoading: calculationsLoading } = useQuery({
+  const { data: indicatorCalculations = {} } = useQuery({
     queryKey: ['indicatorCalculations', config.symbol, config.timeframe, indicators],
     queryFn: async () => {
       if (!config.symbol || !config.timeframe || indicators.length === 0) return {}
@@ -547,15 +546,13 @@ export function useChartOptions(
   }, [
     // 依存配列を最小限に抑制：chartData の直接参照を避ける
     chartDataHash, // chartData の代わりにハッシュ値を使用
+    chartData.volumes,
     config,
-    priceStats,
     layout,
     candlestickSeries,
     lineSeries,
     areaSeries,
     allIndicatorSeries,
-    indicatorsLoading,
-    calculationsLoading,
   ])
 
   return { option, updateScrollPosition }

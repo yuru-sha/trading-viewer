@@ -213,19 +213,9 @@ function generateXAxisConfig(config: AxisConfig): XAXisComponentOption {
  * チャート軸設定フック
  */
 export const useChartAxis = (priceStats: PriceStats | null, config: AxisConfig) => {
-  const xAxis = useMemo(() => generateXAxisConfig(config), [config.theme, config.showGridlines])
+  const xAxis = useMemo(() => generateXAxisConfig(config), [config])
 
-  const yAxis = useMemo(
-    () => generateYAxisConfig(priceStats, config),
-    [
-      priceStats,
-      config.theme,
-      config.showGridlines,
-      config.showVolume,
-      config.hasRSI,
-      config.hasMACD,
-    ]
-  )
+  const yAxis = useMemo(() => generateYAxisConfig(priceStats, config), [priceStats, config])
 
   return { xAxis, yAxis }
 }

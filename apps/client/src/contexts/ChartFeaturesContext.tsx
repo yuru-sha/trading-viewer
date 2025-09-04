@@ -153,7 +153,7 @@ export const ChartFeaturesProvider: React.FC<ChartFeaturesProviderProps> = ({
     if (isAuthenticated && currentSymbol && selectedTimeframe) {
       loadDefaultChart()
     }
-  }, [isAuthenticated, currentSymbol, selectedTimeframe])
+  }, [isAuthenticated, currentSymbol, selectedTimeframe, loadDefaultChart])
 
   const contextValue: ChartFeaturesContextType = {
     // Chart Settings

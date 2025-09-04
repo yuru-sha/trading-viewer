@@ -247,5 +247,5 @@ export const useChartSeries = (chartData: ChartData, config: SeriesConfig) => {
     }
 
     return series
-  }, [chartData, config.chartType, config.theme, config.showVolume])
+  }, [chartData, config])
 }

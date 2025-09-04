@@ -163,7 +163,7 @@ export const useDOMEventListeners = ({
 
     // Cleanup is handled automatically by memory manager
     return cleanup
-  }, [chartInstance.chartReady, config.enableDrawingTools, drawingTools])
+  }, [addEventListener, chartInstance, cleanup, config.enableDrawingTools, drawingTools])
 
   return null // This hook doesn't return any values, just manages side effects
 }

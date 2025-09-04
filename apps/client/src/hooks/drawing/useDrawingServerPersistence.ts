@@ -95,7 +95,7 @@ export const useDrawingServerPersistence = (
         setIsSaving(false)
       }
     },
-    [tools, isAuthenticated]
+    [tools, isAuthenticated, timeframe]
   )
 
   // Load tools from server API
@@ -143,7 +143,7 @@ export const useDrawingServerPersistence = (
         setIsLoading(false)
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, timeframe]
   )
 
   // Auto-restore on symbol change

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ChartType } from '@trading-viewer/shared'
 import { ChartProviders } from '../contexts/ChartProviders'
 import { useChartSymbol } from '../contexts/ChartSymbolContext'
@@ -37,13 +37,17 @@ const ChartsPageContent: React.FC = () => {
     loadDefaultChart,
   } = useChartFeatures()
 
+  // Track the last processed symbol to prevent infinite loops
+  const [lastProcessedSymbol, setLastProcessedSymbol] = useState<string | null>(null)
+
   // Update symbol when URL changes (only direct URL access, not programmatic changes)
   useEffect(() => {
-    if (symbolFromUrl !== symbolState.currentSymbol) {
+    if (symbolFromUrl !== symbolState.currentSymbol && symbolFromUrl !== lastProcessedSymbol) {
+      setLastProcessedSymbol(symbolFromUrl)
       // Use the original symbol management handler to avoid URL update loop
       symbolActions.fetchData(symbolFromUrl)
     }
-  }, [symbolFromUrl, symbolState.currentSymbol, symbolActions])
+  }, [symbolFromUrl, symbolState.currentSymbol, lastProcessedSymbol, symbolActions.fetchData])
 
   // 認証ローディング中は何も表示しない
   if (isLoading) {

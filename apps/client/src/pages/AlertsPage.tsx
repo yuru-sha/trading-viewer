@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@trading-viewer/ui'
 import Icon from '../components/Icon'
 import { useAuth } from '../contexts/AuthContext'
@@ -36,7 +36,7 @@ const AlertsPage: React.FC = () => {
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
 
   // Fetch alerts
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     if (!user) return
 
     try {
@@ -52,11 +52,11 @@ const AlertsPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, requestWithAuth])
 
   useEffect(() => {
     fetchAlerts()
-  }, [user])
+  }, [fetchAlerts])
 
   // Toggle alert enabled state with improved UX
   const toggleAlert = async (alert: PriceAlert) => {

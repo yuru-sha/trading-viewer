@@ -74,17 +74,19 @@ export const useDrawingTools = () => {
 
   // Debug logging for state changes
   useEffect(() => {
+    const hasCurrentDrawing = !!currentDrawingRef.current
     log.business.debug('Drawing state updated', {
       activeToolType: state.activeToolType,
       isDrawing: state.isDrawing,
       drawingMode: state.drawingMode,
       toolCount: state.tools.length,
-      hasCurrentDrawing: !!currentDrawingRef.current,
+      hasCurrentDrawing,
       isDragging: state.isDragging,
       isMouseDown: state.isMouseDown,
       dragState: state.dragState,
       selectedToolId: state.selectedToolId,
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     state.activeToolType,
     state.isDrawing,
@@ -94,6 +96,7 @@ export const useDrawingTools = () => {
     state.isMouseDown,
     state.dragState,
     state.selectedToolId,
+    // currentDrawingRef is intentionally excluded as it's a ref
   ])
 
   return {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 interface BreakpointConfig {
   sm: number
@@ -28,7 +28,7 @@ interface ResponsiveState {
 }
 
 export const useResponsive = (breakpoints: Partial<BreakpointConfig> = {}): ResponsiveState => {
-  const bp = { ...defaultBreakpoints, ...breakpoints }
+  const bp = useMemo(() => ({ ...defaultBreakpoints, ...breakpoints }), [breakpoints])
 
   const [state, setState] = useState<ResponsiveState>(() => {
     if (typeof window === 'undefined') {

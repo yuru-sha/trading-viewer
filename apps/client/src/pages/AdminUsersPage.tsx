@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useError } from '../contexts/ErrorContext'
 import { apiService } from '../services/base/ApiService'
@@ -99,7 +99,7 @@ const AdminUsersPage: React.FC = () => {
     },
   })
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
       const queryParams = new URLSearchParams({
@@ -137,9 +137,17 @@ const AdminUsersPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [
+    pagination.page,
+    pagination.limit,
+    filters.search,
+    filters.role,
+    filters.status,
+    advancedFilters,
+    showError,
+  ])
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await apiService.get<{ success: boolean; data: UserStats }>('/auth/stats')
       if (response.success) {
@@ -148,14 +156,14 @@ const AdminUsersPage: React.FC = () => {
     } catch {
       log.auth.error('Failed to fetch admin user stats')
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchUsers()
       fetchStats()
     }
-  }, [user, pagination.page, filters, advancedFilters])
+  }, [user, fetchUsers, fetchStats])
 
   const handleUserAction = async (
     userId: string,

@@ -6,6 +6,7 @@ export interface User {
   createdAt: number
   updatedAt: number
   isActive: boolean
+  isEmailVerified: boolean
   role: 'user' | 'admin'
 }
 

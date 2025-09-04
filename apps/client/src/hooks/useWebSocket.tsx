@@ -296,7 +296,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}): WebSocketHookR
     }
 
     return cleanup
-  }, []) // Remove dependencies to prevent reconnection loop
+  }, [cleanup, config.autoConnect, connect]) // Include necessary dependencies
 
   const connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' = isConnected
     ? 'connected'

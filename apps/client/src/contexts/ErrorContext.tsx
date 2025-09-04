@@ -144,7 +144,8 @@ export const ErrorProvider: React.FC<ErrorProviderProps> = ({
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId))
+      const currentTimeouts = timeoutRefs.current
+      currentTimeouts.forEach(timeoutId => clearTimeout(timeoutId))
     }
   }, [])
 

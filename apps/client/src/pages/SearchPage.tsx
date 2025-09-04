@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button, Loading } from '@trading-viewer/ui'
 import Input from '../components/Input'
 import { useApp, useAppActions } from '../contexts/AppContext'
@@ -62,29 +62,32 @@ const SearchPage: React.FC = () => {
     }
   }
 
-  const performSearch = async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([])
-      setHasSearched(false)
-      return
-    }
+  const performSearch = useCallback(
+    async (query: string) => {
+      if (!query.trim()) {
+        setSearchResults([])
+        setHasSearched(false)
+        return
+      }
 
-    try {
-      setLoading(true)
-      setError(null)
+      try {
+        setLoading(true)
+        setError(null)
 
-      const results = await api.market.searchSymbols({ q: query, limit: 20 })
-      setSearchResults(results.symbols || [])
-      setHasSearched(true)
-    } catch {
-      log.business.error('Symbol search failed', { query })
-      setError(error instanceof Error ? error.message : 'Search failed')
-      setSearchResults([])
-      setHasSearched(true)
-    } finally {
-      setLoading(false)
-    }
-  }
+        const results = await api.market.searchSymbols({ q: query, limit: 20 })
+        setSearchResults(results.symbols || [])
+        setHasSearched(true)
+      } catch {
+        log.business.error('Symbol search failed', { query })
+        setError(error instanceof Error ? error.message : 'Search failed')
+        setSearchResults([])
+        setHasSearched(true)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [setError]
+  )
 
   const handleAddToWatchlist = async (symbol: string, name: string) => {
     try {
@@ -152,7 +155,7 @@ const SearchPage: React.FC = () => {
     }, 500)
 
     return () => clearTimeout(timeoutId)
-  }, [searchQuery])
+  }, [searchQuery, performSearch])
 
   const popularSymbols = [
     { symbol: 'AAPL', name: 'Apple Inc.' },

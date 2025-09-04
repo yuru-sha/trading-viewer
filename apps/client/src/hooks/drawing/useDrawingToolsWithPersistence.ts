@@ -21,7 +21,7 @@ export const useDrawingToolsWithPersistence = (options: DrawingPersistenceOption
       })
       persistence.restoreForSymbolAndTimeframe(options.symbol, options.timeframe)
     }
-  }, [options.symbol, options.timeframe]) // Re-run when symbol or timeframe changes
+  }, [options.symbol, options.timeframe, persistence]) // Re-run when symbol or timeframe changes
 
   return {
     // All original drawing tools functionality

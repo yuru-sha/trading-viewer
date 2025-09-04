@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Loading, Icon } from '@trading-viewer/ui'
 import { useAppActions } from '../contexts/AppContext'
@@ -223,9 +223,12 @@ const MarketPage: React.FC = () => {
   // Cache expiry time (5 minutes)
   const CACHE_EXPIRY_MS = 5 * 60 * 1000
 
-  const isCacheValid = (timestamp: number) => {
-    return Date.now() - timestamp < CACHE_EXPIRY_MS
-  }
+  const isCacheValid = useCallback(
+    (timestamp: number) => {
+      return Date.now() - timestamp < CACHE_EXPIRY_MS
+    },
+    [CACHE_EXPIRY_MS]
+  )
 
   useEffect(() => {
     const fetchData = async () => {
@@ -310,7 +313,7 @@ const MarketPage: React.FC = () => {
     }
 
     fetchData()
-  }, [activeTab, setError])
+  }, [activeTab, setError, dataCache, isCacheValid])
 
   // Update market data with WebSocket quotes
   useEffect(() => {

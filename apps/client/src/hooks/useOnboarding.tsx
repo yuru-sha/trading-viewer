@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Icon } from '@trading-viewer/ui'
 import { OnboardingStep } from '../components/Onboarding'
 
@@ -25,29 +25,29 @@ export const useOnboarding = (steps: OnboardingStep[], config: OnboardingConfig)
   const storageKey = `onboarding_${key}_v${version}`
   const visitedKey = `onboarding_visited_${key}`
 
-  const isCompleted = () => {
+  const isCompleted = useCallback(() => {
     try {
       return localStorage.getItem(storageKey) === 'completed'
     } catch {
       return false
     }
-  }
+  }, [storageKey])
 
-  const hasVisited = () => {
+  const hasVisited = useCallback(() => {
     try {
       return localStorage.getItem(visitedKey) === 'true'
     } catch {
       return false
     }
-  }
+  }, [visitedKey])
 
-  const markVisited = () => {
+  const markVisited = useCallback(() => {
     try {
       localStorage.setItem(visitedKey, 'true')
     } catch {
       // Ignore localStorage errors
     }
-  }
+  }, [visitedKey])
 
   const markCompleted = () => {
     try {
@@ -74,11 +74,11 @@ export const useOnboarding = (steps: OnboardingStep[], config: OnboardingConfig)
     }
   }
 
-  const start = () => {
+  const start = useCallback(() => {
     setCurrentStepIndex(0)
     setIsActive(true)
     markVisited()
-  }
+  }, [markVisited])
 
   const complete = () => {
     setIsActive(false)
@@ -105,7 +105,7 @@ export const useOnboarding = (steps: OnboardingStep[], config: OnboardingConfig)
         start()
       }
     }
-  }, [autoStart, showOnFirstVisit])
+  }, [autoStart, showOnFirstVisit, hasVisited, isCompleted, start])
 
   return {
     // State

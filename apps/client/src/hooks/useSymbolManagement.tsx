@@ -32,6 +32,7 @@ export const useSymbolManagement = (
   const [dataSource, setDataSource] = useState<DataSourceInfo | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedTimeframe, setSelectedTimeframe] = useState(initialTimeframe)
+  const [lastFetchedSymbol, setLastFetchedSymbol] = useState<string | null>(null)
 
   // URL からの symbol を優先し、次に AppContext、最後にデフォルト
   const currentSymbol = defaultSymbol || state.selectedSymbol || 'AAPL'
@@ -77,6 +78,7 @@ export const useSymbolManagement = (
 
         setQuoteData(quote)
         setCandleData(candles)
+        setLastFetchedSymbol(symbol)
 
         // Update global state
         if (symbol !== state.selectedSymbol) {
@@ -141,10 +143,12 @@ export const useSymbolManagement = (
     fetchDataSource()
   }, [])
 
-  // Initial data fetch when component mounts or symbol changes
+  // Initial data fetch when component mounts or symbol changes - prevent infinite loop
   useEffect(() => {
-    fetchData(currentSymbol)
-  }, [currentSymbol])
+    if (currentSymbol && currentSymbol !== lastFetchedSymbol) {
+      fetchData(currentSymbol)
+    }
+  }, [currentSymbol, lastFetchedSymbol, fetchData])
 
   // Separate effect for WebSocket subscription management
   useEffect(() => {

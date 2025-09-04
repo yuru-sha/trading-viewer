@@ -292,7 +292,7 @@ export const ChartComponent: React.FC<
 
   React.useEffect(() => {
     factoryManager.setFactory(factoryType)
-  }, [factoryType])
+  }, [factoryType, factoryManager])
 
   const chart = React.useMemo(() => {
     return factoryManager.createChart(chartType, props)

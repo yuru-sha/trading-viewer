@@ -94,7 +94,7 @@ export const useAlerts = ({
     }
 
     checkAlerts()
-  }, [currentPrice, alerts, symbol, onAlertTriggered])
+  }, [currentPrice, alerts, symbol, onAlertTriggered, triggerAlert])
 
   // Helper function to trigger alert on server
   const triggerAlert = useCallback(async (alertId: string) => {

@@ -205,7 +205,7 @@ export const useDrawingPersistence = (
         loadTools(savedTools)
       }
     }
-  }, [symbol, timeframe]) // Run when symbol or timeframe changes
+  }, [symbol, timeframe, loadFromLocalStorage, loadTools]) // Run when symbol or timeframe changes
 
   return {
     // Core operations

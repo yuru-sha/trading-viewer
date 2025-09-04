@@ -66,7 +66,7 @@ export const ChartSymbolProvider: React.FC<ChartSymbolProviderProps> = ({
       // Call original symbol change handler
       symbolActions.handleSymbolChange(symbol)
     },
-    [setSearchParams, symbolActions]
+    [setSearchParams, symbolActions, symbolFromUrl]
   )
 
   const contextValue: ChartSymbolContextType = {

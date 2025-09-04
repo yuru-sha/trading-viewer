@@ -116,7 +116,7 @@ export const useDrawingActions = (
       log.business.info('Drawing tool created', { tool: newDrawing })
       dispatch({ type: 'START_DRAWING', payload: newDrawing })
     },
-    [state.activeToolType, state.defaultStyle, snapPrice, generateId, dispatch]
+    [state.activeToolType, state.defaultStyle, snapPrice, generateId, dispatch, currentDrawingRef]
   )
 
   // Update drawing in progress
@@ -183,7 +183,7 @@ export const useDrawingActions = (
         dispatch({ type: 'UPDATE_PREVIEW', payload: currentDrawingRef.current })
       })
     },
-    [state.isDrawing, snapPrice, dispatch]
+    [state.isDrawing, snapPrice, dispatch, currentDrawingRef]
   )
 
   // Finish drawing operation
@@ -225,14 +225,14 @@ export const useDrawingActions = (
 
     currentDrawingRef.current = null
     dispatch({ type: 'STOP_DRAWING' })
-  }, [state.isDrawing, dispatch])
+  }, [state.isDrawing, dispatch, currentDrawingRef])
 
   // Cancel drawing operation
   const cancelDrawing = useCallback(() => {
     log.business.info('Cancelling drawing operation')
     currentDrawingRef.current = null
     dispatch({ type: 'STOP_DRAWING' })
-  }, [dispatch])
+  }, [dispatch, currentDrawingRef])
 
   // Mouse down on handle or line (prepare for potential drag)
   const mouseDown = useCallback(
@@ -292,25 +292,6 @@ export const useDrawingActions = (
       })
     },
     [dispatch]
-  )
-
-  // Update drag position - ドラッグ中のリアルタイム座標更新
-  const updateDrag = useCallback(
-    (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
-      // Skip logging during drag for maximum performance
-      if (!state.isDragging || !state.dragState) return
-
-      // Batch updates with requestAnimationFrame for smoother performance
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-
-      animationFrameRef.current = requestAnimationFrame(() => {
-        performDragUpdate(x, y, chartInstance, data)
-        animationFrameRef.current = null
-      })
-    },
-    [state.isDragging, state.dragState]
   )
 
   // Extracted drag update logic for better performance
@@ -426,7 +407,26 @@ export const useDrawingActions = (
         })
       }
     },
-    [dispatch, state.isDragging, state.dragState, state.tools, snapPrice]
+    [dispatch, state.isDragging, state.dragState, state.tools, state.snapToPrice, snapPrice]
+  )
+
+  // Update drag position - ドラッグ中のリアルタイム座標更新
+  const updateDrag = useCallback(
+    (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
+      // Skip logging during drag for maximum performance
+      if (!state.isDragging || !state.dragState) return
+
+      // Batch updates with requestAnimationFrame for smoother performance
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+
+      animationFrameRef.current = requestAnimationFrame(() => {
+        performDragUpdate(x, y, chartInstance, data)
+        animationFrameRef.current = null
+      })
+    },
+    [state.isDragging, state.dragState, performDragUpdate]
   )
 
   // End dragging and apply changes

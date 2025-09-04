@@ -388,6 +388,7 @@ export class AuthService {
       createdAt: user.createdAt.getTime(),
       updatedAt: user.updatedAt.getTime(),
       isActive: user.isActive,
+      isEmailVerified: user.isEmailVerified,
       role: user.role as any,
     }
   }
