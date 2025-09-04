@@ -1,6 +1,6 @@
 import React from 'react'
 import { CHART_TYPES } from '@trading-viewer/shared'
-import type { PriceData } from '../utils/indicators'
+import type { PriceData } from '@/infrastructure/utils/indicators'
 
 // Chart component interfaces
 export interface ChartProps {

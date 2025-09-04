@@ -2,7 +2,7 @@ import { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AppProvider } from '../contexts/AppContext'
+import { AppProvider } from '../context/AppContext'
 import { vi, expect } from 'vitest'
 
 // Mock ErrorProvider
@@ -11,7 +11,7 @@ const MockErrorProvider = ({ children }: { children: React.ReactNode }) => {
 }
 
 // Mock useError hook
-vi.mock('../contexts/ErrorContext', () => ({
+vi.mock('../context/ErrorContext', () => ({
   ErrorProvider: MockErrorProvider,
   useError: () => ({
     showError: vi.fn(),

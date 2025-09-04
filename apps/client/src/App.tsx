@@ -1,17 +1,17 @@
 import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import { ErrorBoundary } from './components/ErrorBoundary'
-import { AppProvider } from './contexts/AppContext'
-import { AuthProvider } from './contexts/AuthContext'
-import { ErrorProvider } from './contexts/ErrorContext'
-import { useAuth } from './contexts/AuthContext'
-import { Layout } from './components/Layout'
-import { PageLoader, ChartLoader, AdminLoader } from './components/LoadingSpinner'
-import { initializeMemoryManager } from './utils/memoryManager'
+import { ErrorBoundary } from '@/presentation/components/ErrorBoundary'
+import { AppProvider } from '@/presentation/context/AppContext'
+import { AuthProvider } from '@/presentation/context/AuthContext'
+import { ErrorProvider } from '@/presentation/context/ErrorContext'
+import { useAuth } from '@/presentation/context/AuthContext'
+import { Layout } from '@/presentation/components/Layout'
+import { PageLoader, ChartLoader, AdminLoader } from '@/presentation/components/LoadingSpinner'
+import { initializeMemoryManager } from '@/infrastructure/utils/memoryManager'
 // Critical pages loaded immediately
-import { HomePage } from './pages'
-import LoginPage from './pages/LoginPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
+import { HomePage } from '@/presentation/pages'
+import LoginPage from '@/presentation/pages/LoginPage'
+import ResetPasswordPage from '@/presentation/pages/ResetPasswordPage'
 
 // Lazy load heavy components for better performance
 import {
@@ -23,7 +23,7 @@ import {
   AdminUsersPage,
   SettingsPage,
   HelpPage,
-} from './pages'
+} from '@/presentation/pages'
 
 const AppContent: React.FC = () => {
   const location = useLocation()
