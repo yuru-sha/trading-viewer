@@ -83,7 +83,7 @@ export interface TradingStrategy {
   name: string
   description: string
   type: 'technical' | 'fundamental' | 'hybrid' | 'ml'
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   entryRules: StrategyRule[]
   exitRules: StrategyRule[]
   riskManagement: RiskManagementRules
@@ -93,7 +93,7 @@ export interface StrategyRule {
   id: string
   type: 'indicator' | 'price' | 'volume' | 'time' | 'custom'
   condition: string
-  params: Record<string, any>
+  params: Record<string, unknown>
   weight?: number
 }
 

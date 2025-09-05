@@ -14,7 +14,7 @@ export enum ErrorType {
 export interface AppApiError {
   type: ErrorType
   message: string
-  details?: any
+  details?: unknown
   timestamp: number
 }
 
@@ -76,21 +76,21 @@ export interface ChartCommand extends BaseCommand {
 export interface UserPreferencesCommand extends BaseCommand {
   category: 'preferences'
   preferenceKey: string
-  preferenceValue: any
+  preferenceValue: unknown
 }
 
 export interface DrawingCommand extends BaseCommand {
   category: 'drawing'
   drawingAction: string
-  payload?: any
+  payload?: unknown
 }
 
 export type Command = ChartCommand | UserPreferencesCommand | DrawingCommand
 
 export interface CommandContext {
-  chartInstance?: any
-  selectedTool?: any
-  userPreferences?: any
+  chartInstance?: unknown
+  selectedTool?: unknown
+  userPreferences?: unknown
 }
 
 export interface CommandInvoker {

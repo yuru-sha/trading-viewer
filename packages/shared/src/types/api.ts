@@ -85,7 +85,7 @@ export enum ErrorType {
 export interface AppApiError {
   type: ErrorType
   message: string
-  details?: any
+  details?: unknown
   timestamp: number
 }
 

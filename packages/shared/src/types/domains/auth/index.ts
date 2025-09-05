@@ -91,7 +91,7 @@ export interface UserIndicators {
   symbol: string
   indicators: Array<{
     type: string
-    parameters: Record<string, any>
+    parameters: Record<string, unknown>
     visible: boolean
   }>
   createdAt: number
