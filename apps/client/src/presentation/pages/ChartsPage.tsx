@@ -47,7 +47,7 @@ const ChartsPageContent: React.FC = () => {
       // Use the original symbol management handler to avoid URL update loop
       symbolActions.fetchData(symbolFromUrl)
     }
-  }, [symbolFromUrl, symbolState.currentSymbol, lastProcessedSymbol, symbolActions.fetchData])
+  }, [symbolFromUrl, symbolState.currentSymbol, lastProcessedSymbol, symbolActions])
 
   // 認証ローディング中は何も表示しない
   if (isLoading) {

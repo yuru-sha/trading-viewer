@@ -65,7 +65,7 @@ export class AuthValidator {
       ),
   })
 
-  validateLoginRequest(data: unknown): { success: boolean; data?: any; errors?: string[] } {
+  validateLoginRequest(data: unknown): ValidationResult<LoginData> {
     try {
       const validated = this.loginSchema.parse(data)
       return { success: true, data: validated }
@@ -80,7 +80,7 @@ export class AuthValidator {
     }
   }
 
-  validateRegisterRequest(data: unknown): { success: boolean; data?: any; errors?: string[] } {
+  validateRegisterRequest(data: unknown): ValidationResult<RegisterData> {
     try {
       const validated = this.registerSchema.parse(data)
       return { success: true, data: validated }
@@ -95,11 +95,7 @@ export class AuthValidator {
     }
   }
 
-  validateChangePasswordRequest(data: unknown): {
-    success: boolean
-    data?: any
-    errors?: string[]
-  } {
+  validateChangePasswordRequest(data: unknown): ValidationResult<ChangePasswordData> {
     try {
       const validated = this.changePasswordSchema.parse(data)
       return { success: true, data: validated }
@@ -114,7 +110,7 @@ export class AuthValidator {
     }
   }
 
-  validateUpdateProfileRequest(data: unknown): { success: boolean; data?: any; errors?: string[] } {
+  validateUpdateProfileRequest(data: unknown): ValidationResult<UpdateProfileData> {
     try {
       const validated = this.updateProfileSchema.parse(data)
       return { success: true, data: validated }
@@ -129,7 +125,7 @@ export class AuthValidator {
     }
   }
 
-  validateRefreshTokenRequest(data: unknown): { success: boolean; data?: any; errors?: string[] } {
+  validateRefreshTokenRequest(data: unknown): ValidationResult<RefreshTokenData> {
     try {
       const validated = this.refreshTokenSchema.parse(data)
       return { success: true, data: validated }
@@ -144,11 +140,9 @@ export class AuthValidator {
     }
   }
 
-  validateForgotPasswordRequest(data: unknown): {
-    success: boolean
-    data?: any
-    errors?: string[]
-  } {
+  validateForgotPasswordRequest(
+    data: unknown
+  ): ValidationResult<z.infer<typeof this.forgotPasswordSchema>> {
     try {
       const validated = this.forgotPasswordSchema.parse(data)
       return { success: true, data: validated }
@@ -163,7 +157,7 @@ export class AuthValidator {
     }
   }
 
-  validateResetPasswordRequest(data: unknown): { success: boolean; data?: any; errors?: string[] } {
+  validateResetPasswordRequest(data: unknown): ValidationResult<ResetPasswordData> {
     try {
       const validated = this.resetPasswordSchema.parse(data)
       return { success: true, data: validated }
@@ -236,4 +230,18 @@ export class AuthValidator {
       errors,
     }
   }
+}
+
+// Type definitions for validation results
+type LoginData = { email?: string; password?: string }
+type RegisterData = { email?: string; password?: string; name?: string; role?: string }
+type UpdateProfileData = { name?: string; email?: string }
+type RefreshTokenData = { refreshToken?: string }
+type ResetPasswordData = { token?: string; password?: string }
+type ChangePasswordData = { currentPassword?: string; newPassword?: string }
+
+type ValidationResult<T> = {
+  success: boolean
+  data?: T
+  errors?: string[]
 }

@@ -36,6 +36,7 @@ export const useChartEvents = (
   const findClosestDataIndex = useCallback(
     (targetTimestamp: number): number => {
       if (!config.data || config.data.length === 0) {
+        // eslint-disable-next-line no-console
         console.warn('🎯 findClosestDataIndex: No chart data available', { targetTimestamp })
         return 0 // Return 0 instead of -1 to allow basic functionality
       }

@@ -4,7 +4,7 @@ import { GraphicComponentOption } from 'echarts/components'
 import { useApp } from '@/presentation/context/AppContext'
 import { PriceData } from '@/infrastructure/utils/indicators'
 import { getCompanyName } from '@/infrastructure/data/symbolMapping'
-import type useDrawingTools from '@/presentation/hooks/useDrawingTools'
+import type { useDrawingTools } from '@/presentation/hooks/drawing'
 import { useChartInstance } from '@/presentation/hooks/useChartInstance'
 import { useChartData } from '@/presentation/hooks/useChartData'
 import { useChartEvents } from '@/presentation/hooks/useChartEvents'
@@ -610,6 +610,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
         if (!chart) return
 
         // デバッグ用ログ
+        // eslint-disable-next-line no-console
         console.log('Key pressed:', {
           key: event.key,
           metaKey: event.metaKey,
@@ -738,12 +739,14 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
               start?: number
               end?: number
             }) => {
+              // eslint-disable-next-line no-console
               console.log('DataZoom event:', params)
               // EChartsのdataZoomイベントの正しい構造を使用
               if (params.batch) {
                 // バッチ形式の場合
                 const batchItem = params.batch[0]
                 if (batchItem && batchItem.start !== undefined && batchItem.end !== undefined) {
+                  // eslint-disable-next-line no-console
                   console.log(
                     'Updating scroll position from batch:',
                     batchItem.start,
@@ -754,6 +757,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
               } else {
                 // 直接形式の場合
                 if (params.start !== undefined && params.end !== undefined) {
+                  // eslint-disable-next-line no-console
                   console.log('Updating scroll position:', params.start, params.end)
                   updateScrollPosition(params.start, params.end)
                 }

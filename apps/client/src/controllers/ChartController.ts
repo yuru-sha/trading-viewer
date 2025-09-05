@@ -23,7 +23,7 @@ export class ChartController {
     }
   }
 
-  async saveChartLayout(userId: string, config: any) {
+  async saveChartLayout(userId: string, config: Record<string, unknown>) {
     try {
       await this.chartService.saveChartLayout(userId, config)
     } catch (error) {
@@ -33,7 +33,7 @@ export class ChartController {
     }
   }
 
-  async addDrawing(userId: string, symbol: string, drawing: any) {
+  async addDrawing(userId: string, symbol: string, drawing: Record<string, unknown>) {
     try {
       await this.chartService.addDrawing(userId, symbol, drawing)
     } catch (error) {
@@ -53,7 +53,12 @@ export class ChartController {
     }
   }
 
-  async updateDrawing(userId: string, symbol: string, drawingId: string, updates: any) {
+  async updateDrawing(
+    userId: string,
+    symbol: string,
+    drawingId: string,
+    updates: Record<string, unknown>
+  ) {
     try {
       await this.chartService.updateDrawing(userId, symbol, drawingId, updates)
     } catch (error) {

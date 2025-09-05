@@ -1,4 +1,4 @@
-import type { LogLevel, LogContext, LogCategory, StructuredLogEntry } from '@trading-viewer/shared'
+import type { LogLevel, LogContext, StructuredLogEntry } from '@trading-viewer/shared'
 
 export type BrowserLogEntry = StructuredLogEntry & {
   url?: string
@@ -33,13 +33,18 @@ class ConsoleTransport implements LoggerTransport {
     const contextStr = context ? ` [${JSON.stringify(context)}]` : ''
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.group(`%c[${level.toUpperCase()}] ${message}${contextStr}`, style)
+      // eslint-disable-next-line no-console
       console.error(error)
       if (error.stack) {
+        // eslint-disable-next-line no-console
         console.trace('Stack trace:')
       }
+      // eslint-disable-next-line no-console
       console.groupEnd()
     } else {
+      // eslint-disable-next-line no-console
       console.log(`%c[${level.toUpperCase()}] ${message}${contextStr}`, style)
     }
   }
@@ -85,6 +90,7 @@ class StructuredLogger {
       try {
         transport.log(entry)
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error('Logger transport error:', e)
       }
     })

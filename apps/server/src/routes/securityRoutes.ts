@@ -16,7 +16,7 @@ import {
   SecurityEventType,
   SecuritySeverity,
 } from '../infrastructure/services/securityLogger'
-import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
+import { requireAdmin } from '../middleware/authorization'
 import { log } from '../infrastructure/services/logger'
 
 // Database integration with Repository pattern
@@ -268,10 +268,10 @@ router.get(
 
     const pageNum = parseInt(page as string, 10)
     const limitNum = Math.min(parseInt(limit as string, 10), 100) // Max 100 items per page
-    const skip = (pageNum - 1) * limitNum
+    const _skip = (pageNum - 1) * limitNum
 
     // Build filter criteria (this would depend on your security logging implementation)
-    const filters: any = {}
+    const filters: Record<string, unknown> = {}
 
     if (userId) filters.userId = userId
     if (type) filters.type = type
@@ -279,7 +279,7 @@ router.get(
     if (startDate) filters.timestamp = { gte: new Date(startDate as string) }
     if (endDate) {
       filters.timestamp = {
-        ...filters.timestamp,
+        ...(filters.timestamp as { gte?: Date; lte?: Date }),
         lte: new Date(endDate as string),
       }
     }

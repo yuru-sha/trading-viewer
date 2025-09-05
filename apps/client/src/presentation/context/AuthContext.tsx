@@ -9,9 +9,9 @@ import React, {
 } from 'react'
 import { useErrorHandlers } from './ErrorContext'
 import { clearCSRFToken, setAuthErrorCallback } from '@/infrastructure/adapters/apiClient'
-import { getAuthService } from '@/infrastructure/di/container'
 import { log } from '@/infrastructure/services/LoggerService'
 import type { User } from '@/domain/interfaces/IMarketDataClient'
+import { User as UserEntity } from '@/domain/entities/User'
 
 // Re-export User type for other modules
 export type { User }
@@ -29,6 +29,10 @@ export interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   tokens: AuthTokens | null
+  permissions: {
+    isAdmin: boolean
+    canAccessAdmin: boolean
+  }
 }
 
 export interface LoginCredentials {
@@ -145,8 +149,7 @@ class AuthApiClient {
       const data = await response.json()
       if (data.success && data.data?.csrfToken) {
         this.csrfToken = data.data.csrfToken
-        // Sync CSRF token with apiService
-        apiService.setCSRFToken(this.csrfToken)
+        // CSRF token is managed internally
         log.auth.info('CSRF token updated', { tokenPrefix: this.csrfToken.substring(0, 8) })
         return this.csrfToken
       }
@@ -161,8 +164,7 @@ class AuthApiClient {
 
   clearCSRFToken(): void {
     this.csrfToken = null
-    // Sync CSRF token clear with apiService
-    apiService.clearCSRFToken()
+    // CSRF token cleared internally
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -284,6 +286,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: false,
     isLoading: true,
     tokens: null,
+    permissions: {
+      isAdmin: false,
+      canAccessAdmin: false,
+    },
   })
 
   const { handleApiError } = useErrorHandlers()
@@ -296,6 +302,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isAuthenticated: false,
       isLoading: false,
       tokens: null,
+      permissions: {
+        isAdmin: false,
+        canAccessAdmin: false,
+      },
     })
   }, [])
 
@@ -305,11 +315,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
 
       if (isAuthenticated && user) {
+        // Create User domain entity to calculate permissions
+        const userEntity = UserEntity.fromPrimitive({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role as 'user' | 'admin',
+          isActive: user.isActive,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+        })
+
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
           tokens: null,
+          permissions: {
+            isAdmin: userEntity.isAdmin(),
+            canAccessAdmin: userEntity.canAccessAdminFeatures(),
+          },
         })
       } else {
         clearAuth()
@@ -349,11 +374,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (data.success && data.data?.user) {
           const { user } = data.data
 
+          // Create User domain entity to calculate permissions
+          const userEntity = User.fromPrimitive({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role as 'user' | 'admin',
+            isActive: user.isActive,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          })
+
           setAuthState({
             user,
             isAuthenticated: true,
             isLoading: false,
             tokens: null,
+            permissions: {
+              isAdmin: userEntity.isAdmin(),
+              canAccessAdmin: userEntity.canAccessAdminFeatures(),
+            },
           })
 
           // Pre-fetch CSRF token for future requests
@@ -392,11 +432,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (response.success && response.data?.user) {
           const { user } = response.data
 
+          // Create User domain entity to calculate permissions
+          const userEntity = User.fromPrimitive({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role as 'user' | 'admin',
+            isActive: user.isActive,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          })
+
           setAuthState({
             user,
             isAuthenticated: true,
             isLoading: false,
             tokens: null,
+            permissions: {
+              isAdmin: userEntity.isAdmin(),
+              canAccessAdmin: userEntity.canAccessAdminFeatures(),
+            },
           })
         }
       } catch (error: unknown) {
@@ -434,9 +489,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (response.success && response.data?.user) {
           const updatedUser = response.data.user
 
+          // Create User domain entity to calculate permissions
+          const userEntity = User.fromPrimitive({
+            id: updatedUser.id,
+            email: updatedUser.email,
+            name: updatedUser.name,
+            role: updatedUser.role as 'user' | 'admin',
+            isActive: updatedUser.isActive,
+            createdAt: new Date(updatedUser.createdAt),
+            updatedAt: new Date(updatedUser.updatedAt),
+          })
+
           setAuthState(prev => ({
             ...prev,
             user: updatedUser,
+            permissions: {
+              isAdmin: userEntity.isAdmin(),
+              canAccessAdmin: userEntity.canAccessAdminFeatures(),
+            },
           }))
         }
       } catch (error: unknown) {
@@ -523,11 +593,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { isAuthenticated, user } = await AuthHelper.checkAuthStatus()
 
       if (isAuthenticated && user) {
+        // Create User domain entity to calculate permissions
+        const userEntity = UserEntity.fromPrimitive({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role as 'user' | 'admin',
+          isActive: user.isActive,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+        })
+
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
           tokens: null,
+          permissions: {
+            isAdmin: userEntity.isAdmin(),
+            canAccessAdmin: userEntity.canAccessAdminFeatures(),
+          },
         })
         // Pre-fetch CSRF token for authenticated users
         try {

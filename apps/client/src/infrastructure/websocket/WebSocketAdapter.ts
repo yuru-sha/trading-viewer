@@ -101,11 +101,13 @@ export class WebSocketAdapter implements WebSocketPort {
           try {
             callback(message.data)
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error in WebSocket callback:', error)
           }
         })
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error parsing WebSocket message:', error)
     }
   }
@@ -115,6 +117,7 @@ export class WebSocketAdapter implements WebSocketPort {
       try {
         callback(connected)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error in connection state callback:', error)
       }
     })
@@ -127,6 +130,7 @@ export class WebSocketAdapter implements WebSocketPort {
       setTimeout(() => {
         if (this.reconnectAttempts <= this.maxReconnectAttempts) {
           this.connect(url).catch(error => {
+            // eslint-disable-next-line no-console
             console.error('Reconnection failed:', error)
           })
         }

@@ -15,16 +15,22 @@ interface CSRFTokenResponse {
 interface ApiService {
   post<T>(
     url: string,
-    data?: any,
-    config?: any
+    data?: unknown,
+    config?: Record<string, unknown>
   ): Promise<{ success: boolean; data?: T; error?: string }>
-  get<T>(url: string, config?: any): Promise<{ success: boolean; data?: T; error?: string }>
+  get<T>(
+    url: string,
+    config?: Record<string, unknown>
+  ): Promise<{ success: boolean; data?: T; error?: string }>
   put<T>(
     url: string,
-    data?: any,
-    config?: any
+    data?: unknown,
+    config?: Record<string, unknown>
   ): Promise<{ success: boolean; data?: T; error?: string }>
-  delete<T>(url: string, config?: any): Promise<{ success: boolean; data?: T; error?: string }>
+  delete<T>(
+    url: string,
+    config?: Record<string, unknown>
+  ): Promise<{ success: boolean; data?: T; error?: string }>
   setCSRFToken(token: string): void
 }
 

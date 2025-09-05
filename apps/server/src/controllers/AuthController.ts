@@ -47,7 +47,14 @@ export class AuthController {
         return
       }
 
-      const result = await this.authService.register(validatedData.data)
+      const result = await this.authService.register(
+        validatedData.data as {
+          role?: 'USER' | 'ADMIN'
+          name?: string
+          email: string
+          password: string
+        }
+      )
 
       // Set HTTP-only cookies
       res.cookie(ACCESS_TOKEN_COOKIE, result.token, COOKIE_OPTIONS)
@@ -90,7 +97,9 @@ export class AuthController {
         return
       }
 
-      const result = await this.authService.login(validatedData.data)
+      const result = await this.authService.login(
+        validatedData.data as { email: string; password: string }
+      )
 
       // Set HTTP-only cookies
       res.cookie(ACCESS_TOKEN_COOKIE, result.token, COOKIE_OPTIONS)
@@ -204,7 +213,10 @@ export class AuthController {
         return
       }
 
-      await this.authService.changePassword(req.user!.userId, validatedData.data)
+      await this.authService.changePassword(
+        req.user!.userId,
+        validatedData.data as { currentPassword: string; newPassword: string }
+      )
 
       // Clear all cookies to force re-login
       res.clearCookie(ACCESS_TOKEN_COOKIE, COOKIE_OPTIONS)
@@ -296,7 +308,9 @@ export class AuthController {
         return
       }
 
-      await this.authService.resetPassword(validatedData.data)
+      await this.authService.resetPassword(
+        validatedData.data as { token: string; password: string }
+      )
 
       const response: ApiResponse = {
         success: true,

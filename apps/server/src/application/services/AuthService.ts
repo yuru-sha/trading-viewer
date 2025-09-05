@@ -358,7 +358,7 @@ export class AuthService {
     if (!user) return
 
     const newFailedCount = user.failedLoginCount + 1
-    const updateData: any = {
+    const updateData: { failedLoginCount: number; lockedUntil?: Date } = {
       failedLoginCount: newFailedCount,
     }
 
@@ -389,7 +389,7 @@ export class AuthService {
       updatedAt: user.updatedAt.getTime(),
       isActive: user.isActive,
       isEmailVerified: user.isEmailVerified,
-      role: user.role as any,
+      role: user.role as 'user' | 'admin',
     }
   }
 

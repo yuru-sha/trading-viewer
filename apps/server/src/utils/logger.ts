@@ -10,7 +10,7 @@ if (process.env.SENTRY_DSN) {
     environment: process.env.NODE_ENV || 'development',
     integrations: [Sentry.httpIntegration()],
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    beforeSend(event, _hint) {
+    beforeSend(event, __hint) {
       // Filter out sensitive data
       if (event.request?.cookies) {
         delete event.request.cookies
@@ -196,11 +196,11 @@ export const errorLogger = (err: Error, req: Request, res: Response, next: NextF
 }
 
 // Utility functions for structured logging
-export const logInfo = (message: string, meta?: any) => {
+export const logInfo = (message: string, meta?: Record<string, unknown>) => {
   logger.info({ message, ...meta })
 }
 
-export const logError = (message: string, error?: Error, meta?: any) => {
+export const logError = (message: string, error?: Error, meta?: Record<string, unknown>) => {
   logger.error({
     message,
     error: error?.message,
@@ -213,16 +213,20 @@ export const logError = (message: string, error?: Error, meta?: any) => {
   }
 }
 
-export const logWarn = (message: string, meta?: any) => {
+export const logWarn = (message: string, meta?: Record<string, unknown>) => {
   logger.warn({ message, ...meta })
 }
 
-export const logDebug = (message: string, meta?: any) => {
+export const logDebug = (message: string, meta?: Record<string, unknown>) => {
   logger.debug({ message, ...meta })
 }
 
 // Performance monitoring
-export const logPerformance = (operation: string, duration: number, meta?: any) => {
+export const logPerformance = (
+  operation: string,
+  duration: number,
+  meta?: Record<string, unknown>
+) => {
   const level = duration > 1000 ? 'warn' : 'info'
   logger.log(level, {
     message: `Performance: ${operation}`,
@@ -241,7 +245,7 @@ export const logPerformance = (operation: string, duration: number, meta?: any) 
 }
 
 // Audit logging for sensitive operations
-export const logAudit = (action: string, userId: string, details: any) => {
+export const logAudit = (action: string, userId: string, details: Record<string, unknown>) => {
   logger.info({
     type: 'AUDIT',
     action,

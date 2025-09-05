@@ -26,6 +26,7 @@ bootstrap()
     )
   })
   .catch(error => {
+    // eslint-disable-next-line no-console
     console.error('Failed to bootstrap application:', error)
     // Render error state
     ReactDOM.createRoot(document.getElementById('root')!).render(

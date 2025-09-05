@@ -1,4 +1,4 @@
-import type useDrawingTools from '@/presentation/hooks/useDrawingTools'
+import { useDrawingTools } from '@/presentation/hooks/drawing'
 import type { useChartInstance } from '@/presentation/hooks/useChartInstance'
 import { PriceData } from '@/infrastructure/utils/indicators'
 import { useChartEvents as useRefactoredChartEvents } from '@/presentation/hooks/chart-events'

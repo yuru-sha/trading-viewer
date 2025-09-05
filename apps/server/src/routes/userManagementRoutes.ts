@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Response } from 'express'
 import { z } from 'zod'
 import { requireAuth, requireCSRF, AuthenticatedRequest } from '../middleware/auth'
 import { validateRequest, asyncHandler } from '../middleware/errorHandling'
@@ -8,7 +8,7 @@ import {
   SecurityEventType,
   SecuritySeverity,
 } from '../infrastructure/services/securityLogger'
-import { requirePermission, requireAdmin, ResourceType, Action } from '../middleware/authorization'
+import { requireAdmin } from '../middleware/authorization'
 
 // Database integration with Repository pattern
 import { PrismaClient } from '@prisma/client'
@@ -44,14 +44,21 @@ const updateUserRoleSchema = z.object({
 })
 
 // User response helper
-const createUserResponse = (user: any) => ({
+const _createUserResponse = (user: {
+  id: string
+  email: string
+  name?: string | null
+  role: string
+  createdAt: Date
+  updatedAt: Date
+}) => ({
   id: user.id,
   email: user.email,
   name: user.name,
-  avatar: user.avatar,
+  avatar: (user as { avatar?: string }).avatar,
   role: user.role as 'user' | 'admin',
-  isEmailVerified: user.isEmailVerified,
-  lastLoginAt: user.lastLoginAt,
+  isEmailVerified: (user as { isEmailVerified?: boolean }).isEmailVerified,
+  lastLoginAt: (user as { lastLoginAt?: Date }).lastLoginAt,
   createdAt: user.createdAt,
 })
 
@@ -87,7 +94,7 @@ router.put(
     const userId = req.user!.userId
     const { name, avatar } = req.body
 
-    const updateData: any = {}
+    const updateData: { name?: string; avatar?: string } = {}
     if (name !== undefined) updateData.name = name
     if (avatar !== undefined) updateData.avatar = avatar
 
@@ -131,7 +138,7 @@ router.get(
     const skip = (pageNum - 1) * limitNum
 
     // Build where clause
-    const where: any = {}
+    const where: Record<string, unknown> = {}
 
     if (search) {
       where.OR = [

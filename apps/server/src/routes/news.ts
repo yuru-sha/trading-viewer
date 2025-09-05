@@ -75,11 +75,11 @@ router.get('/:category', async (req, res) => {
       })
     }
 
-    const newsCount = Math.min(parseInt(count as string) || 6, 20)
-
     // Fetching news articles for category
 
-    const news = await yahooFinanceService.getCategoryNews(category as any)
+    const news = await yahooFinanceService.getCategoryNews(
+      category as 'japan' | 'world' | 'crypto' | 'general'
+    )
 
     const transformedNews = news.map(item => {
       // providerPublishTime is already in seconds from the service
