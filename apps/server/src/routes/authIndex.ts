@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import authRoutes from './authRoutes'
 // 他の分割されたルートファイルは段階的に実装
-// import userManagementRoutes from './userManagementRoutes'
+import userManagementRoutes from './userManagementRoutes'
 // import securityRoutes from './securityRoutes'
 // import fileUploadRoutes from './fileUploadRoutes'
 
@@ -18,7 +18,7 @@ const router: import('express').Router = Router()
 router.use('/', authRoutes)
 
 // TODO: 段階的に他のルートを統合
-// router.use('/users', userManagementRoutes)
+router.use('/users', userManagementRoutes)
 // router.use('/security', securityRoutes)
 // router.use('/upload', fileUploadRoutes)
 

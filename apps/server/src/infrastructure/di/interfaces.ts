@@ -44,11 +44,11 @@ type NewsItem = {
   providerPublishTime: number
   type: string
   thumbnail?: {
-    resolutions: Array<{
+    resolutions?: Array<{
       url: string
-      width: number
-      height: number
-      tag: string
+      width?: number
+      height?: number
+      tag?: string
     }>
   }
   relatedTickers?: string[]

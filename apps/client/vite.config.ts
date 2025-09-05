@@ -8,11 +8,22 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/pages': path.resolve(__dirname, './src/pages'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/domain': path.resolve(__dirname, './src/domain'),
+      '@/application': path.resolve(__dirname, './src/application'),
+      '@/infrastructure': path.resolve(__dirname, './src/infrastructure'),
+      '@/presentation': path.resolve(__dirname, './src/presentation'),
+      '@/components': path.resolve(__dirname, './src/presentation/components'),
+      '@/hooks': path.resolve(__dirname, './src/presentation/hooks'),
+      '@/pages': path.resolve(__dirname, './src/presentation/pages'),
+      '@/context': path.resolve(__dirname, './src/presentation/context'),
+      '@/controllers': path.resolve(__dirname, './src/controllers'),
+      '@/services': path.resolve(__dirname, './src/infrastructure/services'),
+      '@/utils': path.resolve(__dirname, './src/infrastructure/utils'),
+      '@/lib': path.resolve(__dirname, './src/infrastructure/adapters'),
+      '@/data': path.resolve(__dirname, './src/infrastructure/data'),
+      '@/commands': path.resolve(__dirname, './src/application/commands'),
       '@/types': path.resolve(__dirname, './src/types'),
+      '@shared': path.resolve(__dirname, '../../packages/shared/src'),
       '@ui': path.resolve(__dirname, '../../packages/ui/src'),
     },
   },
@@ -79,23 +90,29 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: id => {
-          // React 関連の基本ライブラリ
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-            return 'vendor'
+          // Core React libraries (critical for app bootstrap)
+          if (id.includes('react/') || id.includes('react-dom/') || id.includes('scheduler/')) {
+            return 'react-core'
+          }
+          if (id.includes('react-router')) {
+            return 'react-router'
           }
 
-          // ECharts 関連の詳細な分割
+          // ECharts 関連の詳細な分割 - サイズベースで最適化
           if (id.includes('echarts/core') || id.includes('echarts-gl')) {
             return 'charts-core'
           }
-          if (id.includes('echarts/charts') || id.includes('echarts/components')) {
-            return 'charts-components'
+          if (id.includes('echarts/charts')) {
+            return 'charts-types' // candlestick, line, bar charts
+          }
+          if (id.includes('echarts/components')) {
+            return 'charts-components' // tooltip, legend, axis components
           }
           if (id.includes('echarts/renderers') || id.includes('echarts/features')) {
             return 'charts-features'
           }
           if (id.includes('echarts') && !id.includes('node_modules/@trading-viewer')) {
-            return 'charts'
+            return 'charts' // Main echarts bundle
           }
 
           // TanStack Query

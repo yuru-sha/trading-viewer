@@ -14,9 +14,9 @@ import {
   IUserRepository,
   IDrawingToolRepository,
   IPriceAlertRepository,
-  IRefreshTokenRepository,
   IWatchlistRepository,
 } from '../repositories'
+import type { IRefreshTokenRepository } from '../../domain/repositories/IRefreshTokenRepository'
 import { log } from '../../infrastructure/services/logger'
 
 /**

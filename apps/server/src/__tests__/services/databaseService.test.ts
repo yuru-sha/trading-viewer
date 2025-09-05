@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
-import { DatabaseService, IDatabaseService } from '../../services/databaseService'
+import { DatabaseService, IDatabaseService } from '../../infrastructure/services/databaseService'
 
 // Mock PrismaClient
 const mockPrismaClient = {
@@ -10,7 +10,7 @@ const mockPrismaClient = {
 } as unknown as PrismaClient
 
 // Mock repositories
-vi.mock('../../repositories/SymbolRepository', () => ({
+vi.mock('../../infrastructure/repositories/SymbolRepository', () => ({
   SymbolRepository: vi.fn().mockImplementation(() => ({
     create: vi.fn(),
     findById: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock('../../repositories/SymbolRepository', () => ({
   })),
 }))
 
-vi.mock('../../repositories/CandleRepository', () => ({
+vi.mock('../../infrastructure/repositories/CandleRepository', () => ({
   CandleRepository: vi.fn().mockImplementation(() => ({
     create: vi.fn(),
     findById: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('../../repositories/CandleRepository', () => ({
   })),
 }))
 
-vi.mock('../../repositories/UserPreferencesRepository', () => ({
+vi.mock('../../infrastructure/repositories/UserPreferencesRepository', () => ({
   UserPreferencesRepository: vi.fn().mockImplementation(() => ({
     create: vi.fn(),
     findByUserId: vi.fn(),

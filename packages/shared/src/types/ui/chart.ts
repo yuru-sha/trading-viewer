@@ -1,4 +1,6 @@
 // Chart component interfaces and types
+import type { DrawingObject } from '../chart';
+import type { ReactElement } from '../chart/interfaces';
 
 export type ChartLibraryType = 'candle' | 'line' | 'area' | 'bars'
 
@@ -10,12 +12,12 @@ export interface ChartConfig {
   showGridlines?: boolean
   theme?: 'light' | 'dark'
   indicators?: string[]
-  drawingTools?: any[]
+  drawingTools?: DrawingObject[]
 }
 
 export interface ChartState {
   isLoading: boolean
-  data: any[]
+  data: MarketData[]
   error?: string | null
   lastUpdate?: Date | null
   hasData?: boolean
@@ -37,8 +39,8 @@ export interface MarketData {
 export interface IChartComponent {
   config: ChartConfig
   state: ChartState
-  render(): any
-  updateData(data: MarketData | any[]): void
+  render(): ReactElement
+  updateData(data: MarketData[]): void
   setConfig(config: Partial<ChartConfig>): void
 }
 

@@ -9,10 +9,17 @@ import { TYPES } from '../../infrastructure/di/types.js'
 import type { IYahooFinanceService } from '../../infrastructure/di/interfaces.js'
 import { log } from '../../infrastructure/services/logger'
 
+interface JWTPayload {
+  userId: string
+  iat?: number
+  exp?: number
+  [key: string]: unknown
+}
+
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'ping' | 'error' | 'quote' | 'candle'
   symbol?: string
-  data?: any
+  data?: Record<string, unknown> | string | number | boolean | null
   timestamp?: number
 }
 
@@ -53,7 +60,8 @@ export class WebSocketService extends EventEmitter {
       maxPayload: 16 * 1024, // 16KB
       perMessageDeflate: false,
       clientTracking: true,
-      verifyClient: (info: any) => this.verifyClient(info),
+      verifyClient: (info: { origin: string; secure: boolean; req: IncomingMessage }) =>
+        this.verifyClient(info),
     })
 
     this.wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
@@ -77,7 +85,7 @@ export class WebSocketService extends EventEmitter {
         if (token) {
           const payload = jwt.verify(token, this.JWT_SECRET, {
             algorithms: ['HS256'],
-          }) as any
+          }) as JWTPayload
           ws.userId = payload.userId
           ws.isAuthenticated = true
           log.websocket.info(`Authenticated WebSocket connection for user: ${ws.userId}`)
@@ -128,15 +136,29 @@ export class WebSocketService extends EventEmitter {
 
     // Heartbeat to detect broken connections
     const heartbeatInterval = setInterval(() => {
-      this.wss?.clients.forEach((ws: any) => {
-        if (!ws.isAlive) {
-          log.websocket.info('Terminating inactive WebSocket connection')
-          return ws.terminate()
-        }
+      if (!this.wss?.clients) return
 
+      const clients = Array.from(this.wss.clients) as AuthenticatedWebSocket[]
+
+      // Process inactive clients first (synchronous operations)
+      const inactiveClients = clients.filter(ws => !ws.isAlive)
+      inactiveClients.forEach(ws => {
+        log.websocket.info('Terminating inactive WebSocket connection')
+        ws.terminate()
+      })
+
+      // Process active clients (ping operations)
+      const activeClients = clients.filter(ws => ws.isAlive)
+      activeClients.forEach(ws => {
         ws.isAlive = false
         ws.ping()
       })
+
+      if (inactiveClients.length > 0) {
+        log.websocket.info(
+          `Cleaned up ${inactiveClients.length} inactive connections, ${activeClients.length} active connections remain`
+        )
+      }
     }, 30000) // Every 30 seconds
 
     this.wss.on('close', () => {
@@ -308,7 +330,7 @@ export class WebSocketService extends EventEmitter {
       const MOCK_REAL_TIME_UPDATES = process.env.MOCK_REAL_TIME_UPDATES === 'true'
       const USE_YAHOO_FINANCE = process.env.USE_YAHOO_FINANCE === 'true'
 
-      let quote: any
+      let quote: Record<string, unknown>
 
       // Priority: Yahoo Finance > Mock Data
       if (USE_YAHOO_FINANCE && !USE_MOCK_DATA && !MOCK_REAL_TIME_UPDATES) {

@@ -2,7 +2,7 @@
 import type { UserPreferences } from '../core/user'
 
 // Base command interfaces
-export interface ICommand<TResult = any, TUndo = any> {
+export interface ICommand<TResult = unknown, TUndo = unknown> {
   execute(): Promise<TResult> | TResult
   undo(): Promise<TUndo> | TUndo
   redo(): Promise<TResult> | TResult
@@ -11,7 +11,7 @@ export interface ICommand<TResult = any, TUndo = any> {
   getDescription(): string
 }
 
-export interface CommandResult<T = any> {
+export interface CommandResult<T = unknown> {
   success: boolean
   data?: T
   error?: string
@@ -36,8 +36,8 @@ export interface ICommandInvoker {
 }
 
 export interface ICommandFactory {
-  createCommand(type: string, params: any): ICommand
-  registerCommand(type: string, factory: (params: any) => ICommand): void
+  createCommand(type: string, params: unknown): ICommand
+  registerCommand(type: string, factory: (params: unknown) => ICommand): void
 }
 
 // Application-specific command types
@@ -56,7 +56,7 @@ export type AppCommand =
 // Chart command interfaces
 export interface IAddIndicatorCommand extends ICommand {
   indicatorType: string
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 }
 
 export interface IRemoveIndicatorCommand extends ICommand {

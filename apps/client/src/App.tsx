@@ -1,14 +1,20 @@
 import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import { ErrorBoundary } from '@trading-viewer/ui'
-import { AppProvider } from './contexts/AppContext'
-import { AuthProvider } from './contexts/AuthContext'
-import { ErrorProvider } from './contexts/ErrorContext'
-import { useAuth } from './contexts/AuthContext'
-import { Layout } from './components/Layout'
-import { initializeMemoryManager } from './utils/memoryManager'
+import { ErrorBoundary } from '@/presentation/components/ErrorBoundary'
+import { AppProvider } from '@/presentation/context/AppContext'
+import { AuthProvider } from '@/presentation/context/AuthContext'
+import { ErrorProvider } from '@/presentation/context/ErrorContext'
+import { useAuth } from '@/presentation/context/AuthContext'
+import { Layout } from '@/presentation/components/Layout'
+import { PageLoader, ChartLoader, AdminLoader } from '@/presentation/components/LoadingSpinner'
+import { initializeMemoryManager } from '@/infrastructure/utils/memoryManager'
+// Critical pages loaded immediately
+import { HomePage } from '@/presentation/pages'
+import LoginPage from '@/presentation/pages/LoginPage'
+import ResetPasswordPage from '@/presentation/pages/ResetPasswordPage'
+
+// Lazy load heavy components for better performance
 import {
-  HomePage,
   MarketPage,
   ChartsPage,
   SearchPage,
@@ -17,9 +23,7 @@ import {
   AdminUsersPage,
   SettingsPage,
   HelpPage,
-} from './pages'
-import LoginPage from './pages/LoginPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
+} from '@/presentation/pages'
 
 const AppContent: React.FC = () => {
   const location = useLocation()
@@ -67,18 +71,73 @@ const AppContent: React.FC = () => {
   // Other pages with layout and lazy loading
   return (
     <Layout>
-      <Suspense fallback={<div className='flex items-center justify-center h-64'>Loading...</div>}>
-        <Routes>
-          <Route path='/' element={<HomePage />} />
-          <Route path='/market' element={<MarketPage />} />
-          <Route path='/search' element={<SearchPage />} />
-          <Route path='/watchlist' element={<WatchlistPage />} />
-          <Route path='/alerts' element={<AlertsPage />} />
-          <Route path='/settings' element={<SettingsPage />} />
-          <Route path='/help' element={<HelpPage />} />
-          <Route path='/admin/users' element={<AdminUsersPage />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path='/' element={<HomePage />} />
+        <Route
+          path='/market'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <MarketPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/charts'
+          element={
+            <Suspense fallback={<ChartLoader />}>
+              <ChartsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/search'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SearchPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/watchlist'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <WatchlistPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/alerts'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <AlertsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/settings'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/help'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <HelpPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path='/admin/users'
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <AdminUsersPage />
+            </Suspense>
+          }
+        />
+      </Routes>
     </Layout>
   )
 }

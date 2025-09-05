@@ -3,7 +3,7 @@
 // Common UI component props
 export interface BaseComponentProps {
   className?: string
-  children?: any // Generic for React, Vue, etc.
+  children?: unknown // Generic for React, Vue, etc.
   id?: string
   'data-testid'?: string
 }
@@ -17,7 +17,7 @@ export interface ButtonProps extends BaseComponentProps {
   size?: ButtonSize
   disabled?: boolean
   loading?: boolean
-  icon?: any
+  icon?: unknown
   onClick?: () => void
   type?: 'button' | 'submit' | 'reset'
 }
@@ -52,17 +52,17 @@ export interface ModalProps extends BaseComponentProps {
 }
 
 // Table component types
-export interface TableColumn<T = any> {
+export interface TableColumn<T = unknown> {
   key: string
   title: string
   dataIndex: keyof T
   width?: number | string
   align?: 'left' | 'center' | 'right'
   sortable?: boolean
-  render?: (value: any, record: T, index: number) => any
+  render?: (value: T[keyof T], record: T, index: number) => unknown
 }
 
-export interface TableProps<T = any> extends BaseComponentProps {
+export interface TableProps<T = unknown> extends BaseComponentProps {
   columns: TableColumn<T>[]
   data: T[]
   loading?: boolean
@@ -73,7 +73,7 @@ export interface TableProps<T = any> extends BaseComponentProps {
     onChange: (page: number, pageSize: number) => void
   }
   rowKey?: keyof T | ((record: T) => string)
-  onRow?: (record: T, index: number) => Record<string, any>
+  onRow?: (record: T, index: number) => Record<string, unknown>
 }
 
 // Form component types

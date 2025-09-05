@@ -1,43 +1,23 @@
+/** @type {import('eslint').Linter.Config} */
 module.exports = {
-  root: true,
-  env: {
-    node: true,
-    es2022: true
-  },
-  extends: [
-    'eslint:recommended',
-    "prettier"
-  ],
-  parser: '@typescript-eslint/parser',
+  extends: ['../../.eslintrc.cjs'],
   parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: 'module'
-  },
-  plugins: ['@typescript-eslint'],
-  rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'no-console': 'warn',
-    'prefer-const': 'error',
-    'no-var': 'error',
-    'no-eval': 'error',
-    'no-implied-eval': 'error',
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
   },
   overrides: [
     {
-      files: ['**/__tests__/**/*', '**/*.test.ts', '**/*.test.tsx'],
+      files: ['**/__tests__/**', '**/*.test.ts', '**/*.spec.ts'],
       env: {
-        jest: true
+        jest: true,
       },
-      globals: {
-        describe: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly'
-      }
-    }
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+      },
+    },
   ],
-  ignorePatterns: ['dist', '*.js', '*.cjs']
-}
+  ignorePatterns: ['tsup.config.ts', 'vitest.config.ts'],
+};

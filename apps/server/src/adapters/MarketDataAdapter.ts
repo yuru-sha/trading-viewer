@@ -49,7 +49,7 @@ export abstract class BaseMarketDataAdapter implements IMarketDataProvider {
   protected name: string
   protected baseUrl: string
   protected apiKey?: string
-  protected rateLimiter?: any
+  protected rateLimiter?: Record<string, unknown>
 
   constructor(name: string, baseUrl: string, apiKey?: string) {
     this.name = name
@@ -74,10 +74,15 @@ export abstract class BaseMarketDataAdapter implements IMarketDataProvider {
 
   async isAvailable(): Promise<boolean> {
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
       const response = await fetch(`${this.baseUrl}/health`, {
         method: 'HEAD',
-        timeout: 5000,
-      } as any)
+        signal: controller.signal,
+      } satisfies RequestInit)
+
+      clearTimeout(timeoutId)
       return response.ok
     } catch {
       return false

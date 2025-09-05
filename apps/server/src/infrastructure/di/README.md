@@ -30,14 +30,21 @@ Evidence-First 設計原則に基づいた InversifyJS による依存性注入�
 
 ```typescript
 import { injectable, inject } from 'inversify'
-import { TYPES, type ILoggerService } from '../infrastructure/di/index.js'
+import { TYPES } from '../infrastructure/di/types.js'
+import type { IRefreshTokenRepository } from '../../domain/repositories/IRefreshTokenRepository'
+import type { UserRepository } from '../repositories/UserRepository'
 
 @injectable()
-export class MyService {
-  constructor(@inject(TYPES.LoggerService) private logger: ILoggerService) {}
+export class AuthService {
+  constructor(
+    @inject(TYPES.UserRepository) private userRepository: UserRepository,
+    @inject(TYPES.RefreshTokenRepository) private refreshTokenRepository: IRefreshTokenRepository
+  ) {}
 
-  async doSomething(): Promise<void> {
-    this.logger.info('Doing something...')
+  async login(credentials: LoginRequest): Promise<AuthResult> {
+    // 実際の認証ロジック
+    const user = await this.userRepository.findByEmail(credentials.email)
+    // ...
   }
 }
 ```
@@ -94,12 +101,15 @@ src/infrastructure/di/
 - [x] 基本的な DI アーキテクチャ
 - [x] 型安全なインターフェース定義
 - [x] テスト用モッキングシステム
+- [x] 認証システムの完全移行（AuthService, UserRepository, RefreshTokenRepository）
+- [x] カスタムDIシステムの廃止・削除（`/containers/` ディレクトリ）
 - [x] 段階的移行サポート
 - [x] ドキュメントと使用例
+- [x] プロダクション環境での動作確認
 
 ### 🔄 段階的移行中
 
-- [ ] 既存サービスの DI 対応
+- [ ] 残りのサービスの DI 対応（YahooFinanceService, WebSocketService等）
 - [ ] ルーティング層での DI 活用
 - [ ] ミドルウェアでの DI 統合
 
@@ -149,9 +159,35 @@ src/infrastructure/di/
    - ファイル先頭で import されているか確認
    - tsconfig.json で emitDecoratorMetadata が有効か確認
 
+## 移行実績
+
+### 移行済みサービス
+
+1. **AuthService** - 認証・認可の中核サービス
+   - JWT トークン生成・検証
+   - パスワードハッシュ化
+   - ログイン試行制限
+
+2. **UserRepository** - ユーザーデータ管理
+   - Prisma ORM との連携
+   - ユーザー CRUD 操作
+   - メール検索、リセットトークン管理
+
+3. **RefreshTokenRepository** - リフレッシュトークン管理
+   - トークンの生成・検証・無効化
+   - 有効期限管理
+   - ユーザー別トークン管理
+
+### 移行による効果
+
+- **型安全性の向上**: コンパイル時の依存関係チェック
+- **テスタビリティの向上**: モック注入による単体テスト容易化
+- **保守性の向上**: インターフェース分離による疎結合設計
+- **一貫性の確保**: 統一された DI パターンの採用
+
 ## 今後の改善予定
 
+- [ ] 残りサービスの段階的移行（YahooFinanceService 優先）
 - [ ] 自動バインディング機能の強化
 - [ ] パフォーマンス監視機能の追加
 - [ ] より詳細なエラーメッセージの提供
-- [ ] 設定ファイルによるバインディング定義

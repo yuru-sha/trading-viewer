@@ -2,8 +2,8 @@ import { MarketDataResponse } from '../api'
 
 // 基本的な React 要素型の定義
 export interface ReactElement {
-  type: any
-  props: any
+  type: unknown
+  props: unknown
   key?: string | number | null
 }
 

@@ -141,11 +141,11 @@ export class MemoryCacheService implements ICacheService {
     const dbCandles = await dbService.candles.findBySymbolAndTimeRange(symbol, from, to)
 
     if (dbCandles && dbCandles.length > 0) {
-      const normalized: any = {
+      const normalized: NormalizedCandleResponse = {
         symbol,
         resolution,
-        data: dbCandles.map(candle => ({
-          timestamp: candle.timestamp,
+        candles: dbCandles.map(candle => ({
+          time: candle.timestamp,
           open: candle.open,
           high: candle.high,
           low: candle.low,
@@ -177,9 +177,9 @@ export class MemoryCacheService implements ICacheService {
 
     // Store candles in database for persistence
     const dbService = getDatabaseService()
-    const candlesToStore = (data as any).data.map(candle => ({
+    const candlesToStore = data.candles.map(candle => ({
       symbol,
-      timestamp: candle.timestamp,
+      timestamp: candle.time,
       open: candle.open,
       high: candle.high,
       low: candle.low,

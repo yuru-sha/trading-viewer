@@ -20,6 +20,27 @@ export interface YahooQuoteData {
   timestamp: number
 }
 
+// Yahoo Finance Search Quote Response
+interface YahooSearchQuote {
+  symbol: string
+  shortname?: string
+  longname?: string
+  exchange?: string
+  quoteType?: string
+  typeDisp?: string
+}
+
+// Yahoo Finance News Item
+interface YahooRawNewsItem {
+  uuid: string
+  title: string
+  publisher: string
+  link: string
+  providerPublishTime: number | Date
+  thumbnail?: { resolutions?: Array<{ url: string }> }
+  relatedTickers?: string[]
+}
+
 export interface YahooCandleData {
   c: number[] // 終値
   h: number[] // 高値
@@ -47,11 +68,11 @@ export interface YahooNewsItem {
   providerPublishTime: number
   type: string
   thumbnail?: {
-    resolutions: Array<{
+    resolutions?: Array<{
       url: string
-      width: number
-      height: number
-      tag: string
+      width?: number
+      height?: number
+      tag?: string
     }>
   }
   relatedTickers?: string[]
@@ -219,14 +240,16 @@ export class YahooFinanceService implements IYahooFinanceService {
         return []
       }
 
-      return result.quotes.slice(0, limit).map((quote: any) => ({
-        symbol: quote.symbol,
-        shortname: quote.shortname,
-        longname: quote.longname || quote.shortname,
-        exchange: quote.exchange,
-        quoteType: quote.quoteType,
-        typeDisp: quote.typeDisp,
-      }))
+      return (result.quotes as YahooSearchQuote[])
+        .slice(0, limit)
+        .map((quote: YahooSearchQuote) => ({
+          symbol: quote.symbol || '',
+          shortname: quote.shortname,
+          longname: quote.longname || quote.shortname,
+          exchange: quote.exchange,
+          quoteType: quote.quoteType,
+          typeDisp: quote.typeDisp,
+        }))
     } catch (error) {
       this.logger.api.error(`Yahoo Finance search API error ("${query}"):`, error)
       throw new Error(
@@ -334,7 +357,17 @@ export class YahooFinanceService implements IYahooFinanceService {
   async getNews(query: string = '', count: number = 6): Promise<YahooNewsItem[]> {
     try {
       // 基本的なニュース検索を試みる
-      let result: any
+      let result: {
+        news?: Array<{
+          uuid: string
+          title: string
+          publisher: string
+          link: string
+          providerPublishTime: number | Date
+          thumbnail?: { resolutions?: Array<{ url: string }> }
+          relatedTickers?: string[]
+        }>
+      }
 
       try {
         result = await yahooFinance.search(query)
@@ -351,7 +384,7 @@ export class YahooFinanceService implements IYahooFinanceService {
       // 結果を要求された件数に制限
       const newsToProcess = result.news.slice(0, count)
 
-      const newsItems: YahooNewsItem[] = newsToProcess.map((item: any) => {
+      const newsItems: YahooNewsItem[] = newsToProcess.map((item: YahooRawNewsItem) => {
         // タイムスタンプの処理 - ISO文字列またはUnixタイムスタンプの可能性がある
         let timestamp: number
 
@@ -372,7 +405,7 @@ export class YahooFinanceService implements IYahooFinanceService {
           publisher: item.publisher || '',
           link: item.link || '',
           providerPublishTime: timestamp,
-          type: item.type || 'article',
+          type: (item as { type?: string }).type || 'article',
           thumbnail: item.thumbnail,
           relatedTickers: item.relatedTickers || [],
         }

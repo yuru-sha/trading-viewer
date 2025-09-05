@@ -3,14 +3,14 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { authService } from '../services/AuthService'
-import { log } from '../services/logger'
+import { log } from '@/infrastructure/services/LoggerService'
 import type {
   User,
   LoginCredentials,
   RegisterData,
   UpdateProfileData,
   ChangePasswordData,
-} from '../contexts/AuthContext'
+} from '../context/AuthContext'
 
 export interface AuthState {
   // State

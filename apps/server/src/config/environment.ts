@@ -287,9 +287,11 @@ export class EnvironmentConfig {
     log.system.info('')
 
     // Print non-sensitive configuration
-    const safeConfig: Record<string, any> = {
+    const safeConfig: Record<string, string | number | boolean | object> = {
       PORT: this.getPort(),
-      CORS_ORIGIN: this.getCorsOrigin(),
+      CORS_ORIGIN: Array.isArray(this.getCorsOrigin())
+        ? this.getCorsOrigin().toString()
+        : this.getCorsOrigin(),
       RATE_LIMIT_WINDOW_MS: this.getRateLimitConfig().windowMs,
       RATE_LIMIT_MAX_REQUESTS: this.getRateLimitConfig().maxRequests,
       SSL_ENABLED: this.get('SSL_ENABLED', false),

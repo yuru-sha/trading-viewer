@@ -1,6 +1,6 @@
 import React from 'react'
 import { CHART_TYPES } from '@trading-viewer/shared'
-import type { PriceData } from '../utils/indicators'
+import type { PriceData } from '@/infrastructure/utils/indicators'
 
 // Chart component interfaces
 export interface ChartProps {
@@ -62,7 +62,7 @@ class CandlestickChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'candlestick' as any} />
+        <EChartsTradingChart {...this.props} chartType={'candlestick'} />
       </React.Suspense>
     )
   }
@@ -78,7 +78,7 @@ class LineChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'line' as any} />
+        <EChartsTradingChart {...this.props} chartType={'line'} />
       </React.Suspense>
     )
   }
@@ -94,7 +94,7 @@ class AreaChart extends BaseChart {
 
     return (
       <React.Suspense fallback={<div>Loading chart...</div>}>
-        <EChartsTradingChart {...this.props} chartType={'area' as any} />
+        <EChartsTradingChart {...this.props} chartType={'area'} />
       </React.Suspense>
     )
   }
@@ -292,7 +292,7 @@ export const ChartComponent: React.FC<
 
   React.useEffect(() => {
     factoryManager.setFactory(factoryType)
-  }, [factoryType])
+  }, [factoryType, factoryManager])
 
   const chart = React.useMemo(() => {
     return factoryManager.createChart(chartType, props)

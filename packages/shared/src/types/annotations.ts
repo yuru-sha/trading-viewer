@@ -42,7 +42,7 @@ export interface AnnotationMetadata {
   symbol?: string
   timeframe?: string
   chartType?: string
-  context?: Record<string, any>
+  context?: Record<string, unknown>
   version: number
 }
 
@@ -192,7 +192,7 @@ export interface AnnotationEvent {
   type: 'click' | 'hover' | 'focus' | 'edit' | 'delete' | 'move'
   annotationId: string
   position?: { x: number; y: number }
-  data?: any
+  data?: unknown
 }
 
 // Annotation validation

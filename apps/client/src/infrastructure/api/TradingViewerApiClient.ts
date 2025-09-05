@@ -16,8 +16,8 @@ import {
   NewsItem,
   WatchlistItem,
   DrawingTool,
-} from '../../domain/interfaces/IMarketDataClient'
-import { api } from '../../lib/apiClient'
+} from '@/domain/interfaces/IMarketDataClient'
+import { api } from '@/infrastructure/adapters/apiClient'
 
 /**
  * 市場データクライアント実装

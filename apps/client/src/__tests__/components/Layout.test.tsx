@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { Layout } from '../../components/Layout'
-import { AppProvider } from '../../contexts/AppContext'
-import { AuthProvider } from '../../contexts/AuthContext'
+import { AppProvider } from '../../context/AppContext'
+import { AuthProvider } from '../../context/AuthContext'
 
 // Mock AuthContext
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../context/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => ({
     user: null,

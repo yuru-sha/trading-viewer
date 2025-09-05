@@ -12,7 +12,7 @@ export enum WebSocketEventType {
 export interface WebSocketMessage {
   type: WebSocketEventType
   symbol?: string
-  data: any
+  data: unknown
   timestamp: number
 }
 

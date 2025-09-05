@@ -10,7 +10,7 @@ export interface IndicatorValue {
 export interface IndicatorResult {
   type: string
   name: string
-  parameters: Record<string, any>
+  parameters: Record<string, number | string | boolean>
   values: IndicatorValue[]
 }
 
@@ -265,30 +265,30 @@ export class IndicatorCalculationService implements IIndicatorCalculationService
   calculateIndicator(
     type: string,
     candles: Candle[],
-    parameters: Record<string, any>,
+    parameters: Record<string, number | string | boolean>,
     name: string
   ): IndicatorResult {
     let values: IndicatorValue[] = []
 
     switch (type.toLowerCase()) {
       case 'sma':
-        values = this.calculateSMA(candles, parameters.period || 20)
+        values = this.calculateSMA(candles, Number(parameters.period) || 20)
         break
 
       case 'ema':
-        values = this.calculateEMA(candles, parameters.period || 20)
+        values = this.calculateEMA(candles, Number(parameters.period) || 20)
         break
 
       case 'rsi':
-        values = this.calculateRSI(candles, parameters.period || 14)
+        values = this.calculateRSI(candles, Number(parameters.period) || 14)
         break
 
       case 'macd': {
         const macdResult = this.calculateMACD(
           candles,
-          parameters.fastPeriod || 12,
-          parameters.slowPeriod || 26,
-          parameters.signalPeriod || 9
+          Number(parameters.fastPeriod) || 12,
+          Number(parameters.slowPeriod) || 26,
+          Number(parameters.signalPeriod) || 9
         )
         // For simplicity, return just the MACD line
         // In a real implementation, you might want to return all three lines
@@ -299,11 +299,11 @@ export class IndicatorCalculationService implements IIndicatorCalculationService
       case 'bollinger': {
         const bbResult = this.calculateBollingerBands(
           candles,
-          parameters.period || 20,
-          parameters.standardDeviations || 2.1
+          Number(parameters.period) || 20,
+          Number(parameters.standardDeviations) || 2.1
         )
-        // Return all five bands as separate arrays
-        values = bbResult.upper2.map((value, index) => value) as any
+        // Return middle band values
+        values = bbResult.middle
         break
       }
 

@@ -1,10 +1,10 @@
-import { UserRepository } from '../../repositories/UserRepository'
+import { UserRepository } from '../../infrastructure/repositories/UserRepository'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 const userRepository = new UserRepository(prisma)
 
-describe.skip('UserRepository Filter Tests', () => {
+describe('UserRepository Filter Tests', () => {
   beforeAll(async () => {
     // Ensure test database connection
     await prisma.$connect()

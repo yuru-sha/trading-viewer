@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import {
   UserPreferencesRepository,
   NotFoundError,
-} from '../../repositories/UserPreferencesRepository'
+} from '../../infrastructure/repositories/UserPreferencesRepository'
 
 // Mock PrismaClient
 const mockPrismaClient = {

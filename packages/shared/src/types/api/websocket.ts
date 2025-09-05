@@ -12,7 +12,7 @@ export interface WebSocketConnection {
 export interface WebSocketSubscription {
   channel: string
   symbols: string[]
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 }
 
 // WebSocket message types
@@ -79,7 +79,7 @@ export interface ErrorMessage extends WsBaseMessage {
   data: {
     code: string
     message: string
-    details?: any
+    details?: unknown
   }
 }
 
