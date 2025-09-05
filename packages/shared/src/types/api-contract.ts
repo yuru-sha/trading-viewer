@@ -74,9 +74,9 @@ export interface SearchSymbolsResponse {
   count: number
 }
 
-export interface GetQuoteResponse extends NormalizedQuote {}
+export type GetQuoteResponse = NormalizedQuote
 
-export interface GetCandleDataResponse extends NormalizedCandleResponse {}
+export type GetCandleDataResponse = NormalizedCandleResponse
 
 export interface GetRateLimitResponse extends RateLimitInfo {
   canMakeRequest: boolean
@@ -124,7 +124,7 @@ export interface ApiEndpoints {
         name: string
         version: string
         timestamp: string
-        endpoints: Record<string, any>
+        endpoints: Record<string, unknown>
       }
     }
   }

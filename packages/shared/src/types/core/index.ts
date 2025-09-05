@@ -35,13 +35,13 @@ export interface PaginatedResponse<T> {
 export interface ErrorInfo {
   code: string
   message: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   timestamp: number
 }
 
 export type Status = 'idle' | 'loading' | 'success' | 'error'
 
-export interface AsyncState<T = any> {
+export interface AsyncState<T = unknown> {
   status: Status
   data?: T
   error?: ErrorInfo

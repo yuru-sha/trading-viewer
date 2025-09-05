@@ -34,6 +34,6 @@
     "noImplicitThis": true,
     "alwaysStrict": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules", "**/__tests__/**/*", "**/*.test.ts"]
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
 }

@@ -197,9 +197,9 @@ export interface UserIndicator {
   timeframe: string
   type: IndicatorType
   name: string
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   visible: boolean
-  style?: Record<string, any>
+  style?: Record<string, unknown>
   position: number
   createdAt: string
   updatedAt: string
@@ -211,24 +211,24 @@ export interface CreateIndicatorRequest {
   timeframe?: string
   type: IndicatorType
   name: string
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   visible?: boolean
-  style?: Record<string, any>
+  style?: Record<string, unknown>
   position?: number
 }
 
 export interface UpdateIndicatorRequest {
   name?: string
-  parameters?: Record<string, any>
+  parameters?: Record<string, unknown>
   visible?: boolean
-  style?: Record<string, any>
+  style?: Record<string, unknown>
   position?: number
 }
 
 export interface CalculateIndicatorRequest {
   symbol: string
   type: IndicatorType
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 }
 
 export interface UpdatePositionsRequest {
@@ -269,13 +269,13 @@ export interface ChartIndicatorConfig {
   id: string
   type: IndicatorType
   name: string
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   style: IndicatorStyle
   visible: boolean
 }
 
 // Predefined indicator configurations
-export const DEFAULT_INDICATOR_CONFIGS: Record<IndicatorType, Record<string, any>> = {
+export const DEFAULT_INDICATOR_CONFIGS: Record<IndicatorType, Record<string, unknown>> = {
   sma: {
     period: 20,
   },
@@ -358,10 +358,10 @@ export interface IndicatorMetadata {
     key: string
     label: string
     type: 'number' | 'select'
-    default: any
+    default: unknown
     min?: number
     max?: number
-    options?: Array<{ value: any; label: string }>
+    options?: Array<{ value: unknown; label: string }>
   }>
 }
 

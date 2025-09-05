@@ -74,7 +74,7 @@ export const COMMON_ICONS = {
 } as const
 
 export type CommonIconName = keyof typeof COMMON_ICONS
-export type IconName = LucideIconName | CommonIconName
+export type IconName = LucideIconName
 
 // Icon component props interface
 export interface IconProps {

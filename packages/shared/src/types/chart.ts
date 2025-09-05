@@ -18,7 +18,7 @@ export interface TechnicalIndicator {
   id: string
   name: string
   type: 'overlay' | 'oscillator'
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   visible: boolean
 }
 

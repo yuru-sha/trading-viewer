@@ -43,7 +43,7 @@ export interface NormalizedCandleResponse {
 }
 
 // Generic API Response wrapper
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: ErrorInfo

@@ -1,43 +1,40 @@
+/** @type {import('eslint').Linter.Config} */
 module.exports = {
-  root: true,
+  extends: ['../../.eslintrc.cjs'],
+  parserOptions: {
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
+  },
   env: {
     browser: true,
-    es2022: true
   },
+  plugins: ['react-hooks'],
   extends: [
-    'eslint:recommended', 
-    'plugin:@typescript-eslint/recommended', 
-    'plugin:react/recommended', 
+    'plugin:react/recommended',
+    'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
-    "prettier"
   ],
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true
-    }
+  rules: {
+    'react/prop-types': 'off',
   },
-  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   settings: {
     react: {
-      version: 'detect'
-    }
+      version: 'detect',
+    },
   },
-  rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
-    'no-console': 'error',
-    'prefer-const': 'error',
-    'no-var': 'error',
-    'no-eval': 'error',
-    'no-implied-eval': 'error',
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off'
-  },
-  ignorePatterns: ['dist', '*.js', '*.cjs']
-}
+  overrides: [
+    {
+      files: ['**/__tests__/**', '**/*.test.ts', '**/*.test.tsx'],
+      env: {
+        jest: true,
+      },
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+      },
+    },
+  ],
+  ignorePatterns: ['tsup.config.ts', 'vite.config.ts'],
+};

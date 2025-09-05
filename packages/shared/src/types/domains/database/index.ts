@@ -16,14 +16,14 @@ export interface CandleFilter {
 }
 
 // API Contract types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
   error?: {
     code: string
     message: string
-    details?: any
+    details?: unknown
   }
   timestamp: number
   version: string

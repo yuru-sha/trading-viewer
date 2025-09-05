@@ -108,7 +108,7 @@ export interface OrderValidationResult {
 }
 
 export interface OrderValidationContext {
-  portfolio: any // Will be imported from portfolio.ts
+  portfolio: unknown // Will be imported from portfolio.ts
   marketHours: boolean
   allowShortSelling: boolean
   maxLeverage: number

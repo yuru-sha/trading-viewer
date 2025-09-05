@@ -51,7 +51,7 @@ export interface IndicatorAlert extends BaseAlert {
   type: 'indicator'
   indicator: {
     type: string
-    parameters: Record<string, any>
+    parameters: Record<string, unknown>
   }
   condition: AlertCondition
   targetValue: number
@@ -97,7 +97,7 @@ export interface CreateAlertRequest {
   period?: string
   indicator?: {
     type: string
-    parameters: Record<string, any>
+    parameters: Record<string, unknown>
   }
   targetValue?: number
   pattern?: {
@@ -119,7 +119,7 @@ export interface AlertNotification {
   deliveredAt?: number
   errorMessage?: string
   retryCount: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 // Alert history
@@ -131,7 +131,7 @@ export interface AlertTriggerHistory {
   condition: string
   message: string
   notificationsSent: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 // Alert statistics
