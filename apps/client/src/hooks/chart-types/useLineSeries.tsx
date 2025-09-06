@@ -73,9 +73,9 @@ export function useLineSeries(
     // Add price lines similar to candlestick
     if (priceStats) {
       lineSeries.markLine = createPriceMarkLine(
-        priceStats,
-        currentPrice,
-        showPeriodHigh,
+        priceStats, 
+        currentPrice, 
+        showPeriodHigh, 
         showPeriodLow
       )
     }
@@ -86,5 +86,13 @@ export function useLineSeries(
     })
 
     return lineSeries
-  }, [chartData, symbol, priceStats, currentPrice, showPeriodHigh, showPeriodLow, lineColor])
+  }, [
+    chartData,
+    symbol,
+    priceStats,
+    currentPrice,
+    showPeriodHigh,
+    showPeriodLow,
+    lineColor,
+  ])
 }

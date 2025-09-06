@@ -297,25 +297,12 @@ export const useDrawingActions = (
   // Update drag position - ドラッグ中のリアルタイム座標更新
   const updateDrag = useCallback(
     (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
-      // Skip logging during drag for maximum performance
-      if (!state.isDragging || !state.dragState) return
-
-      // Batch updates with requestAnimationFrame for smoother performance
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-
-      animationFrameRef.current = requestAnimationFrame(() => {
-        performDragUpdate(x, y, chartInstance, data)
-        animationFrameRef.current = null
+      log.business.debug('Updating drag position', {
+        x,
+        y,
+        isDragging: state.isDragging,
+        dragState: state.dragState,
       })
-    },
-    [state.isDragging, state.dragState]
-  )
-
-  // Extracted drag update logic for better performance
-  const performDragUpdate = useCallback(
-    (x: number, y: number, chartInstance?: ECharts, data?: PriceData[]) => {
       if (!state.isDragging || !state.dragState) return
 
       const { toolId, handleType } = state.dragState
@@ -324,11 +311,10 @@ export const useDrawingActions = (
       if (chartInstance && data) {
         const dataPoint = chartInstance.convertPixelToData(x, y, data)
         if (dataPoint) {
-          // Skip expensive snapping during drag for better performance
-          const price = state.snapToPrice ? snapPrice(dataPoint.price) : dataPoint.price
+          const snappedPrice = snapPrice(dataPoint.price)
           const newPoint = {
             timestamp: dataPoint.timestamp,
-            price,
+            price: snappedPrice,
           }
 
           // 現在のツールを取得して座標を更新
@@ -344,7 +330,7 @@ export const useDrawingActions = (
                   // For horizontal lines, only update the price (Y coordinate)
                   updatedPoints[0] = {
                     timestamp: currentTool.points[0].timestamp, // Keep original timestamp
-                    price, // Update to new price level
+                    price: snappedPrice, // Update to new price level
                   }
                 } else if (currentTool.type === 'vertical') {
                   // For vertical lines, only update the timestamp (X coordinate)
@@ -393,38 +379,23 @@ export const useDrawingActions = (
               }
             }
 
-            // Batch both tool update and drag state update in a single dispatch
+            // リアルタイムでツールの座標を更新（プレビュー）
             dispatch({
-              type: 'BATCH_UPDATE_DRAG',
+              type: 'UPDATE_TOOL',
               payload: {
-                toolUpdate: {
-                  id: toolId,
-                  updates: { points: updatedPoints },
-                },
-                dragUpdate: { x, y },
+                id: toolId,
+                updates: { points: updatedPoints },
               },
             })
-          } else {
-            // Only update drag position if tool update failed
-            dispatch({
-              type: 'UPDATE_DRAG',
-              payload: { x, y },
-            })
           }
-        } else {
-          // No chart data - only update drag position
-          dispatch({
-            type: 'UPDATE_DRAG',
-            payload: { x, y },
-          })
         }
-      } else {
-        // No chart instance - only update drag position
-        dispatch({
-          type: 'UPDATE_DRAG',
-          payload: { x, y },
-        })
       }
+
+      // ドラッグ状態も更新
+      dispatch({
+        type: 'UPDATE_DRAG',
+        payload: { x, y },
+      })
     },
     [dispatch, state.isDragging, state.dragState, state.tools, snapPrice]
   )

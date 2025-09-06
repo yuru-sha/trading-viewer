@@ -18,7 +18,7 @@ type SeriesColors = {
  * @param priceStats 価格統計
  * @param currentPrice 現在価格
  * @param showPeriodHigh 期間高値表示フラグ
- * @param showPeriodLow 期間安値表示フラグ
+ * @param showPeriodLow 期間安値表示フラグ 
  * @param colors カラー設定
  * @returns Candlestickシリーズオプション
  */
@@ -136,5 +136,13 @@ export function useCandlestickSeries(
     })
 
     return candlestickSeries
-  }, [chartData, symbol, priceStats, currentPrice, showPeriodHigh, showPeriodLow, colors])
+  }, [
+    chartData,
+    symbol,
+    priceStats,
+    currentPrice,
+    showPeriodHigh,
+    showPeriodLow,
+    colors,
+  ])
 }

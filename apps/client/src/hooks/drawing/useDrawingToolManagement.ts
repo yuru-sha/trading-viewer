@@ -122,109 +122,23 @@ export const useDrawingToolManagement = (
     return filterTools(tool => tool.locked === true)
   }, [filterTools])
 
-  // Duplicate a tool with smart offset based on tool type
+  // Duplicate a tool
   const duplicateTool = useCallback(
     (toolId: string) => {
-      log.business.info('🎯 duplicateTool called', { toolId })
       const tool = getTool(toolId)
-      if (!tool) {
-        log.business.error('🎯 Tool not found for duplication', { toolId })
-        return null
-      }
-      log.business.info('🎯 Tool found for duplication', {
-        toolId,
-        type: tool.type,
-        pointsCount: tool.points?.length,
-      })
-
-      // Calculate appropriate offset based on tool type and current points
-      const calculateOffset = (tool: DrawingTool) => {
-        const baseTimestampOffset = 5 * 60 * 1000 // 5 minutes in milliseconds
-
-        // Calculate absolute price offset based on current prices
-        const getAbsolutePriceOffset = (points: DrawingTool['points']) => {
-          if (!points || points.length === 0) return 5 // Default $5 offset
-
-          const prices = points.map(p => p.price)
-          const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length
-
-          // Use 1% of average price as base offset, minimum $1
-          const baseAbsolutePriceOffset = Math.max(avgPrice * 0.01, 1)
-
-          if (points.length >= 2) {
-            const priceRange = Math.max(...prices) - Math.min(...prices)
-            // For multi-point tools, use larger offset: 15% of range or 2% of average price
-            return Math.max(priceRange * 0.15, avgPrice * 0.02, 2)
-          }
-
-          return baseAbsolutePriceOffset
-        }
-
-        const absolutePriceOffset = getAbsolutePriceOffset(tool.points)
-
-        // For tools with time ranges, calculate dynamic time offset
-        if (tool.points && tool.points.length >= 2) {
-          const timestamps = tool.points.map(p => p.timestamp)
-          const timeRange = Math.max(...timestamps) - Math.min(...timestamps)
-          const dynamicTimeOffset = Math.max(timeRange * 0.15, baseTimestampOffset) // 15% of range or base offset
-
-          return { priceOffset: absolutePriceOffset, timestampOffset: dynamicTimeOffset }
-        }
-
-        return { priceOffset: absolutePriceOffset, timestampOffset: baseTimestampOffset }
-      }
-
-      const { priceOffset, timestampOffset } = calculateOffset(tool)
-
-      // Apply different offset strategies based on tool type
-      const createOffsetPoints = (points: DrawingTool['points']) => {
-        if (!points || points.length === 0) return points
-
-        switch (tool.type) {
-          case 'horizontal':
-            // Horizontal lines: only offset price (Y-axis) with absolute value
-            return points.map(point => ({
-              ...point,
-              price: point.price + priceOffset, // Use absolute offset
-            }))
-
-          case 'vertical':
-            // Vertical lines: only offset timestamp (X-axis)
-            return points.map(point => ({
-              ...point,
-              timestamp: point.timestamp + timestampOffset,
-            }))
-
-          case 'trendline':
-          case 'fibonacci':
-          default:
-            // Two-point tools: offset both axes to create diagonal displacement
-            return points.map(point => ({
-              ...point,
-              price: point.price + priceOffset, // Use absolute offset
-              timestamp: point.timestamp + timestampOffset,
-            }))
-        }
-      }
+      if (!tool) return null
 
       const duplicatedTool: DrawingTool = {
         ...tool,
         id: `drawing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        points: createOffsetPoints(tool.points),
+        // Offset the duplicated tool slightly
+        points: tool.points?.map(point => ({
+          ...point,
+          price: point.price * 1.001, // 0.1% offset
+        })),
       }
-
-      log.business.info('Drawing tool duplicated with smart offset', {
-        originalId: toolId,
-        duplicatedId: duplicatedTool.id,
-        toolType: tool.type,
-        offsetStrategy: {
-          priceOffset,
-          timestampOffset,
-          pointCount: tool.points?.length || 0,
-        },
-      })
 
       dispatch({ type: 'ADD_TOOL', payload: duplicatedTool })
       return duplicatedTool.id

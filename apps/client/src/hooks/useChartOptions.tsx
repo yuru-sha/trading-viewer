@@ -1,7 +1,7 @@
-import { useMemo, useRef, useCallback } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { EChartsOption, SeriesOption } from 'echarts'
-import type { ChartData, PriceStats } from '@shared'
+import type { ChartData, PriceStats, UserIndicator } from '@shared'
 import { log } from '@/services/logger'
 
 // 新しい分離されたフック・ユーティリティのインポート
@@ -9,6 +9,10 @@ import { useCandlestickSeries } from './chart-types/useCandlestickSeries'
 import { useLineSeries } from './chart-types/useLineSeries'
 import { useAreaSeries } from './chart-types/useAreaSeries'
 import { useChartLayout } from './layout/useChartLayout'
+import { useRSISeries } from './indicators/useRSISeries'
+import { useMACDSeries } from './indicators/useMACDSeries'
+import { useMovingAverageSeries } from './indicators/useMovingAverageSeries'
+import { useBollingerBandsSeries } from './indicators/useBollingerBandsSeries'
 import { calculateIndicatorFromData } from '../utils/calculations/indicatorProcessor'
 
 export type ChartOptionsConfig = {
@@ -43,26 +47,6 @@ export function useChartOptions(
   priceStats: PriceStats | null,
   config: ChartOptionsConfig
 ) {
-  // スクロール位置を保持するためのref
-  const scrollPositionRef = useRef({ start: 70, end: 100 })
-  const isInitializedRef = useRef(false)
-
-  // chartDataの変更検出用のメモ化された値
-  const chartDataHash = useMemo(() => {
-    // データの長さと最後の要素のタイムスタンプのみを監視
-    return {
-      dataLength: chartData.dates?.length || 0,
-      lastTimestamp: chartData.dates?.[chartData.dates.length - 1] || null,
-      symbol: config.symbol,
-      timeframe: config.timeframe,
-    }
-  }, [
-    chartData.dates?.length,
-    chartData.dates?.[chartData.dates?.length - 1],
-    config.symbol,
-    config.timeframe,
-  ])
-
   // インジケーターデータフェッチ
   const { data: indicators = [], isLoading: indicatorsLoading } = useQuery({
     queryKey: ['indicators', config.symbol, config.timeframe],
@@ -153,75 +137,69 @@ export function useChartOptions(
       operation: 'chart_options_refactored',
       totalIndicators: indicators.length,
       visibleIndicators: indicators.filter(ind => ind.visible).length,
-      indicatorTypes: indicators.map(ind => ({
-        type: ind.type,
-        visible: ind.visible,
-        name: ind.name,
-      })),
+      indicatorTypes: indicators.map(ind => ({ type: ind.type, visible: ind.visible, name: ind.name })),
     })
 
-    return indicators
-      .map(indicator => {
-        if (!indicator.visible) {
-          log.business.debug('Skipping non-visible indicator', {
-            operation: 'chart_options_refactored',
-            indicatorName: indicator.name,
-            indicatorType: indicator.type,
-          })
-          return null
-        }
-
-        log.business.info('Processing visible indicator', {
+    return indicators.map(indicator => {
+      if (!indicator.visible) {
+        log.business.debug('Skipping non-visible indicator', {
           operation: 'chart_options_refactored',
           indicatorName: indicator.name,
           indicatorType: indicator.type,
-          hasCalculationResult: Boolean(indicatorCalculations[indicator.id]),
         })
+        return null
+      }
 
-        // API計算結果を優先、フォールバックでローカル計算
-        const calculationResult = indicatorCalculations[indicator.id]
-        let indicatorData: number[] | number[][]
-
-        if (calculationResult && calculationResult.values) {
-          // API計算結果を使用
-          indicatorData = calculationResult.values.map((item: { value: number }) => item.value)
-          log.business.info('Using API calculation for indicator', {
-            operation: 'chart_options_refactored',
-            indicatorName: indicator.name,
-            dataPoints: indicatorData.length,
-          })
-        } else {
-          // フォールバックでローカル計算
-          log.business.warn('Falling back to local calculation for indicator', {
-            operation: 'chart_options_refactored',
-            indicatorName: indicator.name,
-            indicatorType: indicator.type,
-          })
-          indicatorData = calculateIndicatorFromData(chartData, indicator)
-
-          log.business.info('Local calculation result', {
-            operation: 'chart_options_refactored',
-            indicatorName: indicator.name,
-            indicatorType: indicator.type,
-            resultLength: Array.isArray(indicatorData) ? indicatorData.length : 0,
-            isArray2D: Array.isArray(indicatorData) && Array.isArray(indicatorData[0]),
-          })
-        }
-
-        if (!indicatorData || indicatorData.length === 0) {
-          log.business.warn('No indicator data available', {
-            operation: 'chart_options_refactored',
-            indicatorName: indicator.name,
-          })
-          return null
-        }
-
-        return {
-          indicator,
-          data: indicatorData,
-        }
+      log.business.info('Processing visible indicator', {
+        operation: 'chart_options_refactored',
+        indicatorName: indicator.name,
+        indicatorType: indicator.type,
+        hasCalculationResult: Boolean(indicatorCalculations[indicator.id]),
       })
-      .filter(Boolean)
+
+      // API計算結果を優先、フォールバックでローカル計算
+      const calculationResult = indicatorCalculations[indicator.id]
+      let indicatorData: number[] | number[][]
+
+      if (calculationResult && calculationResult.values) {
+        // API計算結果を使用
+        indicatorData = calculationResult.values.map((item: { value: number }) => item.value)
+        log.business.info('Using API calculation for indicator', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+          dataPoints: indicatorData.length,
+        })
+      } else {
+        // フォールバックでローカル計算
+        log.business.warn('Falling back to local calculation for indicator', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+          indicatorType: indicator.type,
+        })
+        indicatorData = calculateIndicatorFromData(chartData, indicator)
+        
+        log.business.info('Local calculation result', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+          indicatorType: indicator.type,
+          resultLength: Array.isArray(indicatorData) ? indicatorData.length : 0,
+          isArray2D: Array.isArray(indicatorData) && Array.isArray(indicatorData[0]),
+        })
+      }
+
+      if (!indicatorData || indicatorData.length === 0) {
+        log.business.warn('No indicator data available', {
+          operation: 'chart_options_refactored',
+          indicatorName: indicator.name,
+        })
+        return null
+      }
+
+      return {
+        indicator,
+        data: indicatorData
+      }
+    }).filter(Boolean)
   }, [indicators, indicatorCalculations, chartData])
 
   // インジケーターシリーズ作成（直接計算）
@@ -258,9 +236,9 @@ export function useChartOptions(
           const bands = data as number[][]
           const isDarkMode = config.theme === 'dark'
           const color = indicator.color || (isDarkMode ? '#8b5cf6' : '#7c3aed')
-
+          
           // bands[0] = upper2σ, bands[1] = upper1σ, bands[2] = middle, bands[3] = lower1σ, bands[4] = lower2σ
-
+          
           // Upper band (2σ)
           series.push({
             type: 'line',
@@ -271,8 +249,8 @@ export function useChartOptions(
             lineStyle: { color, width: 1, opacity: 0.8 },
             symbol: 'none',
           })
-
-          // Upper band (1σ)
+          
+          // Upper band (1σ)  
           series.push({
             type: 'line',
             name: 'Bollinger Upper (1σ)',
@@ -282,7 +260,7 @@ export function useChartOptions(
             lineStyle: { color, width: 1, opacity: 0.5, type: 'dashed' },
             symbol: 'none',
           })
-
+          
           // Middle line (SMA)
           series.push({
             type: 'line',
@@ -293,7 +271,7 @@ export function useChartOptions(
             lineStyle: { color, width: 2 },
             symbol: 'none',
           })
-
+          
           // Lower band (1σ)
           series.push({
             type: 'line',
@@ -304,7 +282,7 @@ export function useChartOptions(
             lineStyle: { color, width: 1, opacity: 0.5, type: 'dashed' },
             symbol: 'none',
           })
-
+          
           // Lower band (2σ)
           series.push({
             type: 'line',
@@ -343,7 +321,7 @@ export function useChartOptions(
           if (macdGridIndex !== undefined) {
             const macdData = data as number[][]
             const isDarkMode = config.theme === 'dark'
-
+            
             // MACD Line
             series.push({
               type: 'line',
@@ -354,7 +332,7 @@ export function useChartOptions(
               lineStyle: { color: indicator.color || '#3b82f6', width: 2 },
               symbol: 'none',
             })
-
+            
             // Signal Line
             series.push({
               type: 'line',
@@ -365,7 +343,7 @@ export function useChartOptions(
               lineStyle: { color: '#f59e0b', width: 2 },
               symbol: 'none',
             })
-
+            
             // Histogram
             series.push({
               type: 'bar',
@@ -374,15 +352,11 @@ export function useChartOptions(
               xAxisIndex: macdGridIndex,
               yAxisIndex: macdGridIndex,
               itemStyle: {
-                color: function (params: any) {
-                  return params.value[1] >= 0
-                    ? isDarkMode
-                      ? 'rgba(34, 197, 94, 0.8)'
-                      : 'rgba(22, 163, 74, 0.8)'
-                    : isDarkMode
-                      ? 'rgba(239, 68, 68, 0.8)'
-                      : 'rgba(220, 38, 38, 0.8)'
-                },
+                color: function(params: any) {
+                  return params.value[1] >= 0 
+                    ? (isDarkMode ? 'rgba(34, 197, 94, 0.8)' : 'rgba(22, 163, 74, 0.8)')
+                    : (isDarkMode ? 'rgba(239, 68, 68, 0.8)' : 'rgba(220, 38, 38, 0.8)')
+                }
               },
             })
           }
@@ -402,12 +376,7 @@ export function useChartOptions(
     return series
   }, [processedIndicators, layout.seriesMapping, chartData.dates, config.theme])
 
-  // スクロール位置更新関数
-  const updateScrollPosition = useCallback((start: number, end: number) => {
-    scrollPositionRef.current = { start, end }
-  }, [])
-
-  // 最終オプション生成 - 依存配列を最小限に抑制
+  // 最終オプション生成
   const option = useMemo(() => {
     const isDarkMode = config.theme === 'dark'
 
@@ -416,27 +385,7 @@ export function useChartOptions(
       showGridlines: config.showGridlines,
       chartType: config.chartType,
       theme: config.theme,
-      dataLength: chartDataHash.dataLength,
-      preservingScrollPosition: isInitializedRef.current,
     })
-
-    // 初期化時のみデフォルト値を使用、以降はスクロール位置を保持
-    const currentScrollPosition = isInitializedRef.current
-      ? scrollPositionRef.current
-      : { start: 70, end: 100 }
-
-    if (!isInitializedRef.current) {
-      isInitializedRef.current = true
-      log.business.info('Chart initialized with default scroll position', {
-        operation: 'chart_options_scroll_preservation',
-        scrollPosition: currentScrollPosition,
-      })
-    } else {
-      log.business.info('Chart updated preserving scroll position', {
-        operation: 'chart_options_scroll_preservation',
-        scrollPosition: currentScrollPosition,
-      })
-    }
 
     const baseOption: EChartsOption = {
       backgroundColor: config.colors?.background || (isDarkMode ? '#1f2937' : '#ffffff'),
@@ -471,15 +420,10 @@ export function useChartOptions(
       dataZoom: [
         {
           type: 'inside',
-          xAxisIndex: Array.from({ length: layout.gridCount }, (_, i) => i),
-          start: currentScrollPosition.start,
-          end: currentScrollPosition.end,
+          xAxisIndex: Array.from({ length: layout.gridCount }, (_, i) => i), // All X-axes
+          start: 0,
+          end: 100,
           filterMode: 'filter',
-          zoomLock: false,
-          moveOnMouseMove: 'shift', // Shiftキーを押しながらドラッグでスクロール
-          moveOnMouseWheel: false, // マウスホイールでの移動を無効化
-          zoomOnMouseWheel: true, // マウスホイール上下でズーム
-          preventDefaultMouseMove: true,
         },
       ],
       series: [] as SeriesOption[],
@@ -491,9 +435,7 @@ export function useChartOptions(
       candlestickSeries.xAxisIndex = 0
       candlestickSeries.yAxisIndex = 0
       baseOption.series.push(candlestickSeries)
-      log.business.info('Added candlestick series to chart', {
-        operation: 'chart_options_refactored',
-      })
+      log.business.info('Added candlestick series to chart', { operation: 'chart_options_refactored' })
     } else if (config.chartType === 'line') {
       lineSeries.xAxisIndex = 0
       lineSeries.yAxisIndex = 0
@@ -545,8 +487,7 @@ export function useChartOptions(
 
     return baseOption
   }, [
-    // 依存配列を最小限に抑制：chartData の直接参照を避ける
-    chartDataHash, // chartData の代わりにハッシュ値を使用
+    chartData,
     config,
     priceStats,
     layout,
@@ -558,5 +499,5 @@ export function useChartOptions(
     calculationsLoading,
   ])
 
-  return { option, updateScrollPosition }
+  return { option }
 }

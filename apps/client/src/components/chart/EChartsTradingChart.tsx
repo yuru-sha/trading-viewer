@@ -92,7 +92,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
       data,
     })
 
-    const { option, updateScrollPosition } = useChartOptions(chartData, priceStats, {
+    const { option } = useChartOptions(chartData, priceStats, {
       chartType,
       showVolume,
       showGridlines,
@@ -185,7 +185,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
               })
             }
 
-            // 2点目があるプレビューライン
+            // 2 点目があるプレビューライン
             if (currentTool.points.length >= 2) {
               const endPoint = currentTool.points[1]
               const endDataIndex = data.findIndex(d => d.timestamp === endPoint.timestamp)
@@ -601,83 +601,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
       return elements
     }
 
-    // キーボードスクロール機能
+    // キーボードイベント処理（描画ツール用）
     useEffect(() => {
+      if (!enableDrawingTools || !drawingTools) return
+
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (!chartInstance.chartRef.current) return
-
-        const chart = chartInstance.chartRef.current.getEchartsInstance()
-        if (!chart) return
-
-        // デバッグ用ログ
-        console.log('Key pressed:', {
-          key: event.key,
-          metaKey: event.metaKey,
-          ctrlKey: event.ctrlKey,
-          target: event.target?.tagName,
-        })
-
-        // Cmd+矢印キー（Mac）またはCtrl+矢印キー（Windows/Linux）でのスクロール
-        if (
-          (event.metaKey || event.ctrlKey) &&
-          ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
-        ) {
-          event.preventDefault()
-          const option = chart.getOption()
-          const dataZoom = option.dataZoom?.[0]
-
-          if (dataZoom) {
-            const currentStart = dataZoom.start || 0
-            const currentEnd = dataZoom.end || 100
-            const range = currentEnd - currentStart
-            const step = 5 // 5%ずつ移動
-
-            let newStart = currentStart
-            let newEnd = currentEnd
-
-            switch (event.key) {
-              case 'ArrowLeft': // 過去方向スクロール
-                newStart = Math.max(0, currentStart - step)
-                newEnd = newStart + range
-                break
-              case 'ArrowRight': // 未来方向スクロール
-                newEnd = Math.min(100, currentEnd + step)
-                newStart = newEnd - range
-                break
-              case 'ArrowUp': // ズームイン
-                if (range > 10) {
-                  const center = (currentStart + currentEnd) / 2
-                  const newRange = Math.max(10, range * 0.8)
-                  newStart = Math.max(0, center - newRange / 2)
-                  newEnd = Math.min(100, center + newRange / 2)
-                }
-                break
-              case 'ArrowDown': // ズームアウト
-                if (range < 90) {
-                  const center = (currentStart + currentEnd) / 2
-                  const newRange = Math.min(90, range * 1.25)
-                  newStart = Math.max(0, center - newRange / 2)
-                  newEnd = Math.min(100, center + newRange / 2)
-                }
-                break
-            }
-
-            // dataZoomを更新
-            chart.dispatchAction({
-              type: 'dataZoom',
-              dataZoomIndex: 0,
-              start: newStart,
-              end: newEnd,
-            })
-
-            // スクロール位置を保存
-            updateScrollPosition(newStart, newEnd)
-          }
-        }
-
-        // 描画ツール関連のキーボードイベント
-        if (!enableDrawingTools || !drawingTools) return
-
         if (event.key === 'Delete' || event.key === 'Backspace') {
           if (drawingTools.selectedToolId) {
             drawingTools.deleteTool(drawingTools.selectedToolId)
@@ -695,7 +623,7 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
 
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
-    }, [enableDrawingTools, drawingTools, chartInstance, updateScrollPosition])
+    }, [enableDrawingTools, drawingTools])
 
     return (
       <div className={`relative ${className}`}>
@@ -729,35 +657,11 @@ export const EChartsTradingChart = forwardRef<EChartsTradingChartRef, EChartsTra
           }}
           opts={{
             renderer: 'canvas',
-            resize: true,
+            resize: true, // 自動リサイズを有効化
           }}
           onChartReady={chartInstance.onChartReady}
-          onEvents={{
-            dataZoom: (params: any) => {
-              console.log('DataZoom event:', params)
-              // EChartsのdataZoomイベントの正しい構造を使用
-              if (params.batch) {
-                // バッチ形式の場合
-                const batchItem = params.batch[0]
-                if (batchItem && batchItem.start !== undefined && batchItem.end !== undefined) {
-                  console.log(
-                    'Updating scroll position from batch:',
-                    batchItem.start,
-                    batchItem.end
-                  )
-                  updateScrollPosition(batchItem.start, batchItem.end)
-                }
-              } else {
-                // 直接形式の場合
-                if (params.start !== undefined && params.end !== undefined) {
-                  console.log('Updating scroll position:', params.start, params.end)
-                  updateScrollPosition(params.start, params.end)
-                }
-              }
-            },
-          }}
-          notMerge={false} // マージを有効にしてスクロール位置を保持
-          lazyUpdate={true} // 遅延更新を有効にしてパフォーマンスを向上
+          notMerge={true}
+          lazyUpdate={false}
         />
       </div>
     )

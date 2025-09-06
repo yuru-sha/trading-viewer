@@ -14,7 +14,7 @@ export const useDOMEventListeners = ({
   config,
   chartInstance,
   drawingTools,
-  handlers,
+  handlers
 }: UseDOMEventListenersProps) => {
   const handlersRef = useRef<ChartEventHandlers>(handlers)
   const lastMouseMoveTime = useRef(0)
@@ -146,7 +146,7 @@ export const useDOMEventListeners = ({
     addEventListener(chartDom, 'mousemove', mouseMoveHandler)
     addEventListener(chartDom, 'mouseup', mouseUpHandler)
     addEventListener(chartDom, 'contextmenu', rightClickHandler)
-
+    
     log.business.debug('🎯 DOM event listeners added')
 
     // Cleanup is handled automatically by memory manager

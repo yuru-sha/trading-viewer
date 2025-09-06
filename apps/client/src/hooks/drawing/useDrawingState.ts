@@ -73,13 +73,6 @@ export type DrawingAction =
       }
     }
   | { type: 'UPDATE_DRAG'; payload: { x: number; y: number } }
-  | {
-      type: 'BATCH_UPDATE_DRAG'
-      payload: {
-        toolUpdate: { id: string; updates: Partial<DrawingTool> }
-        dragUpdate: { x: number; y: number }
-      }
-    }
   | { type: 'END_DRAG' }
 
 // Initial state configuration
@@ -254,18 +247,6 @@ export const drawingReducer = (state: DrawingState, action: DrawingAction): Draw
       // ドラッグ中は実際の座標更新は行わず、プレビューのみ
       return {
         ...state,
-        lastPreviewUpdate: Date.now(),
-      }
-
-    case 'BATCH_UPDATE_DRAG':
-      // Batch update both tool and drag state in a single render
-      return {
-        ...state,
-        tools: state.tools.map(tool =>
-          tool.id === action.payload.toolUpdate.id
-            ? { ...tool, ...action.payload.toolUpdate.updates }
-            : tool
-        ),
         lastPreviewUpdate: Date.now(),
       }
 

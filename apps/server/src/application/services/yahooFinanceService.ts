@@ -411,3 +411,4 @@ export class YahooFinanceService implements IYahooFinanceService {
     return []
   }
 }
+

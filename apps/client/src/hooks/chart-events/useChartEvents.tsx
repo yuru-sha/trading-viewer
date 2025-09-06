@@ -1,8 +1,15 @@
+import { useCallback, useEffect, useRef } from 'react'
 import { useChartClick } from './useChartClick'
 import { useChartMouseEvents } from './useChartMouseEvents'
 import { useChartRightClick } from './useChartRightClick'
 import { useDOMEventListeners } from './useDOMEventListeners'
-import type { ChartEventsConfig } from './types'
+import type { ChartEventsConfig, ChartEventHandlers } from './types'
+
+type UseChartEventsParams = {
+  chartInstance: ReturnType<typeof import('../useChartInstance')>
+  drawingTools: any
+  config: ChartEventsConfig
+}
 
 export const useChartEvents = (
   chartInstance: any,
@@ -12,10 +19,7 @@ export const useChartEvents = (
   // Helper function to find closest data index by timestamp
   const findClosestDataIndex = useCallback(
     (targetTimestamp: number): number => {
-      if (!config.data || config.data.length === 0) {
-        console.warn('🎯 findClosestDataIndex: No chart data available', { targetTimestamp })
-        return 0 // Return 0 instead of -1 to allow basic functionality
-      }
+      if (config.data.length === 0) return -1
 
       // First try exact match
       const exactIndex = config.data.findIndex(d => d.timestamp === targetTimestamp)

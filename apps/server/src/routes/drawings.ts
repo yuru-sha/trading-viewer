@@ -327,7 +327,7 @@ router.post('/batch', requireAuth, requireCSRF, async (req: AuthenticatedRequest
       }
 
       // Use transaction to ensure atomicity
-      const result = await prisma.$transaction(async tx => {
+      const result = await prisma.$transaction(async (tx) => {
         // First, delete existing tools for this user/symbol/timeframe
         const deleteResult = await tx.drawingTool.deleteMany({
           where: {
